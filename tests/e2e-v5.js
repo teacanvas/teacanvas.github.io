@@ -54,7 +54,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>S.draft.stage==='free'&&S.draft.chat.slice(-2).every(m=>m.who==='me'&&m.kept)),'자유 대화 중엔 끼어들지 않고 담기만');
   await ev(()=>{ S.draft.drinkAt-=60000; S.draft.lastMeAt=Date.now()-76000; }); await wait(10500);
   ok(await ev(()=>S.draft.nudged&&S.draft.stage==='free'),'오래 조용하면 한 번만 부드럽게 말 걸기');
-  await chip('이제 충분해요'); ok(await ev(()=>S.draft.stage==='after'),'이제 충분해요 → 여운 질문');
+  await p.click('.chatfoot .btn >> text=이제 충분해요'); await wait(1300); ok(await ev(()=>S.draft.stage==='after'),'이제 충분해요 → 여운 질문');
   await say('식으니까 더 달아요');
   ok(await ev(()=>S.draft.stage==='more'),'조금 더 남겨볼까요? 메뉴'); await snap('more');
   await chip('우림 변화'); await chip('2차'); await chip('단맛이 늘었어요'); await chip('더 짧게');
