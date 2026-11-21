@@ -1,0 +1,144 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 화면 배치 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1300px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:820px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;margin-top:20px}
+.item{display:flex;flex-direction:column;gap:8px;position:relative}
+.item h2{font-size:15px}
+.item p{font-size:12.5px;color:#737373;min-height:36px}
+.frame{width:270px;height:585px;border-radius:30px;overflow:hidden;box-shadow:0 0 0 6px #161616;background:#fff;position:relative}
+.ph{position:absolute;left:0;top:0;width:393px;height:852px;transform:scale(.687);transform-origin:0 0;display:flex;flex-direction:column;background:#fff}
+.bar{height:62px;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 0;flex-shrink:0}
+.logo{font-weight:800;font-size:16px}
+.hello{font-size:20px;font-weight:700;line-height:1.55;margin:22px 26px 0}
+.hello.center{text-align:center}
+.mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0}
+.lbl{text-align:center}
+.lbl b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:38px;line-height:1.1}
+.lbl span{display:block;font-size:13px;color:#737373;margin-top:4px}
+.mid.std .lbl{margin-bottom:56px}
+.mid.tight .lbl{margin-bottom:-6px;position:relative;z-index:2}
+.mid.below .lbl{order:2;margin-top:-22px;position:relative;z-index:2}
+.mid.small .lbl b{font-size:26px}
+.mid.small .lbl{margin-bottom:-10px;position:relative;z-index:2}
+.mid.overlay .lbl{position:absolute;z-index:2;left:0;right:0;top:50%;transform:translateY(-50%)}
+.mid.overlay .lbl span{color:#555}
+.mid canvas{display:block}
+.btn{height:78px;background:#000;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:21px;font-weight:700;flex-shrink:0}
+.btn i{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);display:grid;place-items:center;font-style:normal;font-size:20px}
+.btn.pill{margin:0 22px 18px;border-radius:39px;height:64px}
+.nav{height:60px;border-top:1px solid #E5E5E5;display:flex;flex-shrink:0}
+.nav span{flex:1;display:grid;place-items:center;font-size:15px;font-weight:700;color:#A3A3A3}
+.nav span:first-child{color:#000}
+.star{position:absolute;right:0;top:-4px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}
+.pickbox textarea{width:100%;height:80px}
+</style></head><body>
+<div class="wrap"><h1>홈 화면 배치 시안 8종</h1>
+<p class="lead">모두 버튼을 "새로운 티 기록하기" 한 줄로 바꿨고, 번짐을 지금보다 크게 했어요. 풍미 이름 위치, 정렬, 번짐 크기, 버튼 모양을 바꿨어요. 번짐은 실제처럼 움직여요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<div class="grid" id="grid"></div></div>
+<script>
+const WC={rng:seed=>{ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }};
+function makeWash(N,hex,seed){
+  const r=WC.rng(seed), s1=r()*50, s2=r()*50;
+  const fr=x=>x-Math.floor(x), h2=(x,y)=>fr(Math.sin(x*127.1+y*311.7)*43758.5453);
+  const nz=(x,y)=>{ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; };
+  const fbm=(x,y)=>.5*nz(x,y)+.25*nz(x*2.03+5,y*2.03+1)+.125*nz(x*4.1+2,y*4.1+7)+.0625*nz(x*8.3,y*8.3);
+  const T=new Float32Array(N*N), G=new Float32Array(N*N), H=new Float32Array(N*N);
+  const el=1, ea=0, ce=1, se=0; // 위에서 똑바로 내려다본 모습: 찌그러뜨리지 않는다
+  // 색이 고이는 자리 몇 군데(진한 얼룩)
+  const pools=[0,1,2].map(()=>({x:(r()-.5)*.8,y:(r()-.5)*.8,r:.12+.18*r(),k:.35+.5*r()}));
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    let u=(i+.5)/N*2-1, v=(j+.5)/N*2-1; const a=u*ce+v*se, b=-u*se+v*ce; const uu=a/el, vv=b*el;
+    const rr=Math.hypot(uu,vv), th=Math.atan2(vv,uu);
+    const ang=fbm(Math.cos(th)*1.3+s1,Math.sin(th)*1.3+s2);          // 방향별로 멀리/덜 퍼짐
+    const paper=fbm(u*5+s1,v*5+s2);                                   // 종이 결(낮은 곳으로 빨리 스민다)
+    const fine=fbm(u*16+s2,v*16+s1);                                  // 가장자리의 잔 톱니
+    const k=j*N+i;
+    T[k]=rr*(1+.26*(ang-.5)*2)*(1+.2*(paper-.5)*2)+.045*(fine-.5)*2;
+    G[k]=nz(i*.9+s1,j*.9+s2)*.6+nz(i*.35,j*.35)*.4;                   // 입자
+    let hp=0; for(const q of pools){ const d=Math.hypot(u-q.x,v-q.y); hp+=q.k*Math.exp(-d*d/(q.r*q.r)); } H[k]=hp*(.6+.8*fbm(u*3+s2,v*3));
+  }
+  const n=parseInt(hex.slice(1),16), base=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];
+  const L=.2126*base[0]+.7152*base[1]+.0722*base[2], body=base.map(c=>{ c=L+(c-L)*1.15; return c+(1-c)*.38; }), rim=base.map(c=>{ c=L+(c-L)*1.25; return c*.78; });
+  const cv=document.createElement('canvas'); cv.width=cv.height=N; const x=cv.getContext('2d'), im=x.createImageData(N,N), d=im.data;
+  const REACH=.5;
+  // 젖은 단계 → 마르는 단계
+  //  0~0.3초: 물방울이 톡 떨어진 둥근 웅덩이(진하고 반짝임)
+  //  0.3~2.6초: 물이 먼저 퍼지고 색은 뒤따라 번짐(가장자리 흐림, 가운데 진함, 물 표면 반짝임)
+  //  2.6~5.5초: 마르며 반짝임이 사라지고 전체가 밝아지며, 안료가 가장자리로 몰려 테두리가 또렷·진해짐, 입자가 드러남
+  function frame(t,fade=1){
+    const water=.07+(REACH-.07)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
+    const pig=water*(.62+.38*(1-Math.exp(-t/1.8)));                    // 색이 번진 범위(물보다 늦다)
+    const w=1-Math.min(1,Math.max(0,(t-2.4)/3.0)), dry=1-w;            // 젖음 정도
+    const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
+    const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
+    for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
+      const bead=0;
+      if(tk>water+soft&&!(bead>0&&Math.hypot((k%N+.5)/N*2-1,(Math.floor(k/N)+.5)/N*2-1)<.075)){ d[o+3]=0; continue; }
+      // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
+      const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
+      // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
+      const inside=water-tk, rimBand=Math.exp(-Math.max(0,inside)/.02);
+      const dryA=.3+H[k]*.3+rimBand*.6;
+      let amt=wetA*w+dryA*dry;
+      amt*=1-.24*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
+      const edgeA=Math.max(0,Math.min(1,(water+soft*.4-tk)/soft));        // 경계: 젖을수록 부드럽게, 마르면 또렷
+      const m=Math.min(1,rimBand*dry*.9);
+      let c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
+      // 젖은 물감은 더 진하고 선명하다
+      { const L=.2126*c0+.7152*c1+.0722*c2, sat=1+.45*w, dk=1-.08*w; c0=Math.max(0,Math.min(1,(L+(c0-L)*sat)*dk)); c1=Math.max(0,Math.min(1,(L+(c1-L)*sat)*dk)); c2=Math.max(0,Math.min(1,(L+(c2-L)*sat)*dk)); }
+      // 물 표면 반짝임: 왼쪽 위에 넓고 부드러운 빛, 물 가장자리에 가는 밝은 테
+      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.12*water, hy=v+.12*water;
+      const gloss=sh*(.22*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))*(1-bead*.5)+.12*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
+      c0+= (1-c0)*gloss; c1+=(1-c1)*gloss; c2+=(1-c2)*gloss;
+      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,Math.max(amt,gloss*.6)*edgeA*fade))*255;
+    }
+    x.putImageData(im,0,0);
+    // 첫 순간: 위에서 본 둥근 물감 방울이 종이에 맺혔다가 퍼지며 사라진다
+    const bead=0; // 맺히는 방울은 쓰지 않는다
+    if(bead>0){ const R0=N*.05*(1+.5*(1-bead)), c=`rgb(${body.map(v=>Math.round(Math.max(0,Math.min(1,v*.88))*255))})`;
+      x.save(); x.globalAlpha=Math.min(1,bead*1.4)*fade; x.fillStyle=c; x.beginPath(); x.arc(N/2,N/2,R0,0,6.283); x.fill();
+      x.globalAlpha=.55*bead*fade; x.fillStyle='#fff'; x.beginPath(); x.ellipse(N/2-R0*.32,N/2-R0*.32,R0*.28,R0*.2,-.6,0,6.283); x.fill(); x.restore(); }
+    return cv;
+  }
+  return {frame};
+}
+
+const FL=[['Floral','꽃, 자스민, 장미 같은 향','#E9A9C6'],['Fruity','사과, 복숭아처럼 상큼한','#F2946A'],['Citrus','레몬, 유자처럼 산뜻한','#E8D45A'],['Grassy','갓 벤 풀처럼 싱그러운','#96C46A'],['Fresh','민트처럼 시원하고 깔끔한','#79C3BC'],['Nutty','볶은 곡물처럼 고소한','#A87A4E']];
+function inkText(hex){ const n=parseInt(hex.slice(1),16); let c=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; const k=L>.55?(.55/L):1; return `rgb(${c.map(v=>Math.round(v*k*255))})`; }
+const V=[{k:'A',n:'번짐만 크게',d:'지금 배치에서 번짐만 크게 키웠어요.',lay:'std',sz:330,hello:'left',btn:''},{k:'B',n:'이름을 번짐 바로 위로',d:'풍미 이름과 번짐을 한 묶음으로 붙이고, 번짐을 크게.',lay:'tight',sz:340,hello:'left',btn:''},{k:'C',n:'이름을 번짐 위에 겹치기',d:'번짐 한가운데에 풍미 이름이 떠요. 가장 크게 번져요.',lay:'overlay',sz:370,hello:'left',btn:''},{k:'D',n:'가운데 정렬',d:'인사 문구도 가운데로 맞춰 화면 전체가 대칭이에요.',lay:'tight',sz:340,hello:'center',btn:''},{k:'E',n:'번짐을 화면 가득',d:'번짐이 화면 폭을 넘칠 만큼 크게, 이름은 아래에.',lay:'below',sz:420,hello:'left',btn:''},{k:'F',n:'인사 문구 없이',d:'인사 문구를 빼고 풍미 이름과 번짐만 크게 보여요.',lay:'tight',sz:360,hello:'none',btn:''},{k:'G',n:'둥근 버튼',d:'버튼을 둥근 알약 모양으로, 아래에 여백을 둬요.',lay:'tight',sz:340,hello:'left',btn:'pill'},{k:'H',n:'작은 이름 · 큰 번짐',d:'이름을 작게 위에 두고 번짐을 최대한 크게.',lay:'small',sz:390,hello:'left',btn:''}];
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.homelayout.fav')||'[]')); }catch(e){}
+const g=document.getElementById('grid');
+g.innerHTML=V.map((v,i)=>`<section class="item"><button class="star ${FAV.has(v.k)?'on':''}" data-k="${v.k}">${FAV.has(v.k)?'★':'☆'}</button><h2>${v.k}. ${v.n}</h2><p>${v.d}</p>
+ <div class="frame"><div class="ph"><div class="bar"><span class="logo">TEA CANVAS</span><span>🔔︎</span></div>
+ ${v.hello==='none'?'':`<h2 class="hello ${v.hello}">오늘도 새로운 차 경험을<br>기록해보세요.</h2>`}
+ <div class="mid ${v.lay}"><div class="lbl"><b></b><span></span></div><canvas style="width:${v.sz}px;height:${v.sz}px"></canvas></div>
+ <div class="btn ${v.btn}"><span>새로운 티 기록하기</span><i>→</i></div><div class="nav"><span>Home</span><span>Canvas</span><span>My</span></div></div></div></section>`).join('');
+const PXS=Math.min(2,devicePixelRatio||1);
+const C=[...g.querySelectorAll('.item')].map((el,i)=>{ const cv=el.querySelector('canvas'), v=V[i], px=Math.round(v.sz*PXS*.75); cv.width=cv.height=px; return {el,cv,v,px,N:Math.min(240,Math.round(px*.55)),cache:{},lb:el.querySelector('.lbl b'),ls:el.querySelector('.lbl span'),last:-1}; });
+const LEAD=.6, SPREAD=2.9, HOLD=1.4, FADE=.9, STEP=LEAD+SPREAD+HOLD+FADE;
+function draw(c,tt){ const idx=Math.floor(tt/STEP), f=FL[(idx+c.v.k.charCodeAt(0))%FL.length], st=tt-idx*STEP, age=st-LEAD;
+  if(c.last!==idx){ c.last=idx; c.lb.textContent=f[0]; c.lb.style.color=inkText(f[2]); c.ls.textContent=f[1]; }
+  const op=st>LEAD+SPREAD+HOLD?Math.max(0,1-(st-LEAD-SPREAD-HOLD)/FADE):Math.min(1,st/.4); c.lb.parentNode.style.opacity=op;
+  const x=c.cv.getContext('2d'); x.clearRect(0,0,c.px,c.px); if(age<=0) return;
+  const w=c.cache[f[0]]||(c.cache[f[0]]=makeWash(c.N,f[2],(idx%3+1)*7919+c.v.k.charCodeAt(0)));
+  const fade=1-Math.max(0,Math.min(1,(age-SPREAD-HOLD)/FADE)); x.imageSmoothingQuality='high'; const m=-c.px*.42; x.drawImage(w.frame(Math.min(age,SPREAD),fade),m,m,c.px-2*m,c.px-2*m); }
+const t0=performance.now(); (function loop(now){ const tt=window.T!=null?window.T:Math.max(0,(now-t0)/1000); C.forEach(c=>draw(c,tt)); requestAnimationFrame(loop); })(t0);
+function names(){ return V.filter(v=>FAV.has(v.k)).map(v=>v.k+'. '+v.n); }
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }
+document.getElementById('cp').onclick=async()=>{ const t='홈 화면 배치 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const k=b.dataset.k; FAV.has(k)?FAV.delete(k):FAV.add(k); try{ localStorage.setItem('tc.homelayout.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(k)?'★':'☆'; up(); });
+up(); window.READY=true;
+</script></body></html>
