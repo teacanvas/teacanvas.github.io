@@ -1,0 +1,44 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 글자 애니메이션 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1300px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:820px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;margin-top:20px}
+.item{display:flex;flex-direction:column;gap:6px;position:relative}
+.item h2{font-size:15px}
+.item p{font-size:12.5px;color:#737373;min-height:34px}
+.frame{width:270px;height:585px;border-radius:30px;overflow:hidden;box-shadow:0 0 0 6px #161616;background:#fff;position:relative}
+.frame iframe{position:absolute;left:0;top:0;width:393px;height:852px;border:0;transform:scale(.687);transform-origin:0 0}
+.star{position:absolute;right:0;top:-4px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}
+.pickbox textarea{width:100%;height:80px}
+</style></head><body>
+<div class="wrap"><h1>홈 풍미 이름 애니메이션 시안 8종</h1>
+<p class="lead">번짐 위에 Floral, Fruity 같은 이름이 나타났다 사라지는 방식을 바꿔봤어요. 각 화면은 실제 v5 앱이라 계속 움직여요. 한 이름이 나타나서 사라지기까지 약 5초예요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<div class="grid" id="grid"></div></div>
+<script>
+const V=[['A','지금 (가운데서 커지며)','la=scale',"정중앙에서 작게 시작해 커지고, 작아지며 사라져요"],
+ ['B','페이드 인 · 아웃','la=fade',"제자리에서 살며시 나타났다 사라져요"],
+ ['C','아주 천천히 페이드','la=slow',"B를 두 배쯤 느리게. 가장 조용해요"],
+ ['D','흐림에서 또렷하게','la=blur',"안개 낀 듯 흐릿하다 또렷해지고, 다시 흐려지며 사라져요"],
+ ['E','자간이 모이며','la=track',"넓게 퍼진 글자가 모이며 나타나고, 퍼지며 사라져요"],
+ ['F','살짝 떠오르며','la=rise',"아래에서 8px만 떠오르며 페이드"],
+ ['G','번지듯','la=ink',"살짝 크고 흐린 상태에서 수채처럼 맺혀요"],
+ ['H','한 글자씩','la=letters',"F·l·o·r·a·l 한 글자씩 차례로 나타나요"]];
+const g=document.getElementById('grid'); let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.homelabel.fav')||'[]')); }catch(e){}
+g.innerHTML=V.map(([k,n,c,d])=>`<section class="item"><button class="star ${FAV.has(k)?'on':''}" data-k="${k}">${FAV.has(k)?'★':'☆'}</button><h2>${k}. ${n}</h2><p>${d}</p><div class="frame"><iframe src="../../TEA_CANVAS_prototype_v5.html?${c}" loading="lazy" title="${n}"></iframe></div></section>`).join('');
+function names(){ return V.filter(v=>FAV.has(v[0])).map(v=>v[0]+'. '+v[1]); }
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }
+document.getElementById('cp').onclick=async()=>{ const t='홈 글자 애니메이션 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const k=b.dataset.k; FAV.has(k)?FAV.delete(k):FAV.add(k); try{ localStorage.setItem('tc.homelabel.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(k)?'★':'☆'; up(); });
+up();
+</script></body></html>
