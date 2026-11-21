@@ -993,7 +993,7 @@ function favDrop(){
   const top=ks.map(k=>({k,w:+(.4+.55*fl[k]/mx).toFixed(2)}));
   const drop={id:'fav-'+rs.map(r=>r.id).join('.'),comps:[{key:'tea',c:TEAS[topT].color,w:.45},...top.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
   const names=top.map(f=>FLAVORS[f.k].label);
-  const all=Object.keys(fl).sort((a,b)=>fl[b]-fl[a]).map(k=>({k,c:FLAVORS[k].color,w:fl[k]/mx})).slice(0,5).filter((f,i)=>i<4||f.w>=.35); // 탁해지지 않게 상위 4~5색만
+  const all=Object.keys(fl).sort((a,b)=>fl[b]-fl[a]).map(k=>({k,c:FLAVORS[k].color,w:fl[k]/mx})).slice(0,4); // 탁해지지 않게 상위 4색만
   return {drop,top,all,n:rs.length,
     title:`향도 맛도 좋았던 ${rs.length}잔을 모았어요`,
     desc:names.length?`${names.join(', ')} 풍미가 가장 진하게 담겼어요. 좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`:`좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`};
