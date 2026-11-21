@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 여백 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1300px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:820px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;margin-top:20px}
+.item{display:flex;flex-direction:column;gap:6px;position:relative}
+.item h2{font-size:15px}
+.item p{font-size:12.5px;color:#737373;min-height:34px}
+.frame{width:270px;height:585px;border-radius:30px;overflow:hidden;box-shadow:0 0 0 6px #161616;background:#fff;position:relative}
+.frame iframe{position:absolute;left:0;top:0;width:393px;height:852px;border:0;transform:scale(.687);transform-origin:0 0}
+.star{position:absolute;right:0;top:-4px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}
+.pickbox textarea{width:100%;height:80px}
+</style></head><body>
+<div class="wrap"><h1>홈 여백 시안 10종 (제목·회색 문구·버튼)</h1>
+<p class="lead">가운데 번짐은 그대로 두고, 인사 문구를 내리고 버튼을 올리고 회색 문구 간격을 바꿨어요. A는 지금 그대로(비교용)예요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<div class="grid" id="grid"></div></div>
+<script>
+const V=[['A','지금 그대로','',"비교용. 제목 위 30 · 회색~버튼 12 · 버튼 아래 18"],
+ ['B','제목만 조금 아래로','qt=56',"제목 위 56"],
+ ['C','제목 아래 + 버튼 위로','qt=56&bb=40',"위아래 여백을 같이 줄여요"],
+ ['D','제목 더 아래 + 버튼 위로','qt=80&nb=14&bb=44',"가운데로 더 모여요"],
+ ['E','C + 회색 문구를 버튼에 바짝','qt=56&nb=8&bb=40',"회색 문구가 버튼 설명처럼"],
+ ['F','C + 회색 문구 간격 넓게','qt=56&nb=20&bb=40',"회색 문구가 따로 숨 쉬어요"],
+ ['G','제목 아래 + 버튼 많이 위로','qt=64&nb=14&bb=64',"아래 여백을 크게 줄여요"],
+ ['H','제목 아주 아래로','qt=100&nb=14&bb=40',"제목이 번짐에 가까워져요"],
+ ['I','D + 회색 문구 조금 크게','qt=72&nb=14&bb=44&ns=14',"회색 문구가 더 잘 읽혀요"],
+ ['J','균형형','qt=72&nb=16&bb=52',"위아래가 비슷한 무게로"]];
+const g=document.getElementById('grid'); let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.homegap.fav')||'[]')); }catch(e){}
+g.innerHTML=V.map(([k,n,c,d])=>`<section class="item"><button class="star ${FAV.has(k)?'on':''}" data-k="${k}">${FAV.has(k)?'★':'☆'}</button><h2>${k}. ${n}</h2><p>${d}</p><div class="frame"><iframe src="../../TEA_CANVAS_prototype_v5.html?${c}" loading="lazy" title="${n}"></iframe></div></section>`).join('');
+function names(){ return V.filter(v=>FAV.has(v[0])).map(v=>v[0]+'. '+v[1]); }
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }
+document.getElementById('cp').onclick=async()=>{ const t='홈 여백 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const k=b.dataset.k; FAV.has(k)?FAV.delete(k):FAV.add(k); try{ localStorage.setItem('tc.homegap.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(k)?'★':'☆'; up(); });
+up();
+</script></body></html>

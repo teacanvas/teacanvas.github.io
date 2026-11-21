@@ -1014,14 +1014,16 @@ function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML
    SCREENS
    ========================================================= */
 const HQ=(()=>{ try{ return (new URLSearchParams(location.search).get('hq')||'center').replace(/[^a-z ]/g,''); }catch(e){ return ''; } })();
+// 홈 여백 시안용: ?qt=제목 위 여백 &nb=회색 문구~버튼 간격 &bb=버튼 아래 여백 &ns=회색 문구 글자 크기 (px)
+const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(0,Math.min(160,v)):d; }; return {qt:n('qt',30),nb:n('nb',12),bb:n('bb',18),ns:n('ns',12.5)}; }catch(e){ return {qt:30,nb:12,bb:18,ns:12.5}; } })();
 const SCREENS = {
 
 home(){
   return `<div class="home">
-    <h1 class="home-q ${HQ}">${/split/.test(HQ)?'<em>오늘의 차는 당신에게</em>어떤 색들이 담겨 있을까요?':'오늘의 차는 당신에게<br>어떤 색들이 담겨 있을까요?'}</h1>
+    <h1 class="home-q ${HQ}" style="margin-top:${HL.qt}px">${/split/.test(HQ)?'<em>오늘의 차는 당신에게</em>어떤 색들이 담겨 있을까요?':'오늘의 차는 당신에게<br>어떤 색들이 담겨 있을까요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
-    <p class="home-note">맛과 향을 기록해서 색으로 보관해요</p>
-    <button class="bigbtn" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
+    <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
+    <button class="bigbtn" style="margin-bottom:${HL.bb}px" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
 },
 
