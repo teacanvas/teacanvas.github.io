@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>찻방울 스타일 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--bg:#F4F4F2;--card:#fff;--ink:#111;--g2:#737373;--line:#E5E5E5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:40px 24px 80px}
+header{max-width:1180px;margin:0 auto 28px}
+header h1{font-size:24px;font-weight:700;letter-spacing:-.3px}
+header p{color:var(--g2);font-size:14px;margin-top:6px}
+.grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(540px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h2{font-size:16px;font-weight:700}
+.card h2 small{font-weight:500;color:var(--g2);font-size:12.5px;margin-left:6px}
+.card p.d{font-size:13px;color:var(--g2);margin-top:4px;min-height:40px}
+.pair{display:flex;gap:12px;margin-top:14px}
+.pair figure{flex:1;min-width:0}
+.pair canvas{width:100%;aspect-ratio:1/1;display:block;border-radius:6px;cursor:pointer}
+figcaption{font-size:12px;color:var(--g2);margin-top:6px;text-align:center}
+.rec{display:inline-block;font-size:11px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.legend{max-width:1180px;margin:0 auto 22px;display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:#444}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block}
+@media (max-width:600px){.grid{grid-template-columns:1fr}.pair{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <h1>찻방울 · 캔버스 칠 시안 6종</h1>
+  <p>모든 시안은 같은 데이터로 그렸어요. 왼쪽 방울을 누르면 번지는 모습이 다시 재생되고, 오른쪽 캔버스를 누르면 그 자리에 새 방울이 찍혀요.</p>
+</header>
+<div class="legend" id="legend"></div>
+<div class="grid" id="grid"></div>
+
+<script>
+/* ============ 수채화 렌더러 (v2 본편에서도 재사용) ============ */
+const WC = (()=>{
+  const rng = seed => { let a = seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; };
+  const hash = s => { let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; };
+  const gauss = r => (r()+r()+r()-1.5)/1.5;
+  const hex = h => { const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; };
+  const rgba = (h,a) => { const [r,g,b]=hex(h); return `rgba(${r},${g},${b},${a})`; };
+  const darken = (h,f) => { const [r,g,b]=hex(h).map(v=>Math.round(v*(1-f))); return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1); };
+
+  function circle(n,cx,cy,r,rand,wob=0){
+    const pts=[]; for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, rr=r*(1+wob*gauss(rand)); pts.push({x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,v:.5+rand()}); } return pts;
+  }
+  // 재귀 중점 변형: 각 변의 흔들림은 시작점의 v를 따른다
+  function deform(pts,depth,vs,rand){
+    for(let d=0;d<depth;d++){
+      const out=[];
+      for(let i=0;i<pts.length;i++){
+        const a=pts[i], b=pts[(i+1)%pts.length], len=Math.hypot(b.x-a.x,b.y-a.y);
+        out.push(a,{x:(a.x+b.x)/2+gauss(rand)*len*vs*a.v, y:(a.y+b.y)/2+gauss(rand)*len*vs*a.v, v:a.v*(.85+rand()*.3)});
+      }
+      pts=out;
+    }
+    return pts;
+  }
+  const toPath = pts => { const p=new Path2D(); pts.forEach((q,i)=>i?p.lineTo(q.x,q.y):p.moveTo(q.x,q.y)); p.closePath(); return p; };
+
+  // 풍미 구성요소 배치: 강한 것은 가운데 크게, 약한 것은 가장자리에 작게
+  function layout(comps,rand){
+    const cs=[...comps].sort((a,b)=>b.w-a.w), n=cs.length, a0=rand()*Math.PI*2;
+    return cs.map((c,i)=>{
+      if(i===0) return {...c,x:0,y:0,r:.5+.28*c.w};
+      const a=a0+(i-1)*(Math.PI*2/Math.max(1,n-1))+gauss(rand)*.35, d=.3+.42*(1-c.w);
+      return {...c,x:Math.cos(a)*d,y:Math.sin(a)*d,r:.24+.34*c.w};
+    });
+  }
+
+  const STYLES = {
+    /* A. 습식 번짐: 낮은 불투명도 레이어를 많이 겹쳐 가장자리만 살짝 진해지게 */
+    wet(cs,rand){
+      const ops=[], L=44;
+      cs.forEach((c,ci)=>{
+        const base=deform(circle(10,c.x,c.y,c.r,rand,.06),2,.3,rand);
+        for(let l=0;l<L;l++){
+          const halo=l%4===0, b=halo?deform(circle(10,c.x,c.y,c.r*1.18,rand,.06),2,.3,rand):base;
+          ops.push({path:toPath(deform(b,3,halo?.22:.15,rand)),fill:rgba(c.c,halo?.007:.014+.012*c.w),stroke:halo?null:rgba(darken(c.c,.3),.012),lw:1,t:l/L*.8+ci*.06});
+        }
+      });
+      return ops;
+    },
+    /* B. 반반 방울 */
+    split(cs,rand){ return bands(cs,rand,{L:24,clipVar:.02,regVar:.05,alpha:.034,rim:0,ov:.09}); },
+    /* C. 피어나는 꽃물 */
+    bloom(cs,rand){
+      const ops=[], c0=cs[0];
+      const main=deform(circle(10,0,0,.92,rand,.08),2,.3,rand);
+      for(let l=0;l<28;l++) ops.push({path:toPath(deform(main,3,.15,rand)),fill:rgba(c0.c,.014),stroke:rgba(darken(c0.c,.3),.008),lw:1,t:l/28*.5});
+      cs.forEach((c,ci)=>{
+        const nb=2+Math.round(c.w*3);
+        for(let b=0;b<nb;b++){
+          const bx=c.x+gauss(rand)*c.r*.45, by=c.y+gauss(rand)*c.r*.45, br=c.r*(.3+rand()*.35);
+          const base=deform(circle(9,bx,by,br,rand,.12),2,.4,rand);
+          for(let l=0;l<10;l++) ops.push({path:toPath(deform(base,3,.14,rand)),fill:rgba(c.c,.02),stroke:rgba(darken(c.c,.25),.028),lw:1,t:.25+l/10*.5+ci*.04});
+        }
+        if(ci<=1){ for(let k=0;k<Math.round(12*c.w)+4;k++){ const r=.01+rand()*.028; const p=new Path2D(); p.arc(c.x+gauss(rand)*c.r*.55,c.y+gauss(rand)*c.r*.55,r,0,Math.PI*2); ops.push({path:p,fill:rgba(darken(c.c,.3),.16),t:.75+rand()*.2}); } }
+      });
+      return ops;
+    },
+    /* D. 모션 구슬 */
+    motion(cs,rand){
+      const ops=[], dir=rand()*Math.PI*2, ux=Math.cos(dir), uy=Math.sin(dir);
+      cs.forEach((c,ci)=>{
+        const rc=c.r*.78, nx=cs[(ci+1)%cs.length].c;
+        for(let k=10;k>=1;k--){ const o=k*rc*.11; ops.push({circle:[c.x-ux*o,c.y-uy*o,rc*1.05],grad:[[0,rgba(nx,.06*(1-k/11))],[.7,rgba(nx,.05*(1-k/11))],[1,rgba(nx,0)]],t:ci*.08+(10-k)/10*.4}); }
+        ops.push({circle:[c.x+uy*rc*.16,c.y-ux*rc*.16,rc*1.12],grad:[[0,rgba(nx,.45)],[.75,rgba(nx,.38)],[1,rgba(nx,0)]],t:.45+ci*.08});
+        ops.push({circle:[c.x,c.y,rc],grad:[[0,rgba(c.c,.82)],[.86,rgba(c.c,.78)],[1,rgba(c.c,0)]],t:.6+ci*.08});
+      });
+      return ops;
+    },
+    /* E. 섬유 잉크 */
+    fiber(cs,rand){
+      const ops=[];
+      cs.forEach((c,ci)=>{
+        const base=circle(12,c.x,c.y,c.r*.8,rand,.03);
+        for(let l=0;l<18;l++) ops.push({path:toPath(deform(base,3,.08,rand)),fill:rgba(c.c,.032),t:l/18*.45+ci*.05});
+        const nf=Math.round(260*c.w)+100;
+        for(let f=0;f<nf;f++){
+          const th=rand()*Math.PI*2; let r=c.r*(.6+.3*rand()), x=c.x+Math.cos(th)*r, y=c.y+Math.sin(th)*r, a=th;
+          const p=new Path2D(); p.moveTo(x,y);
+          const seg=c.r*(.02+.09*rand()*rand());
+          for(let s=0;s<5;s++){ a+=gauss(rand)*.7; const nx=x+Math.cos(a)*seg, ny=y+Math.sin(a)*seg; p.quadraticCurveTo(x+Math.cos(a+.6)*seg*.5,y+Math.sin(a+.6)*seg*.5,nx,ny); x=nx; y=ny; }
+          ops.push({path:p,stroke:rgba(darken(c.c,.15),.035+.09*rand()),lw:.6,open:true,t:.35+rand()*.6});
+        }
+      });
+      return ops;
+    },
+    /* F. 혼합안: 습식 번짐 질감 + 색 구역 */
+    hybrid(cs,rand){ return bands(cs,rand,{L:34,clipVar:.07,regVar:.13,alpha:.02,rim:.004,ov:.05}); },
+  };
+
+  // 방울 하나를 풍미 색 구역으로 나눈다: 구역마다 길쭉한 번짐을 겹치고, 방울 외곽으로 자른다
+  function bands(cs,rand,o){
+    const ops=[], main=deform(circle(40,0,0,.93,rand,.02),2,o.clipVar*2,rand);
+    const ang=rand()*Math.PI, ux=Math.cos(ang), uy=Math.sin(ang), vx=-uy, vy=ux;
+    const tot=cs.reduce((s,c)=>s+c.w,0); let acc=-1;
+    const order=[...cs]; if(order.length>2){ const s=order.shift(); order.splice(Math.floor(order.length/2),0,s); }
+    order.forEach((c,ci)=>{
+      const w=2*c.w/tot, first=ci===0, last=ci===order.length-1;
+      let u0=acc, u1=acc+w; acc+=w; if(first) u0=-1.3; if(last) u1=1.3;
+      const uc=(u0+u1)/2, ru=(u1-u0)/2+o.ov, rv=1.25, pts=[];
+      for(let i=0;i<16;i++){ const a=i/16*Math.PI*2, u=uc+Math.cos(a)*ru, v=Math.sin(a)*rv; pts.push({x:u*ux+v*vx,y:u*uy+v*vy,v:.25+1.1*Math.abs(Math.cos(a))}); }
+      for(let l=0;l<o.L;l++){
+        const clip=toPath(deform(main,2,o.clipVar,rand));
+        ops.push({path:toPath(deform(pts,3,o.regVar,rand)),clip,fill:rgba(c.c,o.alpha),clipStroke:o.rim?rgba(darken(c.c,.3),o.rim):null,lw:1,blend:'source-over',t:l/o.L*.8+ci*.07});
+      }
+    });
+    return ops;
+  }
+
+  const cache=new Map();
+  function plan(drop,style){
+    const k=style+'|'+drop.id+'|'+drop.comps.map(c=>c.c+c.w).join();
+    if(!cache.has(k)){ const rand=rng(hash(k)); cache.set(k,STYLES[style](layout(drop.comps,rand),rand).sort((a,b)=>a.t-b.t)); }
+    return cache.get(k);
+  }
+  const ease = t => 1-Math.pow(1-t,3);
+  // prog 0→1: 반경이 퍼지며 레이어가 차례로 스며든다
+  function draw(ctx,drop,style,cx,cy,R,prog=1,alpha=1){
+    const ops=plan(drop,style), s=R*(.3+.7*ease(Math.min(1,prog*1.15)));
+    ctx.save(); ctx.translate(cx,cy); ctx.scale(s,s); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=alpha;
+    for(const op of ops){
+      if(op.t>prog) break;
+      ctx.globalCompositeOperation=op.blend||'multiply';
+      if(op.clip){ ctx.save(); ctx.clip(op.clip); }
+      if(op.circle){ const [x,y,r]=op.circle, g=ctx.createRadialGradient(x,y,0,x,y,r); op.grad.forEach(([o,c])=>g.addColorStop(o,c)); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+      else{
+        if(op.fill && !op.open){ ctx.fillStyle=op.fill; ctx.fill(op.path); }
+        if(op.stroke){ ctx.strokeStyle=op.stroke; ctx.lineWidth=op.lw/s; ctx.stroke(op.path); }
+        if(op.clipStroke){ ctx.strokeStyle=op.clipStroke; ctx.lineWidth=op.lw*2/s; ctx.stroke(op.clip); }
+      }
+      if(op.clip) ctx.restore();
+    }
+    ctx.restore();
+  }
+  let paperPat=null;
+  function paper(ctx,w,h){
+    ctx.save(); ctx.globalCompositeOperation='source-over'; ctx.fillStyle='#FBFAF7'; ctx.fillRect(0,0,w,h); ctx.restore();
+  }
+  function grain(ctx,w,h,amt=.35){
+    if(!paperPat){ const c=document.createElement('canvas'); c.width=c.height=192; const x=c.getContext('2d'), d=x.createImageData(192,192), r=rng(7);
+      for(let i=0;i<d.data.length;i+=4){ const v=228+r()*27; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; } x.putImageData(d,0,0); paperPat=c; }
+    ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=amt; ctx.fillStyle=ctx.createPattern(paperPat,'repeat'); ctx.fillRect(0,0,w,h); ctx.restore();
+  }
+  return {draw,paper,grain,rng,hash,rgba,darken};
+})();
+
+/* ============ 데이터 ============ */
+const TEA = {green:['녹차','#B5D07E'],white:['백차','#EEDC9A'],oolong:['우롱차','#E3A03A'],black:['홍차','#CF5E3A'],dark:['흑차·보이','#7C3E2C'],herb:['허브차','#C4B2E2']};
+const FL = {floral:['꽃향','#E9A9C6'],fruity:['과일','#F2946A'],citrus:['시트러스','#E8D45A'],vegetal:['풀향','#96C46A'],fresh:['상쾌함','#79C3BC'],nutty:['고소함','#A87A4E'],sweet:['단맛','#E5B04F'],earthy:['흙·나무','#6B5643'],spicy:['스파이시','#B8513A'],soft:['부드러움','#EADFCF'],astringent:['떫음','#8E8A4C']};
+const mk=(id,tea,fl,x,y,i)=>({id,x,y,i,comps:[{c:TEA[tea][1],w:.55},...fl.map(([k,w])=>({c:FL[k][1],w}))]});
+const HERO = mk('hero','white',[['floral',.85],['vegetal',.5],['fresh',.3]]);
+const RECS = [
+  mk('r1','green',[['vegetal',.8],['fresh',.4]],.72,.22,.9),
+  mk('r2','oolong',[['nutty',.85],['sweet',.4]],.84,.44,.8),
+  mk('r3','dark',[['earthy',.8],['sweet',.35]],.36,.8,.6),
+  mk('r4','green',[['floral',.75],['citrus',.3]],.62,.66,.55),
+  mk('r5','white',[['sweet',.6],['floral',.4]],.55,.33,.75),
+  mk('r6','herb',[['floral',.5],['soft',.5]],.16,.58,.5),
+  mk('r7','black',[['fruity',.7],['spicy',.35]],.28,.26,.7),
+  mk('r8','herb',[['fresh',.8]],.82,.82,.45),
+  mk('r9','oolong',[['floral',.6],['nutty',.5]],.68,.12,.6),
+  mk('r10','black',[['sweet',.6],['astringent',.4]],.12,.86,.4),
+];
+const STYLES = [
+  ['hybrid','F. 혼합안','추천','습식 번짐 질감 위에 풍미 색이 구역을 나눠 각자 번져요. 한 방울 안에 여러 색이 섞이지 않고 공존해요.'],
+  ['wet','A. 습식 번짐','','젖은 종이에 떨어진 물감처럼 가장자리에 안료가 고이고, 색끼리 경계 없이 스며들어요. (레퍼런스: 수채 꽃·잎)'],
+  ['split','B. 반반 방울','','둥근 방울 안을 풍미 색이 나눠 채우고, 경계만 깃털처럼 번져요. 평면적이고 깔끔해요. (레퍼런스: 연두/라벤더 포스터)'],
+  ['bloom','C. 피어나는 꽃물','','큰 반투명 형태 안에 꽃물 번짐(back-run)과 진한 점이 맺혀요. 가장 회화적이에요. (레퍼런스: Conrad Carmen)'],
+  ['motion','D. 모션 구슬','','선명한 심과 다른 색 후광이 살짝 어긋나고 흐린 꼬리가 남아요. 가장 디지털적이고 가벼워요. (레퍼런스: 블러 구슬)'],
+  ['fiber','E. 섬유 잉크','','가장자리가 가는 섬유처럼 털처럼 번져요. 먹물 같은 질감이에요. (레퍼런스: 잉크번짐_1)'],
+];
+const TEA_KEYS=Object.keys(TEA), FL_KEYS=Object.keys(FL);
+
+const $legend=document.getElementById('legend');
+$legend.innerHTML='<b style="margin-right:4px">다류</b>'+Object.values(TEA).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('')+
+  '<b style="margin:0 4px 0 12px">풍미</b>'+Object.values(FL).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('');
+
+/* ============ 그리기 ============ */
+const DPR=Math.min(2,window.devicePixelRatio||1);
+function setup(cv){ const w=cv.clientWidth; cv.width=cv.height=Math.round(w*DPR); const ctx=cv.getContext('2d'); return {ctx,S:cv.width}; }
+function anim(ms,fn,done){ const t0=performance.now(); const step=now=>{ const p=Math.min(1,(now-t0)/ms); fn(p); if(p<1) requestAnimationFrame(step); else done&&done(); }; requestAnimationFrame(step); }
+
+document.getElementById('grid').innerHTML=STYLES.map(([k,n,tag,d])=>`
+  <section class="card"><h2>${n}${tag?`<span class="rec">${tag}</span>`:''}</h2><p class="d">${d}</p>
+  <div class="pair"><figure><canvas id="one-${k}"></canvas><figcaption>① 풍미 3색 방울 · 누르면 다시 번짐</figcaption></figure>
+  <figure><canvas id="cv-${k}"></canvas><figcaption>② 기록 10개 캔버스 · ③ 눌러서 찍기</figcaption></figure></div></section>`).join('');
+
+STYLES.forEach(([k])=>{
+  // ① 단일 방울
+  const one=document.getElementById('one-'+k), A=setup(one);
+  const playOne=()=>anim(1100,p=>{ WC.paper(A.ctx,A.S,A.S); WC.draw(A.ctx,HERO,k,A.S/2,A.S/2,A.S*.36,p); WC.grain(A.ctx,A.S,A.S); });
+  one.onclick=playOne; playOne();
+
+  // ②③ 캔버스
+  const cv=document.getElementById('cv-'+k), B=setup(cv), bg=document.createElement('canvas'); bg.width=bg.height=B.S;
+  const recs=[...RECS]; const bctx=bg.getContext('2d');
+  const R=r=>B.S*(.055+.075*r.i);
+  const axes=ctx=>{ ctx.save(); ctx.strokeStyle='rgba(0,0,0,.12)'; ctx.lineWidth=DPR; ctx.beginPath(); ctx.moveTo(B.S/2,0); ctx.lineTo(B.S/2,B.S); ctx.moveTo(0,B.S/2); ctx.lineTo(B.S,B.S/2); ctx.stroke(); ctx.restore(); };
+  const rebuild=()=>{ WC.paper(bctx,B.S,B.S); axes(bctx); recs.forEach(r=>WC.draw(bctx,r,k,r.x*B.S,r.y*B.S,R(r))); };
+  rebuild(); B.ctx.drawImage(bg,0,0); WC.grain(B.ctx,B.S,B.S);
+  let busy=false;
+  cv.onclick=e=>{
+    if(busy) return; busy=true;
+    const rect=cv.getBoundingClientRect(), r=Math.random;
+    const nr=mk('n'+Date.now(),TEA_KEYS[Math.floor(r()*6)],[[FL_KEYS[Math.floor(r()*11)],.5+r()*.4],[FL_KEYS[Math.floor(r()*11)],.25+r()*.3]],(e.clientX-rect.left)/rect.width,(e.clientY-rect.top)/rect.height,.55+r()*.4);
+    anim(1100,p=>{ B.ctx.drawImage(bg,0,0); WC.draw(B.ctx,nr,k,nr.x*B.S,nr.y*B.S,R(nr),p); WC.grain(B.ctx,B.S,B.S); },
+      ()=>{ recs.push(nr); WC.draw(bctx,nr,k,nr.x*B.S,nr.y*B.S,R(nr)); busy=false; });
+  };
+});
+</script>
+</body>
+</html>

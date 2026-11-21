@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홈 찻방울 3D 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#F4F4F2;color:#111;line-height:1.5;padding:40px 24px 80px}
+header{max-width:1000px;margin:0 auto 24px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.3px}
+header p{color:#737373;font-size:14px;margin-top:6px}
+.row{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid #E5E5E5;border-radius:16px;padding:20px}
+.card h2{font-size:16px}
+.card p{font-size:13px;color:#737373;margin-top:4px;min-height:58px}
+canvas{display:block;width:100%;aspect-ratio:1/1;margin-top:12px;cursor:pointer;border-radius:8px}
+.hint{font-size:12px;color:#737373;text-align:center;margin-top:8px}
+@media (max-width:760px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>홈 찻방울 3D 시안 2종</h1>
+  <p>홈 화면은 무채색이라 이 방울이 화면의 유일한 색이에요. 둘 다 라이브러리 없이 WebGL로 그려서 전시장에서 인터넷이 끊겨도 동작해요.</p>
+</header>
+<div class="row">
+  <section class="card"><h2>A. 물속 잉크형</h2>
+    <p>투명한 물방울 속에 몇 초마다 찻물 색 잉크가 한 점에서 피어올라 소용돌이치며 퍼져요. 방울 전체가 숨 쉬듯 살짝 출렁여요.</p>
+    <canvas id="cvA"></canvas><div class="hint">방울을 누르면 그 자리에 잉크가 한 방울 떨어져요</div></section>
+  <section class="card"><h2>B. 말랑한 젤리형</h2>
+    <p>유리처럼 반투명한 말랑한 덩어리에 얇은 무지갯빛이 돌고, 안쪽 아래에 찻물 색이 고여 천천히 바뀌어요. (레퍼런스: 반투명 큐브)</p>
+    <canvas id="cvB"></canvas><div class="hint">방울을 누르면 말랑하게 눌렸다가 돌아와요</div></section>
+</div>
+
+<script>
+const INKS = ['#B5D07E','#EEDC9A','#E3A03A','#CF5E3A','#7C3E2C','#C4B2E2','#E9A9C6','#79C3BC','#A87A4E','#E5B04F'];
+const hex3 = h => { const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+
+const VERT = `attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
+const NOISE = `
+float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
+float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*noise(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }`;
+
+const FRAG_A = `precision highp float; varying vec2 v; uniform float t, life;
+uniform vec3 inkC[6]; uniform vec3 inkP[6];
+${NOISE}
+void main(){
+  vec2 uv=v; float ang=atan(uv.y,uv.x);
+  float R=.74+.016*sin(t*1.1)+.03*(noise(vec2(cos(ang)*1.3+t*.25, sin(ang)*1.3+t*.2))-.5);
+  float r=length(uv), edge=smoothstep(R,R-.01,r);
+  if(edge<=0.){ gl_FragColor=vec4(1.); return; }
+  vec2 s=uv/R; float z=sqrt(max(0.,1.-dot(s,s))); vec3 n=vec3(s,z);
+  vec2 q=s*(1.-.22*(1.-z));
+  vec2 w=vec2(fbm(q*2.2+vec2(0.,t*.08)), fbm(q*2.2+vec2(5.2,-t*.07)));
+  vec2 qw=q+(w-.5)*.6;
+  vec3 col=vec3(.985,.985,.98);
+  for(int i=0;i<6;i++){
+    float age=t-inkP[i].z;
+    if(age<0. || age>life) continue;
+    float grow=1.-exp(-age*.32), rad=.06+.8*grow;
+    vec2 d=qw-inkP[i].xy;
+    float tn=fbm(qw*4.5+float(i)*3.1+t*.05);
+    float dist=length(d)+(tn-.5)*.42*grow;
+    float dens=smoothstep(rad,rad*.1,dist)*(.5+.5*fbm(qw*7.-t*.04+float(i)));
+    dens*=smoothstep(life,life*.55,age)*smoothstep(0.,.5,age)*(1.2-.5*grow); dens=min(dens,.95);
+    col*=mix(vec3(1.),inkC[i],dens);
+  }
+  vec3 L=normalize(vec3(-.4,.6,.7));
+  col*=.93+.07*dot(n,L);
+  float fres=pow(1.-z,2.5);
+  col=mix(col,vec3(.84,.85,.87),fres*.4);
+  col+=pow(max(dot(reflect(-L,n),vec3(0,0,1)),0.),48.)*.45;
+  gl_FragColor=vec4(mix(vec3(1.),col,edge),1.);
+}`;
+
+const FRAG_B = `precision highp float; varying vec2 v; uniform float t, poke; uniform vec3 cA, cB;
+float sdf(vec3 p){
+  float br=sin(t*1.2);
+  vec3 q=p; q.y/=(1.-.04*br-.16*poke); q.xz/=(1.+.03*br+.09*poke);
+  float d=length(q)-.8;
+  d+=.04*sin(3.*q.x+t*1.6)*sin(3.*q.y+t*1.2)*sin(3.*q.z+t*1.)+.02*sin(5.*q.y-t*1.4)*(1.+poke*2.);
+  return d*.8;
+}
+vec3 nrm(vec3 p){ vec2 e=vec2(.002,0.); return normalize(vec3(sdf(p+e.xyy)-sdf(p-e.xyy),sdf(p+e.yxy)-sdf(p-e.yxy),sdf(p+e.yyx)-sdf(p-e.yyx))); }
+void main(){
+  vec3 ro=vec3(0.,0.,2.7), rd=normalize(vec3(v,-2.45));
+  float d=0.; bool hit=false; vec3 p;
+  for(int i=0;i<72;i++){ p=ro+rd*d; float h=sdf(p); if(h<.001){hit=true;break;} d+=h; if(d>6.) break; }
+  if(!hit){ gl_FragColor=vec4(1.); return; }
+  vec3 n=nrm(p);
+  vec3 r2=refract(rd,n,1./1.33);
+  float th=0.; vec3 m=p;
+  for(int i=0;i<28;i++){ m=p+r2*(th+.02); float h=-sdf(m); if(h<.002) break; th+=max(h,.02); }
+  vec3 mid=p+r2*th*.5;
+  float pool=smoothstep(.25,-.7,mid.y+.07*sin(mid.x*4.+t*.8));
+  vec3 mixc=mix(cA,cB,smoothstep(-.35,.35,mid.x+.25*sin(mid.y*3.+t*.6)));
+  vec3 tint=mix(vec3(1.),mixc,clamp(pool*.9+.08,0.,1.)*clamp(th*.9,0.,1.));
+  float fres=pow(1.-max(dot(n,-rd),0.),3.);
+  vec3 irid=.5+.5*cos(6.2831*(fres*1.3+t*.03+vec3(0.,.33,.67)));
+  vec3 L=normalize(vec3(-.5,.7,.6));
+  float spec=pow(max(dot(reflect(rd,n),L),0.),60.);
+  vec3 col=vec3(.975)*tint*(1.-fres*.35)+fres*mix(vec3(.88,.89,.92),irid,.55)*.55+spec*.7;
+  gl_FragColor=vec4(col,1.);
+}`;
+
+function gl3(cv,frag){
+  const gl=cv.getContext('webgl',{antialias:true,premultipliedAlpha:false}); if(!gl) return null;
+  const sh=(type,src)=>{ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,frag)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const U=n=>gl.getUniformLocation(pr,n);
+  const size=()=>{ const d=Math.min(2,devicePixelRatio||1), w=Math.round(cv.clientWidth*d); if(cv.width!==w){ cv.width=cv.height=w; gl.viewport(0,0,w,w); } };
+  return {gl,U,size,draw(){ gl.drawArrays(gl.TRIANGLE_STRIP,0,4); }};
+}
+const pick=()=>INKS[Math.floor(Math.random()*INKS.length)];
+const t0=performance.now(), now=()=>(performance.now()-t0)/1000;
+
+/* A. 물속 잉크 */
+(()=>{
+  const cv=document.getElementById('cvA'), g=gl3(cv,FRAG_A); if(!g) return;
+  const INTERVAL=3.2, LIFE=INTERVAL*6, inks=[];
+  for(let i=0;i<6;i++){ const a=Math.random()*6.28, d=Math.random()*.45; inks.push({c:hex3(pick()),p:[Math.cos(a)*d,Math.sin(a)*d,-(5-i)*INTERVAL]}); }
+  let next=INTERVAL, slot=0;
+  const drop=(x,y)=>{ inks[slot]={c:hex3(pick()),p:[x,y,now()]}; slot=(slot+1)%6; };
+  cv.addEventListener('pointerdown',e=>{ const r=cv.getBoundingClientRect(); drop(((e.clientX-r.left)/r.width*2-1)/.74,-((e.clientY-r.top)/r.height*2-1)/.74); next=now()+INTERVAL; });
+  (function loop(){
+    g.size(); const t=now();
+    if(t>next){ const a=Math.random()*6.28, d=Math.random()*.5; drop(Math.cos(a)*d,Math.sin(a)*d); next=t+INTERVAL; }
+    g.gl.uniform1f(g.U('t'),t); g.gl.uniform1f(g.U('life'),LIFE);
+    g.gl.uniform3fv(g.U('inkC'),inks.flatMap(k=>k.c)); g.gl.uniform3fv(g.U('inkP'),inks.flatMap(k=>k.p));
+    g.draw(); requestAnimationFrame(loop);
+  })();
+})();
+
+/* B. 말랑한 젤리 */
+(()=>{
+  const cv=document.getElementById('cvB'), g=gl3(cv,FRAG_B); if(!g) return;
+  let A=hex3(pick()), B=hex3(pick()), tA=A, tB=B, poke=0, vel=0, last=now(), swap=now()+5;
+  cv.addEventListener('pointerdown',()=>{ vel+=5; });
+  (function loop(){
+    g.size(); const t=now(), dt=Math.min(.05,t-last); last=t;
+    vel+=(-90*poke-6*vel)*dt; poke+=vel*dt;
+    if(t>swap){ tA=hex3(pick()); tB=hex3(pick()); swap=t+6; }
+    A=A.map((v,i)=>v+(tA[i]-v)*dt*.5); B=B.map((v,i)=>v+(tB[i]-v)*dt*.5);
+    g.gl.uniform1f(g.U('t'),t); g.gl.uniform1f(g.U('poke'),poke);
+    g.gl.uniform3fv(g.U('cA'),A); g.gl.uniform3fv(g.U('cB'),B);
+    g.draw(); requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
