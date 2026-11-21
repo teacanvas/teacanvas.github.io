@@ -143,6 +143,17 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 /* ---------- feel ---------- */
 .feelcard{background:var(--g0);border-radius:var(--r-card);padding:12px 14px 14px;margin-top:10px}
 .feelcard .q{font-size:12.5px;color:var(--g2);margin-bottom:9px}
+.feelcard.enter,.btn.enter{animation:feelIn .45s ease both}
+@keyframes feelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.feelsteps{display:flex;justify-content:center;align-items:center;gap:8px;font-size:12.5px;color:#BDBDBD;margin:4px 0 6px}
+.feelsteps span.on{color:#111;font-weight:700}.feelsteps span.ok{color:#737373}.feelsteps em{font-style:normal;color:#DADADA}
+.feeldone{display:flex;align-items:center;gap:10px;width:100%;background:var(--g0);border-radius:var(--r-card);padding:0 16px;height:48px;margin-top:10px;font-size:14px;text-align:left}
+.feeldone b{font-size:13px;color:var(--g2);font-weight:600;width:22px}
+.feeldone i{width:16px;height:16px;border-radius:50%;display:block;flex-shrink:0}
+.feeldone span{flex:1;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.feeldone em{font-style:normal;font-size:12px;color:#999}
+.feelnext{display:block;margin:14px 0 0 auto;height:38px;padding:0 16px;border-radius:19px;background:#111;color:#fff;font-size:13.5px;font-weight:700}
+.feelnext[hidden]{display:none}
 .tc-cup{display:flex;align-items:center;gap:12px;margin:0 0 6px}
 .tc-cup i{width:46px;height:46px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1.5px #D5D5D5;flex-shrink:0}
 .tc.on .tc-cup i{box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
@@ -169,6 +180,12 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .msg.bot{background:var(--g0);align-self:flex-start}
 .msg.me{background:#fff;border:1px solid #CFCFCF;align-self:flex-end}
 .msg.typing{color:var(--g2)}
+.msg .cdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+.askw{align-self:stretch;background:#fff;border:1px solid var(--g1);border-radius:var(--r-card);padding:14px 14px 12px;animation:fade .35s ease}
+.askw .chips{gap:6px}
+.askrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+.askrow .feelnext{margin:0 0 0 auto}
+.askhint{font-size:12px;color:#999}
 .msg.sys{align-self:center;background:none;font-size:12px;color:var(--g2);padding:2px}
 .chatfoot{position:sticky;bottom:0;background:#fff;padding:10px 0 4px;margin-top:auto}
 .inrow{display:flex;align-items:center;background:var(--g0);border-radius:26px;padding:5px 5px 5px 18px;margin-bottom:10px}
@@ -549,8 +566,8 @@ const FKEYS = Object.keys(FLAVORS);
 const BASIC = {temp:'80 – 95°C', time:'2 – 5분', secs:180, amount:'찻잎 2g 또는 티백 1개', how:['처음엔 짧게, 점점 길게','맛을 보며 시간을 늘려보세요.'], tip:'잎차는 우릴수록 맛이 달라져요. 처음엔 짧게 시작해보세요.'};
 const FEEL = {
   color:{q:'찻물을 보면 가장 가까운 색은?', label:'색', opts:['잘 모르겠어요'], swatch:true},
-  aroma:{q:'처음 맡았을 때 떠오르는 향은?', label:'향', opts:['풀향','꽃향','상쾌한 향','잘 모르겠어요']},
-  taste:{q:'한 모금 마셨을 때 느껴지는 맛은?', label:'맛', opts:['부드러움','산뜻함','은은함','잘 모르겠어요']},
+  aroma:{q:'처음 맡았을 때 떠오르는 향은? 여러 개 골라도 돼요', label:'향', multi:true, opts:['꽃향','과일향','상큼한 시트러스','풀향','민트처럼 상쾌한 향','고소한 향','달콤한 향','흙·나무 향','스모키한 향','계피·생강 향','은은한 향','잘 모르겠어요']},
+  taste:{q:'한 모금 마셨을 때 느껴지는 맛은? 여러 개 골라도 돼요', label:'맛', multi:true, opts:['단맛','고소함','새콤함','산뜻함','부드러움','묵직함','깔끔함','은은함','쌉쌀함','떫은맛','텁텁함','잘 모르겠어요']},
 };
 /* 찻물 색: 색 계열(빨주노초파남보) + 진하기(맑게~진하게) 두 슬라이드로 고른다.
    찻물 색은 기록에만 남고, 찻방울 색(맛·향 분석)에는 들어가지 않는다 */
@@ -963,7 +980,7 @@ function render(keepScroll){
    ========================================================= */
 function stepbar(n){
   return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button>
-    <div class="mid"><div class="dots">${[1,2,3,4,5,6].map(i=>`<i class="${i<n?'done':i===n?'on':''}"></i>`).join('')}</div><span class="stepnum">${n} / 6</span></div>
+    <div class="mid"><div class="dots">${[1,2,3,4,5].map(i=>`<i class="${i<n?'done':i===n?'on':''}"></i>`).join('')}</div><span class="stepnum">${n} / 5</span></div>
     <button class="quit" onclick="askQuit()">그만하기</button></div>`;
 }
 function timerText(){
@@ -999,8 +1016,8 @@ const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font
 function matchFlavors(text){ const t=String(text||'').replace(/\s/g,''); return FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.includes(w))); }
 function collectExprs(d){
   const out=[], add=t=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:matchFlavors(t)}); };
-  ['aroma','taste'].forEach(k=>add(d.feel&&d.feel[k])); // 찻물 색은 찻방울 색에 넣지 않는다
-  (d.chat||[]).filter(m=>m.who==='me').forEach(m=>add(m.text));
+  ['aroma','taste'].forEach(k=>String((d.feel&&d.feel[k])||'').split(', ').forEach(add)); // 찻물 색은 찻방울 색에 넣지 않는다
+  (d.chat||[]).filter(m=>m.who==='me'&&!m.ans).forEach(m=>add(m.text));
   if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
 }
@@ -1104,7 +1121,7 @@ teaConfirm(){
   <div class="spacer" style="min-height:120px"></div>
   <button class="btn" onclick="S.draft.basic=false;go('brew')">우림방법 추천받기</button>
   <button class="btn line" onclick="S.draft.basic=true;go('brew')">기본 가이드 보기</button>
-  <button class="link" onclick="go('feel')">건너뛰기</button>
+  <button class="link" onclick="go('chat')">건너뛰기</button>
   <div class="spacer"></div>`;
 },
 
@@ -1126,26 +1143,32 @@ brew(){
 },
 
 feel(){
-  const d=S.draft;
+  const d=S.draft, cur=feelCur(), K=FEEL_ORDER;
+  const val=k=>d.feel[k];
+  const card=(k,i)=>{ const f=FEEL[k];
+    if(i===cur) return `<div class="feelcard open ${S.feelAnim?'enter':''}" id="feelCur"><div class="q"><b>${f.label}</b>${f.q}</div>
+      ${f.swatch?swatchHTML(d):''}
+      <div class="chips">${f.swatch?`<button class="chip ${S.colorInput?'sel':''}" onclick="toggleColorInput()">직접 쓰기</button>`:''}${f.opts.map(o=>`<button class="chip ${feelHas(k,o)?'sel':''}" onclick="pickFeel('${k}','${o}')">${o}</button>`).join('')}</div>
+      ${f.multi?`<button class="feelnext" onclick="feelNext()" ${d.feel[k]&&d.feel[k]!=='잘 모르겠어요'?'':'hidden'}>다음 →</button>`:''}
+      ${f.swatch&&S.colorInput?`<input class="pill-in sm" id="inColor" placeholder="예: 맑은 호박색, 투명한 금빛" value="${esc(d.feel.colorHD||d.feel.color==='잘 모르겠어요'?'':(d.feel.color||''))}" oninput="S.draft.feel.color=this.value.trim()||undefined;S.draft.feel.colorHD=null;S.draft.feel.colorHex=null;feelNextBtn()">`:''}
+      ${f.swatch?`<button class="feelnext" id="feelNextBtn" onclick="feelNext()" ${d.feel.color&&d.feel.color!=='잘 모르겠어요'?'':'hidden'}>이 색으로 할게요 →</button>`:''}</div>`;
+    if(val(k)) return `<button class="feeldone" onclick="feelGo(${i})"><b>${f.label}</b>${k==='color'&&d.feel.colorHex?`<i style="background:${d.feel.colorHex}"></i>`:''}<span>${esc(val(k))}</span><em>바꾸기</em></button>`;
+    return ''; };
   return `${stepbar(3)}
   <h1 class="t">스스로 맛보고 느끼기</h1>
-  <p class="sub">설명을 보기 전에, 지금 느껴지는 것부터 골라보세요.</p>
+  <p class="sub">하나씩 가볍게 골라보세요. 정답은 없어요.</p>
   ${S.timer?`<div class="timerchip"><button onclick="toggleTimer()"><span data-timer>${timerText()}</span> · <span data-timerbtn>${timerBtnText()}</span></button></div>`:''}
-  ${orb('clear',150,'big')}
-  <h3 class="sec" style="margin-top:0">먼저 느껴보기</h3>
-  ${Object.entries(FEEL).map(([k,f])=>`<div class="feelcard"><div class="q"><b>${f.label}</b>${f.q}</div>
-    ${f.swatch?swatchHTML(d):''}
-    <div class="chips">${f.swatch?`<button class="chip ${S.colorInput?'sel':''}" onclick="toggleColorInput()">직접 쓰기</button>`:''}${f.opts.map(o=>`<button class="chip ${d.feel[k]===o?'sel':''}" onclick="pickFeel('${k}','${o}')">${o}</button>`).join('')}</div>
-    ${f.swatch&&S.colorInput?`<input class="pill-in sm" id="inColor" placeholder="예: 맑은 호박색, 투명한 금빛" value="${esc(d.feel.colorHD||d.feel.color==='잘 모르겠어요'?'':(d.feel.color||''))}" oninput="S.draft.feel.color=this.value.trim()||undefined;S.draft.feel.colorHD=null">`:''}</div>`).join('')}
-  <div class="tip"><b>✦ 작은 팁</b>정답은 없어요. 떠오르는 느낌 그대로 고르면 충분해요.</div>
+  ${orb('clear',110,'big')}
+  <div class="feelsteps">${K.map((k,i)=>`<span class="${i===cur?'on':val(k)?'ok':''}">${val(k)&&i!==cur?'✓ ':''}${FEEL[k].label}</span>`).join('<em>·</em>')}</div>
+  ${K.map(card).join('')}
   <div class="spacer"></div>
-  <button class="btn" onclick="go('chat')">내 감각 기록하기</button>
-  <button class="link" onclick="S.draft.feel={};go('chat')">다음에 할게요</button>`;
+  ${K.every(val)?`<button class="btn ${S.feelAnim&&cur>=K.length?'enter':''}" onclick="go('chat')">내 감각 기록하기</button>`:''}
+  <button class="link" onclick="S.draft.feel={};go('chat')">${K.every(val)?'다음에 할게요':'건너뛰기'}</button>`;
 },
 
 chat(){
   const d=S.draft;
-  const head = `${stepbar(4)}
+  const head = `${stepbar(3)}
   <h1 class="t">내 감각 기록하기</h1><p class="sub">떠오르는 색이나 장면으로 표현해도 돼요.</p>
   <div class="seg" style="margin-top:14px"><button class="${S.chatMode==='chat'?'on':''}" onclick="setMode('chat')">채팅</button>
     <button class="${S.chatMode==='voice'?'on':''}" onclick="setMode('voice')">음성</button></div>`;
@@ -1172,7 +1195,7 @@ chat(){
 },
 
 organizing(){
-  return `${stepbar(4)}
+  return `${stepbar(3)}
   ${loaderHTML('감각 기록을 정리하는 중')}
   <button class="link" onclick="go('depth',{},{replace:true})">기록 보기</button>`;
 },
@@ -1182,7 +1205,7 @@ depth(){
   const rounds=[1,2,3,...Array.from({length:dp.extra},(_,i)=>4+i)];
   const has=k=>!!(dp[k]&&String(dp[k]).trim());
   const savedTag='<span class="saved">· 남겼어요</span>';
-  return `${stepbar(5)}
+  return `${stepbar(4)}
   <h1 class="t">조금 더 남겨볼까요?</h1>
   <p class="sub">기억하고 싶은 것만 가볍게 더해보세요.</p>
   ${orb('clear',150,'big')}
@@ -1202,7 +1225,7 @@ deepBrew(){
   const rounds=[1,2,3,...Array.from({length:dp.extra},(_,i)=>4+i)];
   const cur=dp.brews[n]||{};
   const ex=n===1?'풀 향이 먼저 나고, 끝에 고소한 여운이 남았어요.':n===2?'첫 우림보다 부드러워지고 단맛이 느껴졌어요.':'향이 옅어지고 물처럼 가벼워졌어요.';
-  return `${stepbar(5)}
+  return `${stepbar(4)}
   <p class="kicker">심화 기록 · 선택 입력</p>
   <h1 class="t" style="margin-top:4px">우림 변화</h1><p class="sub">우릴 때마다 달라지는 느낌을 남겨보세요.</p>
   <div class="tabs4">${rounds.map(r=>`<button class="${r===n?'on':''}" onclick="switchBrew(${r})">${r}차</button>`).join('')}
@@ -1220,7 +1243,7 @@ deepBrew(){
 
 deepOrigin(){
   const dp=S.draft.deep;
-  return `${stepbar(5)}
+  return `${stepbar(4)}
   <p class="kicker">심화 기록 · 선택 입력</p>
   <h1 class="t" style="margin-top:4px">산지 · 빈티지</h1><p class="sub">포장에 적힌 정보만 가볍게 옮겨보세요.</p>
   <div class="field" style="margin-top:26px"><label>산지 (선택)</label><div class="box"><input id="dOrigin" placeholder="예: 대한민국 제주" value="${esc(dp.origin)}"></div>
@@ -1236,7 +1259,7 @@ deepOrigin(){
 
 deepTemp(){
   const dp=S.draft.deep;
-  return `${stepbar(5)}
+  return `${stepbar(4)}
   <p class="kicker">심화 기록 · 선택 입력</p>
   <h1 class="t" style="margin-top:4px">온도 · 시간</h1><p class="sub">오늘 차를 우린 조건을 남겨보세요.</p>
   <div class="field" style="margin-top:26px"><label>물 온도 (선택)</label><div class="box"><input id="dTemp" inputmode="numeric" placeholder="예: 95" value="${esc(dp.temp)}"><span>°C</span></div>
@@ -1254,7 +1277,7 @@ deepTemp(){
 
 deepMemo(){
   const dp=S.draft.deep;
-  return `${stepbar(5)}
+  return `${stepbar(4)}
   <p class="kicker">심화 기록 · 선택 입력</p>
   <h1 class="t" style="margin-top:4px">추가 메모</h1><p class="sub">차와 함께한 순간을 편하게 적어보세요.</p>
   <div class="field" style="margin-top:26px"><label>나만의 메모 (선택)</label>
@@ -1269,7 +1292,7 @@ deepMemo(){
 },
 
 analyzing(){
-  return `${stepbar(6)}
+  return `${stepbar(5)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 방울에 스며들어요.</p>
   <div class="infuse"><div class="floatzone" id="floatzone"></div><div id="inf3d" style="width:236px;height:236px"></div></div>
@@ -1281,7 +1304,7 @@ analyzing(){
 
 compare(){
   const d=S.draft, t=TEAS[d.type]; ensureFlavors(d);
-  return `${stepbar(6)}
+  return `${stepbar(5)}
   <h1 class="t">내 감각과 설명을 함께 볼까요?</h1>
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
   ${d3Box('cmp3d',190)}
@@ -1298,7 +1321,7 @@ compare(){
 
 done(){
   const r=S.lastSaved||S.records[0];
-  return `${stepbar(6)}
+  return `${stepbar(5)}
   ${d3Box('done3d',190)}
   <h1 class="t">기록을 완료했어요</h1>
   <p class="sub">오늘의 찻방울이 나의 캔버스에 스며들었어요.<br>대화와 감각이 정리되어 아카이브에 쌓였어요.</p>
@@ -1314,7 +1337,7 @@ fullChat(p){
   const rec = p.id ? S.records.find(r=>r.id===p.id) : S.lastSaved;
   const chat = (rec&&rec.chat)||[], voice=(rec&&rec.voice)||[];
   const mode = p.mode||'chat';
-  return `${stepbar(6)}
+  return `${stepbar(5)}
   <h1 class="t">전체 대화 보기</h1><p class="sub">차를 마시며 나눈 이야기를 다시 확인해요.</p>
   <div class="seg wide" style="margin-top:20px"><button class="${mode==='chat'?'on':''}" onclick="S.stack[S.stack.length-1].params.mode='chat';rerender()">채팅</button>
     <button class="${mode==='voice'?'on':''}" onclick="S.stack[S.stack.length-1].params.mode='voice';rerender()">음성</button></div>
@@ -1330,7 +1353,7 @@ fullChat(p){
 teaTag(){
   const r=S.lastSaved || S.records[0];
   const tags=(r.flavors&&r.flavors.length?r.flavors.map(f=>FLAVORS[f.k].label):r.tags&&r.tags.length?r.tags:TEAS[r.type].common).slice(0,5);
-  return `${stepbar(6)}
+  return `${stepbar(5)}
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
@@ -1436,7 +1459,7 @@ error(p){
 
 /* after-render hooks */
 const AFTER = {
-  feel(){ bindTeaColor(); },
+  feel(){ bindTeaColor(); if(S.feelAnim){ S.feelAnim=false; const c=$('#feelCur')||$('.scr-feel .btn'); if(c) c.scrollIntoView({behavior:'smooth',block:'nearest'}); } },
   home(){ mountHomeDrop($('#homeDrop')); },
   chat(){ if(S.chatMode==='chat'){ seedChat(); paintMsgs(); } },
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('depth',{},{replace:true}); },1600); },
@@ -1458,7 +1481,7 @@ const cur=()=>S.stack[S.stack.length-1].name;
 /* =========================================================
    ACTIONS
    ========================================================= */
-function startRecord(){ closeSheet(); stopTimer(); S.colorInput=false; S.draft=newDraft(); S.chatMode='chat'; S.voiceIdx=0; go('teaInput',{}, {reset:true}); }
+function startRecord(){ closeSheet(); stopTimer(); S.colorInput=false; S.feelStep=null; S.draft=newDraft(); S.chatMode='chat'; S.voiceIdx=0; go('teaInput',{}, {reset:true}); }
 function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur()==='noti') S.stack=[{name:'canvas',params:{tab:'list'}}]; go('detail',{id}); }
 
 /* 기록 삭제: 확인 후 지운다 */
@@ -1482,7 +1505,7 @@ function quitRecord(keep){
 }
 function resumeRecord(){
   const v=loadPaused(); if(!v) return; savePaused(null);
-  closeSheet(); stopTimer(); S.draft=v.draft; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=v.stack; render();
+  closeSheet(); stopTimer(); S.feelStep=null; S.draft=v.draft; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=v.stack; render();
 }
 function dropPaused(){ savePaused(null); rerender(); toast('저장해둔 기록을 지웠어요'); }
 function askDelete(id){
@@ -1532,7 +1555,7 @@ function saveEdit(){
 function startBrew(){
   const d=S.draft, secs=d.basic?BASIC.secs:TEAS[d.type].secs;
   S.timer={total:secs,left:secs,running:true};
-  go('feel');
+  go('chat');
 }
 function stopTimer(){ S.timer=null; }
 function toggleTimer(){ const t=S.timer; if(!t||t.left<=0) return; t.running=!t.running; paintTimer(); }
@@ -1545,11 +1568,23 @@ setInterval(()=>{
   const t=S.timer; if(!t||!t.running||t.left<=0) return;
   t.left--; paintTimer();
   if(t.left===0){ t.running=false; paintTimer(); toast('우림이 끝났어요. 찻잔을 천천히 들어볼까요?');
-    if(cur()==='chat' && S.draft){ S.draft.chat.push({who:'sys',text:'— 우림이 끝났어요 —'}); if(S.chatMode==='chat') paintMsgs(); } }
+    if(cur()==='chat' && S.draft){ S.draft.chat.push({who:'sys',text:'— 우림이 끝났어요 —'}); if(S.draft.stage==='wait') askNext(); if(S.chatMode==='chat') paintMsgs(); } }
 },1000);
 
 /* feel */
-function pickFeel(k,o){ const f=S.draft.feel; f[k]= f[k]===o ? undefined : o; if(k==='color'){ S.colorInput=false; f.colorHD=null; f.colorHex=null; } rerender(); }
+const feelHas=(k,o)=>String(S.draft.feel[k]||'').split(', ').includes(o);
+/* 향·맛은 여러 개 고르고 '다음'으로, '잘 모르겠어요'와 색은 고르면 바로 다음으로 */
+function pickFeel(k,o){ const f=S.draft.feel, multi=FEEL[k]&&FEEL[k].multi; let auto=true;
+  if(multi&&o!=='잘 모르겠어요'){ const L=String(f[k]||'').split(', ').filter(x=>x&&x!=='잘 모르겠어요'); const i=L.indexOf(o); i<0?L.push(o):L.splice(i,1); f[k]=L.length?L.join(', '):undefined; auto=false; }
+  else f[k]=o;
+  if(k==='color'){ S.colorInput=false; f.colorHD=null; f.colorHex=null; }
+  rerender(); if(auto&&f[k]) setTimeout(()=>{ if(cur()==='feel'&&S.draft&&S.draft.feel[k]===o) feelNext(); },420); }
+/* 먼저 느껴보기: 색 → 향 → 맛을 한 칸씩 열어 하나씩 끝낸다 */
+const FEEL_ORDER=['color','aroma','taste'];
+function feelCur(){ if(S.feelStep==null){ const i=FEEL_ORDER.findIndex(k=>!S.draft.feel[k]); S.feelStep=i<0?FEEL_ORDER.length:i; } return S.feelStep; }
+function feelGo(i){ S.feelStep=i; S.feelAnim=true; S.colorInput=false; rerender(); }
+function feelNext(){ const f=S.draft.feel, c=feelCur(); let n=FEEL_ORDER.findIndex((k,i)=>i>c&&!f[k]); if(n<0) n=FEEL_ORDER.findIndex(k=>!f[k]); feelGo(n<0?FEEL_ORDER.length:n); }
+function feelNextBtn(){ const b=$('#feelNextBtn'), c=S.draft.feel.color; if(b) b.hidden=!(c&&c!=='잘 모르겠어요'); }
 function swatchHTML(d){ const hd=d.feel.colorHD||[.33,.4], on=!!d.feel.colorHD, c=tcColor(hd[0],hd[1]);
   return `<div class="tc ${on?'on':''}" id="tcBox"><div class="tc-cup"><i style="background:${on?c:'transparent'}"></i><div><b>${on?d.feel.color:'끌어서 골라주세요'}</b><span>고른 찻물 색</span></div></div>
     <div class="tc-lab">색 계열</div><div class="tc-track" id="tcH" style="background:linear-gradient(90deg,${TC_FAM.map(x=>x[1]).join(',')})"><i style="left:${hd[0]*100}%;background:${tcBase(hd[0])}"></i></div>
@@ -1573,42 +1608,98 @@ function toggleColorInput(){ S.colorInput=!S.colorInput; if(S.colorInput&&S.draf
 
 /* chat */
 function setMode(m){ S.chatMode=m; S.listening=false; rerender(); }
+/* 채팅 흐름: 우림(타이머) → 다 우려지면 색 → 첫 향 → 첫 맛을 차례로 묻고 → 그 뒤로는 마시면서 편하게 대화
+   d.stage: wait(우리는 중) · color · aroma · taste · free */
+const ASK={
+  color:'다 우려졌어요. 찻물 색은 어떤가요?\n가장 가까운 색을 골라주세요.',
+  aroma:'찻잔을 들고 향을 맡아볼까요?\n처음 떠오르는 향은 어떤가요? 여러 개 골라도 돼요.',
+  taste:'이제 한 모금 마셔봐요.\n처음 느껴지는 맛은 어떤가요? 여러 개 골라도 돼요.',
+};
+const FREE=['좋아요. 이제 천천히 마시면서 떠오르는 걸 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 돼요.',
+  '식으면서 달라진 점이나, 끝에 남는 여운은 어떤가요?',
+  '그 여운도 함께 적어둘게요.\n충분히 남겼다면 ‘기록 보기’를 눌러 오늘의 감각을 정리해봐요.',
+  '좋아요, 그 표현도 함께 담아둘게요.'];
 function seedChat(){
-  const d=S.draft; if(d.chat.length) return;
-  const a=d.feel.aroma && d.feel.aroma!=='잘 모르겠어요' ? d.feel.aroma : null;
-  if(S.timer && S.timer.left>0) d.chat.push({who:'bot',text:`우리는 동안 천천히 향을 맡아봐요. 남은 시간은 위에서 확인할 수 있어요.`});
-  d.chat.push({who:'bot',text: a ? `먼저 느껴보기에서 ‘${a}’을 골랐어요.\n다시 향을 맡고, 떠오르는 색이나 장면으로 표현해보세요.` : '우선 향을 맡고 표현해보세요. 떠오르는 색이나 장면으로 표현해도 돼요.'});
+  const d=S.draft; if(!d.stage){ d.stage='wait'; d.freeN=0; }
+  if(!d.chat.length){
+    if(S.timer&&S.timer.left>0) d.chat.push({who:'bot',text:'우림을 시작했어요. 다 우려지면 알려드릴게요.\n그동안 마른 찻잎 향을 살짝 맡아봐도 좋아요.',wait:true});
+  }
+  if(d.stage==='wait'&&(!S.timer||S.timer.left<=0)) askNext();
+}
+function askNext(){
+  const d=S.draft, order=['wait','color','aroma','taste','free'], i=order.indexOf(d.stage);
+  d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]};
+  if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE[0]}); d.freeN=1; }
+  else d.chat.push({who:'bot',text:ASK[d.stage],ask:d.stage});
+}
+const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
+function answer(k,text,extra={}){
+  const d=S.draft; if(S.typing) return;
+  d.feel[k]=text; d.chat.push({who:'me',text,ans:k,...extra});
+  S.typing=true; paintMsgs();
+  setTimeout(()=>{ S.typing=false; askNext(); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },650);
+}
+function answerColor(t){ const d=S.draft, a=S.ask||{};
+  if(t){ d.feel.colorHD=null; d.feel.colorHex=null; return answer('color',t); }
+  if(!a.hd) return; const c=tcColor(a.hd[0],a.hd[1]); d.feel.colorHD=a.hd; d.feel.colorHex=c; answer('color',tcName(a.hd[0],a.hd[1]),{color:c}); }
+function answerMulti(k,o){ const a=S.ask||(S.ask={sel:[]});
+  if(o==='잘 모르겠어요') return answer(k,o);
+  if(o==='__send'){ if(a.sel.length) answer(k,a.sel.join(', ')); return; }
+  const i=a.sel.indexOf(o); i<0?a.sel.push(o):a.sel.splice(i,1); paintMsgs(); }
+/* 질문 아래 대답 도구: 색은 슬라이드 두 개, 향·맛은 여러 개 고르는 칩 */
+function askWidget(st){
+  const a=S.ask||(S.ask={hd:null,sel:[]});
+  if(st==='color'){ const hd=a.hd||[.33,.4], on=!!a.hd, c=tcColor(hd[0],hd[1]);
+    return `<div class="askw tc ${on?'on':''}" id="askW"><div class="tc-cup"><i style="background:${on?c:'transparent'}"></i><div><b>${on?tcName(hd[0],hd[1]):'끌어서 골라주세요'}</b><span>고른 찻물 색</span></div></div>
+      <div class="tc-lab">색 계열</div><div class="tc-track" id="tcH" style="background:linear-gradient(90deg,${TC_FAM.map(x=>x[1]).join(',')})"><i style="left:${hd[0]*100}%;background:${tcBase(hd[0])}"></i></div>
+      <div class="tc-lab">진하기</div><div class="tc-track" id="tcD" style="background:linear-gradient(90deg,${tcColor(hd[0],0)},${tcColor(hd[0],.5)},${tcColor(hd[0],1)})"><i style="left:${hd[1]*100}%;background:${c}"></i></div>
+      <div class="tc-tl"><span>맑게</span><span>진하게</span></div>
+      <div class="askrow"><button class="chip" onclick="answerColor('잘 모르겠어요')">잘 모르겠어요</button><button class="feelnext" id="askSend" onclick="answerColor()" ${on?'':'hidden'}>이 색으로 보내기 →</button></div></div>`; }
+  const f=FEEL[st];
+  return `<div class="askw" id="askW"><div class="chips">${f.opts.map(o=>`<button class="chip ${a.sel.includes(o)?'sel':''}" onclick="answerMulti('${st}','${o}')">${o}</button>`).join('')}</div>
+    <div class="askrow"><span class="askhint">${a.sel.length?a.sel.length+'개 골랐어요':'직접 적어도 돼요'}</span><button class="feelnext" onclick="answerMulti('${st}','__send')" ${a.sel.length?'':'hidden'}>보내기 →</button></div></div>`;
+}
+function bindAskColor(){
+  const box=$('#askW'); if(!box||!box.querySelector('#tcH')) return; const a=S.ask;
+  const paint=()=>{ const [h,v]=a.hd, c=tcColor(h,v); box.classList.add('on');
+    box.querySelector('.tc-cup i').style.background=c; box.querySelector('.tc-cup b').textContent=tcName(h,v);
+    const x=box.querySelector('#tcH i'), y=box.querySelector('#tcD i'); x.style.left=h*100+'%'; x.style.background=tcBase(h); y.style.left=v*100+'%'; y.style.background=c;
+    box.querySelector('#tcD').style.background=`linear-gradient(90deg,${tcColor(h,0)},${tcColor(h,.5)},${tcColor(h,1)})`; box.querySelector('#askSend').hidden=false; };
+  [['#tcH',0],['#tcD',1]].forEach(([sel,ix])=>{ const tr=box.querySelector(sel);
+    const mv=e=>{ const r=tr.getBoundingClientRect(), t=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); a.hd=a.hd?[...a.hd]:[.33,.4]; a.hd[ix]=+t.toFixed(3); paint(); };
+    tr.addEventListener('pointerdown',e=>{ tr.setPointerCapture(e.pointerId); mv(e); tr.onpointermove=mv; });
+    tr.addEventListener('pointerup',()=>{ tr.onpointermove=null; }); });
 }
 function paintMsgs(){
   const box=$('#msgs'); if(!box) return;
-  const d=S.draft, msgs=d.chat;
-  const last=msgs[msgs.length-1];
-  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${esc(m.text)}</div>`).join('')
+  const d=S.draft, msgs=d.chat, last=msgs[msgs.length-1];
+  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('')
     + (S.typing?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
-    + (!S.typing && last && last.who==='bot' && last.chips ? `<div class="chips">${last.chips.map(c=>`<button class="chip w" style="background:var(--g0)" onclick="sendMsg('${c}',true)">${c}</button>`).join('')}</div>`:'');
+    + (!S.typing&&last&&last.who==='bot'&&last.wait&&d.stage==='wait'&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button></div>`:'')
+    + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'');
+  bindAskColor();
+  const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'느낀 그대로 적어도 돼요':'느낀 그대로 적어보세요';
   const v=$('#view'); v.scrollTop=v.scrollHeight;
 }
 function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; sendMsg(t); }
 function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
+  if(isAsk(d.stage)){ if(d.stage==='color'){ d.feel.colorHD=null; d.feel.colorHex=null; } return answer(d.stage,text); }  // 질문 중에 직접 적으면 그 질문의 대답
   d.chat.push({who:'me',text}); if(isChip && text!=='잘 모르겠어요') d.picked.push(text);
   S.typing=true; paintMsgs();
   setTimeout(()=>{ S.typing=false; d.chat.push(botReply(d,text)); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },800);
 }
 function botReply(d,text){
-  const n=d.chat.filter(m=>m.who==='me').length;
-  const short=text.replace(/[.!?。~]+$/,'');
-  if(n===1) return {who:'bot',text:'입안에서는 어떤 느낌이 남았나요?',chips:['부드러움','산뜻함','은은함','잘 모르겠어요']};
-  if(n===2) return {who:'bot',text: text==='잘 모르겠어요' ? '괜찮아요. 모르는 것도 오늘의 기록이에요.\n식으면서 달라진 점이나, 끝에 남는 여운은 어떤가요?' : `좋아요. ‘${short}’ 느낌으로 남겨둘게요.\n식으면서 달라진 점이나, 끝에 남는 여운은 어떤가요?`,chips:['고소한 여운','단맛이 남아요','깔끔해요','잘 모르겠어요']};
-  if(n===3) return {who:'bot',text:'그 여운도 함께 적어둘게요.\n충분히 남겼다면 ‘기록 보기’를 눌러 오늘의 감각을 정리해봐요.'};
-  return {who:'bot',text:'좋아요, 그 표현도 함께 담아둘게요.'};
+  if(d.stage!=='free') return {who:'bot',text:'좋아요, 기억해둘게요. 다 우려지면 색부터 함께 볼게요.'};
+  const i=Math.min(FREE.length-1,d.freeN||1); d.freeN=(d.freeN||1)+1; return {who:'bot',text:FREE[i]};
 }
 function toggleListen(){
   if(!S.listening){ S.listening=true; rerender(); return; }
   S.listening=false;
   const d=S.draft, line=VOICE_LINES[S.voiceIdx++ % VOICE_LINES.length];
   d.voice.push(line); seedChat();
-  d.chat.push({who:'me',text:line}); d.chat.push(botReply(d,line));
+  if(isAsk(d.stage)){ d.feel[d.stage]=line; d.chat.push({who:'me',text:line,ans:d.stage}); askNext(); }
+  else { d.chat.push({who:'me',text:line}); d.chat.push(botReply(d,line)); }
   rerender();
 }
 function finishChat(){ S.listening=false; go('organizing'); }
@@ -1633,7 +1724,7 @@ function saveDeep(map){ const dp=S.draft.deep; for(const [k,sel] of Object.entri
 function myExpression(d){
   const mine=(d.chat||[]).filter(m=>m.who==='me').map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
   if(mine.length) return mine.slice(0,3).join(', ') + '.';
-  const f=Object.values(d.feel||{}).filter(v=>v&&v!=='잘 모르겠어요');
+  const f=['color','aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}이(가) 먼저 느껴졌어요.`;
   return '풀 향이 먼저 나고, 따뜻한 물 마시듯 편안했어요. 끝에 살짝 고소하고 포근한 느낌이 남았어요.';
 }
@@ -2151,7 +2242,7 @@ function resetAll(){ savePaused(null);
    ========================================================= */
 const JUMPS = [
   ['홈','home'],['1 차 정보 입력','teaInput'],['검색 오류','searchError'],['차 정보 확인','teaConfirm'],['2 우림 가이드','brew'],
-  ['3 먼저 느껴보기','feel'],['4 감각 기록','chat'],['감각 정리 중','organizing'],['5 심화 기록','depth'],['우림 변화','deepBrew'],
+  ['3 감각 기록(채팅)','chat'],['감각 정리 중','organizing'],['5 심화 기록','depth'],['우림 변화','deepBrew'],
   ['산지·빈티지','deepOrigin'],['온도·시간','deepTemp'],['추가 메모','deepMemo'],['6 찻방울 완성','analyzing'],['설명과 비교','compare'],
   ['캔버스에 찍기','@canvas'],['기록 완료','@done'],['전체 대화','@fullChat'],['Tea Tag','@teaTag'],
   ['캔버스','@cv'],['기록 목록','@list'],['상세 기록','@detail'],['My','my'],['알림','noti'],['오류','error'],
