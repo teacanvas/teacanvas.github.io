@@ -1862,40 +1862,78 @@ void main(){
   colr=mix(colr,vec3(.55,.59,.63),line*.35);
   gl_FragColor=vec4(colr*edge,edge);
 }`;
+/* =========================================================
+   수채 번짐 시뮬레이션(홈) — Curtis 외(1997) '컴퓨터 수채화'의 현상을 가볍게 흉내 낸다
+   · 물이 종이 결을 따라 퍼진다: 칸마다 '물이 닿는 시간'을 미리 계산(종이 결·방향별 흔들림)
+   · 퍼지는 속도는 처음 빠르고 점점 느려진다
+   · 마르면서 안료가 가장자리로 밀려 테두리가 진해진다(edge darkening)
+   · 가운데는 맑고, 종이 결에 안료 입자가 가라앉는다(granulation)
+   ========================================================= */
+function makeWash(N,hex,seed){
+  const r=WC.rng(seed), s1=r()*50, s2=r()*50;
+  const fr=x=>x-Math.floor(x), h2=(x,y)=>fr(Math.sin(x*127.1+y*311.7)*43758.5453);
+  const nz=(x,y)=>{ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; };
+  const fbm=(x,y)=>.5*nz(x,y)+.25*nz(x*2.03+5,y*2.03+1)+.125*nz(x*4.1+2,y*4.1+7)+.0625*nz(x*8.3,y*8.3);
+  const T=new Float32Array(N*N), G=new Float32Array(N*N), H=new Float32Array(N*N);
+  const el=.82+.3*r(), ea=r()*Math.PI, ce=Math.cos(ea), se=Math.sin(ea);
+  // 색이 고이는 자리 몇 군데(진한 얼룩)
+  const pools=[0,1,2].map(()=>({x:(r()-.5)*.8,y:(r()-.5)*.8,r:.12+.18*r(),k:.35+.5*r()}));
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    let u=(i+.5)/N*2-1, v=(j+.5)/N*2-1; const a=u*ce+v*se, b=-u*se+v*ce; const uu=a/el, vv=b*el;
+    const rr=Math.hypot(uu,vv), th=Math.atan2(vv,uu);
+    const ang=fbm(Math.cos(th)*1.3+s1,Math.sin(th)*1.3+s2);          // 방향별로 멀리/덜 퍼짐
+    const paper=fbm(u*5+s1,v*5+s2);                                   // 종이 결(낮은 곳으로 빨리 스민다)
+    const fine=fbm(u*16+s2,v*16+s1);                                  // 가장자리의 잔 톱니
+    const k=j*N+i;
+    T[k]=rr*(1+.42*(ang-.5)*2)*(1+.22*(paper-.5)*2)+.05*(fine-.5)*2;
+    G[k]=nz(i*.9+s1,j*.9+s2)*.6+nz(i*.35,j*.35)*.4;                   // 입자
+    let hp=0; for(const q of pools){ const d=Math.hypot(u-q.x,v-q.y); hp+=q.k*Math.exp(-d*d/(q.r*q.r)); } H[k]=hp*(.6+.8*fbm(u*3+s2,v*3));
+  }
+  const n=parseInt(hex.slice(1),16), base=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];
+  const L=.2126*base[0]+.7152*base[1]+.0722*base[2], body=base.map(c=>{ c=L+(c-L)*1.15; return c+(1-c)*.38; }), rim=base.map(c=>{ c=L+(c-L)*1.25; return c*.78; });
+  const cv=document.createElement('canvas'); cv.width=cv.height=N; const x=cv.getContext('2d'), im=x.createImageData(N,N), d=im.data;
+  const REACH=.5;
+  // t: 지난 시간(초). 2.6초에 거의 다 퍼지고, 4초쯤 다 말라 테두리가 진해진다
+  function frame(t,fade=1){
+    const front=REACH*(1-Math.exp(-t/.85)), dry=Math.min(1,Math.max(0,(t-.9)/2.6)), wet=1-dry;
+    for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
+      if(tk>front){ d[o+3]=0; continue; }
+      const inside=front-tk;
+      const edgeA=Math.min(1,inside/.008);                       // 가장자리는 또렷하게(살짝 부드럽게)
+      const rimBand=Math.exp(-inside/(.018+.035*wet));           // 마를수록 가는 테두리
+      let amt=.32+.18*Math.min(1,tk/front)+H[k]*.35;             // 가운데는 맑고 바깥으로 갈수록 조금 진함
+      amt+= rimBand*(.15+.55*dry);                              // 테두리 진해짐
+      amt*= 1-.22*(G[k]-.5)*2*(.4+.6*dry);                      // 입자
+      const m=Math.min(1,rimBand*(.4+.6*dry));
+      const c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
+      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,amt*edgeA*fade))*255;
+    }
+    x.putImageData(im,0,0); return cv;
+  }
+  return {frame};
+}
 function startHome3D(el){
-  // 물방울 없이: 종이 위에 풍미 색 물감이 톡 떨어져 번진다
   const size=320, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px';
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; const x=cv.getContext('2d');
   el.innerHTML=`<div class="hd-stage"><div class="hd-label" id="hdLabel"><i></i><b></b><span></span></div></div>`;
   const stage=el.firstChild; stage.appendChild(cv);
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
-  const plan=[]; let T0=.6;
-  HOME_GROUPS.forEach((g,gi)=>{ g.forEach((k,i)=>plan.push({type:'ink',g:gi,i,k,at:T0+i*HOME_STEP})); const end=T0+g.length*HOME_STEP; plan.push({type:'mix',g:gi,at:end}); T0=end+HOME_HOLD+HOME_CLEAR+.5; });
-  const LOOP=T0; let lastShown='';
-  function show(key,title,sub,color,html){ if(lastShown===key) return; lastShown=key; label.classList.remove('on'); void label.offsetWidth;
-    if(html) lb.innerHTML=title; else lb.textContent=title; lb.style.color=color?inkText(color):''; ls.textContent=sub; label.classList.add('on'); }
-  function hide(){ if(lastShown==='') return; lastShown=''; label.classList.remove('on'); }
-  // 잉크 하나 = 그 풍미 색으로만 칠한 꽃물 번짐. 그룹 안에서 조금씩 겹치게 놓아 한 잔의 모양을 만든다
-  const spot=(g,i,n)=>{ const a=(i/n)*6.283+g*1.3, d=i===0?0:.17; return [.5+Math.cos(a)*d,.52+Math.sin(a)*d*.85]; };
-  const t0=performance.now();
+  // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
+  const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
+  const LEAD=.6, SPREAD=4.4, FADE=1.1, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
+  const N=Math.min(260,Math.round(px*.55)); const cache={};
+  const wash=(k,i)=>cache[k+i]||(cache[k+i]=makeWash(N,FLAVORS[k].color,WC.hash(k)+i*977));
+  let lastShown=''; const t0=performance.now();
+  x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high';
   (function loop(now){
     if(!cv.isConnected) return;
-    const tt=window.HOME_T!=null?window.HOME_T:(now-t0)/1000, lt=tt%LOOP;
-    let cur=plan.filter(q=>q.at<=lt+HOME_DROP+.001).pop()||plan[0]; const g=cur.g, inks=plan.filter(q=>q.type==='ink'&&q.g===g);
-    const mix=plan.find(q=>q.type==='mix'&&q.g===g), clearAt=mix.at+HOME_HOLD;
-    const fadeAll=1-Math.min(1,Math.max(0,(lt-clearAt)/HOME_CLEAR));
+    const tt=window.HOME_T!=null?window.HOME_T:Math.max(0,(now-t0)/1000), lt=tt%LOOP, idx=Math.floor(lt/STEPT), k=ORDER_F[idx], st=lt-idx*STEPT, cyc=Math.floor(tt/LOOP);
+    if(lastShown!==k+cyc){ lastShown=k+cyc; label.classList.remove('on'); void label.offsetWidth; const F=FLAVORS[k];
+      lb.textContent=HOME_EN[k]; lb.style.color=inkText(F.color); ls.textContent=HOME_EX[k]||''; label.classList.add('on'); }
+    if(st>LEAD+SPREAD+FADE*.4) label.classList.remove('on');
     x.clearRect(0,0,px,px);
-    inks.forEach(q=>{ const age=lt-(q.at+HOME_DROP); if(age<-.45) return;
-      const [u,v]=spot(g,q.i,inks.length), cx=u*px, cy=v*px, F=FLAVORS[q.k], R=px*.2;
-      if(age<0){ // 떨어지는 물방울 한 점
-        const k=1+age/.45, y=cy-(1-k)*px*.35; x.save(); x.fillStyle=inkText(F.color); x.globalAlpha=.7*k*fadeAll; x.beginPath(); x.ellipse(cx,y,px*.012,px*.018,0,0,6.283); x.fill(); x.restore(); return; }
-      const prog=Math.min(1,age/1.6), drop={id:'home-'+g+'-'+q.k,comps:[{key:q.k,c:F.color,w:1}]};
-      BLOOM.draw(x,drop,cx,cy,R,prog,1.7*fadeAll);
-    });
-    const showing=inks.find(q=>lt>=q.at&&lt<q.at+HOME_STEP-.35);
-    if(lt<mix.at&&showing){ const F=FLAVORS[showing.k]; show(showing.k,HOME_EN[showing.k],HOME_EX[showing.k]||'',F.color); }
-    else if(lt>=mix.at&&lt<clearAt){ show('mix'+g,inks.map(q=>`<em style="color:${inkText(FLAVORS[q.k].color)}">${HOME_EN[q.k]}</em>`).join(' · '),'기록하면 이렇게 나만의 찻방울이 번져요',null,true); }
-    else hide();
+    const age=st-LEAD; if(age>0){ const fade=1-Math.max(0,Math.min(1,(age-SPREAD)/FADE));
+      const img=wash(k,cyc%3).frame(age,fade); const m=px*.06; x.drawImage(img,m,m,px-2*m,px-2*m); }
     requestAnimationFrame(loop);
   })(performance.now());
   return true;
