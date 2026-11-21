@@ -201,10 +201,10 @@ add({id:'s305',name:'젖은 수채',cat:'물감',
     for(const r of recs){ const x=AT.get(r).x, y=AT.get(r).y, R=W*(.07+.05*r.i)*k;
       const g=w.createRadialGradient(x,y,0,x,y,R*1.3); const c=H.pastel(r.tea,.2,1.2); g.addColorStop(0,H.rgbStr(c,.2)); g.addColorStop(1,H.rgbStr(c,0)); w.fillStyle=g; w.fillRect(x-R*1.3,y-R*1.3,R*2.6,R*2.6); }
     blit(ctx,W,wet,Math.round(W*.02),.8);
-    const lay=n>50?7:n>20?9:12, al=n>50?.045:.04;
+    const lay=n>50?7:n>20?9:12, al=n>50?.035:n>20?.04:.045;
     for(const r of recs){ const rng=H.rng(H.hash(r.id)), x=AT.get(r).x, y=AT.get(r).y, R=AT.get(r).r;
-      wcBlob(ctx,H,x,y,R,H.pastel(r.tea,.08,1.2),rng,lay,al);
-      r.fl.forEach((f,j)=>{ const a=rng()*TAU, d=R*.35*rng(); wcBlob(ctx,H,x+Math.cos(a)*d,y+Math.sin(a)*d,R*(.3+.35*f.w),H.pastel(f.rgb,.05,1.25),rng,lay-2,al*1.1); });
+      wcBlob(ctx,H,x,y,R,H.pastel(r.tea,.2,1.15),rng,lay,al);
+      r.fl.forEach((f,j)=>{ const a=rng()*TAU, d=R*.4*rng(); wcBlob(ctx,H,x+Math.cos(a)*d,y+Math.sin(a)*d,R*(.28+.3*f.w),H.pastel(f.rgb,.18,1.2),rng,lay-3,al); });
     }
     H.grain(ctx,W,.07,'soft-light');
   }});
@@ -216,19 +216,20 @@ add({id:'s306',name:'취향 데칼코마니',cat:'잉크',
     const n=recs.length, sg=(.042+.03*Math.sqrt(10/Math.max(n,10)))*Math.pow(10/Math.max(n,10),.22);
     const M=recs.map(r=>({...r,_pts:null,x:.07+.41*r.x,y:.1+.8*r.y}));
     const F=H.field(M,90,{spread:1.6});
-    const N=220, half=N/2, T=.42;
+    const N=300, half=N/2, T=.42, cut=sg*3.2;
     const cv=pixels(N,(u,v,o,i)=>{
       const uu=i<half?u:1-u;
+      let near=false; for(const r of M){ if(Math.abs(uu-r.x)<cut&&Math.abs(v-r.y)<cut){ near=true; break; } }
+      if(!near){ o[3]=0; return; }
       const wu=uu+.035*(H.fbm(uu*6,v*6,3)-.5), wv=v+.035*(H.fbm(uu*6+7,v*6+3,3)-.5);
       let f=0,core=0; for(const r of M){ const dx=wu-r.x, dy=wv-r.y, s2=sg*sg*(.6+.8*r.i); const d2=dx*dx+dy*dy; if(d2>s2*9) continue; f+=(.5+.5*r.i)*Math.exp(-d2/s2); core+=r.i*Math.exp(-d2/(s2*.12)); }
       const vein=H.fbm(uu*22,v*22,3), feather=H.noise(uu*9,v*46);
       const val=f+.38*(vein-.5)+.22*(feather-.5)*H.ss(.05,.3,v)*H.ss(.95,.7,v);
-      const a=H.ss(T-.045,T+.02,val);
+      const a=H.ss(T-.03,T+.03,val);
       if(a<=0){ o[3]=0; return; }
       const c=H.sample(F,wu,wv), p=H.pastel(c,.02,1.3);
       const edge=Math.exp(-Math.max(0,val-T)/.09), inner=H.fbm(uu*9+3,v*9,3);
-      let col=H.mix(H.mix(BGc,p,.45+.35*inner),H.shade(p,-.3),edge*.7);
-      col=H.mix(col,H.shade(p,-.22),Math.min(.6,core*.5));
+      let col=H.mix(H.mix(BGc,p,.5+.35*inner),H.shade(p,-.28),edge*.75);
       o[0]=col[0]; o[1]=col[1]; o[2]=col[2]; o[3]=a*.95;
     });
     blit(ctx,W,cv);
