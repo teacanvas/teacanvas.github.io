@@ -1015,7 +1015,7 @@ const SCREENS = {
 
 home(){
   return `<div class="home">
-    <h1 class="home-q ${HQ}">${/split/.test(HQ)?'<em>당신에게 이 차는</em>어떤 색들이 담겨 있나요?':'당신에게 이 차는<br>어떤 색들이 담겨 있나요?'}</h1>
+    <h1 class="home-q ${HQ}">${/split/.test(HQ)?'<em>오늘의 차는 당신에게</em>어떤 색들이 담겨 있을까요?':'오늘의 차는 당신에게<br>어떤 색들이 담겨 있을까요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
     <p class="home-note">맛과 향을 기록해서 색으로 보관해요</p>
     <button class="bigbtn" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
