@@ -23,7 +23,7 @@ vec3 fieldC(vec3 q){
   }
   return acc/max(tot,1e-6);
 }`;
-  const FRAG = `precision highp float; varying vec2 v; uniform mat3 rot; uniform float wob;
+  const FRAG = `precision highp float; varying vec2 v; uniform mat3 rot; uniform float wob, glit;
 ${GLSL_FIELD}
 void main(){
   vec2 uv=v; float r=length(uv), ang=atan(uv.y,uv.x);
@@ -40,6 +40,13 @@ void main(){
   col=mix(col,col*.72,fres*.6);
   col+=pow(max(dot(reflect(-L,N),vec3(0,0,1)),0.),46.)*.6;
   col+=vec3(.95,.97,1.)*smoothstep(.45,1.,fres)*.28;
+  if(glit>0.){ // 표면의 색 입자: 가까이 보면 방울이 작은 점들로 이루어져 있다
+    vec3 qs=rot*vec3(s,z)*.97; vec3 cell=floor(qs*34.); float hh=h3(cell+7.3);
+    vec3 cc=(cell+.5+(vec3(h3(cell+1.1),h3(cell+2.2),h3(cell+3.3))-.5)*.5)/34.;
+    float dd=length(qs-cc)*34., sp=step(.55,hh)*smoothstep(.42,.12,dd)*smoothstep(.0,.35,z);
+    vec3 pc=fieldC(cc); float tw=.75+.25*sin(t*2.2+hh*60.);
+    col=mix(col,clamp(pc*1.12+.04,0.,1.)*tw+vec3(.12)*step(.93,hh),sp*glit*.85);
+  }
   float a=smoothstep(R,R-.014,r);
   gl_FragColor=vec4(col*a,a);
 }`;
@@ -92,13 +99,13 @@ void main(){
     const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG)); gl.linkProgram(pr); gl.useProgram(pr);
     const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
     const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-    const U={}; ['rot','wob','baseC','baseW','inkC','inkP','inkW','t','flow','swirl'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+    const U={}; ['rot','wob','glit','baseC','baseW','inkC','inkP','inkW','t','flow','swirl'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
     return {gl,
       draw(F,yaw,pitch,t,o={}){
         const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
         // R = Ry(yaw) * Rx(pitch), column-major
         gl.uniformMatrix3fv(U.rot,false,[cy,0,-sy, sy*sp,cp,cy*sp, sy*cp,-sp,cy*cp]);
-        gl.uniform1f(U.t,t); gl.uniform1f(U.wob,o.wob??1); gl.uniform1f(U.flow,o.flow??.04); gl.uniform1f(U.swirl,o.swirl??.9);
+        gl.uniform1f(U.t,t); gl.uniform1f(U.wob,o.wob??1); gl.uniform1f(U.glit,o.glit??0); gl.uniform1f(U.flow,o.flow??.04); gl.uniform1f(U.swirl,o.swirl??.9);
         gl.uniform3fv(U.baseC,F.base); gl.uniform1f(U.baseW,F.baseW);
         const C=[],P=[],W=[]; for(let i=0;i<10;i++){ const k=F.inks[i]; C.push(...(k?k.c:[0,0,0])); P.push(...(k?k.p:[0,0,0])); W.push(k?k.w*(k.vis??1):0); }
         gl.uniform3fv(U.inkC,C); gl.uniform3fv(U.inkP,P); gl.uniform1fv(U.inkW,W);
@@ -117,7 +124,7 @@ void main(){
   }
 
   /* 화면 속 3D 방울: 자동으로 천천히 돌고, interactive면 드래그로 돌려본다 */
-  function mount(el,F,{size=200,px=null,interactive=false,spin=.32,flow=.04,swirl=.9,wob=1,onFrame=null}={}){
+  function mount(el,F,{size=200,px=null,interactive=false,spin=.32,flow=.04,swirl=.9,wob=1,glit=0,onFrame=null}={}){
     const cv=document.createElement('canvas'); cv.className='d3'; cv.style.width=cv.style.height=size+'px';
     let R; try{ R=makeGL(cv); }catch(e){ R=null; } if(!R) return null;
     el.innerHTML=''; el.appendChild(cv);
@@ -137,7 +144,7 @@ void main(){
       const dt=Math.min(.05,(now-st.last)/1000); st.last=now; const t=(now-st.t0)/1000;
       if(!st.drag){ st.vy+=(spin-st.vy)*Math.min(1,dt*1.5); st.yaw+=st.vy*dt; st.pitch+=(.25-st.pitch)*dt*.6; }
       onFrame&&onFrame(t,st);
-      R.draw(st.F,st.yaw,st.pitch,t,{flow,swirl,wob});
+      R.draw(st.F,st.yaw,st.pitch,t,{flow,swirl,wob,glit:st.glit??glit});
       requestAnimationFrame(loop);
     })(performance.now());
     return st;
