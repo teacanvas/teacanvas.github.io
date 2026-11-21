@@ -1942,7 +1942,7 @@ function startHome3D(el){
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
   const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
-  const LEAD=.6, SPREAD=6.2, FADE=1.1, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
+  const LEAD=.6, SPREAD=2.6, FADE=.9, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
   const N=Math.min(260,Math.round(px*.55)); const cache={};
   const wash=(k,i)=>cache[k+i]||(cache[k+i]=makeWash(N,FLAVORS[k].color,WC.hash(k)+i*977));
   let lastShown=''; const t0=performance.now();

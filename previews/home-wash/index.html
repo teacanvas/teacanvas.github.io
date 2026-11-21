@@ -100,11 +100,12 @@ let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.wash2.fa
 const g=document.getElementById('grid');
 g.innerHTML=V.map((v,i)=>`<section class="card"><button class="star ${FAV.has(i)?'on':''}" data-i="${i}">${FAV.has(i)?'★':'☆'}</button><div class="no">${String(i+1).padStart(3,'0')}</div><canvas width="${PX}" height="${PX}"></canvas><h2>${v.n}</h2><p>속도 ${v.spd} · 경계 흐림 ${v.soft} · 테두리 ${v.rim}</p></section>`).join('');
 const cards=[...g.querySelectorAll('.card')].map((el,i)=>({el,cv:el.querySelector('canvas'),v:V[i],i,cache:{}}));
-function cycleLen(v){ return 6.5/v.spd+1.6; }
+// 다 마르기 전, 테두리가 막 생기기 시작할 때(시뮬레이션 3.2초) 옅어지며 끝낸다
+function cycleLen(v){ return 3.2/v.spd+.3+.9; }
 function draw(c,tt){ const L=cycleLen(c.v), cyc=Math.floor(tt/L), age=tt-cyc*L-.3, col=COLS[(cyc+c.i)%COLS.length];
   const w=c.cache[col]||(c.cache[col]=makeWash(N,col,(c.i+1)*7919+cyc%2*31,c.v));
   const x=c.cv.getContext('2d'); x.clearRect(0,0,PX,PX); if(age<0) return;
-  const fade=1-Math.max(0,Math.min(1,(age-(L-1.4))/1.1)); x.imageSmoothingQuality='high'; const m=PX*.06; x.drawImage(w.frame(age,fade),m,m,PX-2*m,PX-2*m); }
+  const fade=1-Math.max(0,Math.min(1,(age-(L-.3-.9))/.9)); x.imageSmoothingQuality='high'; const m=PX*.06; x.drawImage(w.frame(age,fade),m,m,PX-2*m,PX-2*m); }
 const vis=new Set(); const io=new IntersectionObserver(es=>es.forEach(e=>{ const c=cards.find(x=>x.el===e.target); e.isIntersecting?vis.add(c):vis.delete(c); })); cards.forEach(c=>io.observe(c.el));
 const t0=performance.now(); (function loop(now){ const tt=Math.max(0,(now-t0)/1000); vis.forEach(c=>draw(c,tt)); requestAnimationFrame(loop); })(t0);
 window.drawAt=(i,tt)=>{ draw(cards[i],tt); const c=document.createElement('canvas'); c.width=c.height=PX; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,PX,PX); x.drawImage(cards[i].cv,0,0); return c.toDataURL('image/jpeg',.85); };
