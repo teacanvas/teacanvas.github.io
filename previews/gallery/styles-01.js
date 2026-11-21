@@ -215,22 +215,22 @@ A({id:'s108',name:'차빛 오로라',cat:'빛',
   desc:'기록 하나가 밤하늘의 빛 커튼 한 줄기예요. 향이 좋았던 기록은 오른쪽, 맛이 좋았던 기록일수록 높이 걸리고, 아래는 찻물색·위로 갈수록 풍미색이에요. 고요한 호수에 그 빛이 비쳐요.',
   bg:'#080B12',
   render(ctx,W,recs,H){
-    const n=210, N=recs.length, im=ctx.createImageData(n,n), d=im.data, amp=.5*Math.min(1,2.4/Math.sqrt(N))+.04, hz=.74, hj=Math.round(hz*n);
-    const R=recs.map(r=>({x:r.x, yb:.22+.36*r.y, L:.09+.15*r.i, sx:(.022+.03*r.i)*(.6+.4*dens(N)), ph:H.hash(r.id)%100/16,
+    const n=210, N=recs.length, im=ctx.createImageData(n,n), d=im.data, amp=.5*Math.min(1,2.4/Math.sqrt(N))+.04, hz=.8, hj=Math.round(hz*n);
+    const R=recs.map(r=>({x:r.x, yb:.34+.34*r.y, L:.1+.16*r.i, sx:(.022+.03*r.i)*(.6+.4*dens(N)), ph:H.hash(r.id)%100/16,
       b:H.pastel(r.colors[0].rgb,.05,1.3).map(lin), t:H.pastel((r.colors[1]||r.colors[0]).rgb,.1,1.4).map(lin), a:amp*(.5+.5*r.i)}));
     for(let j=0;j<hj;j++){ const v=(j+.5)/n; for(let i=0;i<n;i++){ const u=(i+.5)/n, k=(j*n+i)*4;
       const ray=.35+.9*Math.pow(H.noise(u*70+H.noise(u*4,v*2)*6,v*1.1),1.8);
       let r=0,g=0,b=0;
       for(const q of R){ const xc=q.x+.05*Math.sin(v*4.5+q.ph)+.018*Math.sin(v*12+q.ph*2), dx=(u-xc)/q.sx; if(dx*dx>12) continue;
         const yb=q.yb+.035*Math.sin(u*6+q.ph); const dv=yb-v; let f;
-        if(dv>0) f=Math.exp(-dv/q.L); else { const e=dv/.012; f=Math.exp(-e*e); }
+        if(dv>0) f=Math.exp(-dv/q.L)*(1-Math.exp(-dv/.02)*.35); else { const e=dv/.02; f=.65*Math.exp(-e*e); }
         if(f<.01) continue; f*=Math.exp(-dx*dx*.5)*q.a; const t=cl(dv/(q.L*1.5));
         r+=f*(q.b[0]+(q.t[0]-q.b[0])*t); g+=f*(q.b[1]+(q.t[1]-q.b[1])*t); b+=f*(q.b[2]+(q.t[2]-q.b[2])*t); }
-      const sky=Math.pow(v/hz,3)*.014;
+      const sky=Math.pow(v/hz,4)*.005;
       r=1-Math.exp(-r*ray*1.6); g=1-Math.exp(-g*ray*1.6); b=1-Math.exp(-b*ray*1.6);
       d[k]=gam(r+.0018+sky*.5)*255; d[k+1]=gam(g+.0025+sky*.8)*255; d[k+2]=gam(b+.0055+sky*1.2)*255; d[k+3]=255; } }
     // 호수: 위쪽을 거꾸로 비추고 잔물결로 흔든다
-    for(let j=hj;j<n;j++){ const dj=j-hj, sj=Math.max(0,hj-1-Math.round(dj*1.15)), fade=.6*Math.exp(-dj/(n*.4));
+    for(let j=hj;j<n;j++){ const dj=j-hj, sj=Math.max(0,hj-1-Math.round(dj*2)), fade=.5*Math.exp(-dj/(n*.3));
       for(let i=0;i<n;i++){ const si=Math.min(n-1,Math.max(0,i+Math.round((H.noise(i*.05,j*.6)-.5)*6))), s=(sj*n+si)*4, k=(j*n+i)*4;
         d[k]=d[s]*fade+4; d[k+1]=d[s+1]*fade+6; d[k+2]=d[s+2]*fade+10; d[k+3]=255; } }
     const c=off(n); c.getContext('2d').putImageData(im,0,0);
@@ -472,26 +472,20 @@ A({id:'s118',name:'창호지 너머',cat:'빛',
     [.06,.5,.94].forEach(c=>{ for(let k=-1;k<=1;k++){ const y=m+iw*c+k*W*.018; ctx.moveTo(m,y); ctx.lineTo(W-m,y); } });
     ctx.stroke();
   }});
-/* ───────── 019 글리터 ───────── */
-A({id:'s119',name:'반짝이 가루',cat:'입자',
-  desc:'아주 작은 반짝이 가루가 기록 자리에 소복이 쌓여요. 조각마다 빛을 받는 각도가 달라 같은 색도 밝고 어둡게 반짝여요.',
-  bg:'#F6F4F0',
+/* ───────── 019 해바라기 점열 ───────── */
+A({id:'s119',name:'해바라기 점열',cat:'점묘',
+  desc:'해바라기 씨앗처럼 황금각으로 돌며 점이 놓여요. 가운데가 첫 잔, 바깥이 최근 잔이에요. 점은 찻물색, 둘레의 가는 고리는 풍미색이고 맛·향이 좋았던 잔일수록 점이 커요.',
   render(ctx,W,recs,H){
-    const N=recs.length, rnd=H.rng(119), P=picker(recs,.05*(.55+.45*dens(N)),H), G=104, cell=W/G, gl=[];
-    for(let j=0;j<G;j++) for(let i=0;i<G;i++){
-      const x=(i+rnd())*cell, y=(j+rnd())*cell, p=P(x/W,y/W,rnd); if(!p||rnd()>p.cov*1.2) continue;
-      const base=pickColor(p.rec,rnd), f=rnd(); let c;
-      if(f<.3) c=H.shade(base,-.35); else if(f>.86) c=lift(base,.7); else c=H.pastel(base,.05+.1*rnd(),1.25);
-      const s=cell*(.6+.5*rnd()); ctx.fillStyle=rgba(c,.95);
-      ctx.save(); ctx.translate(x,y); ctx.rotate(rnd()*1.57); ctx.beginPath(); ctx.moveTo(0,-s*.6); ctx.lineTo(s*.55,0); ctx.lineTo(0,s*.6); ctx.lineTo(-s*.55,0); ctx.closePath(); ctx.fill(); ctx.restore();
-      if(f>.95&&p.cov>.25) gl.push([x,y,base]);
-    }
-    ctx.lineCap='round';
-    gl.forEach(([x,y,b])=>{ const L=cell*(2.2+rnd()*2.2), c=H.pastel(b,.1,1.3);
-      for(const [dx,dy,k] of [[1,0,1],[0,1,1],[.7,.7,.45],[.7,-.7,.45]]){ const g=ctx.createLinearGradient(x-dx*L*k,y-dy*L*k,x+dx*L*k,y+dy*L*k);
-        g.addColorStop(0,rgba(c,0)); g.addColorStop(.5,rgba(c,.95)); g.addColorStop(1,rgba(c,0));
-        ctx.strokeStyle=g; ctx.lineWidth=Math.max(.7,W/600); ctx.beginPath(); ctx.moveTo(x-dx*L*k,y-dy*L*k); ctx.lineTo(x+dx*L*k,y+dy*L*k); ctx.stroke(); }
-      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,cell*.55,0,TAU); ctx.fill(); });
+    const N=recs.length, cx=W/2, cy=W/2, Rm=W*.4, c=Rm/Math.sqrt(N+.5), GA=Math.PI*(3-Math.sqrt(5)), lw=Math.max(.6,W/700);
+    recs.forEach((r,k)=>{
+      const rr=c*Math.sqrt(k+.5), th=k*GA-1.2, x=cx+Math.cos(th)*rr, y=cy+Math.sin(th)*rr;
+      const score=(r.x+(1-r.y))/2, R=c*(.2+.24*score+.06*r.i);
+      ctx.fillStyle=rgba(H.pastel(r.colors[0].rgb,.08,1.15)); ctx.beginPath(); ctx.arc(x,y,R,0,TAU); ctx.fill();
+      const fl=r.colors.slice(1), sum=fl.reduce((s,f)=>s+f.w,0); let a=th+Math.PI/2;
+      ctx.lineWidth=Math.max(lw,c*.06);
+      fl.forEach(f=>{ const span=f.w/sum*TAU; ctx.strokeStyle=rgba(H.pastel(f.rgb,.05,1.2),.95); ctx.beginPath(); ctx.arc(x,y,R+c*.09,a+.12,a+span-.12); ctx.stroke(); a+=span; });
+      if(r.stars>=3){ ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(x,y,R*.22,0,TAU); ctx.fill(); }
+    });
   }});
 /* ───────── 020 찻잔 속 빛 ───────── */
 A({id:'s120',name:'찻잔 속 물빛',cat:'빛',

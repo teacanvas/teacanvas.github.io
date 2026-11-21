@@ -276,11 +276,11 @@ GALLERY.add({ id:'s209', name:'스피로그래프 표본첩', cat:'실',
 GALLERY.add({ id:'s210', name:'찻물 위 동심원', cat:'선',
   desc:'비슷한 취향의 기록끼리 한 점에서 물결을 일으켜요. 한 잔마다 찻물 색과 풍미 색 물결이 한 겹씩 더해져 멀리 퍼지고, 물결이 겹친 곳에 무아레 무늬가 생겨요.',
   render(ctx,W,recs){
-    const N=recs.length, k=dk(N), m=W*.13, s=W/480, sp=W*.0078, C=cluster(recs,.07);
+    const N=recs.length, k=dk(N), m=W*.13, s=W/480, sp=W*(.0072+.003*k), C=cluster(recs,.07);
     ctx.lineWidth=s*.75;
     C.forEach(c=>{ const cx=m+c.x*(W-2*m), cy=m+c.y*(W-2*m), cols=[]; c.m.forEach(r=>{ cols.push(r.tea,acc(r)); if(r.i>.65) cols.push(fl(r,1)); });
-      const n=cols.length+4;
-      for(let q=1;q<=n;q++){ const t=q/n, col=cols[Math.min(cols.length-1,Math.max(0,q-3))]; ctx.strokeStyle=lc(pc(col,0,1.15),.8*Math.pow(1-t,.5)+.06);
+      const rep=k>.6?3:1, n=Math.min(cols.length*rep+4,Math.round(W*.26/sp));
+      for(let q=1;q<=n;q++){ const t=q/n, col=cols[Math.min(cols.length-1,Math.max(0,Math.floor((q-3)/rep)))]; ctx.strokeStyle=lc(pc(col,0,1.15),.8*Math.pow(1-t,.5)+.06);
         ctx.beginPath(); ctx.arc(cx,cy,q*sp,0,TAU); ctx.stroke(); }
       ctx.fillStyle=lc(c.m[0].tea,.85); ctx.beginPath(); ctx.arc(cx,cy,s*1.6,0,TAU); ctx.fill(); });
   }});
@@ -334,14 +334,16 @@ GALLERY.add({ id:'s213', name:'실타래', cat:'실',
   desc:'기록마다 몇 바퀴씩 감아 올린 실타래예요. 차를 마실수록 공이 커지고, 맨 바깥에는 최근 기록의 실이 감겨 풀려 나와요.',
   render(ctx,W,recs){
     const N=recs.length, R=W*(.2+.12*Math.min(1,N/100)), cx=W*.47, cy=W*.47, s=W/480, M=Math.round(clamp(20+N*2.2,34,240));
-    const rnd=H.rng(H.hash('yarn'+N)), yw=W*.0062;
+    const rnd=H.rng(H.hash('yarn'+N)), yw=W*(.0045+.002*dk(N));
     let avg=[0,0,0]; recs.forEach(r=>avg=avg.map((v,i)=>v+r.tea[i]/N));
     ctx.fillStyle=H.rgbStr(pc(avg,.55,1)); ctx.beginPath(); ctx.arc(cx,cy,R*.985,0,TAU); ctx.fill();
     ctx.lineCap='round';
-    for(let w=0;w<M;w++){ const r=recs[Math.min(N-1,Math.floor(w*N/M))], col=pc(r.colors[w%r.colors.length].rgb,.04,1.08);
-      const z=rnd()*2-1, ph=rnd()*TAU, sq=Math.sqrt(1-z*z), nx=sq*Math.cos(ph), ny=sq*Math.sin(ph), nz=z;
+    const G=7; let nx=0, ny=0, nz=1;
+    for(let w=0;w<M;w++){ const ri=Math.min(N-1,Math.floor(w*N/M)), r=recs[ri], col=pc(r.colors[w%r.colors.length].rgb,.1,1.05);
+      if(w%G===0){ const z=rnd()*2-1, ph=rnd()*TAU, sq=Math.sqrt(1-z*z); nx=sq*Math.cos(ph); ny=sq*Math.sin(ph); nz=z; }
+      const hh=((w%G)-(G-1)/2)*.045, rho=Math.sqrt(1-hh*hh);
       let e1=[-ny,nx,0]; const l1=Math.hypot(...e1)||1; e1=e1.map(v=>v/l1); const e2=[ny*e1[2]-nz*e1[1],nz*e1[0]-nx*e1[2],nx*e1[1]-ny*e1[0]];
-      const Rk=R*(.955+.04*w/M), Q=72, pts=[]; for(let q=0;q<=Q;q++){ const t=q/Q*TAU, c=Math.cos(t), sn=Math.sin(t); pts.push([e1[0]*c+e2[0]*sn,e1[1]*c+e2[1]*sn,e1[2]*c+e2[2]*sn]); }
+      const Rk=R*(.955+.04*w/M), Q=72, pts=[]; for(let q=0;q<=Q;q++){ const t=q/Q*TAU, c=Math.cos(t)*rho, sn=Math.sin(t)*rho; pts.push([nx*hh+e1[0]*c+e2[0]*sn,ny*hh+e1[1]*c+e2[1]*sn,nz*hh+e1[2]*c+e2[2]*sn]); }
       ctx.lineWidth=yw;
       for(let q=0;q<Q;q++){ const p=pts[q], p2=pts[q+1]; if(p[2]<0||p2[2]<0) continue; const sh=.78+.22*p[2];
         ctx.strokeStyle=H.rgbStr(col.map(v=>v*sh)); ctx.beginPath(); ctx.moveTo(cx+p[0]*Rk,cy+p[1]*Rk); ctx.lineTo(cx+p2[0]*Rk,cy+p2[1]*Rk); ctx.stroke(); } }
@@ -461,12 +463,13 @@ GALLERY.add({ id:'s219', name:'이캇 날실', cat:'직물', bg:'#F4F0E8',
     const N=recs.length, tpr=Math.max(1,Math.round(84/N)), T=N*tpr, x0=W*.1, x1=W*.9, tw=(x1-x0)/T, top=W*.07, bot=W*.93, s=W/480;
     ctx.lineCap='butt'; ctx.lineWidth=tw*.78; ctx.strokeStyle='rgb(228,221,207)';
     for(let t=0;t<T;t++){ const x=x0+(t+.5)*tw; ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bot); ctx.stroke(); }
-    [...recs].sort((a,b)=>a.x-b.x).forEach((r,k)=>{ const R=H.rng(H.hash(r.id)), yc=W*(.14+.72*r.y), hh=W*(.035+.085*r.i)*(.55+.45*dk(N)), cols=[r.tea,...r.colors.slice(1).map(c=>c.rgb)];
+    const srt=[...recs].sort((a,b)=>a.x-b.x), wn=N>20?3:0, ys=srt.map((r,k)=>{ let a=0,b=0; for(let z=-wn;z<=wn;z++){ const q=srt[k+z]; if(!q) continue; const w=1/(1+Math.abs(z)); a+=q.y*w; b+=w; } return r.y*.4+a/b*.6; });
+    srt.forEach((r,k)=>{ const R=H.rng(H.hash(r.id)), yc=W*(.14+.72*ys[k]), hh=W*(.035+.085*r.i)*(.55+.45*dk(N)), cols=[r.tea,...r.colors.slice(1).map(c=>c.rgb)];
       for(let q=0;q<tpr;q++){ const t=k*tpr+q, x=x0+(t+.5)*tw, mid=(tpr-1)/2, sh=tpr>1?1-Math.abs(q-mid)/(mid+1)*.85:1;
-        const yy=yc+(H.noise(t*.25,7)-.5)*W*.03, h=hh*sh*(.92+.16*R()), jt=(R()-.5)*W*.01;
+        const yy=yc+(H.noise(t*.25,7)-.5)*W*(N>20?.015:.03), h=hh*sh*(.92+.16*R()), jt=(R()-.5)*W*.01;
         const seg=(y1,y2,c,a)=>{ ctx.strokeStyle=H.rgbStr(c,a); ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke(); };
         // 번짐(이캇 특유의 깃털 같은 가장자리)
-        for(let z=0;z<3;z++){ const e=W*(.006+.01*R()); seg(yy-h-e+jt,yy-h+jt,pc(r.tea,.15,1),.35); seg(yy+h+jt,yy+h+e+jt,pc(r.tea,.15,1),.35); }
+        for(let z=0;z<(N>20?1:3);z++){ const e=W*(.006+.01*R()); seg(yy-h-e+jt,yy-h+jt,pc(r.tea,.15,1),.35); seg(yy+h+jt,yy+h+e+jt,pc(r.tea,.15,1),.35); }
         const nb=cols.length, bh=2*h/(2*nb-1);
         for(let z=0;z<2*nb-1;z++){ const c=cols[Math.abs(z-(nb-1))===nb-1?0:(nb-1-Math.abs(z-(nb-1)))]; seg(yy-h+jt+z*bh,yy-h+jt+(z+1)*bh+.5,pc(c,.06,1.08),.95); }
       } });
