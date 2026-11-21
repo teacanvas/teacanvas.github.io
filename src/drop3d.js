@@ -18,7 +18,7 @@ vec3 fieldC(vec3 q){
   float b=baseW*baseW*sqrt(baseW); vec3 acc=baseC*b; float tot=b;
   for(int i=0;i<10;i++){
     float wi=inkW[i]; if(wi<.001) continue;
-    vec3 d=q-inkP[i]; float f=wi*exp(-dot(d,d)/(.05+.22*wi));
+    vec3 d=q-inkP[i]; float f=wi*exp(-dot(d,d)/(.06+.3*wi));
     f=f*f*sqrt(f); acc+=inkC[i]*f; tot+=f;
   }
   return acc/max(tot,1e-6);
@@ -60,7 +60,7 @@ void main(){
       const i=order[j], y=1-2*(i+.5)/N, s=Math.sqrt(1-y*y), th=i*2.39996+off, d=.6+.22*r();
       return {key:c.key,c:rgb(c.c),p:[s*Math.cos(th)*d,y*d,s*Math.sin(th)*d],w:c.w};
     });
-    return {base:rgb(tea.c),baseW:fl.length?.45:1,inks};
+    return {base:rgb(tea.c),baseW:fl.length?.3:1,inks};
   }
 
   /* ---------- 같은 색 공간을 JS로 (2D 캔버스용) ---------- */
@@ -79,7 +79,7 @@ void main(){
     x+=(wx-.5)*swirl; y+=(wy-.5)*swirl; z+=(wz-.5)*swirl;
     const bw=F.baseW**2.5; let r=F.base[0]*bw, g=F.base[1]*bw, b=F.base[2]*bw, tot=bw;
     for(const k of F.inks){ const w=k.w*(k.vis??1); if(w<.001) continue; const dx=x-k.p[0], dy=y-k.p[1], dz=z-k.p[2];
-      let f=w*Math.exp(-(dx*dx+dy*dy+dz*dz)/(.05+.22*w)); f=f*f*Math.sqrt(f); r+=k.c[0]*f; g+=k.c[1]*f; b+=k.c[2]*f; tot+=f; }
+      let f=w*Math.exp(-(dx*dx+dy*dy+dz*dz)/(.06+.3*w)); f=f*f*Math.sqrt(f); r+=k.c[0]*f; g+=k.c[1]*f; b+=k.c[2]*f; tot+=f; }
     r/=tot; g/=tot; b/=tot; const l=.299*r+.587*g+.114*b, S=1.35, c=v=>Math.max(0,Math.min(1,l+(v-l)*S));
     return [c(r),c(g),c(b)];
   }

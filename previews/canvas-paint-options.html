@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캔버스 칠하기 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--bg:#F4F4F2;--line:#E5E5E5;--g2:#737373}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:var(--bg);color:#111;line-height:1.5;padding:40px 24px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:24px;font-weight:700;letter-spacing:-.3px}
+.lead{color:var(--g2);font-size:14px;margin-top:6px;max-width:760px}
+.ref{display:flex;gap:28px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin:24px 0}
+.ref .d3box{width:220px;height:220px;flex-shrink:0}
+.ref b{font-size:16px}
+.ref p{font-size:13px;color:var(--g2);margin-top:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;background:#F3F3F3;border-radius:14px;padding:3px 10px}
+.chip i{width:9px;height:9px;border-radius:50%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(540px,1fr));gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h2{font-size:16px}
+.card h2 small{font-size:11px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.card .d{font-size:13px;color:var(--g2);margin-top:4px}
+.card .pc{font-size:12px;color:#444;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.card .pc span::before{content:attr(data-k);font-weight:700;margin-right:5px}
+.pair{display:flex;gap:12px;margin-top:14px}
+.pair figure{flex:1;min-width:0}
+.pair canvas{display:block;width:100%;aspect-ratio:1/1;border-radius:6px;cursor:pointer}
+figcaption{font-size:12px;color:var(--g2);text-align:center;margin-top:6px}
+@media (max-width:600px){.grid{grid-template-columns:1fr}.pair{flex-direction:column}.ref{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>3D 찻방울을 2D 캔버스에 칠하는 7가지 방법</h1>
+  <p class="lead">모든 시안은 아래 3D 방울과 <b>같은 색 공간</b>에서 색을 가져와요. 3D 방울을 어떤 방식으로 종이에 옮길지만 달라요. 왼쪽 그림을 누르면 칠해지는 연출이 다시 재생되고, 오른쪽 캔버스를 누르면 그 자리에 새 방울이 칠해져요.</p>
+  <div class="ref"><div class="d3box" id="ref3d"></div>
+    <div><b>기준 방울 · 철관음 (우롱차)</b><p>드래그해서 돌려보세요. 고소함이 가장 진하고, 꽃향·상쾌함이 군데군데 섞여 있어요.</p><div class="chips" id="refChips"></div></div></div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+/* @@D3_BEGIN (src/drop3d.js에서 빌드) */
+/* =========================================================
+   D3 — 3D 찻방울 (WebGL, 라이브러리 없음)
+   방울 속 3D 색 공간: 찻물 색(바탕) 위에 풍미 잉크가 각자 자리에서 번지고,
+   흐르는 노이즈로 경계가 섞인다. 같은 색 공간을 JS로도 계산해 2D 캔버스에 칠한다.
+   ========================================================= */
+const D3 = (()=>{
+  const VERT = `attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
+  const GLSL_FIELD = `
+float h3(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+float fbm(vec3 p){ float s=0., a=.5; for(int i=0;i<4;i++){ s+=a*n3(p); p=p*2.02+vec3(3.1,1.7,5.3); a*=.5; } return s; }
+uniform vec3 baseC; uniform float baseW; uniform vec3 inkC[10]; uniform vec3 inkP[10]; uniform float inkW[10]; uniform float t, flow, swirl;
+vec3 fieldC(vec3 q){
+  vec3 w=vec3(fbm(q*1.6+vec3(0.,0.,t*flow)), fbm(q*1.6+vec3(5.2,1.3,-t*flow)), fbm(q*1.6+vec3(2.7,8.1,t*flow*.7)));
+  q+=(w-.5)*swirl;
+  float b=baseW*baseW*sqrt(baseW); vec3 acc=baseC*b; float tot=b;
+  for(int i=0;i<10;i++){
+    float wi=inkW[i]; if(wi<.001) continue;
+    vec3 d=q-inkP[i]; float f=wi*exp(-dot(d,d)/(.06+.3*wi));
+    f=f*f*sqrt(f); acc+=inkC[i]*f; tot+=f;
+  }
+  return acc/max(tot,1e-6);
+}`;
+  const FRAG = `precision highp float; varying vec2 v; uniform mat3 rot; uniform float wob;
+${GLSL_FIELD}
+void main(){
+  vec2 uv=v; float r=length(uv), ang=atan(uv.y,uv.x);
+  float R=.8+wob*(.012*sin(t*1.3)+.024*(n3(vec3(cos(ang)*1.3,sin(ang)*1.3,t*.3))-.5));
+  if(r>R){ gl_FragColor=vec4(0.); return; }
+  vec2 s=uv/R; float z=sqrt(max(0.,1.-dot(s,s)));
+  vec3 N=vec3(s,z), col=vec3(0.); float ws=0.;
+  for(int k=0;k<2;k++){ float zz=z*(1.-float(k)*.6); vec3 q=rot*vec3(s*.94,zz*.94); float w=k==0?1.:.3; col+=fieldC(q)*w; ws+=w; }
+  col/=ws;
+  float lum=dot(col,vec3(.299,.587,.114)); col=clamp(mix(vec3(lum),col,1.28),0.,1.);
+  vec3 L=normalize(vec3(-.45,.6,.65));
+  col*=.9+.16*max(dot(N,L),0.);
+  float fres=pow(1.-z,2.6);
+  col=mix(col,col*.72,fres*.6);
+  col+=pow(max(dot(reflect(-L,N),vec3(0,0,1)),0.),46.)*.6;
+  col+=vec3(.95,.97,1.)*smoothstep(.45,1.,fres)*.28;
+  float a=smoothstep(R,R-.014,r);
+  gl_FragColor=vec4(col*a,a);
+}`;
+
+  /* ---------- 색 공간 데이터 ---------- */
+  const rng = seed => { let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; };
+  const hash = s => { let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; };
+  const rgb = h => { const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+  // comps: [{key:'tea',c,w}, {key:flavor,c,w}...] → 바탕 + 잉크(강한 풍미는 가운데 가까이, 약한 풍미는 가장자리)
+  function fromComps(id,comps){
+    const r=rng(hash(id)), tea=comps.find(c=>c.key==='tea')||comps[0];
+    const fl=comps.filter(c=>c!==tea).sort((a,b)=>b.w-a.w).slice(0,5);
+    // 풍미마다 1~3개의 덩어리를 방울 표면 가까이 고르게 흩어, 어느 쪽으로 돌려도 색이 보이게
+    const lobes=[]; fl.forEach(c=>{ for(let k=0,n=1+Math.round(c.w*2);k<n;k++) lobes.push(c); });
+    const L=lobes.slice(0,10), N=L.length, off=r()*6.28;
+    const order=L.map((_,i)=>i).sort(()=>r()-.5);
+    const inks=L.map((c,j)=>{
+      const i=order[j], y=1-2*(i+.5)/N, s=Math.sqrt(1-y*y), th=i*2.39996+off, d=.6+.22*r();
+      return {key:c.key,c:rgb(c.c),p:[s*Math.cos(th)*d,y*d,s*Math.sin(th)*d],w:c.w};
+    });
+    return {base:rgb(tea.c),baseW:fl.length?.3:1,inks};
+  }
+
+  /* ---------- 같은 색 공간을 JS로 (2D 캔버스용) ---------- */
+  const fr=x=>x-Math.floor(x);
+  function h3(x,y,z){ x=fr(x*.3183099+.1)*17; y=fr(y*.3183099+.1)*17; z=fr(z*.3183099+.1)*17; return fr(x*y*z*(x+y+z)); }
+  function n3(x,y,z){
+    const ix=Math.floor(x), iy=Math.floor(y), iz=Math.floor(z); let fx=x-ix, fy=y-iy, fz=z-iz;
+    fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); fz=fz*fz*(3-2*fz);
+    const L=(a,b,t)=>a+(b-a)*t;
+    return L(L(L(h3(ix,iy,iz),h3(ix+1,iy,iz),fx),L(h3(ix,iy+1,iz),h3(ix+1,iy+1,iz),fx),fy),
+             L(L(h3(ix,iy,iz+1),h3(ix+1,iy,iz+1),fx),L(h3(ix,iy+1,iz+1),h3(ix+1,iy+1,iz+1),fx),fy),fz);
+  }
+  function fbm(x,y,z){ let s=0,a=.5; for(let i=0;i<4;i++){ s+=a*n3(x,y,z); x=x*2.02+3.1; y=y*2.02+1.7; z=z*2.02+5.3; a*=.5; } return s; }
+  function colorAt(F,x,y,z,t=0,flow=.04,swirl=.9){
+    const wx=fbm(x*1.6,y*1.6,z*1.6+t*flow), wy=fbm(x*1.6+5.2,y*1.6+1.3,z*1.6-t*flow), wz=fbm(x*1.6+2.7,y*1.6+8.1,z*1.6+t*flow*.7);
+    x+=(wx-.5)*swirl; y+=(wy-.5)*swirl; z+=(wz-.5)*swirl;
+    const bw=F.baseW**2.5; let r=F.base[0]*bw, g=F.base[1]*bw, b=F.base[2]*bw, tot=bw;
+    for(const k of F.inks){ const w=k.w*(k.vis??1); if(w<.001) continue; const dx=x-k.p[0], dy=y-k.p[1], dz=z-k.p[2];
+      let f=w*Math.exp(-(dx*dx+dy*dy+dz*dz)/(.06+.3*w)); f=f*f*Math.sqrt(f); r+=k.c[0]*f; g+=k.c[1]*f; b+=k.c[2]*f; tot+=f; }
+    r/=tot; g/=tot; b/=tot; const l=.299*r+.587*g+.114*b, S=1.35, c=v=>Math.max(0,Math.min(1,l+(v-l)*S));
+    return [c(r),c(g),c(b)];
+  }
+
+  /* ---------- 렌더러 ---------- */
+  function makeGL(cv,preserve=false){
+    const gl=cv.getContext('webgl',{premultipliedAlpha:true,alpha:true,antialias:true,preserveDrawingBuffer:preserve});
+    if(!gl) return null;
+    const sh=(type,src)=>{ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG)); gl.linkProgram(pr); gl.useProgram(pr);
+    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    const U={}; ['rot','wob','baseC','baseW','inkC','inkP','inkW','t','flow','swirl'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+    return {gl,
+      draw(F,yaw,pitch,t,o={}){
+        const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+        // R = Ry(yaw) * Rx(pitch), column-major
+        gl.uniformMatrix3fv(U.rot,false,[cy,0,-sy, sy*sp,cp,cy*sp, sy*cp,-sp,cy*cp]);
+        gl.uniform1f(U.t,t); gl.uniform1f(U.wob,o.wob??1); gl.uniform1f(U.flow,o.flow??.04); gl.uniform1f(U.swirl,o.swirl??.9);
+        gl.uniform3fv(U.baseC,F.base); gl.uniform1f(U.baseW,F.baseW);
+        const C=[],P=[],W=[]; for(let i=0;i<10;i++){ const k=F.inks[i]; C.push(...(k?k.c:[0,0,0])); P.push(...(k?k.p:[0,0,0])); W.push(k?k.w*(k.vis??1):0); }
+        gl.uniform3fv(U.inkC,C); gl.uniform3fv(U.inkP,P); gl.uniform1fv(U.inkW,W);
+        gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      },
+      dispose(){ const e=gl.getExtension('WEBGL_lose_context'); e&&e.loseContext(); }};
+  }
+  // 스냅샷용 공유 렌더러(화면 밖 캔버스 하나)
+  let snapR=null, snapCv=null;
+  function snapshot(F,px,yaw=0,pitch=0,t=0,o){
+    if(!snapCv){ snapCv=document.createElement('canvas'); try{ snapR=makeGL(snapCv,true); }catch(e){ snapR=null; } }
+    if(!snapR) return null;
+    if(snapCv.width!==px){ snapCv.width=snapCv.height=px; }
+    snapR.draw(F,yaw,pitch,t,{wob:0,...o}); return snapCv;
+  }
+
+  /* 화면 속 3D 방울: 자동으로 천천히 돌고, interactive면 드래그로 돌려본다 */
+  function mount(el,F,{size=200,px=null,interactive=false,spin=.32,flow=.04,swirl=.9,wob=1,onFrame=null}={}){
+    const cv=document.createElement('canvas'); cv.className='d3'; cv.style.width=cv.style.height=size+'px';
+    let R; try{ R=makeGL(cv); }catch(e){ R=null; } if(!R) return null;
+    el.innerHTML=''; el.appendChild(cv);
+    const n=px||Math.min(1000,Math.round(size*Math.min(2,window.devicePixelRatio||1)*(typeof SCALE!=='undefined'?SCALE:1))); cv.width=cv.height=n;
+    const st={F,yaw:Math.random()*6.28,pitch:.25,vy:spin,drag:false,t0:performance.now(),last:performance.now()};
+    if(interactive){
+      cv.style.cursor='grab'; cv.style.touchAction='none';
+      let px0=0,py0=0,lt=0;
+      cv.addEventListener('pointerdown',e=>{ st.drag=true; cv.setPointerCapture(e.pointerId); px0=e.clientX; py0=e.clientY; lt=performance.now(); cv.style.cursor='grabbing'; });
+      cv.addEventListener('pointermove',e=>{ if(!st.drag) return; const b=cv.getBoundingClientRect(), k=4/b.width, now=performance.now(), dx=(e.clientX-px0)*k, dy=(e.clientY-py0)*k;
+        st.yaw+=dx; st.pitch=Math.max(-1.2,Math.min(1.2,st.pitch+dy)); st.vy=dx/Math.max(.008,(now-lt)/1000); px0=e.clientX; py0=e.clientY; lt=now; });
+      const up=()=>{ st.drag=false; cv.style.cursor='grab'; st.vy=Math.max(-4,Math.min(4,st.vy)); };
+      cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+    }
+    (function loop(now){
+      if(!cv.isConnected){ R.dispose(); return; }
+      const dt=Math.min(.05,(now-st.last)/1000); st.last=now; const t=(now-st.t0)/1000;
+      if(!st.drag){ st.vy+=(spin-st.vy)*Math.min(1,dt*1.5); st.yaw+=st.vy*dt; st.pitch+=(.25-st.pitch)*dt*.6; }
+      onFrame&&onFrame(t,st);
+      R.draw(st.F,st.yaw,st.pitch,t,{flow,swirl,wob});
+      requestAnimationFrame(loop);
+    })(performance.now());
+    return st;
+  }
+  return {fromComps,colorAt,snapshot,mount,rgb,rng,hash};
+})();
+/* @@D3_END */
+
+/* ============ 데이터 ============ */
+const TEA_C={green:'#B5D07E',white:'#EEDC9A',oolong:'#E3A03A',black:'#CF5E3A',dark:'#7C3E2C',herb:'#C4B2E2'};
+const FL={floral:['꽃향','#E9A9C6'],fruity:['과일향','#F2946A'],citrus:['시트러스','#E8D45A'],vegetal:['풀향','#96C46A'],fresh:['상쾌함','#79C3BC'],nutty:['고소함','#A87A4E'],sweet:['단맛','#E5B04F'],earthy:['흙·나무향','#6B5643'],spicy:['스파이시','#B8513A'],soft:['부드러움','#E3D3BF'],astringent:['떫은맛','#8E8A4C']};
+const FK=Object.keys(FL), TK=Object.keys(TEA_C);
+const R_=(id,type,fl,x,y,i)=>({id,type,fl,x,y,i});
+const HERO=R_('hero','oolong',[['nutty',.85],['floral',.7],['fresh',.45]],.5,.5,1);
+const RECS=[
+  R_('s1','green',[['vegetal',.9],['fresh',.45]],.74,.24,.85),
+  R_('s2','oolong',[['nutty',.8],['floral',.5],['sweet',.3]],.84,.4,.75),
+  R_('s3','black',[['citrus',.85],['fruity',.4]],.6,.14,.7),
+  R_('s4','white',[['sweet',.6],['floral',.45],['soft',.3]],.38,.3,.6),
+  R_('s5','herb',[['floral',.6],['soft',.55]],.22,.44,.55),
+  R_('s6','dark',[['earthy',.85],['astringent',.35]],.28,.76,.65),
+  R_('s7','green',[['floral',.8],['astringent',.3]],.7,.7,.5),
+  R_('s8','black',[['nutty',.5],['sweet',.5],['astringent',.45]],.86,.62,.6),
+  R_('s9','herb',[['fresh',.8],['citrus',.4]],.13,.16,.5),
+  R_('s10','oolong',[['fruity',.7],['spicy',.35]],.5,.55,.55),
+];
+const compsOf=r=>[{key:'tea',c:TEA_C[r.type],w:.5},...r.fl.map(([k,w])=>({key:k,c:FL[k][1],w}))];
+const FOf=r=>{ r.F=r.F||D3.fromComps(r.id,compsOf(r)); return r.F; };
+document.getElementById('refChips').innerHTML=HERO.fl.map(([k])=>`<span class="chip"><i style="background:${FL[k][1]}"></i>${FL[k][0]}</span>`).join('');
+
+/* ============ 공용 도구 ============ */
+const DPR=Math.min(2,devicePixelRatio||1);
+const fr=x=>x-Math.floor(x);
+const h2=(x,y)=>fr(Math.sin(x*127.1+y*311.7)*43758.5453);
+function n2(x,y){ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy);
+  const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; }
+const fbm2=(x,y)=>.5*n2(x,y)+.25*n2(x*2.1+5,y*2.1+3)+.125*n2(x*4.3+1,y*4.3+7);
+const ss=(a,b,x)=>{ const t=Math.max(0,Math.min(1,(x-a)/(b-a))); return t*t*(3-2*t); };
+const mk=n=>{ const c=document.createElement('canvas'); c.width=c.height=n; return c; };
+const easeBack=t=>{ const c=1.5; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); };
+
+/* 3D 색 공간 → 2D 원판(작게 계산해서 부드럽게 키운다) */
+const PROJ=new Map();
+function proj(r,kind,n=72){
+  const key=r.id+kind; if(PROJ.has(key)) return PROJ.get(key);
+  const F=FOf(r), c=mk(n), x=c.getContext('2d'), im=x.createImageData(n,n), d=im.data;
+  for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+    const u=(i+.5)/n*2-1, v=(j+.5)/n*2-1, rho=Math.hypot(u,v); if(rho>1.02) continue;
+    let col;
+    if(kind==='lambert'){ // 방울 겉면 전체를 한 장으로 펼친다(앞면이 가운데, 뒷면이 가장자리)
+      const th=2*Math.asin(Math.min(1,rho)), ph=Math.atan2(v,u), s=Math.sin(th);
+      const X=s*Math.cos(ph), Y=s*Math.sin(ph), Z=Math.cos(th);
+      const a=D3.colorAt(F,X*.88,Y*.88,Z*.88), b=D3.colorAt(F,X*.5,Y*.5,Z*.5); col=[a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25,a[2]*.75+b[2]*.25];
+    } else { // 방울을 가운데로 자른 단면
+      col=D3.colorAt(F,u*.94,v*.94,0);
+    }
+    const o=(j*n+i)*4; d[o]=col[0]*255; d[o+1]=col[1]*255; d[o+2]=col[2]*255; d[o+3]=255;
+  }
+  x.putImageData(im,0,0); PROJ.set(key,c); return c;
+}
+
+/* 스프라이트: 최종 모습 + (선택) 도착 시간 지도 → 퍼지는 연출 */
+function finalize(sp){ sp.img=sp.cv.getContext('2d').getImageData(0,0,sp.P,sp.P); return sp; }
+function revealFrame(sp,prog){
+  const t=sp.tmp||(sp.tmp=mk(sp.P)), x=t.getContext('2d'), out=x.createImageData(sp.P,sp.P), a=sp.img.data, o=out.data, ar=sp.arrive, p=prog*1.18;
+  for(let i=0,k=0;i<ar.length;i++,k+=4){ const m=Math.max(0,Math.min(1,(p-ar[i])/.07)); if(m<=0) continue; o[k]=a[k]; o[k+1]=a[k+1]; o[k+2]=a[k+2]; o[k+3]=a[k+3]*m; }
+  x.putImageData(out,0,0); return t;
+}
+/* 수채 질감: 들쭉날쭉한 가장자리, 가장자리 진해짐, 종이 결 입자 */
+function watercolorize(sp,R,seed,{edge=.08,dark=.24,grain=.05,alpha=.9,ripple=0}={}){
+  const P=sp.P, c=P/2, ctx=sp.cv.getContext('2d'), im=ctx.getImageData(0,0,P,P), d=im.data, ar=new Float32Array(P*P);
+  for(let y=0;y<P;y++) for(let x=0;x<P;x++){
+    const dx=x-c+.5, dy=y-c+.5, rho=Math.hypot(dx,dy)/R, ph=Math.atan2(dy,dx), i=y*P+x, k=i*4;
+    const er=1+edge*((fbm2(Math.cos(ph)*1.6+seed,Math.sin(ph)*1.6+seed*1.3)-.5)*2)+edge*.35*(n2(ph*9+seed,seed)-.5);
+    ar[i]=rho/er*(.82+.36*fbm2(Math.cos(ph)*2.5+seed*2,rho*3));
+    let a=ss(er,er-.035,rho); if(a<=0){ d[k+3]=0; continue; }
+    let f=1-dark*ss(er-.2,er-.01,rho)-grain*(n2(x*.22,y*.22)-.5)*2;
+    if(ripple) f-=ripple*Math.max(0,Math.sin(rho*ripple*40))*.0;
+    d[k]*=f; d[k+1]*=f; d[k+2]*=f; d[k+3]=d[k+3]*a*alpha;
+  }
+  ctx.putImageData(im,0,0); sp.arrive=ar; return sp;
+}
+function discFrom(src,P,R,{feather=.02}={}){
+  const cv=mk(P), x=cv.getContext('2d'); x.imageSmoothingQuality='high';
+  x.save(); x.beginPath(); x.arc(P/2,P/2,R,0,Math.PI*2); x.clip(); x.drawImage(src,P/2-R,P/2-R,2*R,2*R); x.restore();
+  return {cv,P};
+}
+
+/* ============ 칠하기 방식 7가지 ============ */
+const PAINT={
+  /* A. 3D 그대로 스냅샷 */
+  snap:{blend:'source-over',make(r,R){ const P=Math.ceil(R*2.2), cv=mk(P), s=D3.snapshot(FOf(r),P,.7+D3.hash(r.id)%6,.35);
+      if(s) cv.getContext('2d').drawImage(s,0,0,P,P); return {cv,P,anim(ctx,x,y,p){ const k=easeBack(Math.min(1,p)); ctx.save(); ctx.globalAlpha=Math.min(1,p*2.5); ctx.translate(x,y); ctx.scale(k,k); ctx.drawImage(cv,-P/2,-P/2); ctx.restore(); }}; }},
+  /* B. 펼친 방울: 겉면 전체 색을 평면 원판으로 */
+  flat:{blend:'source-over',make(r,R){ const P=Math.ceil(R*2.2), sp=discFrom(proj(r,'lambert'),P,R);
+      const ar=new Float32Array(P*P); for(let y=0;y<P;y++) for(let x=0;x<P;x++) ar[y*P+x]=Math.hypot(x-P/2,y-P/2)/R;
+      // 가장자리 살짝 부드럽게
+      const ctx=sp.cv.getContext('2d'), im=ctx.getImageData(0,0,P,P), d=im.data; for(let i=0;i<ar.length;i++) d[i*4+3]*=ss(1,.97,ar[i]); ctx.putImageData(im,0,0);
+      sp.arrive=ar; return finalize(sp); }},
+  /* C. 수채 스탬프: 펼친 색 + 수채 번짐 */
+  stamp:{blend:'multiply',make(r,R){ const P=Math.ceil(R*2.5), sp=discFrom(proj(r,'lambert'),P,R*1.12);
+      return finalize(watercolorize(sp,R,D3.hash(r.id)%97/9)); }},
+  /* D. 단면(나이테): 방울을 반으로 자른 속 */
+  slice:{blend:'multiply',make(r,R){ const P=Math.ceil(R*2.4), sp=discFrom(proj(r,'slice'),P,R*1.06), n=r.fl.length+1;
+      watercolorize(sp,R,D3.hash(r.id)%53/7,{edge:.04,dark:.16,grain:.06});
+      const ctx=sp.cv.getContext('2d'); ctx.globalCompositeOperation='source-atop';
+      for(let k=1;k<=n;k++){ ctx.strokeStyle=`rgba(60,40,20,${.1+.04*k/n})`; ctx.lineWidth=Math.max(1,R/50); ctx.beginPath();
+        for(let a=0;a<=64;a++){ const ph=a/64*Math.PI*2, rr=R*k/(n+.6)*(1+.03*Math.sin(ph*3+k)); ctx.lineTo(P/2+Math.cos(ph)*rr,P/2+Math.sin(ph)*rr); } ctx.stroke(); }
+      return finalize(sp); }},
+  /* E. 스플래시: 본 방울 + 풍미 색 물방울이 튀어 나간 자리 */
+  splash:{blend:'multiply',make(r,R){
+      const P=Math.ceil(R*3.4), main=discFrom(proj(r,'lambert'),P,R*.8);
+      watercolorize(main,R*.72,D3.hash(r.id)%31/5);
+      const sat=mk(P), sx=sat.getContext('2d'), F=FOf(r), rnd=D3.rng(D3.hash(r.id+'sp')), drops=[];
+      F.inks.forEach(k=>{ const a=Math.atan2(k.p[1],k.p[0]); for(let j=0;j<2+Math.round(k.w*2);j++){ const aa=a+(rnd()-.5)*.9, dist=R*(.85+rnd()*.7), rr=R*(.04+.11*k.w*rnd()+.02);
+        drops.push({x:Math.cos(aa)*dist,y:Math.sin(aa)*dist,r:rr,c:k.c}); } });
+      const paintDrops=(ctx,p)=>drops.forEach(q=>{ const e=Math.min(1,Math.max(0,(p-.35)/.65)), m=1-Math.pow(1-e,3); if(m<=0) return;
+        const X=P/2+q.x*(.55+.45*m), Y=P/2+q.y*(.55+.45*m), g=ctx.createRadialGradient(X,Y,0,X,Y,q.r);
+        const c=`${q.c.map(v=>Math.round(v*255)).join(',')}`; g.addColorStop(0,`rgba(${c},.85)`); g.addColorStop(.8,`rgba(${c},.75)`); g.addColorStop(1,`rgba(${c},0)`);
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(X,Y,q.r,0,Math.PI*2); ctx.fill(); });
+      finalize(main);
+      const cv=mk(P), x=cv.getContext('2d'); x.drawImage(main.cv,0,0); paintDrops(x,1);
+      return {cv,P,anim(ctx,X,Y,p){ const t=revealFrame(main,Math.min(1,p*1.4)); ctx.drawImage(t,X-P/2,Y-P/2); const o=mk(P), ox=o.getContext('2d'); paintDrops(ox,p); ctx.drawImage(o,X-P/2,Y-P/2); }};
+    }},
+  /* F. 점묘: 색 공간을 작은 점으로 찍는다 */
+  dots:{blend:'multiply',make(r,R){
+      const P=Math.ceil(R*2.3), src=proj(r,'lambert'), n=src.width, sd=src.getContext('2d').getImageData(0,0,n,n).data, rnd=D3.rng(D3.hash(r.id+'d'));
+      const N=Math.round(R*R/5.5), pts=[];
+      for(let i=0;i<N;i++){ let u,v; do{ u=rnd()*2-1; v=rnd()*2-1; }while(u*u+v*v>1);
+        const px=Math.min(n-1,Math.floor((u+1)/2*n)), py=Math.min(n-1,Math.floor((v+1)/2*n)), o=(py*n+px)*4;
+        pts.push({x:P/2+u*R,y:P/2+v*R,r:Math.max(.8,R/40)*(.7+rnd()*.9),c:`rgba(${sd[o]},${sd[o+1]},${sd[o+2]},.9)`,t:Math.hypot(u,v)*.7+rnd()*.3}); }
+      const draw=(x,p)=>pts.forEach(q=>{ if(q.t>p*1.1) return; x.fillStyle=q.c; x.beginPath(); x.arc(q.x,q.y,q.r,0,Math.PI*2); x.fill(); });
+      const cv=mk(P); draw(cv.getContext('2d'),1);
+      return {cv,P,anim(ctx,X,Y,p){ const o=mk(P); draw(o.getContext('2d'),p); ctx.drawImage(o,X-P/2,Y-P/2); }};
+    }},
+  /* G. 살아있는 구슬: 캔버스 위에서도 3D로 계속 돈다 */
+  live:{blend:'source-over',live:true,make(r,R){ return PAINT.snap.make(r,R); }},
+};
+
+/* 스프라이트 캐시 */
+const SPR=new Map();
+function sprite(style,r,R){ const k=style+r.id+Math.round(R); if(!SPR.has(k)) SPR.set(k,PAINT[style].make(r,R)); return SPR.get(k); }
+function put(ctx,style,r,x,y,R,prog=1){
+  const sp=sprite(style,r,R); ctx.save(); ctx.globalCompositeOperation=PAINT[style].blend;
+  if(prog>=1) ctx.drawImage(sp.cv,x-sp.P/2,y-sp.P/2);
+  else if(sp.anim) sp.anim(ctx,x,y,prog);
+  else if(sp.arrive) ctx.drawImage(revealFrame(sp,prog),x-sp.P/2,y-sp.P/2);
+  ctx.restore();
+}
+function paper(ctx,W,axes=true){
+  ctx.fillStyle='#FCFBF9'; ctx.fillRect(0,0,W,W);
+  if(axes){ ctx.strokeStyle='rgba(0,0,0,.09)'; ctx.lineWidth=DPR; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,W); ctx.moveTo(0,W/2); ctx.lineTo(W,W/2); ctx.stroke(); }
+}
+function anim(ms,fn,done){ const t0=performance.now(); const st=now=>{ const p=Math.min(1,(now-t0)/ms); fn(p); p<1?requestAnimationFrame(st):done&&done(); }; requestAnimationFrame(st); }
+const radius=(W,i)=>W*(.045+.07*i);
+
+/* ============ 페이지 ============ */
+const OPTIONS=[
+  ['stamp','C. 수채 스탬프','추천','3D 방울 겉면의 색을 한 장으로 펼친 뒤, 종이에 떨어진 물감처럼 가장자리가 번지고 진해지게 칠해요.','3D 방울의 모든 색이 다 보이고, 캔버스에서 겹치면 수채화처럼 비쳐요','앞·뒷면 구분은 사라져요'],
+  ['flat','B. 펼친 방울','','3D 방울의 겉면 전체를 지도처럼 펼친 원판이에요. 가운데가 앞면, 가장자리가 뒷면이에요.','색 정보가 가장 정확해요','질감이 없어 가장 디지털적이에요'],
+  ['snap','A. 3D 스냅샷','','3D 방울을 한 각도에서 찍은 모습 그대로 캔버스에 올려요. 광택과 입체감이 남아요.','홈·분석 화면의 3D 방울과 가장 똑같아 보여요','한 각도라 뒷면 색은 안 보여요'],
+  ['slice','D. 단면(나이테)','','방울을 반으로 잘라 속을 보여줘요. 풍미 개수만큼 옅은 나이테가 생겨요.','“방울 속에 담긴 것”이라는 이야기가 분명해요','겉면과 색 배치가 조금 달라요'],
+  ['splash','E. 스플래시','','본 방울 주변으로 풍미 색 물방울이 튀어요. 강한 풍미일수록 많이 튀어요.','풍미가 한눈에 구분되고 찍는 순간이 극적이에요','방울이 많아지면 캔버스가 복잡해져요'],
+  ['dots','F. 점묘','','색 공간을 작은 점으로 찍어요. 겹친 곳은 점이 섞여 새로운 색처럼 보여요.','겹쳐도 각 방울이 잘 구분돼요','멀리서 보면 흐릿해 보여요'],
+  ['live','G. 살아있는 구슬','','캔버스 위에서도 방울들이 3D로 천천히 계속 돌아요.','전시장에서 가장 눈길을 끌어요','2D “칠하기” 느낌은 약하고, 기록이 아주 많으면 무거워질 수 있어요'],
+];
+document.getElementById('grid').innerHTML=OPTIONS.map(([k,n,tag,d,pro,con])=>`
+  <section class="card"><h2>${n}${tag?`<small>${tag}</small>`:''}</h2><p class="d">${d}</p>
+  <p class="pc"><span data-k="좋은 점">${pro}</span><span data-k="아쉬운 점">${con}</span></p>
+  <div class="pair"><figure><canvas id="one-${k}"></canvas><figcaption>기준 방울을 칠한 모습 · 누르면 다시 칠해짐</figcaption></figure>
+  <figure><canvas id="cv-${k}"></canvas><figcaption>기록 10개 캔버스 · 눌러서 새 방울 칠하기</figcaption></figure></div></section>`).join('');
+
+D3.mount(document.getElementById('ref3d'),FOf(HERO),{size:220,interactive:true,px:440});
+
+const setup=cv=>{ const W=Math.round(cv.clientWidth*DPR); cv.width=cv.height=W; return {ctx:cv.getContext('2d'),W}; };
+OPTIONS.forEach(([k])=>{
+  const one=document.getElementById('one-'+k), A=setup(one);
+  const playOne=()=>anim(1200,p=>{ paper(A.ctx,A.W,false); put(A.ctx,k,HERO,A.W/2,A.W/2,A.W*.3,p); });
+  one.onclick=playOne; playOne();
+
+  const cv=document.getElementById('cv-'+k), B=setup(cv), recs=[...RECS];
+  if(PAINT[k].live){
+    const offs=recs.map(r=>D3.hash(r.id)%628/100);
+    let adding=null;
+    (function loop(now){
+      const t=now/1000; paper(B.ctx,B.W);
+      recs.forEach((r,i)=>{ const R=radius(B.W,r.i), P=Math.ceil(R*2.2), s=D3.snapshot(FOf(r),160,t*.35+offs[i],.35,t); if(!s) return;
+        let k2=1; if(adding&&adding.r===r){ k2=easeBack(Math.min(1,(now-adding.t0)/900)); }
+        B.ctx.drawImage(s,r.x*B.W-P/2*k2,r.y*B.W-P/2*k2,P*k2,P*k2); });
+      requestAnimationFrame(loop);
+    })(performance.now());
+    cv.onclick=e=>{ const b=cv.getBoundingClientRect(), rr=Math.random; const nr=R_('n'+Date.now(),TK[Math.floor(rr()*6)],[[FK[Math.floor(rr()*11)],.5+rr()*.4],[FK[Math.floor(rr()*11)],.3+rr()*.3]],(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height,.5+rr()*.45);
+      recs.push(nr); offs.push(rr()*6); adding={r:nr,t0:performance.now()}; };
+    return;
+  }
+  const bg=mk(B.W), bx=bg.getContext('2d');
+  paper(bx,B.W); recs.forEach(r=>put(bx,k,r,r.x*B.W,r.y*B.W,radius(B.W,r.i)));
+  B.ctx.drawImage(bg,0,0);
+  let busy=false;
+  cv.onclick=e=>{
+    if(busy) return; busy=true;
+    const b=cv.getBoundingClientRect(), rr=Math.random;
+    const nr=R_('n'+Date.now(),TK[Math.floor(rr()*6)],[[FK[Math.floor(rr()*11)],.5+rr()*.4],[FK[Math.floor(rr()*11)],.3+rr()*.3]],(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height,.5+rr()*.45);
+    const R=radius(B.W,nr.i);
+    anim(1200,p=>{ B.ctx.drawImage(bg,0,0); put(B.ctx,k,nr,nr.x*B.W,nr.y*B.W,R,p); },()=>{ put(bx,k,nr,nr.x*B.W,nr.y*B.W,R); busy=false; });
+  };
+});
+</script>
+</body>
+</html>
