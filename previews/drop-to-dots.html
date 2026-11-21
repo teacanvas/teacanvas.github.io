@@ -58,7 +58,7 @@ figcaption{font-size:12px;color:var(--g2);margin-top:6px}
   </section>
 
   <section class="card"><h2>기록 50개가 쌓인 캔버스</h2>
-    <p class="d">다류와 풍미 색을 무작위로 뽑은 50개예요. 멀리서는 전체 색의 흐름이, 가까이서는 방울마다의 점이 보여요.</p>
+    <p class="d">다류와 풍미 색을 무작위로 뽑은 50개예요. 방울 하나하나는 옅게 퍼져서 여러 잔이 섞이면 어떤 차였는지는 흐려지고, “내가 어떤 맛과 향을 좋아하는지”만 색의 흐름으로 남아요.</p>
     <canvas class="cv" id="cv50" style="margin-top:14px;cursor:default"></canvas>
     <div class="row"><button class="btn dark" id="replay">한 방울씩 다시 쌓기</button></div>
     <div class="zoom"><figure><canvas id="zA"></canvas><figcaption>가까이 보기 · 겹친 곳</figcaption></figure><figure><canvas id="zB"></canvas><figcaption>가까이 보기 · 방울 하나</figcaption></figure></div>
@@ -233,7 +233,7 @@ const FOf=r=>r.F||(r.F=D3.fromComps(r.id,comps(r)));
 
 /* 방울 속 입자 → 종이 위 점: 앞면은 가운데, 뒷면은 바깥 고리, 몇 개는 멀리 튄다 */
 function makeDots(r,R,yaw,pitch,seed){
-  const F=FOf(r), rnd=D3.rng(seed), n=Math.round(R*R/8.5), cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch), out=[];
+  const F=FOf(r), rnd=D3.rng(seed), n=Math.round(R*R/26), cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch), out=[];
   for(let i=0;i<n;i++){
     const u=rnd()*2-1, th=rnd()*6.2832, s=Math.sqrt(1-u*u), x=s*Math.cos(th), y=s*Math.sin(th), z=u;
     // 셰이더와 같은 회전: q = Ry(yaw)·Rx(pitch)·p
@@ -241,11 +241,13 @@ function makeDots(r,R,yaw,pitch,seed){
     const c=D3.colorAt(F,qx*.97,y1*.97,qz*.97);
     const rho=Math.hypot(x,y)||1e-3, ang=Math.atan2(y,x);
     // 같은 넓이 투영: 방울 겉면이 고르게 펼쳐진다(앞면→가운데, 뒷면→바깥)
-    let rf=Math.sqrt((1-z)/2)*1.02*(1+(rnd()-.5)*.08);
-    if(rnd()<.03) rf=1.15+rnd()*.6;
+    // 테두리 없이 옅게 퍼진다: 가운데는 조금 촘촘하고 바깥으로 갈수록 성기게
+    const g=(rnd()+rnd()+rnd()-1.5)/1.5;
+    let rf=Math.sqrt((1-z)/2)*1.15+Math.abs(g)*.45*Math.sqrt((1-z)/2+.15);
+    if(rnd()<.05) rf=1.3+rnd()*.7;
     const a=ang+(rnd()-.5)*.08;
     out.push({sx:x*R,sy:y*R,ex:Math.cos(a)*rf*R,ey:Math.sin(a)*rf*R,front:z>=0,
-      r:Math.max(1,R/26)*(.6+.8*rnd())*(rf>1.1?.7:1),c:`rgb(${c.map(v=>v*255|0)})`,d:rnd()*.25});
+      r:Math.max(.9,R/34)*(.6+.8*rnd())*(rf>1.3?.75:1),c:`rgb(${c.map(v=>v*255|0)})`,d:rnd()*.25});
   }
   return out;
 }
@@ -267,7 +269,7 @@ function paper(ctx,W){
   ctx.textAlign='left'; ctx.fillText('향이 아쉬워요',8*DPR,W/2-6*DPR); ctx.textAlign='right'; ctx.fillText('향이 좋아요',W-8*DPR,W/2-6*DPR);
 }
 const mk=n=>{ const c=document.createElement('canvas'); c.width=c.height=n; return c; };
-const baseR=(W,i)=>W*(.045+.055*i);
+const baseR=(W,i)=>W*(.055+.06*i);
 
 /* 방울이 떨어져 점으로 흩어지는 연출: 0~.32 떨어짐, .32~ 흩어짐 */
 function dropAnim(ctx,bg,r,X,Y,R,yaw,pitch,done,ms=1500){
