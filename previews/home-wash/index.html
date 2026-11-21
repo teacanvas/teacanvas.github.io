@@ -22,7 +22,7 @@ h1{font-size:24px;font-weight:800}
 .pickbox textarea{width:100%;height:80px}
 </style></head><body>
 <div class="wrap"><h1>홈 수채 번짐 시안 10종</h1>
-<p class="lead">위에서 내려다본 종이에 둥근 물감 방울이 맺혔다가 스며들며 퍼지고, 마르면서 테두리가 생겨요. 퍼지는 속도, 물기 반짝임, 처음 맺히는 방울의 크기·시간을 바꿨어요. 풍미 색이 차례로 바뀌며 반복돼요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<p class="lead">위에서 내려다본 종이에 물감이 스며들며 퍼지고, 마르면서 테두리가 생겨요(맺히는 방울 없음). 퍼지는 속도, 젖은 경계의 흐림, 테두리 진하기, 반짝임, 종이 입자, 크기를 바꿨어요. 풍미 색이 차례로 바뀌며 반복돼요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
 <div class="grid" id="grid"></div></div>
 <script>
 const WC={rng:seed=>{ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }};
@@ -56,10 +56,10 @@ function makeWash(N,hex,seed,P){
   //  2.6~5.5초: 마르며 반짝임이 사라지고 전체가 밝아지며, 안료가 가장자리로 몰려 테두리가 또렷·진해짐, 입자가 드러남
   function frame(t,fade=1){
     t=t*P.spd;
-    const water=.07+(REACH-.07)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
+    const RCH=REACH*P.reach, water=P.start+(RCH-P.start)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
     const pig=water*(.62+.38*(1-Math.exp(-t/1.8)));                    // 색이 번진 범위(물보다 늦다)
     const w=1-Math.min(1,Math.max(0,(t-2.4)/3.0)), dry=1-w;            // 젖음 정도
-    const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
+    const soft=(.012+.07*w*Math.min(1,t/.9))*P.soft;                                              // 경계 흐림(젖을수록 흐림)
     const sh=Math.max(0,1-t/3.4)*1.25*P.gloss;                                       // 물 표면 반짝임
     for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
       const bead=Math.max(0,1-t/P.beadT);
@@ -68,9 +68,9 @@ function makeWash(N,hex,seed,P){
       const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
       // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
       const inside=water-tk, rimBand=Math.exp(-Math.max(0,inside)/.02);
-      const dryA=.3+H[k]*.3+rimBand*.6;
+      const dryA=.3+H[k]*.3+rimBand*.6*P.rim;
       let amt=wetA*w+dryA*dry;
-      amt*=1-.24*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
+      amt*=1-.24*P.gran*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
       const edgeA=Math.max(0,Math.min(1,(water+soft*.4-tk)/soft));        // 경계: 젖을수록 부드럽게, 마르면 또렷
       const m=Math.min(1,rimBand*dry*.9);
       let c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
@@ -93,12 +93,12 @@ function makeWash(N,hex,seed,P){
   return {frame};
 }
 
-const V=[{n:'지금 앱 그대로',spd:1,gloss:1,beadR:1,beadT:0.7},{n:'느리게 퍼짐',spd:0.6,gloss:1,beadR:1,beadT:0.9},{n:'아주 느리게 퍼짐',spd:0.4,gloss:1.2,beadR:1.1,beadT:1.1},{n:'빠르게 퍼짐',spd:1.5,gloss:1,beadR:1,beadT:0.5},{n:'반짝임 강하게',spd:0.8,gloss:2.2,beadR:1,beadT:0.9},{n:'반짝임 아주 강하게',spd:0.7,gloss:3.2,beadR:1.2,beadT:1},{n:'반짝임 없음',spd:0.8,gloss:0,beadR:1,beadT:0.8},{n:'큰 방울이 오래 맺힘',spd:0.7,gloss:1.6,beadR:1.8,beadT:1.6},{n:'작은 방울이 바로 스밈',spd:0.9,gloss:1,beadR:0.6,beadT:0.35},{n:'큰 방울 · 반짝 · 천천히',spd:0.5,gloss:2.4,beadR:1.6,beadT:1.4}];
+const V=[{n:'기본',spd:1,gloss:1,start:0.07,reach:1,soft:1,rim:1,gran:1,beadR:0,beadT:.001},{n:'느리게 퍼짐',spd:0.6,gloss:1,start:0.07,reach:1,soft:1,rim:1,gran:1,beadR:0,beadT:.001},{n:'아주 느리게 · 크게',spd:0.4,gloss:1,start:0.05,reach:1.15,soft:1.2,rim:1,gran:1,beadR:0,beadT:.001},{n:'빠르게 퍼짐',spd:1.5,gloss:1,start:0.07,reach:1,soft:1,rim:1,gran:1,beadR:0,beadT:.001},{n:'젖은 경계 아주 흐리게',spd:0.7,gloss:1,start:0.07,reach:1,soft:2,rim:1,gran:1,beadR:0,beadT:.001},{n:'경계 또렷 · 테두리 진하게',spd:0.8,gloss:0.6,start:0.07,reach:1,soft:0.5,rim:1.8,gran:1,beadR:0,beadT:.001},{n:'테두리 없이 맑게',spd:0.8,gloss:1,start:0.07,reach:1,soft:1.3,rim:0.2,gran:0.4,beadR:0,beadT:.001},{n:'젖은 반짝임 강하게',spd:0.7,gloss:2.5,start:0.07,reach:1,soft:1.2,rim:1,gran:1,beadR:0,beadT:.001},{n:'입자 많이 · 마른 종이 느낌',spd:0.8,gloss:0.5,start:0.07,reach:1,soft:0.8,rim:1.3,gran:2.2,beadR:0,beadT:.001},{n:'한 점에서 크게 피어남',spd:0.55,gloss:1.4,start:0.02,reach:1.2,soft:1.4,rim:1.2,gran:1,beadR:0,beadT:.001}];
 const COLS=['#E9A9C6','#F2946A','#96C46A','#79C3BC','#E5B04F','#A87A4E'];
 const PX=Math.round(220*Math.min(2,devicePixelRatio||1)), N=Math.round(PX*.55);
-let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.wash.fav')||'[]')); }catch(e){}
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.wash2.fav')||'[]')); }catch(e){}
 const g=document.getElementById('grid');
-g.innerHTML=V.map((v,i)=>`<section class="card"><button class="star ${FAV.has(i)?'on':''}" data-i="${i}">${FAV.has(i)?'★':'☆'}</button><div class="no">${String(i+1).padStart(3,'0')}</div><canvas width="${PX}" height="${PX}"></canvas><h2>${v.n}</h2><p>속도 ${v.spd} · 반짝임 ${v.gloss} · 방울 ${v.beadR}</p></section>`).join('');
+g.innerHTML=V.map((v,i)=>`<section class="card"><button class="star ${FAV.has(i)?'on':''}" data-i="${i}">${FAV.has(i)?'★':'☆'}</button><div class="no">${String(i+1).padStart(3,'0')}</div><canvas width="${PX}" height="${PX}"></canvas><h2>${v.n}</h2><p>속도 ${v.spd} · 경계 흐림 ${v.soft} · 테두리 ${v.rim}</p></section>`).join('');
 const cards=[...g.querySelectorAll('.card')].map((el,i)=>({el,cv:el.querySelector('canvas'),v:V[i],i,cache:{}}));
 function cycleLen(v){ return 6.5/v.spd+1.6; }
 function draw(c,tt){ const L=cycleLen(c.v), cyc=Math.floor(tt/L), age=tt-cyc*L-.3, col=COLS[(cyc+c.i)%COLS.length];
@@ -112,6 +112,6 @@ function names(){ return V.map((v,i)=>FAV.has(i)?String(i+1).padStart(3,'0')+' '
 const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
 function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }
 document.getElementById('cp').onclick=async()=>{ const t='홈 수채 번짐 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
-g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.wash.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(i)?'★':'☆'; up(); });
+g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.wash2.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(i)?'★':'☆'; up(); });
 up(); window.READY=true;
 </script></body></html>
