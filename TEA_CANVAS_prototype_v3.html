@@ -1767,17 +1767,28 @@ void main(){
   if(h<0.){ gl_FragColor=vec4(bg,1.); return; }
   float t0=-b-sqrt(h), t1=-b+sqrt(h); vec3 n=normalize(ro+rd*t0);
   vec3 T=vec3(1.), acc=vec3(0.); const int N=26; float ds=(t1-t0)/float(N);
-  for(int i=0;i<N;i++){ vec3 p=rot*((ro+rd*(t0+ds*(float(i)+.5)))/R); float lim=smoothstep(1.,.86,length(p));
+  for(int i=0;i<N;i++){ vec3 pw=(ro+rd*(t0+ds*(float(i)+.5)))/R; vec3 p=rot*pw; float lim=smoothstep(1.,.86,length(p));
     vec3 col=vec3(0.); float a=0.;
     for(int k=0;k<4;k++){ float d=ink(p,IA[k],IP[k])*IW[k]*lim*ds*2.6; col+=IC[k]*d; a+=d; }
+    // 잉크 음영: 위쪽은 밝고 아래쪽은 살짝 어둡게(빛이 위에서 들어온다)
+    col*=.82+.3*clamp(pw.y*.5+.5,0.,1.);
     acc+=T*col; T*=exp(-a); }
-  vec3 water=mix(bg,vec3(1.),.3)*.97;
+  // 물: 바깥으로 갈수록 두께가 두꺼워져 살짝 차가운 회청색이 된다
+  float mu=max(dot(n,-rd),0.);
+  vec3 water=mix(vec3(.985,.988,.99),vec3(.86,.89,.92),pow(1.-mu,1.6));
   vec3 colr=water*T+acc*.92;
-  float fres=pow(1.-max(dot(n,-rd),0.),2.6);
-  vec3 L=normalize(vec3(-.5,.65,.6));
-  colr=mix(colr,vec3(.98,.99,1.),fres*.55);
-  colr+=pow(max(dot(reflect(rd,n),L),0.),70.)*.85+pow(max(dot(reflect(rd,n),normalize(vec3(.6,-.3,.7))),0.),30.)*.08;
-  gl_FragColor=vec4(mix(bg,colr,smoothstep(0.,.02,h)),1.);
+  // 테두리: 가는 윤곽선으로 물방울 겉면이 보이게
+  float rim=smoothstep(.55,.98,1.-mu);
+  colr=mix(colr,vec3(.62,.66,.7),rim*.55);
+  // 빛: 날카로운 하이라이트 대신 넓고 부드러운 빛 + 아래쪽에 모이는 빛(물방울이 빛을 모음)
+  vec3 L=normalize(vec3(-.45,.7,.55));
+  colr+=vec3(1.)*pow(max(dot(n,L),0.),6.)*.10;
+  colr+=vec3(1.,.99,.96)*smoothstep(.2,.95,-n.y)*smoothstep(.15,.55,mu)*.10;
+  float edge=smoothstep(0.,.012,h);
+  // 바깥 가는 선(테두리 마감)
+  float line=smoothstep(.0,.012,h)*(1.-smoothstep(.012,.05,h));
+  colr=mix(colr,vec3(.55,.59,.63),line*.35);
+  gl_FragColor=vec4(mix(bg,colr,edge),1.);
 }`;
 function startHome3D(el){
   const cv=document.createElement('canvas'); cv.className='d3'; const size=340; cv.style.width=cv.style.height=size+'px';
@@ -1798,7 +1809,7 @@ function startHome3D(el){
   const plan=[]; let T0=.6;
   HOME_GROUPS.forEach((g,gi)=>{ g.forEach((k,i)=>plan.push({type:'ink',g:gi,i,k,at:T0+i*HOME_STEP})); const end=T0+g.length*HOME_STEP; plan.push({type:'mix',g:gi,at:end}); T0=end+HOME_HOLD+HOME_CLEAR+.5; });
   const LOOP=T0;
-  const BG=D3.rgb('#F7F7F5');
+  const BG=D3.rgb('#FFFFFF');
   const st={yaw:0,pitch:.22,vy:.32,drag:false}; let lastShown='';
   cv.style.cursor='grab'; cv.style.touchAction='none'; let px0=0,py0=0;
   cv.addEventListener('pointerdown',e=>{ st.drag=true; cv.setPointerCapture(e.pointerId); px0=e.clientX; py0=e.clientY; });
