@@ -318,6 +318,9 @@ canvas.wcd.big{margin:14px auto}
 .bigbtn:active{background:#333}
 .bigbtn i{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.35);display:grid;place-items:center;transition:transform .3s}
 .bigbtn:hover i{transform:translateX(3px)}
+/* 둥근 버튼(알약 모양) */
+.home .bigbtn{width:auto;min-height:0;height:64px;margin:0 22px 18px;padding:0 10px 0 28px;border-radius:32px;font-size:19px}
+.home .bigbtn i{width:44px;height:44px}
 
 /* camera button */
 .cambtn{display:flex;flex-direction:column;align-items:center;gap:6px;margin:18px auto 0;font-size:12.5px;color:#444}
@@ -997,9 +1000,8 @@ const SCREENS = {
 
 home(){
   return `<div class="home">
-    <h2 class="hello">오늘도 새로운 차 경험을<br>기록해보세요.</h2>
     <div class="home-drop" id="homeDrop"></div>
-    <button class="bigbtn" onclick="startRecord()"><span>새로운 티 테이스팅<br>기록하기</span><i>${I.arrow}</i></button>
+    <button class="bigbtn" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
 },
 
