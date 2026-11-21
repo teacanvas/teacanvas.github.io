@@ -276,6 +276,92 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .grab{width:52px;height:5px;border-radius:3px;background:#000;margin:0 auto 18px}
 @keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
 
+/* ---------- v2 components ---------- */
+canvas.wcd{display:block;flex-shrink:0}
+canvas.wcd.big{margin:14px auto}
+.center canvas.wcd{margin:0 auto}
+.in-fwd{animation:inFwd .45s cubic-bezier(.2,.7,.3,1)}
+.in-back{animation:inBack .45s cubic-bezier(.2,.7,.3,1)}
+.in-fade{animation:fade .45s ease}
+@keyframes inFwd{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+@keyframes inBack{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* home */
+.scr.scr-home{padding:0}
+.home{display:flex;flex-direction:column;flex:1}
+.home .hello{margin:22px 26px 0}
+.home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative}
+.home-drop canvas.gl{width:330px;height:330px;display:block}
+.home-cap{text-align:center;font-size:13px;color:var(--g2);margin:0 0 18px}
+.home-cap b{color:#111;font-weight:700}
+.bigbtn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:108px;padding:22px 26px;background:#000;color:#fff;
+  text-align:left;font-size:21px;font-weight:700;line-height:1.35;letter-spacing:-.2px;flex-shrink:0;transition:background .2s}
+.bigbtn:hover{background:#222}
+.bigbtn:active{background:#333}
+.bigbtn i{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.35);display:grid;place-items:center;transition:transform .3s}
+.bigbtn:hover i{transform:translateX(3px)}
+
+/* camera button */
+.cambtn{display:flex;flex-direction:column;align-items:center;gap:6px;margin:18px auto 0;font-size:12.5px;color:#444}
+.cambtn .ring{width:56px;height:56px;border-radius:50%;border:1px solid #CFCFCF;display:grid;place-items:center;transition:background .2s,border-color .2s}
+.cambtn .ring svg{transform:scale(.72)}
+.cambtn:hover .ring{background:var(--g0);border-color:#999}
+.cambtn:active .ring{background:var(--g1)}
+
+/* 2-axis canvas */
+.cvbox{position:relative;width:100%;aspect-ratio:1/1;border:1px solid #D9D9D9;border-radius:4px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
+.cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(252,251,249,.75);padding:0 4px;border-radius:4px}
+.cvbox .lbl.t{top:6px;left:50%;transform:translateX(-50%)}
+.cvbox .lbl.b{bottom:6px;left:50%;transform:translateX(-50%)}
+.cvbox .lbl.l{left:6px;top:50%;transform:translateY(-50%)}
+.cvbox .lbl.r{right:6px;top:50%;transform:translateY(-50%)}
+.cvbox.sm .lbl{font-size:10px}
+.axisguide{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#555;margin:14px 0 8px}
+.axisguide b{font-weight:700;color:#111;margin-right:6px}
+.cv-head{font-size:14px;text-align:center;margin:2px 0 12px;color:#444}
+.cv-head b{color:#111}
+.fav{display:flex;gap:16px;align-items:center;background:var(--g0);border-radius:14px;padding:14px 16px}
+.fav b{display:block;font-size:14.5px;line-height:1.5}
+.fav p{font-size:12.5px;color:var(--g2);margin-top:4px;line-height:1.55}
+.chips.fl{margin-top:12px}
+.chips.fl .chip{background:var(--g0);gap:6px}
+.chips.fl .chip i{width:9px;height:9px;border-radius:50%}
+.center-chips .chips{justify-content:center;margin:0 0 6px}
+
+/* records list */
+.search{display:flex;align-items:center;gap:10px;background:var(--g0);border-radius:24px;padding:0 16px;height:44px}
+.search input{flex:1;min-width:0;font-size:14px}
+.filters{margin:12px 0 4px;display:flex;flex-direction:column;gap:8px}
+.frow{display:flex;align-items:center;gap:6px}
+.frow>span{width:34px;font-size:12.5px;font-weight:700;flex-shrink:0}
+.fchip{height:29px;padding:0 12px;border-radius:15px;font-size:12.5px;border:1px solid #DCDCDC;color:#444;transition:background .15s,color .15s}
+.fchip.on{background:#111;border-color:#111;color:#fff}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 8px;margin-top:18px}
+.ritem{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;padding:4px 0;border-radius:12px;transition:background .15s}
+.ritem:hover{background:var(--g0)}
+.ritem b{font-weight:600;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.ritem span{color:var(--g2);font-size:11.5px}
+.empty-q{grid-column:1/-1;text-align:center;color:var(--g2);font-size:13px;padding:40px 0}
+
+/* detail */
+.dtop{display:flex;justify-content:space-between;align-items:center}
+.ghost{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;transition:background .15s}
+.ghost:hover{background:var(--g0)}
+.dhead .dn{display:block;font-size:16px;font-weight:700}
+.dhead span{display:block}
+
+/* analysis infusion */
+.infuse{position:relative;height:330px;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
+.infuse canvas{display:block;margin-bottom:6px}
+.floatzone{position:absolute;left:0;right:0;top:0;height:150px;pointer-events:none}
+.ffloat{position:absolute;top:8px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px;background:#fff;border:1px solid #DDD;border-radius:16px;padding:5px 12px;
+  animation:floatIn 1.45s cubic-bezier(.3,.6,.3,1) forwards}
+.ffloat i{width:8px;height:8px;border-radius:50%}
+@keyframes floatIn{0%{opacity:0;transform:translateY(8px)}18%{opacity:1;transform:none}55%{opacity:1;transform:none}100%{opacity:0;transform:translateY(120px) scale(.55)}}
+.pulse{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle,#CFCFCF 0%,#E6E6E6 55%,rgba(230,230,230,0) 72%);animation:breath 1.8s ease-in-out infinite}
+.done-drop{display:flex;justify-content:center;margin:6px 0 10px}
+
 /* ---------- dev panel ---------- */
 .dev{display:none;width:260px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;font-size:12.5px;position:fixed;right:20px;top:20px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100}
 .dev.show{display:block}
@@ -312,7 +398,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
   <main class="view" id="view"></main>
   <nav class="nav" id="nav">
     <button data-tab="home" onclick="goTab('home')">Home</button>
-    <button data-tab="archive" onclick="goTab('archive')">Archive</button>
+    <button data-tab="canvas" onclick="goTab('canvas')">Canvas</button>
     <button data-tab="my" onclick="goTab('my')">My</button>
   </nav>
   <div class="sheetWrap" id="sheetWrap" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
@@ -328,13 +414,11 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
   <h3>화면 바로가기</h3>
   <div class="jump" id="jump"></div>
   <h3>상태 바꾸기</h3>
-  <label><input type="checkbox" id="optEmpty" onchange="S.forceEmpty=this.checked;rerender()"> 빈 아카이브로 보기</label>
-  <label><input type="checkbox" id="optErr" onchange="S.simError=this.checked;rerender()"> 기록 분석 오류 보기</label>
+  <label><input type="checkbox" id="optEmpty" onchange="S.forceEmpty=this.checked;rerender()"> 빈 캔버스로 보기</label>
   <div class="acts">
     <button onclick="finishTimer()">우림 타이머 바로 끝내기</button>
     <button onclick="resetAll()">처음 상태로 되돌리기</button>
   </div>
-  <p><span class="tag">주황</span> 버튼은 자료에 없어 기존 화면 스타일로 새로 채운 화면이에요.</p>
 </aside>
 
 <script>
@@ -431,10 +515,11 @@ function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S.records
 const S = {
   stack:[], records:loadRecords(), draft:null, timer:null,
   chatMode:'chat', listening:false, voiceIdx:0, typing:false,
-  forceEmpty:false, simError:false, loaded:{}, brewTab:1,
+  forceEmpty:false, loaded:{}, brewTab:1,
+  filter:{q:'',date:'all',aroma:'all',taste:'all'},
 };
 function newDraft(){
-  return {type:null,name:'',brand:'',basic:false,feel:{},chat:[],voice:[],picked:[],
+  return {tid:Date.now(),type:null,name:'',brand:'',basic:false,feel:{},chat:[],voice:[],picked:[],flavors:null,exprs:[],
     deep:{brews:{},extra:0,origin:'',vintage:'',temp:'',min:'',sec:'',memo:''},
     canvas:null,stars:0,comment:'',photo:false,useDeep:true};
 }
@@ -651,20 +736,26 @@ const I = {
   thermo:'<svg width="14" height="24" viewBox="0 0 14 24"><path d="M4.5 3.5a2.5 2.5 0 0 1 5 0v11a4.5 4.5 0 1 1-5 0z" fill="none" stroke="#111" stroke-width="1.4"/><circle cx="7" cy="18" r="1.8" fill="#111"/><path d="M7 9v8" stroke="#111" stroke-width="1.4"/></svg>',
   pen:'<svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 19l1-4.5L15 3.5a2 2 0 0 1 3 0l.5.5a2 2 0 0 1 0 3L7.5 18zM13 6l3 3" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   down:'<svg width="16" height="18" viewBox="0 0 16 18"><path d="M8 1v11M3 7.5 8 12.5l5-5M1.5 16.5h13" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  arrow:'<svg width="22" height="16" viewBox="0 0 22 16"><path d="M1 8h19M13.5 1.5 20 8l-6.5 6.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  search:'<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5.2" fill="none" stroke="#737373" stroke-width="1.5"/><path d="M11 11l3.6 3.6" stroke="#737373" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  trash:'<svg width="18" height="20" viewBox="0 0 18 20"><path d="M1.5 4.5h15M6.5 4.5V2.5h5v2M3.5 4.5l1 13h9l1-13M7.5 8.5v6M10.5 8.5v6" fill="none" stroke="#111" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   larr:'<svg width="16" height="12" viewBox="0 0 16 12"><path d="M15 6H2M6.5 1.5 2 6l4.5 4.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
 /* =========================================================
    NAVIGATION
    ========================================================= */
-const TAB_OF = {archive:'archive',detail:'archive',stats:'archive',my:'my'};
+const TAB_OF = {canvas:'canvas',detail:'canvas',my:'my',noti:''};
+let NAV_DIR='fade';
 function go(name,params={},opt={}){
+  NAV_DIR = opt.reset ? 'fade' : 'fwd';
   if(opt.reset) S.stack=[];
   if(opt.replace) S.stack.pop();
   S.stack.push({name,params});
   render();
 }
 function back(){
+  NAV_DIR='back';
   if(S.stack.length>1){S.stack.pop();render();}
   else go('home',{},{reset:true});
 }
@@ -674,10 +765,10 @@ function render(keepScroll){
   const view=$('#view'); const top=view.scrollTop;
   const cur=S.stack[S.stack.length-1];
   const fn=SCREENS[cur.name];
-  view.innerHTML=`<div class="scr ${keepScroll?'':'fade'}">${fn(cur.params||{})}</div>`;
+  view.innerHTML=`<div class="scr scr-${cur.name} ${keepScroll?'':'in-'+NAV_DIR}">${fn(cur.params||{})}</div>`;
   view.scrollTop = keepScroll ? top : 0;
-  const tab = TAB_OF[cur.name] || (cur.name==='home'?'home':'');
-  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab || (!tab && b.dataset.tab==='home')));
+  const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   (AFTER[cur.name]||(()=>{}))(cur.params||{});
   paintDrops(view);
 }
@@ -687,12 +778,8 @@ function render(keepScroll){
    ========================================================= */
 function stepbar(n){
   return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button>
-    <div class="dots">${[1,2,3,4,5,6].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>
+    <div class="dots">${[1,2,3,4,5,6].map(i=>`<i class="${i<n?'done':i===n?'on':''}"></i>`).join('')}</div>
     <span class="stepnum">${n} / 6</span></div>`;
-}
-function archTabs(active){
-  return `<div class="seg"><button class="${active==='archive'?'on':''}" onclick="go('archive',{},{reset:true})">아카이브</button>
-    <button class="${active==='stats'?'on':''}" onclick="go('stats',{},{reset:true})">기록 분석 / 통계</button></div>`;
 }
 function timerText(){
   const t=S.timer; if(!t) return '';
@@ -703,19 +790,85 @@ function timerBtnText(){
   if(t.left<=0) return '다 우렸어요';
   return t.running ? '눌러서 정지' : '눌러서 다시 시작';
 }
-function canvasHTML(drops,{id='',bare=false,labels=true}={}){
-  return `<div class="canvas ${bare?'bare':''}" ${id?`id="${id}"`:''}>
-    <i class="ax h"></i><i class="ax v"></i>
-    ${labels?`<span class="lbl" style="left:52%;top:6px">호 맛</span><span class="lbl" style="left:52%;bottom:6px">불호 맛</span>
-    <span class="lbl" style="left:8px;top:calc(50% - 20px)">불호 향</span><span class="lbl" style="right:8px;top:calc(50% - 20px)">호 향</span>`:''}
-    <div class="drops">${drops.map(dropHTML).join('')}</div></div>`;
+/* 두 축 캔버스: 가로 = 마시기 전 코로 맡은 향, 세로 = 마신 뒤 입에 남은 맛 */
+const AX={top:'맛이 좋아요',bottom:'맛이 아쉬워요',left:'향이 아쉬워요',right:'향이 좋아요'};
+function canvasBox(id,{labels=true,cls=''}={}){
+  return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas>${labels?`<span class="lbl t">${AX.top}</span><span class="lbl b">${AX.bottom}</span><span class="lbl l">${AX.left}</span><span class="lbl r">${AX.right}</span>`:''}</div>`;
 }
-function dropHTML(d){
-  if(!d||!d.canvas) return '';
-  const c=d.canvas, s=24+c.i*30, col=TEAS[d.type].color;
-  return `<span class="drop" style="left:${c.x*100}%;top:${c.y*100}%;width:${s}px;height:${s}px;opacity:${.35+.65*c.i};
-    background:radial-gradient(circle, #fff 0%, ${col} 45%, ${col}00 72%)"></span>`;
+const dropR=(W,i,k=1)=>W*(.045+.07*(i??.5))*k;
+const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
+function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.09)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke(); x.restore(); }
+function paintCanvas(cv,recs,{alpha=1,highlight=null,k=1,paper='#FCFBF9'}={}){
+  const px=pxFor(cv.clientWidth); cv.width=cv.height=px; const x=cv.getContext('2d');
+  x.fillStyle=paper; x.fillRect(0,0,px,px); axes(x,px);
+  recs.forEach(r=>WC.draw(x,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k),1,highlight?(r.id===highlight?1:.18):alpha));
+  if(highlight){ const r=recs.find(q=>q.id===highlight); if(r){ x.save(); x.strokeStyle='rgba(0,0,0,.55)'; x.lineWidth=Math.max(1,px/300); x.setLineDash([px/90,px/110]); x.beginPath(); x.arc(r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k)*1.05,0,Math.PI*2); x.stroke(); x.restore(); } }
+  WC.grain(x,px,px,true,.26);
+  return px;
 }
+const posText=c=>c?`마시기 전 향은 ${c.x>=.5?'좋았고':'아쉬웠고'}, 마신 뒤 맛은 ${c.y<.5?'좋았어요':'아쉬웠어요'}.`:'';
+const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><i style="background:${FLAVORS[f.k].color}"></i>${FLAVORS[f.k].label}</span>`).join('')}</div>`;
+const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font-size:14px">${t}</b></div>`;
+
+/* 표현 → 풍미 계열 */
+function matchFlavors(text){ const t=String(text||'').replace(/\s/g,''); return FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.includes(w))); }
+function collectExprs(d){
+  const out=[], add=t=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:matchFlavors(t)}); };
+  ['aroma','taste','color'].forEach(k=>add(d.feel&&d.feel[k]));
+  (d.chat||[]).filter(m=>m.who==='me').forEach(m=>add(m.text));
+  if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
+  return out;
+}
+// 먼저 떠올린 표현과 여러 번 나온 풍미일수록 진하게(최대 4가지)
+function scoreFlavors(exprs){
+  const sc={}; let i=0;
+  exprs.forEach(e=>{ if(!e.fl.length) return; const w=1+(i===0?.4:i===1?.2:0); i++; e.fl.forEach(k=>sc[k]=(sc[k]||0)+w*(e.fl.length>2?.8:1)); });
+  const ks=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]).slice(0,4), mx=sc[ks[0]]||1;
+  return ks.map(k=>({k,w:+(.35+.6*sc[k]/mx).toFixed(2)}));
+}
+function draftDrop(d){
+  if(!d.flavors||!d.flavors.length) return {...teaDrop(d.type),id:'draft-'+d.tid};
+  return {id:'draft-'+d.tid,comps:[{key:'tea',c:TEAS[d.type].color,w:.5},...d.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
+}
+function ensureFlavors(d){ if(!d.flavors){ const ex=collectExprs(d); d.flavors=scoreFlavors(ex); d.exprs=ex.map(e=>e.text); } }
+
+/* 나의 취향 찻방울: 향도 맛도 좋았던(오른쪽 위) 기록들의 대표 풍미를 섞는다 */
+function favDrop(){
+  const rs=S.records.filter(r=>r.canvas&&r.canvas.x>=.5&&r.canvas.y<.5);
+  if(!rs.length) return null;
+  const fl={}, tt={};
+  rs.forEach(r=>{ const i=r.canvas.i??.5; tt[r.type]=(tt[r.type]||0)+i; (r.flavors||[]).forEach(f=>fl[f.k]=(fl[f.k]||0)+f.w*i); });
+  const topT=Object.keys(tt).sort((a,b)=>tt[b]-tt[a])[0];
+  const ks=Object.keys(fl).sort((a,b)=>fl[b]-fl[a]).slice(0,3), mx=fl[ks[0]]||1;
+  const top=ks.map(k=>({k,w:+(.4+.55*fl[k]/mx).toFixed(2)}));
+  const drop={id:'fav-'+rs.map(r=>r.id).join('.'),comps:[{key:'tea',c:TEAS[topT].color,w:.45},...top.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
+  const names=top.map(f=>FLAVORS[f.k].label);
+  return {drop,top,n:rs.length,
+    title:`향도 맛도 좋았던 ${rs.length}잔을 섞었어요`,
+    desc:names.length?`${names.join(', ')} 풍미가 가장 진하게 담겼어요. 좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`:`좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`};
+}
+
+/* 기록 목록 검색 · 필터 */
+function filtered(){
+  const f=S.filter, q=f.q.trim().replace(/\s/g,'').toLowerCase(), now=new Date();
+  const from={all:0,'1m':now.getTime()-31*864e5,'3m':now.getTime()-92*864e5,'1y':new Date(now.getFullYear(),0,1).getTime()}[f.date];
+  return sortRecs().filter(r=>{
+    if((r.ts||0)<from) return false;
+    const c=r.canvas||{x:.5,y:.5};
+    if(f.aroma==='good'&&c.x<.5 || f.aroma==='bad'&&c.x>=.5) return false;
+    if(f.taste==='good'&&c.y>=.5 || f.taste==='bad'&&c.y<.5) return false;
+    if(!q) return true;
+    const hay=[r.name,r.brand,r.comment,TEAS[r.type].label,...(r.exprs||[]),...(r.tags||[]),...(r.flavors||[]).map(x=>FLAVORS[x.k].label)].join(' ').replace(/\s/g,'').toLowerCase();
+    return hay.includes(q);
+  });
+}
+function frow(k,label,opts){ return `<div class="frow"><span>${label}</span>${opts.map(([v,t])=>`<button class="fchip ${S.filter[k]===v?'on':''}" onclick="S.filter.${k}='${v}';rerender()">${t}</button>`).join('')}</div>`; }
+function gridHTML(){
+  const rs=filtered();
+  if(!rs.length) return `<p class="empty-q">조건에 맞는 기록이 없어요.</p>`;
+  return rs.map(r=>`<button class="ritem" onclick="openDetail('${r.id}')">${orb(r,78)}<b>${esc(r.name)}</b><span>${r.date.slice(2).replace(/\.$/,'')}</span></button>`).join('');
+}
+function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML(); paintDrops(g); }
 
 /* =========================================================
    SCREENS
@@ -723,17 +876,12 @@ function dropHTML(d){
 const SCREENS = {
 
 home(){
-  sortRecs(); const r=S.records[0];
-  return `
-  <h2 class="hello">오늘도 새로운 차 경험을<br>기록해보세요.</h2>
-  ${orb('green',150,'big breath')}
-  <button class="btn" onclick="startRecord()">새로운 티 테이스팅 기록하기</button>
-  <h3 class="sec">지난 기록</h3>
-  ${r ? `<button class="last" onclick="openDetail('${r.id}')">${orb(r,54)}
-      <div><b>${esc(r.name)} | ${stars(r.stars)}</b><span>${r.date}</span><span>${esc(r.comment)}</span></div></button>`
-      : `<div class="card muted" style="font-size:13px">아직 기록이 없어요. 첫 차를 기록해보세요.</div>`}
-  <h3 class="sec">최근 마신 차</h3>
-  <div class="recent">${ORDER.map(t=>`<button onclick="openLatest('${t}')">${orb(t,44)}<span>${TEAS[t].label}</span></button>`).join('')}</div>`;
+  return `<div class="home">
+    <h2 class="hello">오늘도 새로운 차 경험을<br>기록해보세요.</h2>
+    <div class="home-drop" id="homeDrop"></div>
+    <p class="home-cap">지금까지 <b>${S.records.length}</b>잔의 차가 캔버스에 모였어요</p>
+    <button class="bigbtn" onclick="startRecord()"><span>새로운 티 테이스팅<br>기록하기</span><i>${I.arrow}</i></button>
+  </div>`;
 },
 
 teaInput(){
@@ -743,8 +891,8 @@ teaInput(){
   <div class="spacer" style="min-height:60px"></div>
   <input class="pill-in" id="inName" placeholder="차 이름 입력하기" value="${esc(d.name)}" onkeydown="if(event.key==='Enter')submitTea()">
   <input class="pill-in" id="inBrand" placeholder="브랜드명 입력하기" value="${esc(d.brand)}" onkeydown="if(event.key==='Enter')submitTea()">
-  <button class="cam" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')" aria-label="카메라">${I.cam}</button>
-  <p class="hint">예: 제주 세작, 철관음, 캐모마일 · 홍차는 검색 실패 화면을 보여줘요</p>
+  <button class="cambtn" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')"><span class="ring">${I.cam}</span>사진으로 찾기</button>
+  <p class="hint">예: 제주 세작, 철관음, 얼그레이, 캐모마일</p>
   <div class="spacer"></div>
   <button class="btn" onclick="submitTea()">확인</button>`;
 },
@@ -831,8 +979,7 @@ chat(){
 
 organizing(){
   return `${stepbar(4)}
-  <div class="loader"><div class="spin">${[...Array(8)].map((_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${.2+i*.1}"></i>`).join('')}</div>
-  <b style="font-size:15px">감각기록 정리하는 중</b></div>
+  ${loaderHTML('감각 기록을 정리하는 중')}
   <button class="link" onclick="go('depth',{},{replace:true})">기록 보기</button>`;
 },
 
@@ -929,43 +1076,43 @@ deepMemo(){
 
 analyzing(){
   return `${stepbar(6)}
-  <h1 class="t" style="margin-top:50px">기록을 살펴보고 있어요</h1>
-  <p class="sub">내 감각과 전문 설명을 차분히 비교하는 중이에요.</p>
-  ${orb(S.draft.type,170,'big breath')}
+  <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
+  <p class="sub">내가 남긴 표현이 하나씩 방울에 스며들어요.</p>
+  <div class="infuse"><div class="floatzone" id="floatzone"></div><canvas id="infCv" style="width:236px;height:236px"></canvas></div>
   <div class="phases" id="phases">
-    <div class="ph on"><i></i>기록 읽는 중</div><span class="ar">→</span>
-    <div class="ph"><i></i>표현 연결 중</div><span class="ar">→</span>
+    <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
+    <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>`;
 },
 
 compare(){
-  const d=S.draft, t=TEAS[d.type];
+  const d=S.draft, t=TEAS[d.type]; ensureFlavors(d);
   return `${stepbar(6)}
   <h1 class="t">내 감각과 설명을 함께 볼까요?</h1>
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
-  ${orb(d.type,140,'big')}
+  ${orb(draftDrop(d),150,'big')}
+  ${d.flavors.length?`<div class="center-chips">${flChips(d.flavors)}</div>`:''}
   <div class="cmp"><div class="lb">${I.book}전문가 설명</div><div class="bd">${t.expert}</div></div>
   <div class="cmp"><div class="lb">${I.person}나의 기록</div><div class="bd">${esc(myExpression(d))}</div></div>
   <div class="cmp"><div class="lb">${I.rings}공통점</div><div class="bd chips">${t.common.map(c=>`<span class="chip">${c}</span>`).join('')}</div></div>
   <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd"><ul>${t.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
   <div class="cmp"><div class="lb">${I.spark}AI 해석</div><div class="bd">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
   <div class="spacer" style="min-height:22px"></div>
-  <button class="btn" onclick="openCanvasSheet()">기록 완료하기</button>
+  <button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button>
   <button class="link u" onclick="go('depth')">수정하기</button>`;
 },
 
 done(){
+  const r=S.lastSaved||S.records[0];
   return `${stepbar(6)}
-  <div class="wave"><i style="width:230px;height:60px;left:40px;top:34px;background:#D9C6F3;transform:rotate(-8deg)"></i>
-    <i style="width:180px;height:44px;left:150px;top:52px;background:#CFE2C9;transform:rotate(6deg)"></i>
-    <i style="width:120px;height:34px;left:20px;top:64px;background:#EEDDF6"></i></div>
+  <div class="done-drop">${orb(r,170,'breath')}</div>
   <h1 class="t">기록을 완료했어요</h1>
-  <p class="sub">오늘의 차가 기록으로 저장되었어요.<br>대화와 감각이 정리되어, 나만의 아카이브에 쌓였어요.</p>
+  <p class="sub">오늘의 찻방울이 나의 캔버스에 스며들었어요.<br>대화와 감각이 정리되어 아카이브에 쌓였어요.</p>
   <div style="height:16px"></div>
   <button class="rowlink" onclick="go('fullChat')"><span class="sq"></span>대화 기록 보기<span class="chev">›</span></button>
   <button class="rowlink" onclick="go('teaTag')"><span class="sq"></span>Tea Tag 확인하기<span class="chev">›</span></button>
   <div class="spacer"></div>
-  <button class="btn" onclick="goTab('archive')">아카이브에서 보기</button>
+  <button class="btn" onclick="go('canvas',{tab:'canvas',hl:'${r.id}'},{reset:true})">캔버스에서 보기</button>
   <button class="link" onclick="goTab('home')">홈으로 가기</button>`;
 },
 
@@ -988,90 +1135,81 @@ fullChat(p){
 
 teaTag(){
   const r=S.lastSaved || S.records[0];
-  const tags=(r.tags&&r.tags.length?r.tags:TEAS[r.type].common).slice(0,5);
+  const tags=(r.flavors&&r.flavors.length?r.flavors.map(f=>FLAVORS[f.k].label):r.tags&&r.tags.length?r.tags:TEAS[r.type].common).slice(0,5);
   return `${stepbar(6)}
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
-    ${orb(r,120,'big')}
+    ${orb(r,140,'big')}
     <div class="nm">${esc(r.name)}</div>
     <div class="meta">${esc(r.brand)} · ${r.date} · ${stars(r.stars)}</div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
     ${r.comment?`<div class="line">“${esc(r.comment)}”</div>`:''}
   </div>
-  <p class="hint" style="margin-top:12px">Tea Tag는 내 기록에서 자주 나온 표현으로 만들어져요.</p>
+  <p class="hint" style="margin-top:12px">Tea Tag는 내 표현에서 찾은 풍미로 만들어져요.</p>
   <div class="spacer"></div>
   <button class="btn" onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')">이미지로 저장하기</button>
   <button class="link" onclick="back()">기록 완료로 돌아가기</button>`;
 },
 
-archive(){
-  sortRecs();
+canvas(p){
+  const tab=p.tab||'canvas';
+  const seg=`<div class="seg"><button class="${tab==='canvas'?'on':''}" onclick="go('canvas',{tab:'canvas'},{reset:true})">캔버스</button>
+    <button class="${tab==='list'?'on':''}" onclick="go('canvas',{tab:'list'},{reset:true})">기록</button></div>`;
   if(S.forceEmpty || !S.records.length){
-    return `<div class="state"><h2 style="margin-top:0">아직 모인 구슬이 없어요</h2>
-      <p>첫 차를 기록하면 이곳에 나만의 색구슬이 하나씩 쌓여요.</p>
-      <div style="margin:60px 0">${orb(null,160)}</div></div>
+    return `${seg}<div class="state"><h2 style="margin-top:0">아직 모인 찻방울이 없어요</h2>
+      <p>첫 차를 기록하면 이곳에 나만의 찻방울이 하나씩 번져요.</p>
+      <div style="margin:48px 0">${orb(null,150,'breath')}</div></div>
       <button class="btn" onclick="startRecord()">첫 기록 시작하기</button>
       <button class="link u" onclick="goTab('home')">홈으로 가기</button>`;
   }
-  if(!S.loaded.archive) return `${archTabs('archive')}<div class="loader"><div class="spin">${[...Array(8)].map((_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${.2+i*.1}"></i>`).join('')}</div><b style="font-size:14px">기록을 불러오는 중...</b></div>`;
-  return `${archTabs('archive')}
-  <div class="grid">${S.records.map(r=>`<button class="gitem" onclick="openDetail('${r.id}')">${orb(r,62)}
-    <div>${esc(r.name)}<br>${stars(r.stars)}<br>${r.date}</div></button>`).join('')}</div>
-  <div class="endline"></div>
-  <p class="center" style="font-size:13px">더 많은 기록을 남겨보세요!</p>`;
+  if(tab==='list'){
+    return `${seg}
+    <div class="search">${I.search}<input id="q" placeholder="차 이름, 브랜드, 표현으로 찾기" value="${esc(S.filter.q)}" oninput="S.filter.q=this.value;paintList()"></div>
+    <div class="filters">
+      ${frow('date','기간',[['all','전체'],['1m','1개월'],['3m','3개월'],['1y','올해']])}
+      ${frow('aroma','향',[['all','전체'],['good','좋았어요'],['bad','아쉬웠어요']])}
+      ${frow('taste','맛',[['all','전체'],['good','좋았어요'],['bad','아쉬웠어요']])}
+    </div>
+    <div id="recGrid" class="rgrid">${gridHTML()}</div>`;
+  }
+  const fav=favDrop();
+  return `${seg}
+  <p class="cv-head"><b>${S.records.length}잔</b>의 차가 번진 나의 TEA CANVAS</p>
+  ${canvasBox('bigCv')}
+  <p class="cap">가로는 마시기 전 향, 세로는 마신 뒤 맛이에요. 방울을 누르면 그 기록을 볼 수 있어요.</p>
+  <h3 class="sec">나의 취향 찻방울</h3>
+  ${fav?`<div class="fav">${orb(fav.drop,112,'breath')}<div><b>${fav.title}</b><p>${fav.desc}</p></div></div>${flChips(fav.top)}`
+      :`<div class="card muted" style="font-size:13px">향도 맛도 좋았던 기록이 모이면, 그 차들을 섞어 나만의 찻방울을 만들어드려요.</div>`}
+  <div style="height:8px"></div>`;
 },
 
 detail(p){
   const r=S.records.find(x=>x.id===p.id);
-  if(!S.loaded['d'+p.id]) return `${archTabs('archive')}<div class="loader"><div class="spin">${[...Array(8)].map((_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${.2+i*.1}"></i>`).join('')}</div><b style="font-size:14px">기록을 불러오는 중...</b></div>`;
+  if(!r) return SCREENS.error({});
   const dp=r.deep||{};
   const info=[];
   if(dp.origin||dp.vintage) info.push(['산지·빈티지',[dp.origin,dp.vintage&&dp.vintage+'년'].filter(Boolean).join(' · ')]);
   if(dp.temp||dp.min||dp.sec) info.push(['온도·시간',[dp.temp&&dp.temp+'°C',(dp.min||dp.sec)&&`${dp.min||0}분 ${dp.sec||0}초`].filter(Boolean).join(' · ')]);
   Object.entries(dp.brews||{}).forEach(([n,b])=>{ if(b.feel||b.next) info.push([n+'차 우림',[b.feel,b.next].filter(Boolean).join(' / ')]); });
-  return `${archTabs('archive')}
-  <button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
+  return `<div class="dtop"><button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
+    <button class="ghost" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash}</button></div>
   <div class="detail">
-    <div class="dhead">${orb(r,74)}<div>${esc(r.name)}<br>${stars(r.stars)}<br>기록일 : ${r.date.replace(/\.$/,'')}</div></div>
+    <div class="dhead">${orb(r,88)}<div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
     ${r.photo?`<div class="photo"><span>사진</span></div>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
   </div>
-  <div style="margin:22px 0 0">${canvasHTML([r],{bare:true})}</div>
+  ${r.flavors&&r.flavors.length?`<h3 class="sec">담긴 풍미</h3>${flChips(r.flavors)}`:''}
+  <h3 class="sec">캔버스 속 위치</h3>
+  ${canvasBox('detCv',{cls:'sm'})}
+  <p class="cap">${posText(r.canvas)}</p>
   <div class="memo"><h4>MEMO</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
     ${info.length?`<dl>${info.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div>
-  ${r.chat&&r.chat.length?`<button class="link" onclick="go('fullChat',{id:'${r.id}'})">대화 기록 보기 ›</button>`:''}`;
+  ${r.chat&&r.chat.length?`<button class="link" onclick="go('fullChat',{id:'${r.id}'})">대화 기록 보기 ›</button>`:''}
+  <button class="btn line" style="margin-top:22px" onclick="askDelete('${r.id}')">이 기록 삭제하기</button>`;
 },
 
-stats(){
-  if(S.simError) return SCREENS.error({retry:'stats'});
-  sortRecs();
-  const recs=S.records; if(!recs.length) return `${archTabs('stats')}<div class="state"><h2>분석할 기록이 아직 없어요</h2><p>기록이 쌓이면 나의 취향을 정리해드려요.</p></div>`;
-  const first=recs[recs.length-1].date, last=recs[0].date;
-  const extra=[...new Set(recs.flatMap(r=>r.tags||[]))];
-  const words=[...new Set(['부드러움','은은함','꽃향','편안함','맑은 느낌',...extra])].slice(0,7);
-  return `${archTabs('stats')}
-  <h1 class="t" style="margin-top:6px">나의 차 취향</h1>
-  <p class="sub">기간: ${first.replace(/\.$/,'')} – ${last.replace(/\.$/,'')} · 기록 ${recs.length}개</p>
-  <div class="summary" style="margin-top:18px">${orb('herb',70)}<div><b>당신은 부드럽고 은은한 차에 자주 마음이 가요.</b><span>꽃향, 편안함, 잔잔한 단맛 같은 표현이 자주 보였어요.</span></div></div>
-  <h3 class="sec">나만의 TEA CANVAS</h3>
-  ${canvasHTML(recs,{bare:true})}
-  <h3 class="sec">자주 남긴 표현</h3>
-  <div class="chips">${words.map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>
-  <h3 class="sec">이럴 때 잘 맞아요</h3>
-  <div class="fits"><div>저녁에 혼자<br>쉬고 싶을 때</div><div>기분을 가볍게<br>정리하고 싶을 때</div><div>향이 너무 강하지<br>않은 차가 필요할 때</div></div>
-  <h3 class="sec">기억 속 차 한마디</h3>
-  <div class="chips"><span class="chip">조용한 오후 같은 맛</span><span class="chip">천천히 퍼지는 향</span><span class="chip">마시고 나면 편안해지는 느낌</span></div>
-  <h3 class="sec">AI 코멘트</h3>
-  <p class="aic">— 부드럽고 은은한 차에 대한 기록이 많아요.<br>— 주로 저녁 시간대에 휴식을 위해 차를 마시는 경향이 있어요.</p>
-  <h3 class="sec">다음엔 이런 차도 잘 맞을 거예요</h3>
-  ${[['herb','허브티','편안하게 쉬고 싶을 때'],['white','백차','맑고 가벼운 느낌이 필요할 때'],['oolong','우롱차','향을 조금 더 느껴보고 싶을 때']]
-    .map(([t,n,s])=>`<button class="rec" onclick="startWith('${t}','${n}')">${orb(t,40)}<div><b>${n}</b><span>${s}</span></div><span class="chev">›</span></button>`).join('')}
-  <div style="height:20px"></div>
-  <button class="btn" onclick="startRecord()">다음 기록하기</button>
-  <button class="link" onclick="go('archive',{},{reset:true})">아카이브에서 다시 보기</button>`;
-},
 
 my(){
   sortRecs();
@@ -1080,7 +1218,7 @@ my(){
   return `
   <div class="profile"><div class="pimg">프로필<br>이미지</div><div><b>사용자 님</b><p>@teacanvas-sprout<br>${n>=10?'잎새 이용자':'새싹 이용자'}</p></div></div>
   <h3 class="sec" style="margin-top:28px">나의 아카이브</h3>
-  <div class="statrow"><div><b>${n}</b><span>모인 캔버스</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
+  <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   <h3 class="sec" style="margin-top:30px">설정</h3>
   ${['대화 기록 설정','앱 설정','알림 설정','계정'].map(s=>`<button class="setrow" onclick="toast('${s} 화면은 아직 디자인 자료가 없어요')">${s}</button>`).join('')}`;
 },
@@ -1090,9 +1228,9 @@ noti(){
   <h1 class="t" style="text-align:left">알림</h1>
   <div style="margin-top:10px">
   ${[['oolong','지난번 우롱차는 “구수하고 산뜻한 단맛”으로 남겼어요. 오늘은 어떤 차를 마셔볼까요?','오늘'],
-     ['herb','기록이 6개 모였어요. 기록 분석 탭에서 나의 차 취향을 확인해보세요.','3일 전'],
+     ['herb',`찻방울이 ${S.records.length}개 모였어요. Canvas 탭에서 나의 취향 찻방울을 확인해보세요.`,'3일 전'],
      ['white','비슷한 취향의 차로 백차를 추천해요. 맑고 가벼운 느낌이 필요할 때 잘 맞아요.','1주 전']]
-     .map(([t,m,w])=>`<button class="noti" onclick="${t==='herb'?"go('stats',{},{reset:true})":"toast('알림 상세 화면은 자료에 없어요')"}">${orb(t,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join('')}
+     .map(([t,m,w])=>`<button class="noti" onclick="${t==='herb'?"goTab('canvas')":"toast('알림 상세 화면은 아직 준비 중이에요')"}">${orb(t,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join('')}
   </div>`;
 },
 
@@ -1105,19 +1243,19 @@ error(p){
 
 /* after-render hooks */
 const AFTER = {
+  home(){ mountHomeDrop($('#homeDrop')); },
   chat(){ if(S.chatMode==='chat'){ seedChat(); paintMsgs(); } },
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('depth',{},{replace:true}); },1600); },
-  analyzing(){
-    const at=S.stack.length; let i=0;
-    const iv=setInterval(()=>{
-      if(cur()!=='analyzing'||S.stack.length!==at){clearInterval(iv);return;}
-      i++; const ph=document.querySelectorAll('#phases .ph');
-      if(i<3){ ph.forEach((el,k)=>el.classList.toggle('on',k===i)); }
-      else { clearInterval(iv); go('compare',{},{replace:true}); }
-    },900);
+  analyzing(){ runInfusion(); },
+  canvas(p){
+    const cv=$('#bigCv'); if(!cv) return;
+    const recs=recsAsc(), px=paintCanvas(cv,recs,{highlight:null,k:1.1});
+    if(p.hl){ const r=recs.find(q=>q.id===p.hl); if(r) bloomOn(cv,r,px); }
+    cv.onclick=e=>{ const b=cv.getBoundingClientRect(), x=(e.clientX-b.left)/b.width, y=(e.clientY-b.top)/b.height;
+      let best=null, bd=1e9; recs.forEach(r=>{ const d=Math.hypot(r.canvas.x-x,r.canvas.y-y); if(d<bd){bd=d;best=r;} });
+      if(best && bd<dropR(1,best.canvas.i,1.1)*1.2) openDetail(best.id); else toast('방울을 눌러 기록을 열어보세요'); };
   },
-  archive(){ if(!S.loaded.archive && !S.forceEmpty && S.records.length){ setTimeout(()=>{S.loaded.archive=true; if(cur()==='archive') rerender();},600); } },
-  detail(p){ const k='d'+p.id; if(!S.loaded[k]){ setTimeout(()=>{S.loaded[k]=true; if(cur()==='detail') rerender();},500); } },
+  detail(p){ const cv=$('#detCv'); if(cv) paintCanvas(cv,recsAsc(),{highlight:p.id}); },
 };
 const cur=()=>S.stack[S.stack.length-1].name;
 
@@ -1125,9 +1263,24 @@ const cur=()=>S.stack[S.stack.length-1].name;
    ACTIONS
    ========================================================= */
 function startRecord(){ closeSheet(); stopTimer(); S.draft=newDraft(); S.chatMode='chat'; S.voiceIdx=0; go('teaInput',{}, {reset:true}); }
-function startWith(type,name){ stopTimer(); S.draft=newDraft(); S.draft.type=type; S.draft.name=name; S.draft.brand=''; go('teaConfirm',{},{reset:true}); }
-function openDetail(id){ go('detail',{id},{reset:true}); }
-function openLatest(t){ sortRecs(); const r=S.records.find(x=>x.type===t); if(r) openDetail(r.id); else toast(`${TEAS[t].label} 기록이 아직 없어요`); }
+function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur()==='noti') S.stack=[{name:'canvas',params:{tab:'list'}}]; go('detail',{id}); }
+
+/* 기록 삭제: 확인 후 지운다 */
+function askDelete(id){
+  const r=S.records.find(x=>x.id===id); if(!r) return;
+  openSheet(`<div class="grab"></div>
+    <div class="center" style="margin-top:6px">${orb(r,84)}</div>
+    <h1 class="t" style="margin-top:10px">‘${esc(r.name)}’ 기록을 삭제할까요?</h1>
+    <p class="sub">삭제하면 캔버스에서도 찻방울이 사라지고,<br>다시 되돌릴 수 없어요.</p>
+    <div style="height:26px"></div>
+    <button class="btn" onclick="doDelete('${id}')">삭제하기</button>
+    <button class="link" onclick="closeSheet()">취소</button>`);
+}
+function doDelete(id){
+  S.records=S.records.filter(r=>r.id!==id); persist();
+  if(S.lastSaved&&S.lastSaved.id===id) S.lastSaved=null;
+  closeSheet(); go('canvas',{tab:'list'},{reset:true}); toast('기록을 삭제했어요');
+}
 
 function submitTea(){
   const name=$('#inName').value.trim(), brand=$('#inBrand').value.trim();
@@ -1143,7 +1296,7 @@ function openEditSheet(){
   openSheet(`<div class="grab"></div>
     <input class="pill-in" id="eName" placeholder="차 이름 입력하기" value="${esc(d.name)}">
     <input class="pill-in" id="eBrand" placeholder="브랜드명 입력하기" value="${esc(d.brand)}">
-    <button class="cam" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')">${I.cam}</button>
+    <button class="cambtn" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')"><span class="ring">${I.cam}</span>사진으로 찾기</button>
     <button class="link" style="color:#111;font-weight:600" onclick="saveEdit()">저장하기</button>`);
 }
 function saveEdit(){
@@ -1246,14 +1399,15 @@ function myExpression(d){
   return '풀 향이 먼저 나고, 따뜻한 물 마시듯 편안했어요. 끝에 살짝 고소하고 포근한 느낌이 남았어요.';
 }
 
-/* canvas sheet → save record */
+/* 캔버스 찍기 시트 → 기록 저장 */
 function openCanvasSheet(){
-  const d=S.draft;
+  const d=S.draft; ensureFlavors(d);
   openSheet(`<div class="grab"></div>
-    <h1 class="t">캔버스에 감각 찍기</h1>
-    <p class="sub">오늘의 차가 캔버스 어디쯤인지 눌러보세요.</p>
-    <div style="margin-top:16px">${canvasHTML(d.canvas?[{type:d.type,canvas:d.canvas}]:[],{id:'pickCanvas'})}</div>
-    <p class="cap">길게 누를수록 진해져요.</p>
+    <h1 class="t">캔버스에 찻방울 찍기</h1>
+    <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍고, 길게 누르면 더 진하게 번져요.</p>
+    <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
+    ${canvasBox('pickCv')}
+    <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 방울은 지난 기록이에요.'}</p>
     <h3 class="sec" style="margin-top:18px">별점</h3>
     <div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div>
     <h3 class="sec" style="margin-top:12px">한 줄 코멘트</h3>
@@ -1263,31 +1417,102 @@ function openCanvasSheet(){
     <div style="height:18px"></div>
     <button class="btn" onclick="saveRecord()">저장하고 완료하기</button>
     <button class="link" onclick="closeSheet()">돌아가기</button>`);
-  bindCanvas($('#pickCanvas'));
+  bindPick($('#pickCv'));
 }
-function bindCanvas(el){
-  let iv=null; const d=S.draft;
-  const pos=e=>{const r=el.getBoundingClientRect();return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)}};
-  const paint=()=>{ el.querySelector('.drops').innerHTML=dropHTML({type:d.type,canvas:d.canvas}); };
-  el.onpointerdown=e=>{ e.preventDefault(); el.setPointerCapture(e.pointerId); d.canvas={...pos(e),i:.15}; paint();
-    clearInterval(iv); iv=setInterval(()=>{ d.canvas.i=Math.min(1,d.canvas.i+.04); paint(); },50); };
-  el.onpointermove=e=>{ if(iv){ Object.assign(d.canvas,pos(e)); paint(); } };
-  const stop=()=>{ clearInterval(iv); iv=null; };
-  el.onpointerup=stop; el.onpointercancel=stop;
+function bindPick(cv){
+  const d=S.draft, drop=draftDrop(d), others=recsAsc(), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
+  const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
+  const b=bg.getContext('2d'); b.fillStyle='#FCFBF9'; b.fillRect(0,0,px,px); axes(b,px);
+  others.forEach(r=>WC.draw(b,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i),1,.24));
+  WC.grain(b,px,px,true,.26);
+  let prog=1, holding=false, raf=0, t0=0, last=0;
+  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) WC.draw(ctx,drop,d.canvas.x*px,d.canvas.y*px,dropR(px,d.canvas.i),prog); };
+  const loop=now=>{
+    if(!cv.isConnected){ raf=0; return; }
+    if(holding){ d.canvas.i=Math.min(1,d.canvas.i+(now-last)/2200); }
+    last=now; prog=Math.min(1,(now-t0)/1000); frame();
+    if(holding||prog<1) raf=requestAnimationFrame(loop); else { raf=0; WC.grain(ctx,px,px); }
+  };
+  const pos=e=>{ const r=cv.getBoundingClientRect(); return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)}; };
+  frame();
+  cv.onpointerdown=e=>{ e.preventDefault(); cv.setPointerCapture(e.pointerId); d.canvas={...pos(e),i:.3}; holding=true; t0=last=performance.now(); prog=0; if(!raf) raf=requestAnimationFrame(loop); };
+  cv.onpointermove=e=>{ if(holding) Object.assign(d.canvas,pos(e)); };
+  const stop=()=>{ if(!holding) return; holding=false; const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); };
+  cv.onpointerup=stop; cv.onpointercancel=stop;
 }
 function setStars(n){ const d=S.draft; d.stars = d.stars===n ? n-1 : n; document.querySelectorAll('#starRow button').forEach((b,i)=>b.classList.toggle('on',i<d.stars)); }
 function togglePhoto(){ const d=S.draft; d.photo=!d.photo; $('#photoBtn').textContent=d.photo?'✓ 사진을 추가했어요':'＋ 사진 추가 (선택)'; }
 function saveRecord(){
   const d=S.draft; const c=$('#cmt'); if(c) d.comment=c.value.trim();
+  if(!d.canvas){ toast('캔버스에 오늘의 찻방울을 먼저 찍어주세요'); return; }
+  ensureFlavors(d);
   const memo=[]; const dp=d.useDeep?d.deep:{brews:{}};
   if(dp.memo) memo.push(dp.memo);
   memo.push(myExpression(d));
   const tags=[...Object.values(d.feel).filter(v=>v&&v!=='잘 모르겠어요'),...d.picked];
-  const rec={id:'n'+Date.now(),type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,date:today(),stars:d.stars,comment:d.comment,photo:d.photo,
-    canvas:d.canvas||{x:.5,y:.5,i:.4},memo,tags:[...new Set(tags)],chat:d.chat.filter(m=>m.who!=='sys'),voice:d.voice,deep:dp};
-  S.records.unshift(rec); S.lastSaved=rec; S.loaded.archive=false; persist();
+  const now=new Date();
+  const rec={id:'n'+Date.now(),type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
+    canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
+    chat:d.chat.filter(m=>m.who!=='sys').map(({who,text})=>({who,text})),voice:d.voice,deep:dp};
+  S.records.unshift(rec); S.lastSaved=rec; persist();
   stopTimer(); closeSheet(); S.draft=null;
   S.stack=[{name:'home',params:{}}]; go('done');
+}
+
+/* 분석 로딩: 표현이 하나씩 떠올라 방울에 가라앉고, 그 풍미 색이 잉크처럼 스며든다 */
+function floatChip(e){
+  const z=$('#floatzone'); if(!z) return;
+  const el=document.createElement('span'); el.className='ffloat';
+  const t=e.text.length>18?e.text.slice(0,17)+'…':e.text;
+  el.innerHTML=`${e.fl.slice(0,2).map(k=>`<i style="background:${FLAVORS[k].color}"></i>`).join('')}${esc(t)}`;
+  el.style.left=(12+Math.random()*30)+'%';
+  z.appendChild(el); setTimeout(()=>el.remove(),1500);
+}
+function runInfusion(){
+  const d=S.draft, at=S.stack.length, cv=$('#infCv'); if(!cv) return;
+  const exprs=collectExprs(d); d.flavors=scoreFlavors(exprs); d.exprs=exprs.map(e=>e.text);
+  const matched=exprs.filter(e=>e.fl.length), show=(matched.length?matched:exprs).slice(0,5);
+  const base=teaDrop(d.type), fin=draftDrop(d), fk=d.flavors.map(f=>f.k);
+  const px=pxFor(236); cv.width=cv.height=px; const x=cv.getContext('2d');
+  const STEP=1250, T0=450, total=T0+show.length*STEP+(fk.length?700:1500), ev=[], seen=new Set();
+  show.forEach((e,i)=>{ const t=T0+i*STEP; ev.push({t,chip:e}); e.fl.forEach(k=>{ if(fk.includes(k)&&!seen.has(k)){ seen.add(k); ev.push({t:t+780,k}); } }); });
+  fk.filter(k=>!seen.has(k)).forEach(k=>ev.push({t:T0+show.length*STEP,k}));
+  fin.comps.filter(c=>!fk.includes(c.key)).forEach(c=>ev.push({t:T0*.5,k:c.key}));
+  ev.sort((a,b)=>a.t-b.t);
+  const starts={}; let ei=0; const t0=performance.now();
+  const loop=now=>{
+    if(cur()!=='analyzing'||S.stack.length!==at||!cv.isConnected) return;
+    const t=now-t0;
+    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; if(e.chip) floatChip(e.chip); else starts[e.k]=e.t; }
+    const ph=t<total*.3?0:t<total*.82?1:2; document.querySelectorAll('#phases .ph').forEach((el,k)=>el.classList.toggle('on',k===ph));
+    x.clearRect(0,0,px,px);
+    WC.draw(x,base,px/2,px/2,px*.42,1,Math.max(0,1-t/(total*.9)));
+    const keys={}; for(const k in starts) keys[k]=Math.min(1,Math.max(0,(t-starts[k])/1100));
+    WC.draw(x,fin,px/2,px/2,px*.42,1,1,keys);
+    if(t<total) requestAnimationFrame(loop);
+    else{ WC.grain(x,px,px); setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },650); }
+  };
+  requestAnimationFrame(loop);
+}
+/* 방금 찍은 방울이 캔버스에서 다시 번지는 연출 */
+function bloomOn(cv,r,px){
+  const ctx=cv.getContext('2d'), snap=document.createElement('canvas'); snap.width=snap.height=px;
+  const others=recsAsc().filter(q=>q.id!==r.id), s=snap.getContext('2d');
+  s.fillStyle='#FCFBF9'; s.fillRect(0,0,px,px); axes(s,px);
+  others.forEach(q=>WC.draw(s,recDrop(q),q.canvas.x*px,q.canvas.y*px,dropR(px,q.canvas.i,1.1)));
+  WC.grain(s,px,px,true,.26);
+  const t0=performance.now(), drop=recDrop(r);
+  const loop=now=>{ if(!cv.isConnected) return; const p=Math.min(1,(now-t0)/1300);
+    ctx.drawImage(snap,0,0); WC.draw(ctx,drop,r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,1.1),p);
+    if(p<1) requestAnimationFrame(loop); else WC.grain(ctx,px,px); };
+  setTimeout(()=>requestAnimationFrame(loop),250);
+}
+/* 홈 찻방울: 3D가 준비되지 않았으면 수채화 방울로 대신한다 */
+function mountHomeDrop(el){
+  if(!el) return;
+  if(typeof startHome3D==='function' && startHome3D(el)) return;
+  const k=ORDER[Math.floor(Math.random()*6)], f=FKEYS[Math.floor(Math.random()*FKEYS.length)];
+  el.innerHTML=orb({id:'home-'+k+f,comps:[{key:'tea',c:TEAS[k].color,w:.7},{key:f,c:FLAVORS[f].color,w:.5}]},230,'breath');
 }
 
 /* sheet */
@@ -1295,12 +1520,13 @@ function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.
 function closeSheet(){ $('#sheetWrap').classList.remove('open'); }
 
 /* error */
-function retryError(which){ if(which==='stats'){ S.simError=false; $('#optErr').checked=false; } rerender(); }
+function retryError(){ rerender(); }
 
 function resetAll(){
   try{ localStorage.removeItem(STORE_KEY); }catch(e){}
-  S.records=seedRecords(); persist(); S.draft=null; S.timer=null; S.forceEmpty=false; S.simError=false; S.loaded={}; S.lastSaved=null;
-  $('#optEmpty').checked=false; $('#optErr').checked=false; goTab('home'); toast('처음 상태로 되돌렸어요');
+  S.records=seedRecords(); persist(); S.draft=null; S.timer=null; S.forceEmpty=false; S.loaded={}; S.lastSaved=null;
+  S.filter={q:'',date:'all',aroma:'all',taste:'all'};
+  $('#optEmpty').checked=false; goTab('home'); toast('처음 상태로 되돌렸어요');
 }
 
 /* =========================================================
@@ -1309,23 +1535,25 @@ function resetAll(){
 const JUMPS = [
   ['홈','home'],['1 차 정보 입력','teaInput'],['검색 오류','searchError'],['차 정보 확인','teaConfirm'],['2 우림 가이드','brew'],
   ['3 먼저 느껴보기','feel'],['4 감각 기록','chat'],['감각 정리 중','organizing'],['5 심화 기록','depth'],['우림 변화','deepBrew'],
-  ['산지·빈티지','deepOrigin'],['온도·시간','deepTemp'],['추가 메모','deepMemo'],['분석 로딩','analyzing'],['6 설명과 비교','compare'],
-  ['캔버스에 감각 찍기','@canvas',1],['기록 완료','@done'],['전체 대화','@fullChat'],['Tea Tag','@teaTag',1],
-  ['아카이브','archive'],['상세 기록','@detail'],['기록 분석/통계','stats'],['My','my'],['알림','noti',1],['오류','error'],
+  ['산지·빈티지','deepOrigin'],['온도·시간','deepTemp'],['추가 메모','deepMemo'],['6 찻방울 완성','analyzing'],['설명과 비교','compare'],
+  ['캔버스에 찍기','@canvas'],['기록 완료','@done'],['전체 대화','@fullChat'],['Tea Tag','@teaTag'],
+  ['캔버스','@cv'],['기록 목록','@list'],['상세 기록','@detail'],['My','my'],['알림','noti'],['오류','error'],
 ];
-$('#jump').innerHTML = JUMPS.map(([l,k,add],i)=>`<button class="${add?'add':''}" onclick="jump(${i})">${l}</button>`).join('');
+$('#jump').innerHTML = JUMPS.map(([l],i)=>`<button onclick="jump(${i})">${l}</button>`).join('');
 function jump(i){
   const k=JUMPS[i][1]; closeSheet();
-  if(k==='home'||k==='archive'||k==='stats'||k==='my'){ goTab(k); return; }
+  if(k==='home'||k==='my'){ goTab(k); return; }
+  if(k==='@cv'||k==='@list'){ go('canvas',{tab:k==='@cv'?'canvas':'list'},{reset:true}); return; }
   if(k==='noti'||k==='error'){ go(k,{},{reset:true}); return; }
   if(k==='@detail'){ sortRecs(); openDetail(S.records[0].id); return; }
   if(k==='@done'||k==='@fullChat'||k==='@teaTag'){
-    if(!S.lastSaved){ ensureDraft(); demoFill(); S.draft.canvas={x:.7,y:.3,i:.8}; S.draft.stars=2; S.draft.comment='집에서 혼자 마셔본 첫 허브차!'; saveRecord(); }
+    if(!S.lastSaved){ S.draft=null; ensureDraft(); demoFill(); S.draft.canvas={x:.7,y:.3,i:.8}; S.draft.stars=2; S.draft.comment='집에서 혼자 마셔본 첫 허브차!'; saveRecord(); }
     else { S.stack=[{name:'home',params:{}}]; go('done'); }
     if(k!=='@done') go(k.slice(1));
     return;
   }
   ensureDraft();
+  if(['analyzing','compare','@canvas'].includes(k)) demoFill();
   if(k==='@canvas'){ S.stack=[{name:'home',params:{}}]; go('compare'); openCanvasSheet(); return; }
   if(k==='teaInput'){ S.draft=newDraft(); }
   if(k==='deepBrew') S.brewTab=1;
@@ -1333,7 +1561,7 @@ function jump(i){
   S.stack=[{name:'home',params:{}}]; go(k);
 }
 function demoFill(){
-  const d=S.draft; if(d.chat.length) return;
+  const d=S.draft; d.flavors=null; if(d.chat.length) return;
   d.feel={color:'보랏빛',aroma:'풀향',taste:'부드러움'};
   d.chat=[{who:'bot',text:'오늘 차는 어땠나요?'},{who:'me',text:'풀 향이 먼저 났어요.'},{who:'bot',text:'입안에서는 어떤 느낌이 남았나요?'},
     {who:'me',text:'따뜻하고 둥글게 퍼졌어요.'},{who:'bot',text:'좋아요.\n따뜻하고 둥근 풀 향으로 남겨둘게요.'},{who:'me',text:'식으니까 고소한 향도 느껴져요.'},
