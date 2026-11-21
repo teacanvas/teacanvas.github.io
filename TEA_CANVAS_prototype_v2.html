@@ -338,49 +338,60 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 </aside>
 
 <script>
+let SCALE=1;
 /* =========================================================
    DATA
    ========================================================= */
-const ORDER = ['white','puer','oolong','jasmine','green','herb'];
+/* 6대 다류 — 찻방울 기본 색은 우린 찻물 색. 자스민 같은 가향차는 녹차로 분류 */
+const ORDER = ['green','white','oolong','black','dark','herb'];
 const TEAS = {
-  white:{label:'백차', kw:['백차','백호은침','백모단','수미','white'],
-    orb:'radial-gradient(circle at 46% 46%, #E7E8EC 0%, #EEE7CF 42%, #F1E2AF 76%, #F6EED3 100%)', dot:'#EFE2B4',
-    temp:'80 – 85°C', time:'3 – 5분', secs:240, amount:'찻잎 2 tsp (약 3g)', how:['찻잎이 천천히 펴지도록 기다려주세요','은은한 단맛이 살아나요.'],
-    tip:'세 번까지 우려도 맛이 오래 이어져요.',
-    expert:'마른 꽃과 꿀을 떠올리게 하는 은은한 향, 가볍고 맑은 질감에 부드러운 단맛이 남는 차예요.',
-    common:['은은함','맑은 느낌','부드러움'], diff:['나는 ‘가벼움’으로 느낌','전문가는 ‘꿀 향’을 구체적으로 표현']},
-  puer:{label:'보이차', kw:['보이','puer','pu-erh','숙차','생차'],
-    orb:'radial-gradient(circle at 55% 40%, #EC6B6B 0%, #CC776A 42%, #A9805F 80%, #B39478 100%)', dot:'#C8746A',
-    temp:'95 – 100°C', time:'3 – 4분', secs:210, amount:'찻잎 1 tsp (약 3g)', how:['처음 한 번은 물로 헹궈 버려주세요','묵은 향이 정리되고 맛이 맑아져요.'],
-    tip:'진하게 느껴지면 물을 조금 더 부어 연하게 즐겨보세요.',
-    expert:'젖은 흙과 나무를 닮은 깊은 향, 묵직하고 매끄러운 바디감에 달큰한 여운이 길게 남는 차예요.',
-    common:['묵직함','부드러움','달큰한 여운'], diff:['나는 ‘따뜻함’으로 느낌','전문가는 ‘흙 향’을 구체적으로 표현']},
-  oolong:{label:'우롱차', kw:['우롱','oolong','철관음','동방미인','대홍포','문산포종','오룡'],
-    orb:'radial-gradient(circle at 38% 42%, #EF7E22 0%, #F2B07B 36%, #F3D9C4 68%, #F1F1F1 100%)', dot:'#F08A3A',
-    temp:'90 – 95°C', time:'3 – 5분', secs:240, amount:'찻잎 1 – 2 tsp', how:['찻잎이 충분히 펴질 공간을 주세요','향이 겹겹이 열려요.'],
-    tip:'우릴 때마다 향이 달라져요. 2차 우림도 꼭 맛보세요.',
-    expert:'구운 곡물처럼 고소한 향 위로 은은한 꽃향이 겹치고, 삼킨 뒤 산뜻한 단맛이 맴도는 차예요.',
-    common:['고소함','은은함','산뜻한 단맛'], diff:['나는 ‘구수함’으로 느낌','전문가는 ‘꽃향’을 구체적으로 표현']},
-  jasmine:{label:'자스민차', kw:['자스민','쟈스민','재스민','jasmine','말리화'],
-    orb:'radial-gradient(circle at 56% 32%, #F2C24F 0%, #EDD679 38%, #EFE6B2 70%, #F8F6EF 100%)', dot:'#F0CF5C',
-    temp:'80°C', time:'2 – 3분', secs:150, amount:'티백 1개 또는 찻잎 1 tsp', how:['물을 한 김 식혀서 부어주세요','꽃향이 쓴맛 없이 피어나요.'],
-    tip:'향이 강하게 느껴지면 시간을 30초 줄여보세요.',
-    expert:'활짝 핀 자스민 꽃향이 먼저 퍼지고, 가벼운 녹차의 산뜻함이 뒤를 받쳐주는 차예요.',
-    common:['꽃향','산뜻함','맑은 느낌'], diff:['나는 ‘달콤함’으로 느낌','전문가는 ‘녹차 바탕’을 구체적으로 표현']},
-  green:{label:'녹차', kw:['녹차','세작','우전','중작','센차','말차','현미녹차','green'],
-    orb:'radial-gradient(circle at 50% 46%, #E8E8E5 0%, #C7D5B6 40%, #8FB06B 80%, #7DA159 100%)', dot:'#86A964',
+  green:{label:'녹차', color:'#B5D07E', kw:['녹차','세작','우전','중작','센차','말차','현미녹차','green','자스민','쟈스민','재스민','jasmine','말리화','가향'],
     temp:'70 – 80°C', time:'2 – 3분', secs:180, amount:'티백 1개 또는 찻잎 1 tsp (약 2g)', how:['물을 한 김 식혀서 부어주세요','뜨거운 물은 쓴맛을 끌어내요.'],
     tip:'두 번째 우림은 30초 더 짧게 시작해보세요.',
     expert:'갓 벤 풀처럼 싱그러운 향에 은은한 단맛과 감칠맛이 이어지고, 끝은 깔끔하게 마무리되는 차예요.',
     common:['풀향','산뜻함','깔끔한 끝맛'], diff:['나는 ‘상쾌함’으로 느낌','전문가는 ‘감칠맛’을 구체적으로 표현']},
-  herb:{label:'허브차', kw:['허브','캐모마일','카모마일','페퍼민트','민트','루이보스','히비스커스','라벤더','레몬밤','herb'],
-    orb:'radial-gradient(ellipse at 50% 72%, #B8D5AE 0%, #CBDCC3 30%, #DDD3EF 62%, #F3ECFB 100%)', dot:'#CFC2EA',
+  white:{label:'백차', color:'#EEDC9A', kw:['백차','백호은침','백모단','수미','white'],
+    temp:'80 – 85°C', time:'3 – 5분', secs:240, amount:'찻잎 2 tsp (약 3g)', how:['찻잎이 천천히 펴지도록 기다려주세요','은은한 단맛이 살아나요.'],
+    tip:'세 번까지 우려도 맛이 오래 이어져요.',
+    expert:'마른 꽃과 꿀을 떠올리게 하는 은은한 향, 가볍고 맑은 질감에 부드러운 단맛이 남는 차예요.',
+    common:['은은함','맑은 느낌','부드러움'], diff:['나는 ‘가벼움’으로 느낌','전문가는 ‘꿀 향’을 구체적으로 표현']},
+  oolong:{label:'우롱차', color:'#E3A03A', kw:['우롱','oolong','철관음','동방미인','대홍포','문산포종','오룡','봉황단총'],
+    temp:'90 – 95°C', time:'3 – 5분', secs:240, amount:'찻잎 1 – 2 tsp', how:['찻잎이 충분히 펴질 공간을 주세요','향이 겹겹이 열려요.'],
+    tip:'우릴 때마다 향이 달라져요. 2차 우림도 꼭 맛보세요.',
+    expert:'구운 곡물처럼 고소한 향 위로 은은한 꽃향이 겹치고, 삼킨 뒤 산뜻한 단맛이 맴도는 차예요.',
+    common:['고소함','은은함','산뜻한 단맛'], diff:['나는 ‘구수함’으로 느낌','전문가는 ‘꽃향’을 구체적으로 표현']},
+  black:{label:'홍차', color:'#CF5E3A', kw:['홍차','얼그레이','다즐링','아쌈','실론','기문','랍상','브렉퍼스트','우바','닐기리','black'],
+    temp:'95 – 100°C', time:'3 – 4분', secs:210, amount:'찻잎 1 tsp (약 2.5g) 또는 티백 1개', how:['끓는 물을 바로 부어주세요','향이 또렷하게 올라와요.'],
+    tip:'우유를 넣는다면 30초 더 우려 진하게 시작해보세요.',
+    expert:'잘 익은 과일과 꿀을 닮은 달콤한 향에, 적당한 떫은맛이 입안을 깔끔하게 정리해주는 차예요.',
+    common:['달콤함','과일향','또렷함'], diff:['나는 ‘따뜻함’으로 느낌','전문가는 ‘과일 향’을 구체적으로 표현']},
+  dark:{label:'보이차', color:'#7C3E2C', kw:['보이','puer','pu-erh','숙차','생차','흑차','육보','복전','천량'],
+    temp:'95 – 100°C', time:'3 – 4분', secs:210, amount:'찻잎 1 tsp (약 3g)', how:['처음 한 번은 물로 헹궈 버려주세요','묵은 향이 정리되고 맛이 맑아져요.'],
+    tip:'진하게 느껴지면 물을 조금 더 부어 연하게 즐겨보세요.',
+    expert:'젖은 흙과 나무를 닮은 깊은 향, 묵직하고 매끄러운 바디감에 달큰한 여운이 길게 남는 차예요.',
+    common:['묵직함','부드러움','달큰한 여운'], diff:['나는 ‘따뜻함’으로 느낌','전문가는 ‘흙 향’을 구체적으로 표현']},
+  herb:{label:'허브차', color:'#C4B2E2', kw:['허브','캐모마일','카모마일','페퍼민트','민트','루이보스','히비스커스','라벤더','레몬밤','보리차','옥수수','herb'],
     temp:'95°C', time:'5 – 7분', secs:300, amount:'티백 1개 또는 찻잎 1 – 2 tsp', how:['우릴 때 컵 뚜껑을 덮어주세요','향이 더 잘 살아나요.'],
     tip:'더 진한 향을 원한다면 1 – 2분 정도 조금 더 우려보세요.',
     expert:'은은한 꽃향과 부드러운 곡물 향이 이어지고, 끝에는 고소한 여운이 남는 차예요.',
     common:['은은함','부드러움','고소한 여운'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘꽃향’을 구체적으로 표현']},
 };
-const EMPTY_ORB = 'radial-gradient(circle at 36% 46%, #ACACAC 0%, #C9C9C9 42%, #EFEFEF 82%, #FFFFFF 100%)';
+
+/* 풍미 계열(차 플레이버 휠 기준) → 색. 사용자가 쓴 표현에 들어 있는 낱말로 찾는다 */
+const FLAVORS = {
+  floral:    {label:'꽃향',     color:'#E9A9C6', kw:['꽃','플로럴','자스민','재스민','장미','라벤더','국화','향긋']},
+  fruity:    {label:'과일향',   color:'#F2946A', kw:['과일','사과','복숭아','베리','포도','머스캣','건포도','상큼','열대']},
+  citrus:    {label:'시트러스', color:'#E8D45A', kw:['레몬','시트러스','귤','오렌지','유자','베르가못','산뜻','새콤']},
+  vegetal:   {label:'풀향',     color:'#96C46A', kw:['풀','채소','해조','싱그','초록','잎','신선','풋']},
+  fresh:     {label:'상쾌함',   color:'#79C3BC', kw:['민트','상쾌','시원','청량','깔끔','맑','가벼','개운']},
+  nutty:     {label:'고소함',   color:'#A87A4E', kw:['고소','곡물','구수','볶은','견과','누룽지','보리','현미','토스트']},
+  sweet:     {label:'단맛',     color:'#E5B04F', kw:['단맛','달','꿀','캐러멜','설탕','바닐라','달큰']},
+  earthy:    {label:'흙·나무향', color:'#6B5643', kw:['흙','나무','묵직','스모키','훈연','낙엽','가죽','숲','깊']},
+  spicy:     {label:'스파이시', color:'#B8513A', kw:['계피','시나몬','생강','후추','스파이시','알싸','매콤']},
+  soft:      {label:'부드러움', color:'#E3D3BF', kw:['부드러','둥글','둥근','따뜻','포근','편안','순하','매끄','은은']},
+  astringent:{label:'떫은맛',   color:'#8E8A4C', kw:['쓴','쓰다','떫','텁텁','씁쓸','쌉쌀']},
+};
+const FKEYS = Object.keys(FLAVORS);
 const BASIC = {temp:'80 – 95°C', time:'2 – 5분', secs:180, amount:'찻잎 2g 또는 티백 1개', how:['처음엔 짧게, 점점 길게','맛을 보며 시간을 늘려보세요.'], tip:'잎차는 우릴수록 맛이 달라져요. 처음엔 짧게 시작해보세요.'};
 const FEEL = {
   color:{q:'가장 먼저 보이는 색은?', label:'색', opts:['연한 노랑','맑은 연두','보랏빛','잘 모르겠어요']},
@@ -389,15 +400,20 @@ const FEEL = {
 };
 const VOICE_LINES = ['풀 향이 먼저 났어요.','따뜻하고 둥글게 퍼졌어요.','볶은 곡물처럼 고소하고 편안해요.','식으니까 단맛이 조금 더 느껴져요.'];
 
+const daysAgo=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d; };
+const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.`;
 function seedRecords(){
+  const R=(id,type,name,brand,ago,stars,comment,photo,canvas,flavors,exprs,memo)=>{ const d=daysAgo(ago);
+    return {id,type,name,brand,ts:d.getTime(),date:fmtDate(d),stars,comment,photo,canvas,flavors:flavors.map(([k,w])=>({k,w})),exprs,tags:exprs.slice(0,3),memo,seed:true}; };
   return [
-    {id:'r1',type:'white',name:'백차',brand:'티하우스',date:'2026.12.03.',stars:2,comment:'맑고 가벼워서 오후에 딱 좋았던 차',photo:true,canvas:{x:.56,y:.34,i:.7},memo:['물처럼 가볍지만 끝에 꿀 같은 단맛이 살짝.'],tags:['맑은 느낌','은은함']},
-    {id:'r2',type:'oolong',name:'우롱차',brand:'오설록',date:'2026.10.29.',stars:3,comment:'집에서 혼자 마셔 본 첫 우롱차!',photo:true,canvas:{x:.86,y:.45,i:.9},
-      memo:['첫인상 대만족. 담엔 평소 자주 마시는 호지차나 얼그레이랑 나란히 두고 향이랑 색깔 비교해 봐야겠음.','엄청 구수한데 다 삼키면 산뜻한 단맛이 맴돎. 입안이 텁텁하지 않고 깔끔해서 밤에 작업할 때 마시기 딱 좋은 밸런스.'],tags:['고소함','산뜻한 단맛']},
-    {id:'r3',type:'puer',name:'보이차',brand:'운남 다원',date:'2026.09.14.',stars:3,comment:'생각보다 부드러웠던 보이차',photo:false,canvas:{x:.42,y:.82,i:.6},memo:['흙 향이 강할 줄 알았는데 의외로 달큰했다.'],tags:['부드러움','묵직함']},
-    {id:'r4',type:'jasmine',name:'자스민차',brand:'티하우스',date:'2026.07.23.',stars:1,comment:'향이 조금 강했던 날',photo:false,canvas:{x:.72,y:.7,i:.55},memo:['다음엔 더 짧게 우려볼 것.'],tags:['꽃향']},
-    {id:'r5',type:'green',name:'녹차',brand:'오설록',date:'2026.05.08.',stars:3,comment:'봄에 마신 햇차, 산뜻함 최고',photo:true,canvas:{x:.66,y:.2,i:.85},memo:['풀 향이 싱그럽고 끝이 깔끔.'],tags:['풀향','산뜻함']},
-    {id:'r6',type:'herb',name:'허브차',brand:'오설록',date:'2026.02.17.',stars:1,comment:'집에서 혼자 마셔본 첫 허브차!',photo:true,canvas:{x:.14,y:.58,i:.5},memo:['편안했지만 향이 내 취향은 아니었다.'],tags:['편안함','은은함']},
+    R('s1','green','제주 세작','오설록',3,3,'봄 햇살 같은 산뜻함',true,{x:.74,y:.24,i:.85},[['vegetal',.9],['fresh',.45]],['풀 향이 먼저 났어요','산뜻함','깔끔해요'],['풀 향이 싱그럽고 끝이 깔끔했다.']),
+    R('s2','oolong','철관음','티하우스',12,3,'집에서 혼자 마셔 본 첫 우롱차!',true,{x:.84,y:.4,i:.75},[['nutty',.8],['floral',.5],['sweet',.3]],['구수한 향','꽃향','단맛이 남아요'],['첫인상 대만족. 다음엔 호지차랑 나란히 두고 향이랑 색깔 비교해 봐야겠음.','엄청 구수한데 다 삼키면 산뜻한 단맛이 맴돎.']),
+    R('s3','black','얼그레이','트와이닝',20,2,'오후에 기분 전환하기 좋았던 차',false,{x:.6,y:.14,i:.7},[['citrus',.85],['fruity',.4]],['상큼한 레몬 향','과일 같은 단맛'],['베르가못 향이 생각보다 강했지만 기분이 환해졌다.']),
+    R('s4','white','백모단','운남 다원',34,2,'맑고 가벼워서 오후에 딱 좋았던 차',true,{x:.38,y:.3,i:.6},[['sweet',.6],['floral',.45],['soft',.3]],['꿀 같은 단맛','은은함'],['물처럼 가볍지만 끝에 꿀 같은 단맛이 살짝.']),
+    R('s5','herb','캐모마일','오설록',45,2,'잠들기 전에 마신 포근한 차',false,{x:.22,y:.44,i:.55},[['floral',.6],['soft',.55]],['포근한 꽃향','부드러움'],['편안했지만 향은 조금 약했다.']),
+    R('s6','dark','숙차 보이','운남 다원',60,1,'생각보다 묵직했던 보이차',false,{x:.28,y:.76,i:.65},[['earthy',.85],['astringent',.35]],['흙 향이 진했어요','조금 텁텁해요'],['흙 향이 강해서 다음엔 더 짧게 우려볼 것.']),
+    R('s7','green','자스민 녹차','티하우스',75,1,'향은 좋았는데 맛이 조금 썼던 날',false,{x:.7,y:.7,i:.5},[['floral',.8],['astringent',.3]],['자스민 꽃향','끝맛이 써요'],['향은 정말 좋았다. 물 온도를 낮춰볼 것.']),
+    R('s8','black','아쌈','티하우스',100,2,'우유를 넣으면 더 좋았을 차',true,{x:.86,y:.62,i:.6},[['nutty',.5],['sweet',.5],['astringent',.45]],['진한 몰트 향','떫은맛'],['그냥 마시기엔 떫었다. 밀크티로 다시 도전.']),
   ];
 }
 
@@ -437,11 +453,179 @@ const pad=n=>String(n).padStart(2,'0');
 const today=()=>{const d=new Date();return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}.`};
 const mmss=s=>`${Math.floor(s/60)}:${pad(s%60)}`;
 const clamp=v=>Math.max(.04,Math.min(.96,v));
-const sortRecs=()=>S.records; // 최신 저장이 맨 앞(unshift). 예시 데이터 날짜가 오늘보다 뒤라서 날짜 정렬은 하지 않음
+const sortRecs=()=>S.records.sort((a,b)=>(b.ts||0)-(a.ts||0));
 const stars=n=>'✦'.repeat(n||0)||'–';
-function orb(type,size,cls=''){
-  const bg = type ? TEAS[type].orb : EMPTY_ORB;
-  return `<div class="orb ${cls}" style="width:${size}px;height:${size}px;background:${bg}"></div>`;
+/* =========================================================
+   찻방울 수채화 렌더러
+   - 변형한 다각형을 낮은 불투명도로 수십 장 겹쳐 번짐을 만든다
+   - 한 방울 안의 풍미 색은 섞지 않고 구역을 나눠 각자 번진다(강한 풍미일수록 넓게)
+   ========================================================= */
+const DROP_STYLE = 'hybrid';   // 시안: hybrid(F) · wet(A) · split(B) · bloom(C) · motion(D) · fiber(E)
+const WC = (()=>{
+  const rng = seed => { let a = seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; };
+  const hash = s => { let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; };
+  const gauss = r => (r()+r()+r()-1.5)/1.5;
+  const hex = h => { const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; };
+  const rgba = (h,a) => { const [r,g,b]=hex(h); return `rgba(${r},${g},${b},${a})`; };
+  const shade = (h,f) => { const [r,g,b]=hex(h).map(v=>Math.round(f<0?v*(1+f):v+(255-v)*f)); return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1); };
+  const circle=(n,cx,cy,r,rand,wob=0)=>{ const pts=[]; for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, rr=r*(1+wob*gauss(rand)); pts.push({x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,v:.5+rand()}); } return pts; };
+  function deform(pts,depth,vs,rand){
+    for(let d=0;d<depth;d++){
+      const out=[];
+      for(let i=0;i<pts.length;i++){
+        const a=pts[i], b=pts[(i+1)%pts.length], len=Math.hypot(b.x-a.x,b.y-a.y);
+        out.push(a,{x:(a.x+b.x)/2+gauss(rand)*len*vs*a.v, y:(a.y+b.y)/2+gauss(rand)*len*vs*a.v, v:a.v*(.85+rand()*.3)});
+      }
+      pts=out;
+    }
+    return pts;
+  }
+  const toPath = pts => { const p=new Path2D(); pts.forEach((q,i)=>i?p.lineTo(q.x,q.y):p.moveTo(q.x,q.y)); p.closePath(); return p; };
+  function layout(comps,rand){
+    const cs=[...comps].sort((a,b)=>b.w-a.w), n=cs.length, a0=rand()*Math.PI*2;
+    return cs.map((c,i)=>{
+      if(i===0) return {...c,x:0,y:0,r:.5+.28*c.w};
+      const a=a0+(i-1)*(Math.PI*2/Math.max(1,n-1))+gauss(rand)*.35, d=.3+.42*(1-c.w);
+      return {...c,x:Math.cos(a)*d,y:Math.sin(a)*d,r:.24+.34*c.w};
+    });
+  }
+  function bands(cs,rand,o){
+    const ops=[], main=deform(circle(40,0,0,.93,rand,.02),2,o.clipVar*2,rand);
+    const ang=rand()*Math.PI, ux=Math.cos(ang), uy=Math.sin(ang), vx=-uy, vy=ux;
+    const tot=cs.reduce((s,c)=>s+c.w,0); let acc=-1;
+    const order=[...cs]; if(order.length>2){ const s=order.shift(); order.splice(Math.floor(order.length/2),0,s); }
+    order.forEach((c,ci)=>{
+      const w=2*c.w/tot, first=ci===0, last=ci===order.length-1;
+      let u0=acc, u1=acc+w; acc+=w; if(first) u0=-1.3; if(last) u1=1.3;
+      const uc=(u0+u1)/2, ru=(u1-u0)/2+o.ov, rv=1.25, pts=[];
+      for(let i=0;i<16;i++){ const a=i/16*Math.PI*2, u=uc+Math.cos(a)*ru, v=Math.sin(a)*rv; pts.push({x:u*ux+v*vx,y:u*uy+v*vy,v:.25+1.1*Math.abs(Math.cos(a))}); }
+      for(let l=0;l<o.L;l++){
+        const clip=toPath(deform(main,2,o.clipVar,rand));
+        ops.push({key:c.key,path:toPath(deform(pts,3,o.regVar,rand)),clip,fill:rgba(c.c,o.alpha),clipStroke:o.rim?rgba(shade(c.c,-.3),o.rim):null,lw:1,blend:'source-over',t:l/o.L*.8+ci*.07});
+      }
+    });
+    return ops;
+  }
+  const STYLES = {
+    hybrid:(cs,rand)=>bands(cs,rand,{L:30,clipVar:.07,regVar:.12,alpha:.024,rim:.004,ov:.1}),
+    split:(cs,rand)=>bands(cs,rand,{L:22,clipVar:.02,regVar:.05,alpha:.036,rim:0,ov:.09}),
+    wet(cs,rand){
+      const ops=[], L=40;
+      cs.forEach((c,ci)=>{
+        const base=deform(circle(10,c.x,c.y,c.r,rand,.06),2,.3,rand);
+        for(let l=0;l<L;l++){
+          const halo=l%4===0, b=halo?deform(circle(10,c.x,c.y,c.r*1.18,rand,.06),2,.3,rand):base;
+          ops.push({key:c.key,path:toPath(deform(b,3,halo?.22:.15,rand)),fill:rgba(c.c,halo?.007:.014+.012*c.w),stroke:halo?null:rgba(shade(c.c,-.3),.012),lw:1,t:l/L*.8+ci*.06});
+        }
+      });
+      return ops;
+    },
+    bloom(cs,rand){
+      const ops=[], c0=cs[0], main=deform(circle(10,0,0,.92,rand,.08),2,.3,rand);
+      for(let l=0;l<26;l++) ops.push({key:c0.key,path:toPath(deform(main,3,.15,rand)),fill:rgba(c0.c,.014),stroke:rgba(shade(c0.c,-.3),.008),lw:1,t:l/26*.5});
+      cs.forEach((c,ci)=>{
+        for(let b=0,nb=2+Math.round(c.w*3);b<nb;b++){
+          const base=deform(circle(9,c.x+gauss(rand)*c.r*.45,c.y+gauss(rand)*c.r*.45,c.r*(.3+rand()*.35),rand,.12),2,.4,rand);
+          for(let l=0;l<9;l++) ops.push({key:c.key,path:toPath(deform(base,3,.14,rand)),fill:rgba(c.c,.02),stroke:rgba(shade(c.c,-.25),.028),lw:1,t:.25+l/9*.5+ci*.04});
+        }
+      });
+      return ops;
+    },
+    motion(cs,rand){
+      const ops=[], dir=rand()*Math.PI*2, ux=Math.cos(dir), uy=Math.sin(dir);
+      cs.forEach((c,ci)=>{
+        const rc=c.r*.78, nx=cs[(ci+1)%cs.length].c;
+        for(let k=10;k>=1;k--){ const o=k*rc*.11; ops.push({key:c.key,circle:[c.x-ux*o,c.y-uy*o,rc*1.05],grad:[[0,rgba(nx,.06*(1-k/11))],[.7,rgba(nx,.05*(1-k/11))],[1,rgba(nx,0)]],t:ci*.08+(10-k)/10*.4}); }
+        ops.push({key:c.key,circle:[c.x+uy*rc*.16,c.y-ux*rc*.16,rc*1.12],grad:[[0,rgba(nx,.45)],[.75,rgba(nx,.38)],[1,rgba(nx,0)]],t:.45+ci*.08});
+        ops.push({key:c.key,circle:[c.x,c.y,rc],grad:[[0,rgba(c.c,.82)],[.86,rgba(c.c,.78)],[1,rgba(c.c,0)]],t:.6+ci*.08});
+      });
+      return ops;
+    },
+    fiber(cs,rand){
+      const ops=[];
+      cs.forEach((c,ci)=>{
+        const base=circle(12,c.x,c.y,c.r*.8,rand,.03);
+        for(let l=0;l<18;l++) ops.push({key:c.key,path:toPath(deform(base,3,.08,rand)),fill:rgba(c.c,.032),t:l/18*.45+ci*.05});
+        for(let f=0,nf=Math.round(260*c.w)+100;f<nf;f++){
+          const th=rand()*Math.PI*2; let r=c.r*(.6+.3*rand()), x=c.x+Math.cos(th)*r, y=c.y+Math.sin(th)*r, a=th;
+          const p=new Path2D(); p.moveTo(x,y); const seg=c.r*(.02+.09*rand()*rand());
+          for(let s=0;s<5;s++){ a+=gauss(rand)*.7; const nx=x+Math.cos(a)*seg, ny=y+Math.sin(a)*seg; p.quadraticCurveTo(x+Math.cos(a+.6)*seg*.5,y+Math.sin(a+.6)*seg*.5,nx,ny); x=nx; y=ny; }
+          ops.push({key:c.key,path:p,stroke:rgba(shade(c.c,-.15),.035+.09*rand()),lw:.6,open:true,t:.35+rand()*.6});
+        }
+      });
+      return ops;
+    },
+  };
+  const plans=new Map();
+  function plan(drop,style){
+    const k=style+'|'+drop.id+'|'+drop.comps.map(c=>c.key+c.c+c.w.toFixed(2)).join();
+    if(!plans.has(k)){ if(plans.size>400) plans.clear(); const rand=rng(hash(k)); plans.set(k,STYLES[style](layout(drop.comps,rand),rand).sort((a,b)=>a.t-b.t)); }
+    return plans.get(k);
+  }
+  const ease = t => 1-Math.pow(1-t,3);
+  // prog 0→1: 반경이 퍼지며 레이어가 차례로 스며든다. keys를 주면 풍미별로 따로 스며든다
+  function draw(ctx,drop,cx,cy,R,prog=1,alpha=1,keys=null,style=DROP_STYLE){
+    const ops=plan(drop,style), s=keys?R:R*(.3+.7*ease(Math.min(1,prog*1.15)));
+    ctx.save(); ctx.translate(cx,cy); ctx.scale(s,s); ctx.globalAlpha=alpha;
+    for(const op of ops){
+      const p=keys?keys[op.key]:prog;
+      if(p==null || op.t>p) continue;
+      ctx.globalCompositeOperation=op.blend||'multiply';
+      if(op.clip){ ctx.save(); ctx.clip(op.clip); }
+      if(op.circle){ const [x,y,r]=op.circle, g=ctx.createRadialGradient(x,y,0,x,y,r); op.grad.forEach(([o,c])=>g.addColorStop(o,c)); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+      else{
+        if(op.fill && !op.open){ ctx.fillStyle=op.fill; ctx.fill(op.path); }
+        if(op.stroke){ ctx.strokeStyle=op.stroke; ctx.lineWidth=op.lw/s; ctx.stroke(op.path); }
+        if(op.clipStroke){ ctx.strokeStyle=op.clipStroke; ctx.lineWidth=op.lw*2/s; ctx.stroke(op.clip); }
+      }
+      if(op.clip) ctx.restore();
+    }
+    ctx.restore();
+  }
+  let pat=null;
+  // 종이 결: whole=true면 바탕까지, 아니면 칠해진 곳에만
+  function grain(ctx,w,h,whole=false,amt=.3){
+    if(!pat){ const c=document.createElement('canvas'); c.width=c.height=160; const x=c.getContext('2d'), d=x.createImageData(160,160), r=rng(7);
+      for(let i=0;i<d.data.length;i+=4){ const v=228+r()*27; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; } x.putImageData(d,0,0); pat=c; }
+    ctx.save(); ctx.globalCompositeOperation=whole?'multiply':'source-atop'; ctx.globalAlpha=whole?amt:amt*.6;
+    ctx.fillStyle=ctx.createPattern(pat,'repeat'); ctx.fillRect(0,0,w,h); ctx.restore();
+  }
+  return {draw,grain,rng,hash,rgba,shade};
+})();
+
+/* 기록 → 찻방울 데이터 */
+function teaDrop(type){
+  if(!type) return {id:'empty',comps:[{key:'tea',c:'#BDBDBD',w:.8},{key:'tea2',c:'#E2E2E2',w:.4}]};
+  const c=TEAS[type].color;
+  return {id:'base-'+type,comps:[{key:'tea',c,w:.8},{key:'tea2',c:WC.shade(c,.35),w:.38}]};
+}
+function recDrop(r){
+  if(!r.flavors||!r.flavors.length) return {...teaDrop(r.type),id:'rb-'+r.id};
+  return {id:r.id,comps:[{key:'tea',c:TEAS[r.type].color,w:.5},...r.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
+}
+
+/* 화면 속 찻방울은 <canvas>로 두고, 화면을 그린 뒤 한꺼번에 칠한다(크기별 비트맵 캐시) */
+const DROPS={}, BMP=new Map();
+function orb(src,size,cls=''){
+  const drop = src && typeof src==='object' ? (src.comps?src:recDrop(src)) : teaDrop(src);
+  DROPS[drop.id]=drop;
+  return `<canvas class="wcd ${cls}" data-dk="${esc(drop.id)}" data-sz="${size}" style="width:${size}px;height:${size}px"></canvas>`;
+}
+function dropBitmap(drop,px){
+  const k=drop.id+'|'+px+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
+  if(BMP.has(k)) return BMP.get(k);
+  if(BMP.size>300) BMP.clear();
+  const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
+  WC.draw(x,drop,px/2,px/2,px*.42); WC.grain(x,px,px);
+  BMP.set(k,c); return c;
+}
+const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
+function paintDrops(root=document){
+  root.querySelectorAll('canvas.wcd:not([data-done])').forEach(cv=>{
+    const drop=DROPS[cv.dataset.dk]; if(!drop) return;
+    const px=pxFor(+cv.dataset.sz); cv.width=cv.height=px;
+    cv.getContext('2d').drawImage(dropBitmap(drop,px),0,0); cv.dataset.done='1';
+  });
 }
 function findType(text){
   const t=text.toLowerCase().replace(/\s/g,'');
@@ -495,6 +679,7 @@ function render(keepScroll){
   const tab = TAB_OF[cur.name] || (cur.name==='home'?'home':'');
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab || (!tab && b.dataset.tab==='home')));
   (AFTER[cur.name]||(()=>{}))(cur.params||{});
+  paintDrops(view);
 }
 
 /* =========================================================
@@ -527,7 +712,7 @@ function canvasHTML(drops,{id='',bare=false,labels=true}={}){
 }
 function dropHTML(d){
   if(!d||!d.canvas) return '';
-  const c=d.canvas, s=24+c.i*30, col=TEAS[d.type].dot;
+  const c=d.canvas, s=24+c.i*30, col=TEAS[d.type].color;
   return `<span class="drop" style="left:${c.x*100}%;top:${c.y*100}%;width:${s}px;height:${s}px;opacity:${.35+.65*c.i};
     background:radial-gradient(circle, #fff 0%, ${col} 45%, ${col}00 72%)"></span>`;
 }
@@ -541,10 +726,10 @@ home(){
   sortRecs(); const r=S.records[0];
   return `
   <h2 class="hello">오늘도 새로운 차 경험을<br>기록해보세요.</h2>
-  ${orb('jasmine',150,'big breath')}
+  ${orb('green',150,'big breath')}
   <button class="btn" onclick="startRecord()">새로운 티 테이스팅 기록하기</button>
   <h3 class="sec">지난 기록</h3>
-  ${r ? `<button class="last" onclick="openDetail('${r.id}')">${orb(r.type,54)}
+  ${r ? `<button class="last" onclick="openDetail('${r.id}')">${orb(r,54)}
       <div><b>${esc(r.name)} | ${stars(r.stars)}</b><span>${r.date}</span><span>${esc(r.comment)}</span></div></button>`
       : `<div class="card muted" style="font-size:13px">아직 기록이 없어요. 첫 차를 기록해보세요.</div>`}
   <h3 class="sec">최근 마신 차</h3>
@@ -808,7 +993,7 @@ teaTag(){
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
-    ${orb(r.type,120,'big')}
+    ${orb(r,120,'big')}
     <div class="nm">${esc(r.name)}</div>
     <div class="meta">${esc(r.brand)} · ${r.date} · ${stars(r.stars)}</div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
@@ -831,7 +1016,7 @@ archive(){
   }
   if(!S.loaded.archive) return `${archTabs('archive')}<div class="loader"><div class="spin">${[...Array(8)].map((_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${.2+i*.1}"></i>`).join('')}</div><b style="font-size:14px">기록을 불러오는 중...</b></div>`;
   return `${archTabs('archive')}
-  <div class="grid">${S.records.map(r=>`<button class="gitem" onclick="openDetail('${r.id}')">${orb(r.type,62)}
+  <div class="grid">${S.records.map(r=>`<button class="gitem" onclick="openDetail('${r.id}')">${orb(r,62)}
     <div>${esc(r.name)}<br>${stars(r.stars)}<br>${r.date}</div></button>`).join('')}</div>
   <div class="endline"></div>
   <p class="center" style="font-size:13px">더 많은 기록을 남겨보세요!</p>`;
@@ -848,7 +1033,7 @@ detail(p){
   return `${archTabs('archive')}
   <button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
   <div class="detail">
-    <div class="dhead">${orb(r.type,74)}<div>${esc(r.name)}<br>${stars(r.stars)}<br>기록일 : ${r.date.replace(/\.$/,'')}</div></div>
+    <div class="dhead">${orb(r,74)}<div>${esc(r.name)}<br>${stars(r.stars)}<br>기록일 : ${r.date.replace(/\.$/,'')}</div></div>
     ${r.photo?`<div class="photo"><span>사진</span></div>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
@@ -1106,7 +1291,7 @@ function saveRecord(){
 }
 
 /* sheet */
-function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.add('open'); }
+function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.add('open'); paintDrops($('#sheet')); }
 function closeSheet(){ $('#sheetWrap').classList.remove('open'); }
 
 /* error */
@@ -1159,7 +1344,6 @@ function demoFill(){
 /* =========================================================
    EXHIBITION — 폰 프레임 크기 맞춤 · 유휴 복귀 · 숨은 단축키
    ========================================================= */
-let SCALE=1;
 function fitPhone(){
   const wrap=$('#phoneWrap'), p=$('#phone'), st=$('#stage');
   if(innerWidth<=700){ SCALE=1; wrap.style.width=wrap.style.height=''; p.style.transform=''; return; }
