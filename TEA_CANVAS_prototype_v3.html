@@ -328,7 +328,7 @@ canvas.wcd.big{margin:14px auto}
 /* 2-axis canvas */
 .cvbox{position:relative;width:100%;aspect-ratio:1/1;border:1px solid #D9D9D9;border-radius:4px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
-.cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(244,236,221,.8);padding:0 4px;border-radius:4px}
+.cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(251,248,243,.8);padding:0 4px;border-radius:4px}
 .cvbox .lbl.t{top:6px;left:50%;transform:translateX(-50%)}
 .cvbox .lbl.b{bottom:6px;left:50%;transform:translateX(-50%)}
 .cvbox .lbl.l{left:6px;top:50%;transform:translateY(-50%)}
@@ -700,10 +700,10 @@ const WC = (()=>{
    한 잔 = 찻물 색(비중 .5) + 풍미 색(대화에서 나온 강도). 원 안에 아주 고운 점을 고르게 깔고,
    점마다 그 자리의 색 비중대로 색을 고른다: 강한 색은 가운데, 약한 색은 가장자리. 흐림 없음.
    ========================================================= */
-const CANVAS_BG='#F4ECDD';
+const CANVAS_BG='#FBF8F3';
 /* 물처럼 투명하게: 색을 밝게 들어 올리고, 점은 반투명, 아래에 아주 옅은 물빛을 깐다 */
 const WATER={lift:.28,sat:1.05,dotA:.42,wash:.16};
-const DD=(()=>{
+const DD_UNUSED=(()=>{
   const hex=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
   const lift=(c,l=.04,s=1.15)=>{ const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; return c.map(v=>{ v=Math.max(0,Math.min(1,L+(v-L)*s)); return v+(1-v)*l; }); };
   const css=c=>`rgb(${Math.round(c[0]*255)},${Math.round(c[1]*255)},${Math.round(c[2]*255)})`;
@@ -745,6 +745,58 @@ const DD=(()=>{
   return {draw};
 })();
 
+/* =========================================================
+   꽃물 수채 찻방울 (캔버스용, 시안 037 "맑은 찻물")
+   한 잔 = 꽃잎 몇 장 모양의 맑은 번짐. 꽃잎 색은 기록의 찻물·풍미 비중대로 나누고,
+   꽃잎 안은 한쪽으로 색이 고이며, 마른 테두리와 색이 고인 진한 점, 종이 결 입자가 남는다.
+   ========================================================= */
+const BLOOM=(()=>{
+  const P0={petals:[3,5],spread:.5,petalSize:1.15,layers:10,alpha:.045,lift:.4,sat:1.2,edge:.2,hot:.08,hotP:.55,hotBlur:.03,gran:.5,wet:.04};
+  const hex=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+  const pastel=(c,l,s)=>{ const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; return c.map(v=>{ v=Math.max(0,Math.min(1,L+(v-L)*s)); return v+(1-v)*l; }); };
+  const shade=(c,f)=>c.map(v=>v*(1+f));
+  const css=(c,a)=>`rgba(${Math.round(c[0]*255)},${Math.round(c[1]*255)},${Math.round(c[2]*255)},${a})`;
+  const mk=n=>{ const c=document.createElement('canvas'); c.width=c.height=Math.max(2,Math.ceil(n)); return c; };
+  const g=r=>(r()+r()+r()-1.5)/1.5;
+  function circle(n,cx,cy,rx,ry,rot,r,wob){ const o=[]; for(let i=0;i<n;i++){ const a=i/n*6.283, k=1+wob*g(r), x=Math.cos(a)*rx*k, y=Math.sin(a)*ry*k;
+    o.push({x:cx+x*Math.cos(rot)-y*Math.sin(rot),y:cy+x*Math.sin(rot)+y*Math.cos(rot),v:.5+r()}); } return o; }
+  function deform(pts,depth,vs,r){ for(let d=0;d<depth;d++){ const out=[]; for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length], l=Math.hypot(b.x-a.x,b.y-a.y);
+    out.push(a,{x:(a.x+b.x)/2+g(r)*l*vs*a.v,y:(a.y+b.y)/2+g(r)*l*vs*a.v,v:a.v*(.85+r()*.3)}); } pts=out; } return pts; }
+  const path=(x,pts)=>{ x.beginPath(); pts.forEach((q,i)=>i?x.lineTo(q.x,q.y):x.moveTo(q.x,q.y)); x.closePath(); };
+  const SP=new Map();
+  function sprite(drop,R){
+    const p=P0, key=drop.id+'|'+Math.round(R)+'|'+drop.comps.map(c=>c.c+c.w.toFixed(2)).join(); if(SP.has(key)) return SP.get(key); if(SP.size>250) SP.clear();
+    const r=WC.rng(WC.hash(key)), P=Math.ceil(R*3), c=P/2, cv=mk(P), x=cv.getContext('2d');
+    const cs=[...drop.comps].sort((a,b)=>b.w-a.w), tot=cs.reduce((s,q)=>s+q.w,0);
+    const nP=p.petals[0]+Math.floor(r()*(p.petals[1]-p.petals[0]+1)), a0=r()*6.283;
+    const petals=[]; for(let i=0;i<nP;i++){ let u=r()*tot, ci=0; for(;ci<cs.length-1;ci++){ if(u<cs[ci].w) break; u-=cs[ci].w; } petals.push(hex(cs[ci].c)); }
+    x.globalCompositeOperation='multiply';
+    petals.forEach((col,i)=>{
+      const a=a0+i/nP*6.283+g(r)*.4, d=R*(p.spread*(.35+.45*r())), cx=c+Math.cos(a)*d, cy=c+Math.sin(a)*d;
+      const rx=R*(.42+.3*r())*p.petalSize, ry=rx*(.55+.4*r()), rot=a+(r()-.5);
+      const base=deform(circle(9,cx,cy,rx,ry,rot,r,.15),2,.38,r), tone=pastel(col,p.lift,p.sat);
+      const ga=r()*6.283, gx=cx+Math.cos(ga)*rx*.45, gy=cy+Math.sin(ga)*ry*.45, grd=x.createRadialGradient(gx,gy,0,gx,gy,Math.max(rx,ry)*1.35);
+      grd.addColorStop(0,css(tone,p.alpha*1.6)); grd.addColorStop(.55,css(tone,p.alpha*.9)); grd.addColorStop(1,css(tone,p.alpha*.25));
+      for(let l=0;l<p.layers;l++){ path(x,deform(base,2,.2,r)); x.fillStyle=grd; x.fill(); }
+      x.save(); path(x,deform(base,2,.06,r)); x.strokeStyle=css(shade(tone,-.35),p.edge); x.lineWidth=Math.max(.7,R*.012); x.stroke(); x.restore();
+      if(r()<p.hotP){ const hx=cx+g(r)*rx*.35, hy=cy+g(r)*ry*.35, hr=rx*(.18+.22*r()), hb=deform(circle(8,hx,hy,hr,hr*(.7+.3*r()),r()*3,r,.25),3,.3,r);
+        x.save(); x.filter=`blur(${Math.max(.5,R*p.hotBlur)}px)`; for(let l=0;l<6;l++){ path(x,deform(hb,2,.2,r)); x.fillStyle=css(pastel(col,0,1.4),p.hot); x.fill(); } x.restore(); }
+      x.save(); path(x,base); x.clip(); x.fillStyle=css(shade(tone,-.3),.35);
+      for(let k=0;k<Math.min(400,Math.round(rx*ry*p.gran*.03));k++){ x.fillRect(cx+g(r)*rx,cy+g(r)*ry,Math.max(.6,R*.008),Math.max(.6,R*.008)); } x.restore();
+    });
+    const w=mk(P), wx=w.getContext('2d'); wx.filter=`blur(${R*p.wet}px)`; wx.drawImage(cv,0,0); x.globalCompositeOperation='source-over'; x.globalAlpha=.55; x.drawImage(w,0,0); x.globalAlpha=1;
+    const o={cv,P}; SP.set(key,o); return o;
+  }
+  // prog 0→1: 가운데에서 맑게 번져 나오며 진해진다
+  function draw(ctx,drop,cx,cy,R,prog=1,alpha=1){
+    const s=sprite(drop,R), e=1-Math.pow(1-Math.min(1,prog),3), k=prog<1?(.55+.45*e):1;
+    const n=Math.max(10,(typeof S!=='undefined'&&S.records)?S.records.length:10);
+    ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=Math.min(1,.9*Math.pow(10/n,.32)*alpha*(prog<1?e:1));
+    ctx.drawImage(s.cv,cx-s.P/2*k,cy-s.P/2*k,s.P*k,s.P*k); ctx.restore();
+  }
+  return {draw};
+})();
+
 /* 기록 → 찻방울 데이터 */
 function teaDrop(type){
   if(!type) return {id:'empty',comps:[{key:'tea',c:'#C4C4C4',w:.85}]};
@@ -768,7 +820,7 @@ function dropBitmap(drop,px){
   if(BMP.has(k)) return BMP.get(k);
   if(BMP.size>300) BMP.clear();
   const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
-  DD.draw(x,drop,px/2,px/2,px*.46,1,1,Math.max(.6,px*.012));
+  BLOOM.draw(x,drop,px/2,px/2,px*.3,1,1.4);
   BMP.set(k,c); return c;
 }
 const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
@@ -868,7 +920,7 @@ function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.09)'; x.lineWidth=Math
 function paintCanvas(cv,recs,{alpha=1,highlight=null,k=1,paper=CANVAS_BG}={}){
   const px=pxFor(cv.clientWidth); cv.width=cv.height=px; const x=cv.getContext('2d');
   x.fillStyle=paper; x.fillRect(0,0,px,px); axes(x,px);
-  recs.forEach(r=>DD.draw(x,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k),1,highlight?(r.id===highlight?1:.18):alpha));
+  recs.forEach(r=>BLOOM.draw(x,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k),1,highlight?(r.id===highlight?1:.18):alpha));
   if(highlight){ const r=recs.find(q=>q.id===highlight); if(r){ x.save(); x.strokeStyle='rgba(0,0,0,.55)'; x.lineWidth=Math.max(1,px/300); x.setLineDash([px/90,px/110]); x.beginPath(); x.arc(r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k)*1.05,0,Math.PI*2); x.stroke(); x.restore(); } }
   WC.grain(x,px,px,true,.12);
   return px;
@@ -1493,10 +1545,10 @@ function bindPick(cv){
   const d=S.draft, drop=draftDrop(d), others=recsAsc(), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
   const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
   const b=bg.getContext('2d'); b.fillStyle=CANVAS_BG; b.fillRect(0,0,px,px); axes(b,px);
-  others.forEach(r=>DD.draw(b,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i),1,.28));
+  others.forEach(r=>BLOOM.draw(b,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i),1,.28));
   WC.grain(b,px,px,true,.12);
   let prog=1, holding=false, raf=0, t0=0, last=0;
-  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) DD.draw(ctx,drop,d.canvas.x*px,d.canvas.y*px,dropR(px,d.canvas.i),prog); };
+  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) BLOOM.draw(ctx,drop,d.canvas.x*px,d.canvas.y*px,dropR(px,d.canvas.i),prog); };
   const loop=now=>{
     if(!cv.isConnected){ raf=0; return; }
     if(holding){ d.canvas.i=Math.min(1,d.canvas.i+(now-last)/2200); }
@@ -1565,11 +1617,11 @@ function bloomOn(cv,r,px){
   const ctx=cv.getContext('2d'), snap=document.createElement('canvas'); snap.width=snap.height=px;
   const others=recsAsc().filter(q=>q.id!==r.id), s=snap.getContext('2d');
   s.fillStyle=CANVAS_BG; s.fillRect(0,0,px,px); axes(s,px);
-  others.forEach(q=>DD.draw(s,recDrop(q),q.canvas.x*px,q.canvas.y*px,dropR(px,q.canvas.i,1.1)));
+  others.forEach(q=>BLOOM.draw(s,recDrop(q),q.canvas.x*px,q.canvas.y*px,dropR(px,q.canvas.i,1.1)));
   WC.grain(s,px,px,true,.12);
   const t0=performance.now(), drop=recDrop(r);
   const loop=now=>{ if(!cv.isConnected) return; const p=Math.min(1,(now-t0)/1300);
-    ctx.drawImage(snap,0,0); DD.draw(ctx,drop,r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,1.1),p);
+    ctx.drawImage(snap,0,0); BLOOM.draw(ctx,drop,r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,1.1),p);
     if(p<1) requestAnimationFrame(loop); };
   setTimeout(()=>requestAnimationFrame(loop),250);
 }
