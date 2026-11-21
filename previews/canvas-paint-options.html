@@ -30,15 +30,28 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.3px}
 .pair figure{flex:1;min-width:0}
 .pair canvas{display:block;width:100%;aspect-ratio:1/1;border-radius:6px;cursor:pointer}
 figcaption{font-size:12px;color:var(--g2);text-align:center;margin-top:6px}
+.cnt{position:sticky;top:10px;z-index:5;display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:5px 6px 5px 14px;font-size:13px;margin-top:6px}
+.cnt span{font-weight:700;margin-right:4px}
+.cnt button{font:inherit;border:0;background:none;height:30px;padding:0 14px;border-radius:15px;cursor:pointer;color:#444}
+.cnt button.on{background:#111;color:#fff}
+.gh{font-size:18px;margin:34px 0 4px}
+.gh span{font-size:11px;background:#111;color:#fff;border-radius:10px;padding:1px 8px;vertical-align:3px;margin-left:4px}
+.gp{font-size:13px;color:var(--g2);margin-bottom:14px}
 @media (max-width:600px){.grid{grid-template-columns:1fr}.pair{flex-direction:column}.ref{flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>3D 찻방울을 2D 캔버스에 칠하는 7가지 방법</h1>
+  <h1>3D 찻방울을 2D 캔버스에 칠하는 방법</h1>
   <p class="lead">모든 시안은 아래 3D 방울과 <b>같은 색 공간</b>에서 색을 가져와요. 3D 방울을 어떤 방식으로 종이에 옮길지만 달라요. 왼쪽 그림을 누르면 칠해지는 연출이 다시 재생되고, 오른쪽 캔버스를 누르면 그 자리에 새 방울이 칠해져요.</p>
   <div class="ref"><div class="d3box" id="ref3d"></div>
     <div><b>기준 방울 · 철관음 (우롱차)</b><p>드래그해서 돌려보세요. 고소함이 가장 진하고, 꽃향·상쾌함이 군데군데 섞여 있어요.</p><div class="chips" id="refChips"></div></div></div>
+  <div class="cnt" id="cnt"><span>캔버스 기록 수</span><button data-n="10" class="on">10개</button><button data-n="50">50개 (색 무작위)</button></div>
+  <h3 class="gh">유화 시안 <span>NEW</span></h3>
+  <p class="gp">둥근 방울 실루엣은 그대로 두고, 방울 안을 붓질로 채워요. 붓질 하나하나의 색은 3D 방울의 색 공간에서 가져와요. 캔버스도 유화용 천 질감으로 바꿨어요.</p>
+  <div class="grid" id="gridOil"></div>
+  <h3 class="gh">지난 시안</h3>
+  <p class="gp">C(수채 스탬프)와 F(점묘)를 앞에 두었어요.</p>
   <div class="grid" id="grid"></div>
 </div>
 <script>
@@ -209,6 +222,13 @@ const RECS=[
   R_('s9','herb',[['fresh',.8],['citrus',.4]],.13,.16,.5),
   R_('s10','oolong',[['fruity',.7],['spicy',.35]],.5,.55,.55),
 ];
+// 무작위 50개: 다류 1개 + 풍미 1~3개, 캔버스 전체에 흩어짐
+const RECS50=(()=>{ const r=D3.rng(5050), out=[];
+  for(let i=0;i<50;i++){ const nf=1+Math.floor(r()*3), fl=[]; const used=new Set();
+    for(let k=0;k<nf;k++){ let f; do{ f=FK[Math.floor(r()*FK.length)]; }while(used.has(f)); used.add(f); fl.push([f,+(.35+r()*.6).toFixed(2)]); }
+    out.push(R_('m'+i,TK[Math.floor(r()*6)],fl,.07+r()*.86,.07+r()*.86,.3+r()*.7)); }
+  return out; })();
+let COUNT=10, GEN=0;
 const compsOf=r=>[{key:'tea',c:TEA_C[r.type],w:.5},...r.fl.map(([k,w])=>({key:k,c:FL[k][1],w}))];
 const FOf=r=>{ r.F=r.F||D3.fromComps(r.id,compsOf(r)); return r.F; };
 document.getElementById('refChips').innerHTML=HERO.fl.map(([k])=>`<span class="chip"><i style="background:${FL[k][1]}"></i>${FL[k][0]}</span>`).join('');
@@ -322,6 +342,75 @@ const PAINT={
   live:{blend:'source-over',live:true,make(r,R){ return PAINT.snap.make(r,R); }},
 };
 
+
+/* ============ 유화 ============ */
+/* 붓 한 획: 여러 가닥의 털이 지나간 자국 + 두껍게 올라온 물감의 밝은 면·그늘 */
+function brush(ctx,pts,width,rgb,rnd,{bristles=8,relief=.5,jit=.09}={}){
+  const n=pts.length, nm=pts.map((p,i)=>{ const a=pts[Math.max(0,i-1)], b=pts[Math.min(n-1,i+1)], dx=b.x-a.x, dy=b.y-a.y, l=Math.hypot(dx,dy)||1; return {x:-dy/l,y:dx/l}; });
+  const line=(off,c,lw,s0=0,s1=1)=>{ ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.beginPath();
+    const i0=Math.floor(s0*(n-1)), i1=Math.ceil(s1*(n-1));
+    for(let i=i0;i<=i1;i++){ const q=pts[i], m=nm[i], x=q.x+m.x*off, y=q.y+m.y*off; i===i0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke(); };
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  line(0,`rgb(${rgb.map(v=>v*255|0)})`,width*.92);
+  for(let b=0;b<bristles;b++){
+    const t=b/(bristles-1)-.5, off=t*width*.9, e=Math.abs(t)*2, k=1+(rnd()-.5)*2*jit;
+    const c=`rgba(${rgb.map(v=>Math.max(0,Math.min(255,v*255*k))|0)},.9)`;
+    line(off,c,width/bristles*1.5,e*.18*rnd(),1-e*.18*rnd());
+  }
+  if(relief){ line(-width*.38,`rgba(255,255,255,${.3*relief})`,Math.max(1,width*.07),.1,.85); line(width*.42,`rgba(40,25,10,${.13*relief})`,Math.max(1,width*.07),.15,.95); }
+}
+function colAt(r,u,v){ const c=proj(r,'lambert'), n=c.width, x=Math.max(0,Math.min(n-1,Math.floor((u+1)/2*n))), y=Math.max(0,Math.min(n-1,Math.floor((v+1)/2*n)));
+  const d=(c._d||(c._d=c.getContext('2d').getImageData(0,0,n,n).data)), o=(y*n+x)*4; return [d[o]/255,d[o+1]/255,d[o+2]/255]; }
+// 획 목록을 만들어 두고, 연출 때는 순서대로 쌓아 칠한다
+function oilSprite(r,R,gen,opt={}){
+  const P=Math.ceil(R*2.5), rnd=D3.rng(D3.hash(r.id+gen.name)), strokes=gen(r,R,rnd,P/2);
+  const draw=(ctx,p=1)=>{ const m=Math.ceil(strokes.length*Math.min(1,p)); const rr=D3.rng(7); for(let i=0;i<m;i++){ const s=strokes[i]; brush(ctx,s.pts,s.w,s.c,rr,{...opt,...s.o}); } };
+  const cv=mk(P); draw(cv.getContext('2d'));
+  return {cv,P,anim(ctx,X,Y,p){ ctx.save(); ctx.translate(X-P/2,Y-P/2); draw(ctx,p); ctx.restore(); }};
+}
+const OILGEN={
+  // 찻잔을 젓듯 동그랗게 도는 붓질
+  swirl(r,R,rnd,c){ const out=[], N=Math.round(70+R*.9);
+    // 가운데를 먼저 작게 휘저어 채운다
+    for(let i=0;i<6;i++){ const ph=rnd()*6.283, rr=.06+.1*rnd(), pts=[]; for(let k=0;k<=10;k++){ const a=ph+k/10*5; pts.push({x:c+Math.cos(a)*rr*R*(1+k*.04),y:c+Math.sin(a)*rr*R*(1+k*.04)}); }
+      out.push({pts,w:R*.13,c:colAt(r,0,0),t:-1+i*.01}); }
+    for(let i=0;i<N;i++){ const rho=.12+Math.sqrt(rnd())*.78, ph=rnd()*6.283, L=(.25+.45*rnd())/Math.max(.3,rho), dir=1, w=R*(.07+.07*rnd()); const pts=[];
+      for(let k=0;k<=8;k++){ const a=ph+dir*L*k/8, rr=rho*(1+.04*Math.sin(k+i)); pts.push({x:c+Math.cos(a)*rr*R,y:c+Math.sin(a)*rr*R}); }
+      const m=pts[4]; out.push({pts,w,c:colAt(r,(m.x-c)/R,(m.y-c)/R),t:rho+rnd()*.3}); }
+    return out.sort((a,b)=>a.t-b.t); },
+  // 나이프로 두껍게 얹은 짧은 덩어리
+  impasto(r,R,rnd,c){ const out=[], N=Math.round(40+R*.45);
+    for(let i=0;i<N;i++){ const rho=Math.sqrt(rnd())*.82, ph=rnd()*6.283, x=Math.cos(ph)*rho, y=Math.sin(ph)*rho;
+      const th=fbm2(x*1.4+3,y*1.4+1)*9.4, L=R*(.18+.22*rnd()), w=R*(.16+.12*rnd()), pts=[];
+      for(let k=0;k<=5;k++){ const s=(k/5-.5)*L; pts.push({x:c+x*R+Math.cos(th)*s,y:c+y*R+Math.sin(th)*s+Math.sin(k)*w*.05}); }
+      out.push({pts,w,c:colAt(r,x,y),t:rnd(),o:{relief:1,bristles:10,jit:.12}}); }
+    return out.sort((a,b)=>a.t-b.t); },
+  // 방울 전체를 한 방향으로 쓸어 칠한 결 (색은 붓이 지나가며 바뀐다)
+  sweep(r,R,rnd,c){ const out=[], N=Math.round(14+R*.12), tilt=-.35+rnd()*.2;
+    for(let i=0;i<N;i++){ const o=(i+.5)/N*2-1, half=Math.sqrt(Math.max(0,1-o*o))*(.92+.08*rnd()); if(half<.08) continue;
+      const seg=6; for(let s=0;s<seg;s++){ const x0=-half+2*half*s/seg, x1=-half+2*half*(s+1.15)/seg, pts=[];
+        for(let k=0;k<=4;k++){ const xx=x0+(x1-x0)*k/4, yy=o+Math.sin(xx*2+i)*.02; pts.push({x:c+(xx*Math.cos(tilt)-yy*Math.sin(tilt))*R,y:c+(xx*Math.sin(tilt)+yy*Math.cos(tilt))*R}); }
+        const mx=(x0+x1)/2; out.push({pts,w:R*2/N*1.25,c:colAt(r,mx*Math.cos(tilt)-o*Math.sin(tilt),mx*Math.sin(tilt)+o*Math.cos(tilt)),t:(s+i*.15)/seg,o:{relief:.35,bristles:7}}); } }
+    return out.sort((a,b)=>a.t-b.t); },
+  // 짧은 붓 터치를 촘촘히 찍는 유화 점묘 (F 점묘 + 유화)
+  dabs(r,R,rnd,c){ const out=[], N=Math.round(Math.min(420,Math.max(170,R*R/9)));
+    for(let i=0;i<N;i++){ let x,y; do{ x=rnd()*2-1; y=rnd()*2-1; }while(x*x+y*y>.86);
+      const th=Math.atan2(y,x)+1.57+(rnd()-.5)*.9, w=R*(.055+.03*rnd()), L=w*(1.1+rnd()), pts=[];
+      for(let k=0;k<=3;k++){ const s=(k/3-.5)*L; pts.push({x:c+x*R+Math.cos(th)*s,y:c+y*R+Math.sin(th)*s}); }
+      out.push({pts,w,c:colAt(r,x,y),t:Math.hypot(x,y)*.6+rnd()*.4,o:{relief:.55,bristles:5}}); }
+    return out.sort((a,b)=>a.t-b.t); },
+};
+['swirl','impasto','sweep','dabs'].forEach(k=>{ PAINT['oil_'+k]={blend:'source-over',oil:true,make(r,R){ return oilSprite(r,R,OILGEN[k]); }}; });
+
+/* 유화용 천(캔버스) 질감 */
+let LINEN=null;
+function linen(ctx,W){
+  if(!LINEN){ const c=mk(96), x=c.getContext('2d'), im=x.createImageData(96,96), d=im.data, rr=D3.rng(11);
+    for(let y=0;y<96;y++) for(let i=0;i<96;i++){ const w=(Math.sin(i*2.1)*.5+.5)*.55+(Math.sin(y*2.1)*.5+.5)*.45, v=232+w*14+rr()*7, o=(y*96+i)*4; d[o]=v; d[o+1]=v-4; d[o+2]=v-12; d[o+3]=255; }
+    x.putImageData(im,0,0); LINEN=c; }
+  ctx.fillStyle=ctx.createPattern(LINEN,'repeat'); ctx.fillRect(0,0,W,W);
+}
+
 /* 스프라이트 캐시 */
 const SPR=new Map();
 function sprite(style,r,R){ const k=style+r.id+Math.round(R); if(!SPR.has(k)) SPR.set(k,PAINT[style].make(r,R)); return SPR.get(k); }
@@ -332,42 +421,53 @@ function put(ctx,style,r,x,y,R,prog=1){
   else if(sp.arrive) ctx.drawImage(revealFrame(sp,prog),x-sp.P/2,y-sp.P/2);
   ctx.restore();
 }
-function paper(ctx,W,axes=true){
-  ctx.fillStyle='#FCFBF9'; ctx.fillRect(0,0,W,W);
+function paper(ctx,W,axes=true,oil=false){
+  if(oil) linen(ctx,W); else { ctx.fillStyle='#FCFBF9'; ctx.fillRect(0,0,W,W); }
   if(axes){ ctx.strokeStyle='rgba(0,0,0,.09)'; ctx.lineWidth=DPR; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,W); ctx.moveTo(0,W/2); ctx.lineTo(W,W/2); ctx.stroke(); }
 }
 function anim(ms,fn,done){ const t0=performance.now(); const st=now=>{ const p=Math.min(1,(now-t0)/ms); fn(p); p<1?requestAnimationFrame(st):done&&done(); }; requestAnimationFrame(st); }
 const radius=(W,i)=>W*(.045+.07*i);
 
 /* ============ 페이지 ============ */
+const OIL_OPTIONS=[
+  ['oil_swirl','H. 소용돌이 붓질','추천','찻잔을 젓듯 동그랗게 도는 붓질로 방울을 채워요. 둥근 결이 “방울”의 모양을 지켜줘요.','유화 느낌과 찻방울 콘셉트가 가장 잘 함께 가요','결이 방향을 가져서 겹치면 조금 복잡해져요'],
+  ['oil_dabs','K. 유화 점묘','','짧은 붓 터치를 촘촘히 찍어요. 마음에 드셨던 F(점묘)를 유화로 옮긴 버전이에요.','겹쳐도 방울끼리 잘 구분되고, 가까이서 보면 붓 자국이 살아 있어요','멀리서 보면 C보다 색 덩어리가 덜 뚜렷해요'],
+  ['oil_impasto','I. 임파스토','','나이프로 물감을 두껍게 얹은 덩어리. 밝은 면과 그늘로 물감 두께가 보여요.','가장 “유화다운” 질감이에요','방울 윤곽이 울퉁불퉁해져 방울보다 물감 덩어리처럼 보여요'],
+  ['oil_sweep','J. 한 방향 붓결','','방울 전체를 한 방향으로 쓸어 칠해요. 붓이 지나가며 색이 바뀌어요.','깔끔하고 그래픽적이에요','붓결 방향이 모두 같아 방울마다 개성이 덜해요'],
+];
 const OPTIONS=[
-  ['stamp','C. 수채 스탬프','추천','3D 방울 겉면의 색을 한 장으로 펼친 뒤, 종이에 떨어진 물감처럼 가장자리가 번지고 진해지게 칠해요.','3D 방울의 모든 색이 다 보이고, 캔버스에서 겹치면 수채화처럼 비쳐요','앞·뒷면 구분은 사라져요'],
+  ['stamp','C. 수채 스탬프','선호','3D 방울 겉면의 색을 한 장으로 펼친 뒤, 종이에 떨어진 물감처럼 가장자리가 번지고 진해지게 칠해요.','3D 방울의 모든 색이 다 보이고, 캔버스에서 겹치면 수채화처럼 비쳐요','앞·뒷면 구분은 사라져요'],
+  ['dots','F. 점묘','선호','색 공간을 작은 점으로 찍어요. 겹친 곳은 점이 섞여 새로운 색처럼 보여요.','겹쳐도 각 방울이 잘 구분돼요','멀리서 보면 흐릿해 보여요'],
   ['flat','B. 펼친 방울','','3D 방울의 겉면 전체를 지도처럼 펼친 원판이에요. 가운데가 앞면, 가장자리가 뒷면이에요.','색 정보가 가장 정확해요','질감이 없어 가장 디지털적이에요'],
   ['snap','A. 3D 스냅샷','','3D 방울을 한 각도에서 찍은 모습 그대로 캔버스에 올려요. 광택과 입체감이 남아요.','홈·분석 화면의 3D 방울과 가장 똑같아 보여요','한 각도라 뒷면 색은 안 보여요'],
   ['slice','D. 단면(나이테)','','방울을 반으로 잘라 속을 보여줘요. 풍미 개수만큼 옅은 나이테가 생겨요.','“방울 속에 담긴 것”이라는 이야기가 분명해요','겉면과 색 배치가 조금 달라요'],
   ['splash','E. 스플래시','','본 방울 주변으로 풍미 색 물방울이 튀어요. 강한 풍미일수록 많이 튀어요.','풍미가 한눈에 구분되고 찍는 순간이 극적이에요','방울이 많아지면 캔버스가 복잡해져요'],
-  ['dots','F. 점묘','','색 공간을 작은 점으로 찍어요. 겹친 곳은 점이 섞여 새로운 색처럼 보여요.','겹쳐도 각 방울이 잘 구분돼요','멀리서 보면 흐릿해 보여요'],
   ['live','G. 살아있는 구슬','','캔버스 위에서도 방울들이 3D로 천천히 계속 돌아요.','전시장에서 가장 눈길을 끌어요','2D “칠하기” 느낌은 약하고, 기록이 아주 많으면 무거워질 수 있어요'],
 ];
-document.getElementById('grid').innerHTML=OPTIONS.map(([k,n,tag,d,pro,con])=>`
+const cardHTML=([k,n,tag,d,pro,con])=>`
   <section class="card"><h2>${n}${tag?`<small>${tag}</small>`:''}</h2><p class="d">${d}</p>
   <p class="pc"><span data-k="좋은 점">${pro}</span><span data-k="아쉬운 점">${con}</span></p>
   <div class="pair"><figure><canvas id="one-${k}"></canvas><figcaption>기준 방울을 칠한 모습 · 누르면 다시 칠해짐</figcaption></figure>
-  <figure><canvas id="cv-${k}"></canvas><figcaption>기록 10개 캔버스 · 눌러서 새 방울 칠하기</figcaption></figure></div></section>`).join('');
+  <figure><canvas id="cv-${k}"></canvas><figcaption>기록 10개 캔버스 · 눌러서 새 방울 칠하기</figcaption></figure></div></section>`;
+document.getElementById('gridOil').innerHTML=OIL_OPTIONS.map(cardHTML).join('');
+document.getElementById('grid').innerHTML=OPTIONS.map(cardHTML).join('');
 
 D3.mount(document.getElementById('ref3d'),FOf(HERO),{size:220,interactive:true,px:440});
 
 const setup=cv=>{ const W=Math.round(cv.clientWidth*DPR); cv.width=cv.height=W; return {ctx:cv.getContext('2d'),W}; };
-OPTIONS.forEach(([k])=>{
+function initCards(){ const gen=++GEN;
+[...OIL_OPTIONS,...OPTIONS].forEach(([k])=>{
+  const oil=!!PAINT[k].oil;
   const one=document.getElementById('one-'+k), A=setup(one);
-  const playOne=()=>anim(1200,p=>{ paper(A.ctx,A.W,false); put(A.ctx,k,HERO,A.W/2,A.W/2,A.W*.3,p); });
+  const playOne=()=>anim(oil?1800:1200,p=>{ paper(A.ctx,A.W,false,oil); put(A.ctx,k,HERO,A.W/2,A.W/2,A.W*.3,p); });
   one.onclick=playOne; playOne();
 
-  const cv=document.getElementById('cv-'+k), B=setup(cv), recs=[...RECS];
+  const cv=document.getElementById('cv-'+k), B=setup(cv), recs=[...(COUNT===50?RECS50:RECS)];
   if(PAINT[k].live){
     const offs=recs.map(r=>D3.hash(r.id)%628/100);
     let adding=null;
     (function loop(now){
+      if(gen!==GEN) return;
       const t=now/1000; paper(B.ctx,B.W);
       recs.forEach((r,i)=>{ const R=radius(B.W,r.i), P=Math.ceil(R*2.2), s=D3.snapshot(FOf(r),160,t*.35+offs[i],.35,t); if(!s) return;
         let k2=1; if(adding&&adding.r===r){ k2=easeBack(Math.min(1,(now-adding.t0)/900)); }
@@ -379,7 +479,7 @@ OPTIONS.forEach(([k])=>{
     return;
   }
   const bg=mk(B.W), bx=bg.getContext('2d');
-  paper(bx,B.W); recs.forEach(r=>put(bx,k,r,r.x*B.W,r.y*B.W,radius(B.W,r.i)));
+  paper(bx,B.W,true,oil); recs.forEach(r=>put(bx,k,r,r.x*B.W,r.y*B.W,radius(B.W,r.i)));
   B.ctx.drawImage(bg,0,0);
   let busy=false;
   cv.onclick=e=>{
@@ -387,8 +487,15 @@ OPTIONS.forEach(([k])=>{
     const b=cv.getBoundingClientRect(), rr=Math.random;
     const nr=R_('n'+Date.now(),TK[Math.floor(rr()*6)],[[FK[Math.floor(rr()*11)],.5+rr()*.4],[FK[Math.floor(rr()*11)],.3+rr()*.3]],(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height,.5+rr()*.45);
     const R=radius(B.W,nr.i);
-    anim(1200,p=>{ B.ctx.drawImage(bg,0,0); put(B.ctx,k,nr,nr.x*B.W,nr.y*B.W,R,p); },()=>{ put(bx,k,nr,nr.x*B.W,nr.y*B.W,R); busy=false; });
+    anim(oil?1600:1200,p=>{ B.ctx.drawImage(bg,0,0); put(B.ctx,k,nr,nr.x*B.W,nr.y*B.W,R,p); },()=>{ put(bx,k,nr,nr.x*B.W,nr.y*B.W,R); busy=false; });
   };
+});
+}
+initCards();
+document.querySelectorAll('#cnt button').forEach(b=>b.onclick=()=>{
+  COUNT=+b.dataset.n; document.querySelectorAll('#cnt button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('figcaption').forEach(f=>f.textContent=f.textContent.replace(/기록 \d+개/,`기록 ${COUNT}개`));
+  setTimeout(initCards,30);
 });
 </script>
 </body>
