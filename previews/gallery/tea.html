@@ -30,13 +30,20 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
 .trio figcaption{font-size:11.5px;color:var(--g2);text-align:center;margin-top:4px}
 .star{cursor:pointer;font-size:18px;color:#CCC;float:right;line-height:1}
 .star.on{color:#111}
+.pickbox{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{max-height:120px;overflow:auto;color:#ddd;line-height:1.5;white-space:pre-wrap}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5;cursor:default}
+.pickbox textarea{width:100%;height:90px;font:inherit;font-size:12px}
+.star{font-size:22px!important}
 @media (max-width:820px){.item{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>찻물 번짐 — 점과 수채 사이, 겹침 테스트</h1>
-  <p class="lead">같은 사람이 차를 10잔, 50잔, 100잔 마셨을 때 기록이 어떻게 보일지 여러 방식으로 그려봤어요. 모든 시안은 같은 기록 데이터와 같은 색(찻물 색 + 풍미 색)을 써요. 기록의 위치는 앱과 같아요. 가로는 마시기 전 향(오른쪽일수록 좋음), 세로는 마신 뒤 맛(위쪽일수록 좋음)이에요. 마음에 드는 시안은 ☆을 눌러 표시해두세요(이 브라우저에만 저장돼요).</p>
+  <p class="lead">같은 사람이 차를 10잔, 50잔, 100잔 마셨을 때 기록이 어떻게 보일지 여러 방식으로 그려봤어요. 모든 시안은 같은 기록 데이터와 같은 색(찻물 색 + 풍미 색)을 써요. 기록의 위치는 앱과 같아요. 가로는 마시기 전 향(오른쪽일수록 좋음), 세로는 마신 뒤 맛(위쪽일수록 좋음)이에요. 마음에 드는 시안은 ☆을 눌러 고르고, 오른쪽 아래 "선택한 시안 복사하기"로 고른 목록을 복사해 붙여넣으세요(고른 것은 이 브라우저에만 저장돼요).</p>
   <div class="bar" id="bar"></div>
   <div class="list" id="list"></div>
 </div>
@@ -47,7 +54,18 @@ const params=new URLSearchParams(location.search), only=params.get('f');
 const SIZE=+(params.get('size')||240);
 function loadAll(files){ return files.reduce((p,f)=>p.then(()=>new Promise(res=>{ const s=document.createElement('script'); s.src=f+'?v='+Date.now(); s.onload=res; s.onerror=()=>{ console.warn('없음',f); res(); }; document.body.appendChild(s); })),Promise.resolve()); }
 let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.gallery.teafav')||'[]')); }catch(e){}
-const saveFav=()=>{ try{ localStorage.setItem('tc.gallery.teafav',JSON.stringify([...FAV])); }catch(e){} };
+
+function pickText(){ const S=GALLERY.styles; return document.title+' - 내가 고른 시안\n'+S.filter(s=>FAV.has(s.id)).map(s=>String(s.no).padStart(3,'0')+' '+s.name).join('\n'); }
+function updatePick(){ let b=document.getElementById('pickbox'); if(!b){ b=document.createElement('div'); b.id='pickbox'; b.className='pickbox';
+    b.innerHTML='<b id="pkCount"></b><div class="pl" id="pkList"></div><button id="pkCopy" type="button">선택한 시안 복사하기</button><textarea id="pkText" hidden readonly></textarea>'; document.body.appendChild(b);
+    document.getElementById('pkCopy').onclick=async()=>{ const t=pickText(), ta=document.getElementById('pkText'), btn=document.getElementById('pkCopy');
+      try{ await navigator.clipboard.writeText(t); btn.textContent='복사했어요. 원하는 곳에 붙여넣으세요'; setTimeout(()=>btn.textContent='선택한 시안 복사하기',2200); }
+      catch(e){ ta.hidden=false; ta.value=t; ta.focus(); ta.select(); btn.textContent='아래 글을 선택해 복사하세요'; } }; }
+  const S=GALLERY.styles.filter(s=>FAV.has(s.id));
+  document.getElementById('pkCount').textContent=S.length?`☆ ${S.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요';
+  document.getElementById('pkList').textContent=S.map(s=>String(s.no).padStart(3,'0')+' '+s.name).join('\n');
+  document.getElementById('pkCopy').disabled=!S.length; }
+const saveFav=()=>{ updatePick(); try{ localStorage.setItem('tc.gallery.teafav',JSON.stringify([...FAV])); }catch(e){} };
 loadAll(only?[only]:FILES).then(()=>{
   const S=GALLERY.styles; S.forEach((s,i)=>s.no=i+1);
   const cats=[...new Set(S.map(s=>s.cat))];
@@ -67,7 +85,7 @@ loadAll(only?[only]:FILES).then(()=>{
     list.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const id=b.dataset.id; FAV.has(id)?FAV.delete(id):FAV.add(id); saveFav(); b.classList.toggle('on'); b.textContent=FAV.has(id)?'★':'☆'; });
     list.querySelectorAll('.item').forEach(el=>params.get('all')?paint(el):io.observe(el));
   }
-  drawBar(); drawList(); window.GALLERY_READY=true;
+  drawBar(); drawList(); updatePick(); window.GALLERY_READY=true;
 });
 </script>
 </body>
