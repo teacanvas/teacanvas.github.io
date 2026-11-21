@@ -8,7 +8,7 @@ const {chromium}=require('playwright'); const path=require('path'); const fs=req
   const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   const p=await b.newPage({viewport:{width:1100,height:900},deviceScaleFactor:1});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
-  await p.goto(url); await p.waitForFunction(()=>window.GALLERY_READY,null,{timeout:120000});
+  await p.goto(url,{timeout:600000}); await p.waitForFunction(()=>window.GALLERY_READY,null,{timeout:120000});
   await p.waitForFunction(()=>[...document.querySelectorAll('.item')].every(e=>e.dataset.done),null,{timeout:300000});
   const rows=await p.$$eval('.item',els=>els.map(e=>({id:e.id,name:e.querySelector('h2').textContent,ms:e.querySelector('.ms').textContent})));
   rows.forEach(r=>console.log(r.id.padEnd(8),r.ms.padEnd(22),r.name));
