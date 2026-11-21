@@ -1759,6 +1759,7 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
   d.nudged=true; d.nudgeAt=now; d.chat.push({who:'bot',text:order[d.nudgeN||0],nudge:true}); d.nudgeN=(d.nudgeN||0)+1; if(S.chatMode==='chat') paintMsgs(); },10000);
 function seedChat(){
   const d=S.draft;
+  if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’이에요.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
   if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 적어주세요. 브랜드도 함께 적으면 좋아요.\n예: 오설록 제주 세작, 철관음, 얼그레이',teaAsk:true}); }
   chatTick();
 }
