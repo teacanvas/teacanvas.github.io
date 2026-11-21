@@ -1,0 +1,181 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TEA CANVAS 로고 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Serif+Display&family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1300px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:860px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:12.5px;color:#444}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:50%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:18px}
+.card{background:#fff;border:1px solid #E5E5E5;border-radius:14px;padding:12px;position:relative}
+.card canvas{display:block;width:100%;aspect-ratio:5/2}
+.card .no{font-size:11.5px;font-weight:800;color:#999}
+.card h2{font-size:13.5px;margin-top:6px}
+.star{position:absolute;right:10px;top:8px;font-size:22px;color:#CCC;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd;max-height:120px;overflow:auto}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}
+.pickbox textarea{width:100%;height:80px}
+</style></head><body>
+<div class="wrap"><h1>TEA CANVAS 로고 시안 30종</h1>
+<p class="lead">풍미 색 11가지를 왼쪽부터 수채로 번져 놓고, 그 위에 TEA CANVAS를 올렸어요. 번짐 크기·겹침·배열과 글자 글꼴·굵기·색·위치를 바꿨어요. 색 순서는 꽃향에서 시작해 무지개처럼 이어지다 흙빛으로 끝나요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<div class="legend" id="legend"></div>
+<div class="grid" id="grid"></div></div>
+<script>
+const WC={rng:seed=>{ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }};
+function makeWash(N,hex,seed){
+  const r=WC.rng(seed), s1=r()*50, s2=r()*50;
+  const fr=x=>x-Math.floor(x), h2=(x,y)=>fr(Math.sin(x*127.1+y*311.7)*43758.5453);
+  const nz=(x,y)=>{ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; };
+  const fbm=(x,y)=>.5*nz(x,y)+.25*nz(x*2.03+5,y*2.03+1)+.125*nz(x*4.1+2,y*4.1+7)+.0625*nz(x*8.3,y*8.3);
+  const T=new Float32Array(N*N), G=new Float32Array(N*N), H=new Float32Array(N*N);
+  const el=1, ea=0, ce=1, se=0; // 위에서 똑바로 내려다본 모습: 찌그러뜨리지 않는다
+  // 색이 고이는 자리 몇 군데(진한 얼룩)
+  const pools=[0,1,2].map(()=>({x:(r()-.5)*.8,y:(r()-.5)*.8,r:.12+.18*r(),k:.35+.5*r()}));
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    let u=(i+.5)/N*2-1, v=(j+.5)/N*2-1; const a=u*ce+v*se, b=-u*se+v*ce; const uu=a/el, vv=b*el;
+    const rr=Math.hypot(uu,vv), th=Math.atan2(vv,uu);
+    const ang=fbm(Math.cos(th)*1.3+s1,Math.sin(th)*1.3+s2);          // 방향별로 멀리/덜 퍼짐
+    const paper=fbm(u*5+s1,v*5+s2);                                   // 종이 결(낮은 곳으로 빨리 스민다)
+    const fine=fbm(u*16+s2,v*16+s1);                                  // 가장자리의 잔 톱니
+    const k=j*N+i;
+    T[k]=rr*(1+.26*(ang-.5)*2)*(1+.2*(paper-.5)*2)+.045*(fine-.5)*2;
+    G[k]=nz(i*.9+s1,j*.9+s2)*.6+nz(i*.35,j*.35)*.4;                   // 입자
+    let hp=0; for(const q of pools){ const d=Math.hypot(u-q.x,v-q.y); hp+=q.k*Math.exp(-d*d/(q.r*q.r)); } H[k]=hp*(.6+.8*fbm(u*3+s2,v*3));
+  }
+  const n=parseInt(hex.slice(1),16), base=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];
+  const L=.2126*base[0]+.7152*base[1]+.0722*base[2], body=base.map(c=>{ c=L+(c-L)*1.15; return c+(1-c)*.38; }), rim=base.map(c=>{ c=L+(c-L)*1.25; return c*.78; });
+  const cv=document.createElement('canvas'); cv.width=cv.height=N; const x=cv.getContext('2d'), im=x.createImageData(N,N), d=im.data;
+  const REACH=.5;
+  // 젖은 단계 → 마르는 단계
+  //  0~0.3초: 물방울이 톡 떨어진 둥근 웅덩이(진하고 반짝임)
+  //  0.3~2.6초: 물이 먼저 퍼지고 색은 뒤따라 번짐(가장자리 흐림, 가운데 진함, 물 표면 반짝임)
+  //  2.6~5.5초: 마르며 반짝임이 사라지고 전체가 밝아지며, 안료가 가장자리로 몰려 테두리가 또렷·진해짐, 입자가 드러남
+  function frame(t,fade=1){
+    const water=.07+(REACH-.07)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
+    const pig=water*(.62+.38*(1-Math.exp(-t/1.8)));                    // 색이 번진 범위(물보다 늦다)
+    const w=1-Math.min(1,Math.max(0,(t-2.4)/3.0)), dry=1-w;            // 젖음 정도
+    const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
+    const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
+    for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
+      const bead=0;
+      if(tk>water+soft&&!(bead>0&&Math.hypot((k%N+.5)/N*2-1,(Math.floor(k/N)+.5)/N*2-1)<.075)){ d[o+3]=0; continue; }
+      // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
+      const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
+      // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
+      const inside=water-tk, rimBand=Math.exp(-Math.max(0,inside)/.02);
+      const dryA=.3+H[k]*.3+rimBand*.6;
+      let amt=wetA*w+dryA*dry;
+      amt*=1-.24*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
+      const edgeA=Math.max(0,Math.min(1,(water+soft*.4-tk)/soft));        // 경계: 젖을수록 부드럽게, 마르면 또렷
+      const m=Math.min(1,rimBand*dry*.9);
+      let c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
+      // 젖은 물감은 더 진하고 선명하다
+      { const L=.2126*c0+.7152*c1+.0722*c2, sat=1+.45*w, dk=1-.08*w; c0=Math.max(0,Math.min(1,(L+(c0-L)*sat)*dk)); c1=Math.max(0,Math.min(1,(L+(c1-L)*sat)*dk)); c2=Math.max(0,Math.min(1,(L+(c2-L)*sat)*dk)); }
+      // 물 표면 반짝임: 왼쪽 위에 넓고 부드러운 빛, 물 가장자리에 가는 밝은 테
+      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.12*water, hy=v+.12*water;
+      const gloss=sh*(.22*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))*(1-bead*.5)+.12*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
+      c0+= (1-c0)*gloss; c1+=(1-c1)*gloss; c2+=(1-c2)*gloss;
+      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,Math.max(amt,gloss*.6)*edgeA*fade))*255;
+    }
+    x.putImageData(im,0,0);
+    // 첫 순간: 위에서 본 둥근 물감 방울이 종이에 맺혔다가 퍼지며 사라진다
+    const bead=0; // 맺히는 방울은 쓰지 않는다
+    if(bead>0){ const R0=N*.05*(1+.5*(1-bead)), c=`rgb(${body.map(v=>Math.round(Math.max(0,Math.min(1,v*.88))*255))})`;
+      x.save(); x.globalAlpha=Math.min(1,bead*1.4)*fade; x.fillStyle=c; x.beginPath(); x.arc(N/2,N/2,R0,0,6.283); x.fill();
+      x.globalAlpha=.55*bead*fade; x.fillStyle='#fff'; x.beginPath(); x.ellipse(N/2-R0*.32,N/2-R0*.32,R0*.28,R0*.2,-.6,0,6.283); x.fill(); x.restore(); }
+    return cv;
+  }
+  return {frame};
+}
+
+const FL=[['Floral','#E9A9C6'],['Fruity','#F2946A'],['Spicy','#B8513A'],['Sweet','#E5B04F'],['Citrus','#E8D45A'],['Grassy','#96C46A'],['Astringent','#8E8A4C'],['Fresh','#79C3BC'],['Smooth','#E3D3BF'],['Nutty','#A87A4E'],['Earthy','#6B5643']];
+document.getElementById('legend').innerHTML=FL.map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('');
+// 번짐 한 장(젖은 상태 / 막 마르기 시작) 미리 만들어 둠
+const N=150, BL={};
+function blob(i,stage,seed){ const k=i+'|'+stage+'|'+seed; if(!BL[k]){ const w=makeWash(N,FL[i][1],seed*131+i*977,{spd:1,gloss:0,start:.07,reach:1,soft:1,rim:1,gran:1,beadR:0,beadT:.001}); const c=document.createElement('canvas'); c.width=c.height=N; c.getContext('2d').drawImage(w.frame(stage),0,0); BL[k]=c; } return BL[k]; }
+/* 배열 */
+function layout(kind,W,H,size){ const n=11, out=[];
+  for(let i=0;i<n;i++){ const t=i/(n-1); let x=W*(.1+.8*t), y=H*.5, s=size;
+    if(kind==='wave') y=H*(.5+.12*Math.sin(t*Math.PI*2));
+    if(kind==='arch') y=H*(.62-.28*Math.sin(t*Math.PI));
+    if(kind==='rows'){ x=W*(.12+.76*(i%6)/5+(i>=6?.076:0)); y=H*(i<6?.38:.64); }
+    if(kind==='grow') s=size*(.6+.7*t);
+    if(kind==='pulse') s=size*(.75+.45*Math.sin(t*Math.PI));
+    if(kind==='under') y=H*.74;
+    if(kind==='over') y=H*.3;
+    if(kind==='tight') x=W*(.24+.52*t);
+    if(kind==='wide') x=W*(.04+.92*t);
+    out.push({x,y,s}); }
+  return out; }
+/* 시안 30 */
+const FONTS={sans:'800 {S}px Pretendard',sansL:'500 {S}px Pretendard',grot:'700 {S}px "Space Grotesk"',corm:'700 {S}px "Cormorant Garamond"',dm:'400 {S}px "DM Serif Display"',fr:'600 {S}px Fraunces'};
+const V=[
+ // 기본 한 줄 + 글꼴
+ ['한 줄 · 굵은 고딕','line',.11,2.9,'sans',.2,'#111',0,1],
+ ['한 줄 · 얇은 고딕','line',.11,2.9,'sansL',.2,'#111',.08,1],
+ ['한 줄 · 그로테스크','line',.11,2.9,'grot',.2,'#111',.04,1],
+ ['한 줄 · 명조(코모런트)','line',.11,2.9,'corm',.23,'#111',.04,1],
+ ['한 줄 · 디스플레이 세리프','line',.11,2.9,'dm',.22,'#111',.02,1],
+ ['한 줄 · 프라운스','line',.11,2.9,'fr',.21,'#111',.02,1],
+ // 크기·겹침
+ ['작은 번짐 · 촘촘','tight',.08,2.9,'sans',.2,'#111',0,1],
+ ['작은 번짐 · 넓게','line',.075,2.9,'sans',.2,'#111',0,1],
+ ['큰 번짐 · 많이 겹침','line',.15,2.9,'sans',.2,'#111',0,1],
+ ['아주 큰 번짐 · 한 덩어리','tight',.17,2.9,'corm',.24,'#111',.04,1],
+ ['양끝까지 길게','wide',.1,2.9,'grot',.2,'#111',.06,1],
+ ['막 마른 번짐(테두리)','line',.11,3.6,'sans',.2,'#111',0,1],
+ // 배열
+ ['물결','wave',.11,2.9,'sans',.2,'#111',0,1],
+ ['아치','arch',.1,2.9,'corm',.22,'#111',.04,1],
+ ['두 줄로 엇갈림','rows',.11,2.9,'sans',.2,'#111',0,1],
+ ['점점 커짐','grow',.1,2.9,'grot',.2,'#111',.04,1],
+ ['가운데가 큼','pulse',.11,2.9,'dm',.22,'#111',.02,1],
+ // 글자 색·처리
+ ['짙은 찻빛 글씨','line',.11,2.9,'sans',.2,'#3B2A20',0,1],
+ ['명조 · 짙은 찻빛','line',.11,2.9,'corm',.24,'#3B2A20',.04,1],
+ ['진회색 글씨','line',.11,2.9,'sans',.2,'#333',0,1],
+ ['글씨 뒤로 번짐 옅게','line',.12,2.9,'sans',.2,'#111',0,.55],
+ ['글씨 밑줄처럼 번짐','under',.07,2.9,'sans',.22,'#111',0,1],
+ ['글씨 위 띠처럼 번짐','over',.07,2.9,'sans',.2,'#111',0,1],
+ // 두 줄 글자
+ ['TEA / CANVAS 두 줄','line',.11,2.9,'sans2',.16,'#111',0,1],
+ ['TEA / CANVAS 두 줄 · 명조','line',.11,2.9,'corm2',.18,'#111',0,1],
+ // 소문자·자간
+ ['자간 넓게','line',.11,2.9,'sansL',.15,'#111',.3,1],
+ ['소문자 tea canvas','line',.11,2.9,'grot',.22,'#111',0,1,'lower'],
+ ['Tea Canvas 대소문자','line',.11,2.9,'corm',.25,'#111',.02,1,'title'],
+ // 조합 추천
+ ['추천: 촘촘한 띠 + 굵은 고딕','tight',.1,2.9,'sans',.21,'#111',0,.9],
+ ['추천: 물결 + 굵은 고딕','wave',.1,3.1,'sans',.2,'#111',0,.85],
+];
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.logo.fav')||'[]')); }catch(e){}
+const g=document.getElementById('grid');
+g.innerHTML=V.map((v,i)=>`<section class="card"><button class="star ${FAV.has(i)?'on':''}" data-i="${i}">${FAV.has(i)?'★':'☆'}</button><div class="no">${String(i+1).padStart(3,'0')}</div><canvas></canvas><h2>${v[0]}</h2></section>`).join('');
+function draw(cv,v,i){
+  const [name,kind,size,stage,font,fs,col,track,alpha,cs]=v, W=cv.width=1000, H=cv.height=400, x=cv.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  x.save(); x.globalAlpha=alpha; x.globalCompositeOperation='multiply';
+  layout(kind,W,H,W*size).forEach((p,k)=>{ const b=blob(k,stage,i%3+1), s=p.s*2.1; x.drawImage(b,p.x-s/2,p.y-s/2,s,s); });
+  x.restore();
+  let txt='TEA CANVAS'; if(cs==='lower') txt='tea canvas'; if(cs==='title') txt='Tea Canvas';
+  const two=/2$/.test(font), f=FONTS[font.replace(/2$/,'')].replace('{S}',Math.round(H*fs));
+  x.font=f; x.fillStyle=col; x.textAlign='center'; x.textBaseline='middle'; if('letterSpacing' in x) x.letterSpacing=Math.round(H*fs*track)+'px';
+  if(two){ x.fillText('TEA',W/2,H*.36); x.fillText('CANVAS',W/2,H*.64); } else x.fillText(txt,W/2,H*(kind==='under'?.46:kind==='over'?.56:.52));
+}
+Promise.all([document.fonts.load('800 40px Pretendard'),document.fonts.load('700 40px "Cormorant Garamond"'),document.fonts.load('400 40px "DM Serif Display"'),document.fonts.load('600 40px Fraunces'),document.fonts.load('700 40px "Space Grotesk"'),document.fonts.load('500 40px Pretendard')]).catch(()=>{}).then(()=>{
+  g.querySelectorAll('canvas').forEach((cv,i)=>draw(cv,V[i],i)); window.READY=true; });
+function names(){ return V.map((v,i)=>FAV.has(i)?String(i+1).padStart(3,'0')+' '+v[0]:null).filter(Boolean); }
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }
+document.getElementById('cp').onclick=async()=>{ const t='TEA CANVAS 로고 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+g.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.logo.fav',JSON.stringify([...FAV])); }catch(e){} b.classList.toggle('on'); b.textContent=FAV.has(i)?'★':'☆'; up(); });
+up();
+</script></body></html>
