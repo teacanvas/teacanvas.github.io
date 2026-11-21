@@ -1875,7 +1875,7 @@ function makeWash(N,hex,seed){
   const nz=(x,y)=>{ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; };
   const fbm=(x,y)=>.5*nz(x,y)+.25*nz(x*2.03+5,y*2.03+1)+.125*nz(x*4.1+2,y*4.1+7)+.0625*nz(x*8.3,y*8.3);
   const T=new Float32Array(N*N), G=new Float32Array(N*N), H=new Float32Array(N*N);
-  const el=.82+.3*r(), ea=r()*Math.PI, ce=Math.cos(ea), se=Math.sin(ea);
+  const el=1, ea=0, ce=1, se=0; // 위에서 똑바로 내려다본 모습: 찌그러뜨리지 않는다
   // 색이 고이는 자리 몇 군데(진한 얼룩)
   const pools=[0,1,2].map(()=>({x:(r()-.5)*.8,y:(r()-.5)*.8,r:.12+.18*r(),k:.35+.5*r()}));
   for(let j=0;j<N;j++) for(let i=0;i<N;i++){
@@ -1885,7 +1885,7 @@ function makeWash(N,hex,seed){
     const paper=fbm(u*5+s1,v*5+s2);                                   // 종이 결(낮은 곳으로 빨리 스민다)
     const fine=fbm(u*16+s2,v*16+s1);                                  // 가장자리의 잔 톱니
     const k=j*N+i;
-    T[k]=rr*(1+.42*(ang-.5)*2)*(1+.22*(paper-.5)*2)+.05*(fine-.5)*2;
+    T[k]=rr*(1+.26*(ang-.5)*2)*(1+.2*(paper-.5)*2)+.045*(fine-.5)*2;
     G[k]=nz(i*.9+s1,j*.9+s2)*.6+nz(i*.35,j*.35)*.4;                   // 입자
     let hp=0; for(const q of pools){ const d=Math.hypot(u-q.x,v-q.y); hp+=q.k*Math.exp(-d*d/(q.r*q.r)); } H[k]=hp*(.6+.8*fbm(u*3+s2,v*3));
   }
@@ -1904,7 +1904,8 @@ function makeWash(N,hex,seed){
     const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
     const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
     for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
-      if(tk>water+soft){ d[o+3]=0; continue; }
+      const bead=Math.max(0,1-t/.55);
+      if(tk>water+soft&&!(bead>0&&Math.hypot((k%N+.5)/N*2-1,(Math.floor(k/N)+.5)/N*2-1)<.075)){ d[o+3]=0; continue; }
       // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
       const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
       // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
@@ -1918,12 +1919,18 @@ function makeWash(N,hex,seed){
       // 젖은 물감은 더 진하고 선명하다
       { const L=.2126*c0+.7152*c1+.0722*c2, sat=1+.45*w, dk=1-.08*w; c0=Math.max(0,Math.min(1,(L+(c0-L)*sat)*dk)); c1=Math.max(0,Math.min(1,(L+(c1-L)*sat)*dk)); c2=Math.max(0,Math.min(1,(L+(c2-L)*sat)*dk)); }
       // 물 표면 반짝임: 왼쪽 위에 넓고 부드러운 빛, 물 가장자리에 가는 밝은 테
-      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.18*water*2, hy=v+.22*water*2;
-      const gloss=sh*(.7*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))+.3*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
+      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.12*water, hy=v+.12*water;
+      const gloss=sh*(.22*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))*(1-bead*.5)+.12*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
       c0+= (1-c0)*gloss; c1+=(1-c1)*gloss; c2+=(1-c2)*gloss;
       d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,Math.max(amt,gloss*.6)*edgeA*fade))*255;
     }
-    x.putImageData(im,0,0); return cv;
+    x.putImageData(im,0,0);
+    // 첫 순간: 위에서 본 둥근 물감 방울이 종이에 맺혔다가 퍼지며 사라진다
+    const bead=Math.max(0,1-t/.7);
+    if(bead>0){ const R0=N*.05*(1+.5*(1-bead)), c=`rgb(${body.map(v=>Math.round(Math.max(0,Math.min(1,v*.88))*255))})`;
+      x.save(); x.globalAlpha=Math.min(1,bead*1.4)*fade; x.fillStyle=c; x.beginPath(); x.arc(N/2,N/2,R0,0,6.283); x.fill();
+      x.globalAlpha=.55*bead*fade; x.fillStyle='#fff'; x.beginPath(); x.ellipse(N/2-R0*.32,N/2-R0*.32,R0*.28,R0*.2,-.6,0,6.283); x.fill(); x.restore(); }
+    return cv;
   }
   return {frame};
 }
