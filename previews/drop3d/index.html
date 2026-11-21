@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 3D 찻방울 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--line:#E5E5E5;--g2:#737373}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#F4F4F2;color:#111;line-height:1.5;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px));-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
+.lead{color:var(--g2);font-size:14px;margin-top:6px;max-width:860px}
+.bar{position:sticky;top:0;z-index:5;background:#F4F4F2;padding:12px 0;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bar button{font:inherit;font-size:13px;border:1px solid #D8D8D8;background:#fff;border-radius:16px;height:32px;padding:0 13px;cursor:pointer;color:#333}
+.bar button.on{background:#111;border-color:#111;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:6px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;position:relative}
+.card canvas{width:100%;aspect-ratio:1/1;display:block;border-radius:10px;background:#F7F5F0}
+.card .no{font-size:11.5px;font-weight:800;color:#999}
+.card h2{font-size:14px;letter-spacing:-.2px;line-height:1.35}
+.card p{font-size:12px;color:var(--g2)}
+.star{position:absolute;right:10px;top:8px;font-size:22px;color:#CCC;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.pickbox{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{max-height:120px;overflow:auto;color:#ddd;line-height:1.5;white-space:pre-wrap}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5;cursor:default}
+.pickbox textarea{width:100%;height:90px;font:inherit;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>홈 3D 찻방울 시안 50종</h1>
+  <p class="lead">투명한 물방울 안으로 찻물 색 잉크가 떨어져 퍼지는 모습이에요. 퍼지는 모션 5가지(잉크 낙하, 라떼 소용돌이, 에스프레소 퍼짐, 피어오름, 연속 방울)마다 진하기·투명한 물의 비율·속도를 바꿨어요. 한 번 퍼질 때마다 찻물·풍미 색이 새로 골라져요. 방울을 드래그하면 돌려볼 수 있어요. 마음에 드는 시안은 ☆로 고르고, 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+  <div class="bar" id="bar"></div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+/* ---------- 색 ---------- */
+const TEA=['#B5D07E','#EEDC9A','#E3A03A','#CF5E3A','#7C3E2C','#C4B2E2'];
+const FLV=['#E9A9C6','#F2946A','#E8D45A','#96C46A','#79C3BC','#A87A4E','#E5B04F','#6B5643','#B8513A','#8E8A4C'];
+const MILK='#F3EADC';
+const rgb=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+const hash=(a)=>{ let x=Math.sin(a*127.1+311.7)*43758.5453; return x-Math.floor(x); };
+
+/* ---------- 셰이더 ---------- */
+const VERT=`attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
+const FRAG=`precision highp float; varying vec2 v;
+uniform float t, tau, mode, dens, clearR, wob, rings; uniform mat3 rot; uniform vec3 C0,C1,C2,bg; uniform vec3 S0,S1,S2;
+float h3(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+float fbm(vec3 p){ return .55*n3(p)+.3*n3(p*2.03+3.1)+.15*n3(p*4.1+7.7); }
+float eo(float x){ x=clamp(x,0.,1.); return 1.-(1.-x)*(1.-x)*(1.-x); }
+/* 한 줄기 잉크: 잉크가 떨어져 와류 고리처럼 퍼진다 */
+float plume(vec3 p, vec3 s, float tt, float sz){
+  if(tt<=0.) return 0.;
+  float g=eo(tt*1.2), r=.08+.5*sqrt(tt)*sz;
+  vec3 c=vec3(s.x*.5, .75-1.25*g, s.z*.5);
+  vec3 q=p-c; q+=(vec3(fbm(p*2.6+t*.25),fbm(p*2.6+5.+t*.2),fbm(p*2.6+9.-t*.22))-.5)*(.15+.45*tt);
+  float rr=length(q.xz), ring=exp(-(pow(rr-r*.7,2.)+q.y*q.y*1.6)/(.006+.05*tt));
+  float core=exp(-dot(q,q)/(.004+.06*tt))*.7;
+  float tail=exp(-rr*rr/(.002+.012*tt))*smoothstep(0.,.05,q.y)*smoothstep(.9,0.,q.y)*(1.-tt)*.9;
+  return (ring+core+tail);
+}
+vec3 field(vec3 p){
+  float d0=0., d1=0., d2=0.;
+  if(mode<.5){ // 잉크 낙하
+    d0=plume(p,S0,tau,1.); d1=plume(p,S1,tau-.12,.9); d2=plume(p,S2,tau-.24,.8);
+  } else if(mode<1.5){ // 라떼 소용돌이
+    float r=length(p.xz), a=(1.5+4.*tau)*(1.-r)*(1.-r)+t*.25, ca=cos(a), sa=sin(a);
+    vec3 q=vec3(ca*p.x-sa*p.z, p.y*1.2, sa*p.x+ca*p.z);
+    // 위에서 부은 색이 소용돌이 결을 따라 아래로 번진다
+    float pour=smoothstep(.95-1.9*eo(tau*1.3), 1.05-1.9*eo(tau*1.3), -p.y+.0);
+    float f=fbm(q*1.6+vec3(0.,t*.04,0.)), g=fbm(q*1.6+vec3(5.2,1.3,-t*.03));
+    float sw=.5+.5*sin(atan(q.z+.001,q.x)*2.+r*9.+f*4.);
+    float fd=1.-smoothstep(.75,1.,tau)*.7; d0=smoothstep(.5,.65,f)*pour*.45*fd; d1=sw*smoothstep(.5,.7,g)*pour*.4*fd; d2=(1.-sw)*smoothstep(.55,.72,1.-g)*pour*.35*fd;
+  } else if(mode<2.5){ // 에스프레소 퍼짐
+    float r=length(p)+(fbm(p*3.+t*.1)-.5)*.35, front=eo(tau*1.1)*.92, fade=1.-smoothstep(.7,1.,tau)*.6;
+    float body=smoothstep(front,front-.2,r);
+    float band=.5+.5*sin(r*rings-t*1.5);
+    d0=body*smoothstep(.0,.3,front-r)*band*.45*fade; d1=body*smoothstep(.25,.0,abs(r-front*.65))*.7*fade; d2=body*smoothstep(.14,.0,abs(r-front*.9))*.9*fade;
+  } else if(mode<3.5){ // 피어오름
+    for(int i=0;i<3;i++){ vec3 s=i==0?S0:(i==1?S1:S2); float tt=fract(tau+float(i)*.33);
+      vec3 q=p-vec3(s.x*.55,-.85+tt*1.7,s.z*.55); q.xz+=(vec2(fbm(p*2.5+t*.3),fbm(p*2.5+7.-t*.3))-.5)*(.3+tt*.6);
+      float d=exp(-dot(q.xz,q.xz)/(.01+.08*tt))*exp(-q.y*q.y/(.03+.2*tt))*sin(tt*3.14159)*1.6;
+      if(i==0) d0=d; else if(i==1) d1=d; else d2=d; }
+  } else { // 연속 방울
+    d0=plume(p,S0,fract(tau),1.)*(1.-smoothstep(.75,1.,fract(tau)))+plume(p,S0,fract(tau)+1.,1.)*0.;
+    d1=plume(p,S1,fract(tau-.33),1.)*(1.-smoothstep(.75,1.,fract(tau-.33)));
+    d2=plume(p,S2,fract(tau-.66),1.)*(1.-smoothstep(.75,1.,fract(tau-.66)));
+  }
+  float lim=smoothstep(clearR,clearR-.18,length(p));
+  return vec3(d0,d1,d2)*lim*dens;
+}
+void main(){
+  vec2 uv=v; float R=.82*(1.+wob*.012*sin(t*1.3));
+  vec3 ro=vec3(0.,0.,2.6), rd=normalize(vec3(uv*.9,-2.2));
+  float b=dot(ro,rd), c=dot(ro,ro)-R*R, h=b*b-c;
+  if(h<0.){ gl_FragColor=vec4(bg,1.); return; }
+  float t0=-b-sqrt(h), t1=-b+sqrt(h);
+  vec3 pin=ro+rd*t0, n=normalize(pin);
+  vec3 T=vec3(1.), acc=vec3(0.); const int N=26; float ds=(t1-t0)/float(N);
+  for(int i=0;i<N;i++){ vec3 p=(ro+rd*(t0+ds*(float(i)+.5)))/R; p=rot*p; vec3 d=field(p)*ds*3.2;
+    vec3 col=(C0*d.x+C1*d.y+C2*d.z); float a=d.x+d.y+d.z;
+    acc+=T*col; T*=exp(-a*vec3(1.)); }
+  // 물: 바탕이 비쳐 보이고, 잉크는 색을 더하며 빛을 가린다
+  vec3 water=mix(bg,vec3(1.),.25)*.96;
+  vec3 colr=water*T+acc*(1.-T.x*0.)*.9;
+  float fres=pow(1.-max(dot(n,-rd),0.),2.6);
+  vec3 L=normalize(vec3(-.5,.65,.6));
+  colr=mix(colr,vec3(.98,.99,1.),fres*.55);
+  colr+=pow(max(dot(reflect(rd,n),L),0.),70.)*.85;
+  colr+=pow(max(dot(reflect(rd,n),normalize(vec3(.6,-.3,.7))),0.),30.)*.08;
+  float edge=smoothstep(0.,.02,h);
+  gl_FragColor=vec4(mix(bg,colr,edge),1.);
+}`;
+
+/* ---------- 공유 WebGL 렌더러 ---------- */
+const GLC=document.createElement('canvas'); const PX=Math.round(220*Math.min(2,devicePixelRatio||1)); GLC.width=GLC.height=PX;
+const gl=GLC.getContext('webgl',{preserveDrawingBuffer:true});
+const sh=(t,s)=>{ const o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG)); gl.linkProgram(pr); gl.useProgram(pr);
+const bf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+const U={}; ['t','tau','mode','dens','clearR','wob','rings','rot','C0','C1','C2','bg','S0','S1','S2'].forEach(k=>U[k]=gl.getUniformLocation(pr,k));
+gl.viewport(0,0,PX,PX);
+
+/* ---------- 시안 50종 ---------- */
+const MODES=[['ink','잉크 낙하','잉크가 위에서 펑 떨어져 고리처럼 쑥 퍼져 나가요.'],['latte','라떼 소용돌이','라떼에 우유가 섞이듯 색이 소용돌이치며 섞여요.'],['espresso','에스프레소 퍼짐','가운데에서 에스프레소가 퍼지듯 둥글게 번져 나가요.'],['rise','피어오름','아래에서 찻물이 연기처럼 피어올라요.'],['multi','연속 방울','여러 색 잉크가 차례로 떨어져 겹쳐 퍼져요.']];
+const VAR=[{n:'옅게',dens:.6,clear:1},{n:'보통',dens:1.2,clear:1},{n:'진하게',dens:2.4,clear:1},{n:'물 많이',dens:1.2,clear:.72},{n:'물 아주 많이',dens:1.2,clear:.52},
+  {n:'옅게 · 물 많이',dens:.6,clear:.65},{n:'진하게 · 물 많이',dens:2.4,clear:.68},{n:'느리게',dens:1.2,clear:1,speed:.6},{n:'빠르게',dens:1.2,clear:1,speed:1.6},{n:'우유빛 섞기',dens:1.2,clear:1,milk:true}];
+const S=[]; MODES.forEach(([k,mn,md],mi)=>VAR.forEach((v,vi)=>S.push({no:S.length+1,id:`d${String(S.length+1).padStart(3,'0')}`,mode:mi,cat:mn,name:`${mn} — ${v.n}`,desc:md,...v,period:(mi===1?9:mi===2?8:mi===3?7:mi===4?10:6)/(v.speed||1)})));
+
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.drop3d.fav')||'[]')); }catch(e){}
+function colorsFor(s,cycle){ const r=k=>hash(cycle*13.7+s.no*3.1+k);
+  const tea=TEA[Math.floor(r(1)*TEA.length)], f1=FLV[Math.floor(r(2)*FLV.length)], f2=s.milk?MILK:FLV[Math.floor(r(3)*FLV.length)];
+  return [tea,f1,f2].map(rgb); }
+function seeds(s,cycle){ return [0,1,2].map(i=>[hash(cycle*7.1+i*1.7+s.no)*2-1,0,hash(cycle*3.3+i*5.1+s.no)*2-1]); }
+const BG=rgb('#F7F5F0');
+
+/* ---------- 카드 ---------- */
+let cur='전체';
+const cats=['전체','☆ 고른 것',...MODES.map(m=>m[1])];
+function drawBar(){ const b=document.getElementById('bar'); b.innerHTML=cats.map(c=>`<button class="${c===cur?'on':''}">${c}</button>`).join('');
+  b.querySelectorAll('button').forEach((x,i)=>x.onclick=()=>{ cur=cats[i]; drawBar(); drawGrid(); }); }
+const live=new Map();
+const io=new IntersectionObserver(es=>es.forEach(e=>{ const s=S.find(x=>x.id===e.target.dataset.id); if(e.isIntersecting) live.set(s.id,{s,el:e.target}); else live.delete(s.id); }),{rootMargin:'100px'});
+function drawGrid(){
+  const g=document.getElementById('grid'); live.clear(); io.disconnect();
+  const L=S.filter(s=>cur==='전체'||(cur==='☆ 고른 것'?FAV.has(s.id):s.cat===cur));
+  g.innerHTML=L.map(s=>`<section class="card" data-id="${s.id}"><button class="star ${FAV.has(s.id)?'on':''}" type="button" aria-label="고르기">${FAV.has(s.id)?'★':'☆'}</button>
+    <div class="no">${String(s.no).padStart(3,'0')}</div><canvas width="${PX}" height="${PX}"></canvas><h2>${s.name}</h2><p>${s.desc}</p></section>`).join('');
+  g.querySelectorAll('.card').forEach(el=>{ const s=S.find(x=>x.id===el.dataset.id); el._st={yaw:hash(s.no)*6.28,pitch:.2,drag:false,vy:.25};
+    const cv=el.querySelector('canvas'); let px0=0,py0=0;
+    cv.onpointerdown=e=>{ el._st.drag=true; cv.setPointerCapture(e.pointerId); px0=e.clientX; py0=e.clientY; };
+    cv.onpointermove=e=>{ if(!el._st.drag) return; el._st.yaw+=(e.clientX-px0)*.02; el._st.pitch=Math.max(-1,Math.min(1,el._st.pitch+(e.clientY-py0)*.02)); px0=e.clientX; py0=e.clientY; };
+    cv.onpointerup=cv.onpointercancel=()=>{ el._st.drag=false; };
+    el.querySelector('.star').onclick=()=>{ FAV.has(s.id)?FAV.delete(s.id):FAV.add(s.id); try{ localStorage.setItem('tc.drop3d.fav',JSON.stringify([...FAV])); }catch(e){} drawGrid(); updatePick(); };
+    io.observe(el); });
+}
+function renderCard(s,el,now){
+  const t=now/1000, st=el._st; if(!st.drag) st.yaw+=st.vy*.016;
+  const ph=t/s.period+hash(s.no)*3, cycle=Math.floor(ph), tau=ph-cycle;
+  const [c0,c1,c2]=colorsFor(s,cycle), sd=seeds(s,cycle);
+  const cy=Math.cos(st.yaw), sy=Math.sin(st.yaw), cp=Math.cos(st.pitch), sp=Math.sin(st.pitch);
+  gl.uniformMatrix3fv(U.rot,false,[cy,0,-sy, sy*sp,cp,cy*sp, sy*cp,-sp,cy*cp]);
+  gl.uniform1f(U.t,t); gl.uniform1f(U.tau,tau*1.05); gl.uniform1f(U.mode,s.mode); gl.uniform1f(U.dens,s.dens); gl.uniform1f(U.clearR,s.clear); gl.uniform1f(U.wob,1); gl.uniform1f(U.rings,14);
+  gl.uniform3fv(U.C0,c0); gl.uniform3fv(U.C1,c1); gl.uniform3fv(U.C2,c2); gl.uniform3fv(U.bg,BG);
+  gl.uniform3fv(U.S0,sd[0]); gl.uniform3fv(U.S1,sd[1]); gl.uniform3fv(U.S2,sd[2]);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  el.querySelector('canvas').getContext('2d').drawImage(GLC,0,0);
+}
+(function loop(now){ for(const {s,el} of live.values()) renderCard(s,el,now); requestAnimationFrame(loop); })(performance.now());
+
+/* ---------- 고른 것 복사 ---------- */
+function pickText(){ return '홈 3D 찻방울 - 내가 고른 시안\n'+S.filter(s=>FAV.has(s.id)).map(s=>String(s.no).padStart(3,'0')+' '+s.name).join('\n'); }
+function updatePick(){ let b=document.getElementById('pickbox'); if(!b){ b=document.createElement('div'); b.id='pickbox'; b.className='pickbox';
+    b.innerHTML='<b id="pkCount"></b><div class="pl" id="pkList"></div><button id="pkCopy" type="button">선택한 시안 복사하기</button><textarea id="pkText" hidden readonly></textarea>'; document.body.appendChild(b);
+    document.getElementById('pkCopy').onclick=async()=>{ const t=pickText(), ta=document.getElementById('pkText'), btn=document.getElementById('pkCopy');
+      try{ await navigator.clipboard.writeText(t); btn.textContent='복사했어요. 원하는 곳에 붙여넣으세요'; setTimeout(()=>btn.textContent='선택한 시안 복사하기',2200); }
+      catch(e){ ta.hidden=false; ta.value=t; ta.focus(); ta.select(); btn.textContent='아래 글을 선택해 복사하세요'; } }; }
+  const L=S.filter(s=>FAV.has(s.id));
+  document.getElementById('pkCount').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요';
+  document.getElementById('pkList').textContent=L.map(s=>String(s.no).padStart(3,'0')+' '+s.name).join('\n');
+  document.getElementById('pkCopy').disabled=!L.length; }
+drawBar(); drawGrid(); updatePick(); window.READY=true;
+</script>
+</body>
+</html>
