@@ -628,14 +628,6 @@ const KW_MORE={
   spicy:['따끔','화끈','얼얼','정향','팔각','카레'],
   vegetal:['풀밭','잔디','깻잎','오이','시금치','해초','미역','완두','나물','허브']};
 Object.entries(KW_MORE).forEach(([k,a])=>a.forEach(w=>{ if(!FLAVORS[k].kw.includes(w)) FLAVORS[k].kw.push(w); }));
-/* 그날의 느낌: 맛이 아니라 기분에 가까운 말은 색 대신 번짐 모양으로 담는다 */
-const MOODS={lively:['춤','신나','신난','들뜬','들떠','설레','통통','톡톡','경쾌','활기','웃','반짝','두근','신이'],
-  calm:['차분','고요','편안','잔잔','느긋','평온','쉬는','졸리','졸려','나른','포근','안정','조용','쉼'],
-  deep:['묵직','깊','그리','쓸쓸','생각','우울','먹먹','아련','추억','오래된','일기']};
-const MOOD_NOTE={lively:'톡톡 튀는 방울로 담았어요',calm:'넓고 부드러운 번짐으로 담았어요',deep:'가운데가 깊어지는 번짐으로 담았어요'};
-function moodOf(texts){ const t=(texts||[]).filter(Boolean).join(' ').replace(/\s/g,''); let best=null, n=0;
-  for(const [m,ws] of Object.entries(MOODS)){ const c=ws.filter(w=>t.includes(w)).length; if(c>n){ n=c; best=m; } } return best; }
-const recMood=r=>r.mood!==undefined?r.mood:moodOf([...(r.exprs||[]),r.talk&&r.talk.mood,r.comment]);
 /* 나만의 표현: 풍미로 잇지 못한 말은 그대로 남긴다 */
 function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'').trim(); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
 const recOwn=r=>r.own||ownWords(r.exprs);
@@ -970,7 +962,7 @@ function teaDrop(type){
 }
 function recDrop(r){
   if(!r.flavors||!r.flavors.length) return {...teaDrop(r.type),id:'rb-'+r.id};
-  return {id:r.id,mood:recMood(r),comps:[{key:'tea',c:TEAS[r.type].color,w:.5},...r.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
+  return {id:r.id,comps:[{key:'tea',c:TEAS[r.type].color,w:.5},...r.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
 }
 
 /* 화면 속 찻방울은 <canvas>로 두고, 화면을 그린 뒤 한꺼번에 칠한다(크기별 비트맵 캐시) */
@@ -981,10 +973,10 @@ function orb(src,size,cls=''){
   return `<canvas class="wcd ${cls}" data-dk="${esc(drop.id)}" data-sz="${size}" style="width:${size}px;height:${size}px"></canvas>`;
 }
 /* 모든 방울을 ① 수채로: 풍미 색만 쓰고, 풍미가 없으면 맑은 물. 같은 기록은 어디서나 같은 모양(id로 시드) */
-function dropFlav(drop){ const f=(drop.comps||[]).filter(c=>FLAVORS[c.key]); const L=f.length?f.map(c=>({k:c.key,c:FLAVORS[c.key].color,w:c.w})):[{k:'clear',c:CLEAR,w:.6}]; L.mood=drop.mood||null; return L; }
+function dropFlav(drop){ const f=(drop.comps||[]).filter(c=>FLAVORS[c.key]); const L=f.length?f.map(c=>({k:c.key,c:FLAVORS[c.key].color,w:c.w})):[{k:'clear',c:CLEAR,w:.6}]; return L; }
 const dropSid=drop=>String(drop.id).replace(/^draft-/,'n').replace(/^rb-/,'');
 function dropBitmap(drop,px){
-  const k=drop.id+'|'+px+'|'+(drop.mood||'')+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
+  const k=drop.id+'|'+px+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
   if(BMP.has(k)) return BMP.get(k);
   if(BMP.size>300) BMP.clear();
   const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
@@ -1109,10 +1101,9 @@ function scoreFlavors(exprs){
   const ks=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]).slice(0,4), mx=sc[ks[0]]||1;
   return ks.map(k=>({k,w:+(.35+.6*sc[k]/mx).toFixed(2)}));
 }
-const draftMood=d=>moodOf([...collectExprs(d).map(e=>e.text),d.talk&&d.talk.mood]);
 function draftDrop(d){
   if(!d.flavors||!d.flavors.length) return {...teaDrop('clear'),id:'draft-'+d.tid};
-  return {id:'draft-'+d.tid,mood:draftMood(d),comps:[{key:'tea',c:TEAS[d.type].color,w:.5},...d.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
+  return {id:'draft-'+d.tid,comps:[{key:'tea',c:TEAS[d.type].color,w:.5},...d.flavors.map(f=>({key:f.k,c:FLAVORS[f.k].color,w:f.w}))]};
 }
 function ensureFlavors(d){ if(!d.flavors){ const ex=collectExprs(d); d.flavors=scoreFlavors(ex); d.exprs=ex.map(e=>e.text); } }
 
@@ -1134,8 +1125,8 @@ const REC_TEAS=[
   {name:'페퍼민트',type:'herb',fl:['fresh','spicy'],note:'시원하고 깔끔한 민트 허브차'},
   {name:'유자차',type:'herb',fl:['citrus','sweet','fresh'],note:'새콤달콤한 유자 향'},
 ];
-function ownHTML(words,mood){ if(!words.length&&!mood) return '';
-  return `<div class="own">${words.length?`<span class="own-l">나만의 표현</span>${words.map(w=>`<q>${esc(w)}</q>`).join('')}`:''}${mood?`<p class="own-m">오늘의 느낌은 ${MOOD_NOTE[mood]}</p>`:''}</div>`; }
+function ownHTML(words){ if(!words.length) return '';
+  return `<div class="own">${words.length?`<span class="own-l">나만의 표현</span>${words.map(w=>`<q>${esc(w)}</q>`).join('')}`:''}</div>`; }
 function recommendTeas(all,n=3){ const w={}; (all||[]).forEach(f=>w[f.k]=f.w); const had=new Set(S.records.map(r=>r.name.replace(/\s/g,'')));
   return REC_TEAS.filter(t=>!had.has(t.name.replace(/\s/g,''))).map(t=>({...t,score:t.fl.reduce((s,k,i)=>s+(w[k]||0)*(1-i*.15),0),match:t.fl.filter(k=>w[k])}))
     .filter(t=>t.score>0).sort((a,b)=>b.score-a.score).slice(0,n); }
@@ -1420,7 +1411,7 @@ compare(){
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
   ${d3Box('cmp3d',240)}
   ${d.flavors.length?`<div class="center-chips">${flChips(d.flavors)}</div>`:''}
-  ${ownHTML(ownWords(d.exprs),draftMood(d))}
+  ${ownHTML(ownWords(d.exprs))}
   <div class="cmp"><div class="lb">${I.book}전문가 설명</div><div class="bd" id="cmpExpert">${t.expert}</div></div>
   <div class="cmp"><div class="lb">${I.person}나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
   <div class="cmp"><div class="lb">${I.rings}공통점</div><div class="bd chips" id="cmpCommon">${t.common.map(c=>`<span class="chip">${c}</span>`).join('')}</div></div>
@@ -1525,7 +1516,7 @@ detail(p){
     <button class="ghost danger-ic" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash.replace('stroke="#111"','stroke="#D6453D"')}</button></div>
   <div class="det-drop"><canvas id="detCv1"></canvas></div>
   ${r.flavors&&r.flavors.length?`<div class="fav-en det-en">${[...r.flavors].sort((a,b)=>b.w-a.w).map(f=>`<span style="color:${inkText(FLAVORS[f.k].color)}">${HOME_EN[f.k]}</span>`).join('')}</div>`:''}
-  ${ownHTML(recOwn(r),recMood(r))}
+  ${ownHTML(recOwn(r))}
   <div class="detail">
     <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
     ${SEED_PHOTOS[r.id]?`<figure class="photo real"><img src="${SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy"></figure>`:r.photo?`<div class="photo"><span>사진</span></div>`:''}
@@ -1607,8 +1598,9 @@ function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur(
 /* 기록 삭제: 확인 후 지운다 */
 /* 기록 그만하기: 저장해두면 홈에서 이어서 할 수 있다 */
 const PAUSE_KEY='teacanvas.v2.paused';
-function loadPaused(){ try{ const v=JSON.parse(localStorage.getItem(PAUSE_KEY)||'null'); return v&&v.draft&&Array.isArray(v.stack)?v:null; }catch(e){ return null; } }
-function savePaused(v){ try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
+let PAUSED_MEM;  // 브라우저 저장소를 못 쓰는 환경에서도 이 화면을 닫기 전까지는 이어할 수 있게
+function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAUSE_KEY); if(raw!==null) v=JSON.parse(raw); }catch(e){} return v&&v.draft&&Array.isArray(v.stack)&&v.stack.length?v:null; }
+function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
 function askQuit(){
   openSheet(`<div class="grab"></div>
     <h1 class="t" style="margin-top:14px">기록을 그만할까요?</h1>
@@ -1624,8 +1616,12 @@ function quitRecord(keep){
   toast(keep?'기록을 저장해뒀어요':'기록을 지웠어요');
 }
 function resumeRecord(){
-  const v=loadPaused(); if(!v) return; savePaused(null);
-  closeSheet(); stopTimer(); S.feelStep=null; S.draft=v.draft; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=v.stack; render();
+  const v=loadPaused(); if(!v){ rerender(); return toast('이어할 기록을 찾지 못했어요'); } savePaused(null);
+  // 예전 버전에서 멈춘 기록(지금은 없는 화면)이면 채팅으로 이어간다
+  const OLD=['teaInput','teaConfirm','searchError','brew','feel','depth','deepBrew','deepOrigin','deepTemp','deepMemo'];
+  let stack=v.stack.filter(x=>x&&SCREENS[x.name]&&!OLD.includes(x.name)); if(!stack.length||!['chat','organizing','analyzing','compare'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
+  if(['organizing','analyzing'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
+  closeSheet(); stopTimer(); S.feelStep=null; S.draft=v.draft; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; render();
 }
 function dropPaused(){ savePaused(null); rerender(); toast('저장해둔 기록을 지웠어요'); }
 function askDelete(id){
@@ -2162,7 +2158,7 @@ function saveRecord(){
   const rec={id:S.records.some(q=>q.id==='n'+d.tid)?'n'+Date.now():'n'+d.tid,type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
     canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
     chat:d.chat.filter(m=>m.who!=='sys').map(({who,text,color})=>color?{who,text,color}:{who,text}),voice:d.voice,deep:dp,
-    talk:d.talk||null, own:ownWords(d.exprs), mood:draftMood(d), drinkMin:d.drinkAt?Math.max(1,Math.round(((d.endAt||Date.now())-d.drinkAt)/60000)):null,
+    talk:d.talk||null, own:ownWords(d.exprs), drinkMin:d.drinkAt?Math.max(1,Math.round(((d.endAt||Date.now())-d.drinkAt)/60000)):null,
     teaColor:d.feel.color&&d.feel.color!=='잘 모르겠어요'?{name:d.feel.color,hex:d.feel.colorHex||null}:null};
   S.records.unshift(rec); S.lastSaved=rec; persist();
   stopTimer(); closeSheet(); S.draft=null;
@@ -2212,21 +2208,16 @@ function runInfusion(){
 /* 캔버스 ①: 모든 잔이 같은 크기. 강한 풍미는 진하게·약한 풍미는 옅게, 한 자리에 겹쳐 홈처럼 젖은 채로 번진다 */
 const CV1={ws:{}}, CV_SPREAD=2.9;
 function cvWash(N,k,hex,seed){ const id=N+'|'+k+'|'+seed; let o=CV1.ws[id]; if(!o){ const w=makeWash(N,hex,seed); let lt=-1,c=null; o=CV1.ws[id]={frame(t){ t=Math.round(t*20)/20; if(t!==lt){ lt=t; c=w.frame(t); } return c; }}; } return o; }
-function recFlav(r){ const f=(r.flavors||[]).filter(x=>FLAVORS[x.k]); const L=f.length?f.map(x=>({c:FLAVORS[x.k].color,k:x.k,w:x.w})):[{c:CLEAR,k:'clear',w:.6}]; L.mood=recMood(r); return L; }
+function recFlav(r){ const f=(r.flavors||[]).filter(x=>FLAVORS[x.k]); const L=f.length?f.map(x=>({c:FLAVORS[x.k].color,k:x.k,w:x.w})):[{c:CLEAR,k:'clear',w:.6}]; return L; }
 function parts1(L,R,seed){ L=[...L].sort((a,b)=>b.w-a.w); const m=L[0].w||1, n=L.length;
   const pr=n===1?1:n===2?.8:n===3?.76:n===4?.66:.6, pd=n===2?.24:n===3?.3:n===4?.36:.32;   // 색이 2~4개 이상이어도 한 잔의 크기가 비슷하도록
   return L.map((p,i)=>{ const ang=n<=4?seed+(i===0?0:(i-1)*Math.PI*2/Math.max(1,n-1)):seed+i*2.39996, d=n===1?0:R*(i===0?(n===2?pd:.08):pd); return {...p,dx:Math.cos(ang+(n===2&&i===0?Math.PI:0))*d,dy:Math.sin(ang+(n===2&&i===0?Math.PI:0))*d,r:R*pr,a:.45+.55*(p.w/m)}; }).reverse(); }
 function drawRec1(x,L,cx,cy,R,id,t,alpha=.94){
-  const mood=L.mood||null; if(mood==='calm'){ R*=1.1; alpha*=.88; }   // 차분: 넓고 부드럽게
   const seed=WC.hash(id)%1000/1000*6.28, P=parts1(L,R,seed);
-  const ext=Math.max(R*(mood==='lively'?1.8:0),Math.max(...P.map(p=>Math.hypot(p.dx,p.dy)+p.r))*1.35), S=Math.ceil(ext*2);
+  const ext=Math.max(...P.map(p=>Math.hypot(p.dx,p.dy)+p.r))*1.35, S=Math.ceil(ext*2);
   const o=document.createElement('canvas'); o.width=o.height=S; const ox=o.getContext('2d'); ox.globalCompositeOperation='multiply';
   P.forEach((p,i)=>{ const D=p.r*3.6, N=Math.max(80,Math.min(240,Math.round(D*.85))), lt=Math.max(0,Math.min(CV_SPREAD,t-i*.12)); if(lt<=0) return;
     ox.globalAlpha=p.a; ox.drawImage(cvWash(N,p.k,p.c,WC.hash(id+p.k)%100000).frame(lt),S/2+p.dx-D/2,S/2+p.dy-D/2,D,D); });
-  const lt0=Math.max(0,Math.min(CV_SPREAD,t-.3)), top=P[P.length-1];
-  if(mood==='deep'&&lt0>0){ const D=top.r*.8*3.6; ox.globalAlpha=.32; ox.drawImage(cvWash(120,top.k,top.c,WC.hash(id+'deep')%100000).frame(lt0),S/2-D/2,S/2-D/2,D,D); }   // 깊음: 가운데를 한 번 더
-  if(mood==='lively'&&lt0>0){ const r=WC.rng(WC.hash(id+'pop')); for(let j=0;j<7;j++){ const p=P[j%P.length], a=r()*6.283, dd=R*(1.05+.4*r()), D=R*(.35+.3*r());   // 경쾌: 둘레로 톡톡 튀는 작은 방울
-      ox.globalAlpha=.75*p.a; ox.drawImage(cvWash(70,p.k,p.c,WC.hash(id+'pop'+j)%100000).frame(lt0),S/2+Math.cos(a)*dd-D/2,S/2+Math.sin(a)*dd-D/2,D,D); } }
   x.save(); x.globalAlpha=alpha; x.drawImage(o,cx-S/2,cy-S/2); x.restore();
 }
 const R1=W=>W*.1*Math.pow(10/Math.max(10,S.records.length),.3);
