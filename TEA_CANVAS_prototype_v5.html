@@ -313,6 +313,8 @@ canvas.wcd.big{margin:14px auto}
 .hd-stage{display:flex;flex-direction:column;align-items:center;gap:4px}
 .hd-label{min-height:64px;margin-bottom:-14px;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s ease}
 .hd-label.on{opacity:1;transform:none}
+.hd-stage.pos-bottom{flex-direction:column-reverse}.hd-stage.pos-bottom .hd-label{margin:-14px 0 0;justify-content:flex-start;min-height:0}
+.hd-stage.pos-mid{position:relative}.hd-stage.pos-mid .hd-label{position:absolute;left:0;right:0;top:50%;margin:0;min-height:0;justify-content:center;transform:translateY(calc(-50% + 6px))}.hd-stage.pos-mid .hd-label.on{transform:translateY(-50%)}
 .hd-label b{font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:600;letter-spacing:.02em;line-height:1.1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;transition:color .4s}
 .hd-label b em{font-style:normal}
 .hd-drop{position:relative;display:flex;flex-direction:column;align-items:center}
@@ -1952,12 +1954,17 @@ function makeWash(N,hex,seed){
   }
   return {frame};
 }
+// 가운데 크기 시안용: ?w=번짐(px) &b=영문(px) &s=예시(px) &pos=top|bottom|mid
+const HC=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d,lo,hi)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(lo,Math.min(hi,v)):d; }; return {w:n('w',320,200,600),b:n('b',30,16,56),s:n('s',12.5,10,18),pos:/^(top|bottom|mid)$/.test(q.get('pos')||'')?q.get('pos'):'top'}; }catch(e){ return {w:320,b:30,s:12.5,pos:'top'}; } })();
 function startHome3D(el){
-  const size=320, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px';
+  const size=HC.w, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px'; if(size>340) cv.style.margin=`${-(size-340)/2}px ${-(size-340)/2}px`;
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; const x=cv.getContext('2d');
   el.innerHTML=`<div class="hd-stage"><div class="hd-label" id="hdLabel"><i></i><b></b><span></span></div></div>`;
   const stage=el.firstChild; stage.appendChild(cv);
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
+  stage.classList.add('pos-'+HC.pos); lb.style.fontSize=HC.b+'px'; ls.style.fontSize=HC.s+'px';
+  // 번짐 캔버스 위아래의 빈 여백만큼 이름을 번짐 쪽으로 당겨 붙인다
+  const pull=/[?&]w=/.test(location.search)?Math.round(size*.2):14; if(HC.pos==='top') label.style.marginBottom=(-pull)+'px'; if(HC.pos==='bottom') label.style.marginTop=(-pull)+'px';
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
   const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
   // 번짐(2.9초) → 다 만들어진 모습 그대로 잠시 유지(1.4초) → 옅어짐(0.9초)
