@@ -294,7 +294,7 @@ canvas.wcd.big{margin:14px auto}
 .home{display:flex;flex-direction:column;flex:1}
 .home .hello{margin:22px 26px 0}
 .home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative}
-.home-drop canvas.gl{width:330px;height:330px;display:block}
+.home-drop canvas.gl{width:350px;height:350px;display:block}
 .home-cap{text-align:center;font-size:13px;color:var(--g2);margin:0 0 18px}
 .home-cap b{color:#111;font-weight:700}
 .bigbtn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:108px;padding:22px 26px;background:#000;color:#fff;
@@ -1510,7 +1510,117 @@ function bloomOn(cv,r,px){
     if(p<1) requestAnimationFrame(loop); else WC.grain(ctx,px,px); };
   setTimeout(()=>requestAnimationFrame(loop),250);
 }
-/* 홈 찻방울: 3D가 준비되지 않았으면 수채화 방울로 대신한다 */
+/* =========================================================
+   홈 3D 찻방울 (WebGL, 라이브러리 없음)
+   ink: 물속에 잉크가 피어오르는 방울 · jelly: 말랑한 유리 젤리
+   ========================================================= */
+const HOME_STYLE = 'ink';
+const startHome3D = (()=>{
+  const VERT = `attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
+  const NOISE = `
+float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
+float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*noise(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }`;
+  const FRAG = {ink:`precision highp float; varying vec2 v; uniform float t, life;
+uniform vec3 inkC[6]; uniform vec3 inkP[6];
+${NOISE}
+void main(){
+  vec2 uv=v; float ang=atan(uv.y,uv.x);
+  float R=.74+.016*sin(t*1.1)+.03*(noise(vec2(cos(ang)*1.3+t*.25, sin(ang)*1.3+t*.2))-.5);
+  float r=length(uv), edge=smoothstep(R,R-.01,r);
+  if(edge<=0.){ gl_FragColor=vec4(1.); return; }
+  vec2 s=uv/R; float z=sqrt(max(0.,1.-dot(s,s))); vec3 n=vec3(s,z);
+  vec2 q=s*(1.-.22*(1.-z));
+  vec2 w=vec2(fbm(q*2.2+vec2(0.,t*.08)), fbm(q*2.2+vec2(5.2,-t*.07)));
+  vec2 qw=q+(w-.5)*.6;
+  vec3 col=vec3(.985,.985,.98);
+  for(int i=0;i<6;i++){
+    float age=t-inkP[i].z;
+    if(age<0. || age>life) continue;
+    float grow=1.-exp(-age*.32), rad=.06+.8*grow;
+    vec2 d=qw-inkP[i].xy;
+    float tn=fbm(qw*4.5+float(i)*3.1+t*.05);
+    float dist=length(d)+(tn-.5)*.42*grow;
+    float dens=smoothstep(rad,rad*.1,dist)*(.5+.5*fbm(qw*7.-t*.04+float(i)));
+    dens*=smoothstep(life,life*.55,age)*smoothstep(0.,.5,age)*(1.2-.5*grow); dens=min(dens,.95);
+    col*=mix(vec3(1.),inkC[i],dens);
+  }
+  vec3 L=normalize(vec3(-.4,.6,.7));
+  col*=.93+.07*dot(n,L);
+  float fres=pow(1.-z,2.5);
+  col=mix(col,vec3(.84,.85,.87),fres*.4);
+  col+=pow(max(dot(reflect(-L,n),vec3(0,0,1)),0.),48.)*.45;
+  gl_FragColor=vec4(mix(vec3(1.),col,edge),1.);
+}`, jelly:`precision highp float; varying vec2 v; uniform float t, poke; uniform vec3 cA, cB;
+float sdf(vec3 p){
+  float br=sin(t*1.2);
+  vec3 q=p; q.y/=(1.-.04*br-.16*poke); q.xz/=(1.+.03*br+.09*poke);
+  float d=length(q)-.8;
+  d+=.04*sin(3.*q.x+t*1.6)*sin(3.*q.y+t*1.2)*sin(3.*q.z+t*1.)+.02*sin(5.*q.y-t*1.4)*(1.+poke*2.);
+  return d*.8;
+}
+vec3 nrm(vec3 p){ vec2 e=vec2(.002,0.); return normalize(vec3(sdf(p+e.xyy)-sdf(p-e.xyy),sdf(p+e.yxy)-sdf(p-e.yxy),sdf(p+e.yyx)-sdf(p-e.yyx))); }
+void main(){
+  vec3 ro=vec3(0.,0.,2.7), rd=normalize(vec3(v,-2.45));
+  float d=0.; bool hit=false; vec3 p;
+  for(int i=0;i<72;i++){ p=ro+rd*d; float h=sdf(p); if(h<.001){hit=true;break;} d+=h; if(d>6.) break; }
+  if(!hit){ gl_FragColor=vec4(1.); return; }
+  vec3 n=nrm(p);
+  vec3 r2=refract(rd,n,1./1.33);
+  float th=0.; vec3 m=p;
+  for(int i=0;i<28;i++){ m=p+r2*(th+.02); float h=-sdf(m); if(h<.002) break; th+=max(h,.02); }
+  vec3 mid=p+r2*th*.5;
+  float pool=smoothstep(.25,-.7,mid.y+.07*sin(mid.x*4.+t*.8));
+  vec3 mixc=mix(cA,cB,smoothstep(-.35,.35,mid.x+.25*sin(mid.y*3.+t*.6)));
+  vec3 tint=mix(vec3(1.),mixc,clamp(pool*.9+.08,0.,1.)*clamp(th*.9,0.,1.));
+  float fres=pow(1.-max(dot(n,-rd),0.),3.);
+  vec3 irid=.5+.5*cos(6.2831*(fres*1.3+t*.03+vec3(0.,.33,.67)));
+  vec3 L=normalize(vec3(-.5,.7,.6));
+  float spec=pow(max(dot(reflect(rd,n),L),0.),60.);
+  vec3 col=vec3(.975)*tint*(1.-fres*.35)+fres*mix(vec3(.88,.89,.92),irid,.55)*.55+spec*.7;
+  gl_FragColor=vec4(col,1.);
+}`};
+  const INKS=[...ORDER.map(k=>TEAS[k].color),...FKEYS.filter(k=>k!=='soft').map(k=>FLAVORS[k].color)];
+  const hex3=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+  const pick=()=>hex3(INKS[Math.floor(Math.random()*INKS.length)]);
+  let ok=null;
+  return function(el){
+    const cv=document.createElement('canvas'); cv.className='gl';
+    const gl=cv.getContext('webgl',{antialias:true});
+    if(!gl || ok===false) return false;
+    try{
+      const sh=(t,src)=>{ const o=gl.createShader(t); gl.shaderSource(o,src); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+      const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG[HOME_STYLE])); gl.linkProgram(pr); gl.useProgram(pr);
+      const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+      ok=true;
+      const U=n=>gl.getUniformLocation(pr,n), t0=performance.now(), now=()=>(performance.now()-t0)/1000;
+      el.innerHTML=''; el.appendChild(cv);
+      const px=Math.min(900,Math.round(350*Math.min(2,(devicePixelRatio||1))*SCALE)); cv.width=cv.height=px; gl.viewport(0,0,px,px);
+      let step;
+      if(HOME_STYLE==='ink'){
+        const IV=3.2, LIFE=IV*6, inks=[]; let next=IV, slot=0;
+        for(let i=0;i<6;i++){ const a=Math.random()*6.28, d=Math.random()*.45; inks.push({c:pick(),p:[Math.cos(a)*d,Math.sin(a)*d,-(5-i)*IV]}); }
+        const drop=(x,y)=>{ inks[slot]={c:pick(),p:[x,y,now()]}; slot=(slot+1)%6; };
+        cv.addEventListener('pointerdown',e=>{ const r=cv.getBoundingClientRect(); drop(((e.clientX-r.left)/r.width*2-1)/.74,-((e.clientY-r.top)/r.height*2-1)/.74); next=now()+IV; });
+        step=t=>{ if(t>next){ const a=Math.random()*6.28, d=Math.random()*.5; drop(Math.cos(a)*d,Math.sin(a)*d); next=t+IV; }
+          gl.uniform1f(U('t'),t); gl.uniform1f(U('life'),LIFE); gl.uniform3fv(U('inkC'),inks.flatMap(k=>k.c)); gl.uniform3fv(U('inkP'),inks.flatMap(k=>k.p)); };
+      }else{
+        let A=pick(), B=pick(), tA=A, tB=B, poke=0, vel=0, last=0, swap=5;
+        cv.addEventListener('pointerdown',()=>{ vel+=5; });
+        step=t=>{ const dt=Math.min(.05,t-last); last=t; vel+=(-90*poke-6*vel)*dt; poke+=vel*dt;
+          if(t>swap){ tA=pick(); tB=pick(); swap=t+6; }
+          A=A.map((v,i)=>v+(tA[i]-v)*dt*.5); B=B.map((v,i)=>v+(tB[i]-v)*dt*.5);
+          gl.uniform1f(U('t'),t); gl.uniform1f(U('poke'),poke); gl.uniform3fv(U('cA'),A); gl.uniform3fv(U('cB'),B); };
+      }
+      (function loop(){ if(!cv.isConnected) return; step(now()); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); requestAnimationFrame(loop); })();
+      return true;
+    }catch(err){ ok=false; console.warn('3D 방울을 그리지 못해 수채화 방울로 대신해요',err); return false; }
+  };
+})();
+
+/* 홈 찻방울: 3D를 못 쓰는 환경이면 수채화 방울로 대신한다 */
 function mountHomeDrop(el){
   if(!el) return;
   if(typeof startHome3D==='function' && startHome3D(el)) return;
