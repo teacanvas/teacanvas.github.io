@@ -37,6 +37,12 @@
       ctx.save(); ctx.globalAlpha=p.under; H.paintField(ctx,W,F,(c,a)=>H.mix(bg,pastel(c,.25,1),H.ss(0,.9,a)).map(v=>v*255),.01); ctx.restore(); }
     const dots=[];
     recs.forEach((rec,i)=>{ const Z=zones(rec,p), Rr=R*(.65+.5*rec.i), N=Math.round(p.n*(.6+.4*rec.i)*(Rr/R)**2);
+      if(p.round){ for(let k=0;k<N;k++){
+          const a=r()*6.2832, rr=Math.sqrt(r())*(1+(r()<p.round.soft?r()*p.round.out:0)), dx=Math.cos(a)*rr, dy=Math.sin(a)*rr;
+          let ws=0; const w=Z.map(z=>{ const q=z.share*Math.exp(-((dx-z.x)**2+(dy-z.y)**2)/(2*z.s*z.s)); ws+=q; return q; });
+          let t=r()*ws, zi=0; for(;zi<w.length-1;zi++){ if(t<w[zi]) break; t-=w[zi]; }
+          let c=pastel(Z[zi].c,p.lift,p.sat); if(p.jit){ const j=1+(r()-.5)*p.jit; c=c.map(v=>clamp(v*j)); }
+          dots.push({x:pos[i][0]+dx*Rr,y:pos[i][1]+dy*Rr,c,s:W*p.dot*(.8+.4*rec.i),i}); } return; }
       for(let k=0;k<N;k++){
         let u=r(), z=Z[0]; for(const q of Z){ if(u<q.share){ z=q; break; } u-=q.share; }
         let dx=z.x+gauss(r)*z.s, dy=z.y+gauss(r)*z.s;
@@ -61,30 +67,26 @@
   const B={size:.11,n:900,dot:.0045,coreS:.42,sideS:.3,off:.55,lift:.04,sat:1.15,alpha:.9,layout:'spread',fill:.5,grain:.03,shape:'circle',bg:'#F7F5F0'};
   const L=[]; const add=(fam,name,desc,o)=>L.push({fam,name,desc,p:{...B,...o}});
 
-  // 1. 점 크기 (처음 시안과 같은 6가지 + 4)
-  [[.0025,2200,'아주 고운 점'],[.0035,1400,'고운 점'],[.0045,900,'기본 점'],[.006,520,'조금 큰 점'],[.008,300,'큰 점'],[.0045,900,'점 크기 제각각',{dotVar:1}],
-   [.003,1800,'고운 점 · 촘촘하게',{n:2600}],[.0045,1400,'기본 점 · 촘촘하게'],[.0045,550,'기본 점 · 성기게'],[.011,170,'아주 큰 점']]
-    .forEach(([d,n,nm,o])=>add('점 크기',nm,'점 하나의 크기와 점 개수를 바꿨어요.',{dot:d,n,...(o||{})}));
-  // 2. 색 섞임
-  [[.25,.18,.55,'또렷하게 나뉨'],[.35,.25,.55,'조금 섞임'],[.42,.3,.55,'기본 섞임'],[.55,.42,.5,'많이 섞임'],[.7,.55,.4,'고르게 섞임'],
-   [.3,.22,.8,'풍미가 바깥으로'],[.5,.2,.6,'찻물 색 크게'],[.25,.35,.45,'풍미 색 크게'],[.35,.25,.55,'섞임 · 큰 점',{dot:.007,n:420}],[.55,.42,.5,'섞임 · 고운 점',{dot:.003,n:1800}]]
-    .forEach(([cs,ss,off,nm,o])=>add('색 섞임',nm,'한 잔 안에서 찻물 색과 풍미 색 구역이 얼마나 섞이는지 바꿨어요. 비중이 큰 색이 가운데, 약한 색이 가장자리예요.',{coreS:cs,sideS:ss,off,...(o||{})}));
-  // 3. 덩어리 크기·배치
-  [[.08,.45,'작은 덩어리'],[.11,.5,'기본 덩어리'],[.14,.6,'큰 덩어리'],[.17,.75,'아주 큰 덩어리'],[.11,.5,'실제 위치 그대로',{layout:'pos'}],
-   [.13,.85,'캔버스 가득'],[.1,.5,'마신 순서 격자',{layout:'grid'}],[.1,.5,'해바라기 나선(좋았던 차가 가운데)',{layout:'spiral'}],[.12,.65,'잔마다 크기 차이 크게',{shrink:.22}],[.09,.4,'작게 · 촘촘하게 모임']]
-    .forEach(([sz,fl,nm,o])=>add('덩어리·배치',nm,'한 잔이 차지하는 크기와 잔들을 놓는 방식을 바꿨어요.',{size:sz,fill:fl,n:Math.round(900*(sz/.11)**1.2),...(o||{})}));
-  // 4. 덩어리 모양
-  [[{},'기본(구름 모양)'],[{ring:.5},'방울 모양 살리기'],[{ring:.85},'둥근 방울'],[{clip:.95},'테두리 또렷한 방울'],[{clip:.8,ring:.4},'작고 단단한 방울'],
-   [{coreS:.3,sideS:.18,off:.75},'꽃잎처럼 갈라짐'],[{shape:'petal',dot:.004},'꽃잎 모양 점'],[{coreS:.55,sideS:.45,off:.3},'뭉게뭉게'],[{ring:.6,coreS:.5},'고리 모양'],[{clip:1.1,coreS:.6,sideS:.5},'넓게 퍼진 원']]
-    .forEach(([o,nm])=>add('덩어리 모양',nm,'한 잔 덩어리의 모양을 바꿨어요.',o));
-  // 5. 점 모양·질감
-  [['circle',{},'동그란 점'],['square',{dot:.004},'네모 점(픽셀)'],['dash',{dot:.004},'짧은 붓 터치'],['circle',{jit:.18},'점마다 농담 차이'],['circle',{alpha:.7},'겹쳐 비치는 점'],
-   ['circle',{alpha:1},'불투명한 점'],['dash',{dot:.0035,dashA:0},'가로 붓 터치'],['square',{dot:.003,n:1700},'고운 픽셀'],['circle',{byCup:true},'잔 단위로 겹침(최근 잔이 위)'],['dash',{dot:.004,jit:.2},'붓 터치 · 농담']]
-    .forEach(([sh,o,nm])=>add('점 모양',nm,'점의 모양과 질감을 바꿨어요.',{shape:sh,...o}));
-  // 6. 색감·바탕
-  [[0,1,'원래 색'],[.1,1.05,'밝은 파스텔'],[.2,1,'아주 파스텔'],[.02,1.4,'선명하게'],[.06,.85,'차분하게'],
-   [.04,1.15,'아주 옅은 바탕 받침',{under:.12}],[.04,1.15,'옅은 바탕 받침',{under:.25}],[.04,1.15,'크림 종이',{bg:'#F4ECDD'}],[.04,1.15,'흰 종이',{bg:'#FCFCFA',grain:0}],[.04,1.15,'축 표시',{axes:1}]]
-    .forEach(([lf,st,nm,o])=>add('색감·바탕',nm,'색의 밝기·채도와 바탕을 바꿨어요.',{lift:lf,sat:st,...(o||{})}));
+  // 고른 조합: 아주 고운 점 + 고르게 섞임 + 아주 큰 덩어리 + 둥글고 테두리 또렷한 방울 + 크림 바탕
+  const PICK={dot:.0025,coreS:.7,sideS:.55,off:.4,size:.17,fill:.75,bg:'#F4ECDD',round:{soft:.05,out:.08}};
+  const nFor=(sz,dot)=>Math.round(2200*(sz/.11)**2*(.0025/dot)**2*.9);
+  [['기본 조합',{}],
+   ['테두리 아주 또렷',{round:{soft:0,out:0}}],
+   ['테두리 살짝 퍼짐',{round:{soft:.12,out:.15}}],
+   ['조금 작은 방울',{size:.14,fill:.65}],
+   ['더 큰 방울',{size:.2,fill:.85}],
+   ['색 조금 더 나뉨',{coreS:.5,sideS:.38,off:.5}],
+   ['색 아주 고르게',{coreS:.9,sideS:.75,off:.3}],
+   ['점 더 촘촘하게',{nMul:1.5}],
+   ['점 조금 크게',{dot:.0033}],
+   ['선명한 색',{sat:1.35,lift:.02}],
+   ['밝은 파스텔',{lift:.12,sat:1.05}],
+   ['실제 위치 그대로',{layout:'pos',size:.15}],
+   ['해바라기 나선',{layout:'spiral',size:.14}],
+   ['마신 순서 격자',{layout:'grid',size:.12}],
+   ['진한 크림 바탕',{bg:'#EFE4CF'}],
+   ['옅은 크림 바탕',{bg:'#F8F3EA'}]]
+    .forEach(([nm,o])=>{ const q={...PICK,...o}; q.n=Math.round(nFor(q.size,q.dot)*(o.nMul||1)); add('고른 조합',nm,'아주 고운 점 · 고르게 섞임 · 아주 큰 덩어리 · 둥근 방울 · 크림 바탕을 기본으로, 한 가지씩만 바꿨어요.',q); });
 
   L.forEach((s,i)=>{ const id='c'+String(i+1).padStart(3,'0'); s.p.id=id;
     GALLERY.add({id,name:`${s.fam} — ${s.name}`,cat:s.fam,desc:s.desc,bg:s.p.bg,render:(ctx,W,recs)=>render(ctx,W,recs,s.p)}); });
