@@ -165,9 +165,7 @@ GALLERY.add({ id:'s505', name:'취향 별자리', cat:'공간', bg:'#0F1421',
       const inT=new Set([0]), edges=[];
       while(inT.size<ps.length){ let best=null,bd=1e9; for(const a of inT) for(let b=0;b<ps.length;b++){ if(inT.has(b)) continue; const d=Math.hypot(ps[a].x-ps[b].x,ps[a].y-ps[b].y); if(d<bd){ bd=d; best=[a,b]; } } inT.add(best[1]); edges.push([...best,bd]); }
       ctx.strokeStyle=rgba(lift(typeCol(H,t),.4),.32);
-      for(const [a,b,d] of edges){ if(d>RR*.55) continue; ctx.beginPath(); ctx.moveTo(ps[a].x,ps[a].y); ctx.lineTo(ps[b].x,ps[b].y); ctx.stroke(); }
-      if(ps.length>=2){ const mx=ps.reduce((s,p)=>s+p.x,0)/ps.length, my=Math.min(...ps.map(p=>p.y)); text(ctx,H.TEAS[t].label,mx,my-W*.03,Math.round(W/46),'rgba(255,255,255,.38)'); }
-    }
+      for(const [a,b,d] of edges){ if(d>RR*.5) continue; ctx.beginPath(); ctx.moveTo(ps[a].x,ps[a].y); ctx.lineTo(ps[b].x,ps[b].y); ctx.stroke(); }
     const k=N>50?.8:1;
     for(const p of P){ const r=p.r, s=W*(.0028+.0022*r.stars+.0018*r.i)*k, col=lift(r.tea,.25);
       const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,s*5); g.addColorStop(0,rgba(col,.5)); g.addColorStop(.3,rgba(lift(flc(r),.2),.16)); g.addColorStop(1,rgba(col,0));
@@ -287,7 +285,7 @@ GALLERY.add({ id:'s509', name:'차 벌집', cat:'생명',
 GALLERY.add({ id:'s510', name:'계단식 차밭', cat:'공간', bg:'#F3F2EA',
   desc:'위에서 내려다본 계단식 차밭 언덕이에요. 오래된 기록은 바깥 이랑에, 최근 기록은 꼭대기 쪽 이랑에 한 그루씩 물들어요.',
   render(ctx,W,recs,H){
-    const N=recs.length, Kr=10, cx=W*.5, cy=W*.52, Rmax=W*.44, Rmin=W*.055, gapR=(Rmax-Rmin)/(Kr-1), th=gapR*.58, lw=Math.max(1,W/480);
+    const N=recs.length, Kr=10, cx=W*.5, cy=W*.52, Rmax=W*.385, Rmin=W*.05, gapR=(Rmax-Rmin)/(Kr-1), th=gapR*.58, lw=Math.max(1,W/480);
     const f=(a,k)=>1+.085*Math.sin(2*a+1+k*.06)+.055*Math.sin(3*a+2.3-k*.09)+.03*Math.sin(5*a+.7+k*.12);
     const rings=[];
     for(let k=0;k<Kr;k++){ const R=Rmax-gapR*k, ox=cx+k*W*.007, oy=cy-k*W*.009, pts=[]; let L=0;
@@ -321,7 +319,7 @@ GALLERY.add({ id:'s511', name:'취향 수족관', cat:'생명',
     ctx.fillStyle='rgba(232,224,206,.9)'; ctx.beginPath(); ctx.moveTo(0,W); for(let x=0;x<=W;x+=W/30) ctx.lineTo(x,W*.955+Math.sin(x/W*9)*W*.006); ctx.lineTo(W,W); ctx.fill();
     const sc=sizeK(N);
     const F=recs.map(r=>{ const L=W*(.065+.05*r.i)*(N>60?.6:N>25?.75:1); return {r,L,x:W*(.1+.8*r.x),y:W*(.1+.76*r.y),rx:L*.55}; });
-    F.forEach(f=>f.r_=f.r, f=>0); F.forEach(f=>f.r=f.rx);
+    F.forEach(f=>{ f.r_=f.r; f.r=f.rx; });
     relax(F,60,W*.04,W*.05,W*.96,W*.92);
     for(const f of F){ const r=f.r_, L=f.L, dir=r.x>=.5?1:-1, c1=lift(r.tea,.15), c2=lift(flc(r),.08), c3=lift(flc(r,1),.1);
       ctx.save(); ctx.translate(f.x,f.y); ctx.scale(dir,1); ctx.rotate(((H.hash(r.id)%100)/100-.5)*.25);
@@ -459,43 +457,24 @@ GALLERY.add({ id:'s516', name:'차 조각보', cat:'데이터',
         if(r.stars>=3&&w>W*.03&&h>W*.03){ ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=Math.max(.6,W/700); circle(ctx,x+w-W*.012,y+W*.012,W*.004); ctx.stroke(); } }); });
   }});
 
-/* ---------- 517 취향 행성 ---------- */
-GALLERY.add({ id:'s517', name:'취향 행성', cat:'공간',
-  desc:'모든 기록을 하나의 행성 겉면에 펼쳤어요. 같은 차 종류끼리 띠를 이루고, 기록마다 찻물과 풍미 색이 무늬로 번져요.',
+/* ---------- 517 방울 행성 ---------- */
+GALLERY.add({ id:'s517', name:'방울 행성', cat:'공간',
+  desc:'모든 기록의 3D 찻방울을 모아 하나의 행성을 빚었어요. 좋았던 차일수록 앞쪽 가운데에 크게 놓이고, 덜 좋았던 차는 가장자리로 물러나요.',
   render(ctx,W,recs,H){
-    const N=recs.length, res=Math.min(360,Math.round(W*.75)), Rs=res*.34, cx=res/2, cy=res*.5;
-    const srt=recs.slice().sort((a,b)=>H.TK.indexOf(a.type)-H.TK.indexOf(b.type)||pref(b)-pref(a));
-    const spacing=Math.sqrt(4*PI/N), B=[];
-    srt.forEach((r,k)=>{ const yy=1-2*(k+.5)/N, rr=Math.sqrt(1-yy*yy), th=k*GA, c=[Math.cos(th)*rr,yy,Math.sin(th)*rr];
-      const t1=Math.abs(c[1])<.9?[0,1,0]:[1,0,0], e1=norm(cross(c,t1)), e2=cross(c,e1), off=spacing*.32;
-      B.push({p:c,col:r.tea.map(H.lin),w:1});
-      r.fl.slice(0,2).forEach((f,j)=>{ const a=j*PI+(H.hash(r.id)%10)*.3, p=norm(c.map((v,q)=>v+(e1[q]*Math.cos(a)+e2[q]*Math.sin(a))*off)); B.push({p,col:f.rgb.map(H.lin),w:.6+.5*f.w}); }); });
-    function cross(a,b){ return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]; }
-    function norm(a){ const l=Math.hypot(...a); return a.map(v=>v/l); }
-    const K=B.length, bx=new Float32Array(K), by=new Float32Array(K), bz=new Float32Array(K), bw=new Float32Array(K), cr=new Float32Array(K), cg=new Float32Array(K), cb=new Float32Array(K);
-    B.forEach((b,k)=>{ bx[k]=b.p[0]; by[k]=b.p[1]; bz[k]=b.p[2]; bw[k]=b.w; cr[k]=b.col[0]; cg[k]=b.col[1]; cb[k]=b.col[2]; });
-    const s2=(spacing*.42)**2, cut=s2*4;
-    const tilt=.42, yaw=.6, ct=Math.cos(tilt), st=Math.sin(tilt), cyw=Math.cos(yaw), syw=Math.sin(yaw);
-    const L=norm([-.5,-.6,.65]);
-    const cv=document.createElement('canvas'); cv.width=cv.height=res; const x=cv.getContext('2d'), im=x.createImageData(res,res), D=im.data;
-    for(let j=0;j<res;j++) for(let i=0;i<res;i++){ const sx=(i+.5-cx)/Rs, sy=(j+.5-cy)/Rs, q=sx*sx+sy*sy; if(q>1) continue;
-      const sz=Math.sqrt(1-q); // 시점 좌표의 법선
-      let px=sx, py=sy*ct-sz*st, pz=sy*st+sz*ct; const qx=px*cyw+pz*syw, qz=-px*syw+pz*cyw; px=qx; pz=qz;
-      { const wa=.11, X=px+wa*Math.sin(3.1*py+1.3), Y=py+wa*Math.sin(2.7*pz+.7), Z=pz+wa*Math.sin(3.3*px+2.1); px=X; py=Y; pz=Z; }
-      let r=0,g=0,b=0,ws=0;
-      for(let k=0;k<K;k++){ const dx=px-bx[k], dy=py-by[k], dz=pz-bz[k], d=dx*dx+dy*dy+dz*dz; if(d>cut) continue; const w=bw[k]*Math.exp(-d*7/s2); r+=cr[k]*w; g+=cg[k]*w; b+=cb[k]*w; ws+=w; }
-      let c=ws>0?[H.gam(r/ws),H.gam(g/ws),H.gam(b/ws)]:[.9,.9,.9];
-      c=lift(c,.1);
-      const dif=.86+.2*Math.max(0,sx*L[0]+sy*L[1]+sz*L[2]), fres=Math.pow(1-sz,2.4);
-      const hx=L[0], hy=L[1], hz=L[2]+1, hl=Math.hypot(hx,hy,hz), spec=Math.pow(Math.max(0,(sx*hx+sy*hy+sz*hz)/hl),28)*.22;
-      c=c.map(v=>cl(v*dif*(1-fres*.2)+spec+fres*.16));
-      const edge=cl((1-Math.sqrt(q))*Rs*1.5), o=(j*res+i)*4; D[o]=c[0]*255; D[o+1]=c[1]*255; D[o+2]=c[2]*255; D[o+3]=255*edge; }
-    x.putImageData(im,0,0);
-    const k=W/res, lw=Math.max(1,W/480);
-    ctx.save(); ctx.strokeStyle='rgba(0,0,0,.13)'; ctx.lineWidth=lw; ctx.beginPath(); ctx.ellipse(W/2,cy*k,Rs*k*1.5,Rs*k*.32,-.12,PI,TAU); ctx.stroke(); ctx.restore();
-    ctx.imageSmoothingQuality='high'; ctx.drawImage(cv,0,0,W,W);
-    ctx.save(); ctx.strokeStyle='rgba(0,0,0,.16)'; ctx.lineWidth=lw; ctx.beginPath(); ctx.ellipse(W/2,cy*k,Rs*k*1.5,Rs*k*.32,-.12,0,PI); ctx.stroke(); ctx.restore();
-    text(ctx,N+'잔의 행성',W/2,W*.93,Math.round(W/38),'rgba(0,0,0,.36)');
+    const N=recs.length, cx=W/2, cy=W*.48, R=W*(.25+.1*Math.sqrt(N/100)), lw=Math.max(1,W/480);
+    const srt=recs.slice().sort((a,b)=>pref(b)-pref(a));
+    const tilt=.3, ct=Math.cos(tilt), st=Math.sin(tilt);
+    const P=srt.map((r,k)=>{ const z=1-(k+.5)/N*.96, q=Math.sqrt(1-z*z), th=k*GA, x=Math.cos(th)*q, y=Math.sin(th)*q; return {r,x,y,z}; });
+    const g=ctx.createRadialGradient(cx-R*.35,cy-R*.4,R*.1,cx,cy,R*1.05); g.addColorStop(0,'rgba(255,255,255,.7)'); g.addColorStop(1,'rgba(222,214,200,.35)');
+    ctx.fillStyle=g; circle(ctx,cx,cy,R*1.04); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.1)'; ctx.lineWidth=lw; ctx.beginPath(); ctx.ellipse(cx,cy,R*1.5,R*.3,-.12,PI*1.02,PI*1.98); ctx.stroke();
+    const base=R*Math.sqrt(2*PI/N)*.62;
+    P.sort((a,b)=>a.z-b.z).forEach(p=>{ const d=base*(.55+.45*p.z)*(.85+.3*p.r.i), px=Math.max(8,Math.ceil(d*1.1)), X=cx+p.x*R*.92, Y=cy+p.y*R*.92;
+      const s=H.dropSnapshot(p.r,px); ctx.globalAlpha=.55+.45*p.z;
+      if(s) ctx.drawImage(s,X-d/2,Y-d/2,d,d); else { ctx.fillStyle=rgba(lift(flc(p.r),.2)); circle(ctx,X,Y,d/2); ctx.fill(); }
+      ctx.globalAlpha=1; });
+    ctx.strokeStyle='rgba(0,0,0,.13)'; ctx.lineWidth=lw; ctx.beginPath(); ctx.ellipse(cx,cy,R*1.5,R*.3,-.12,-PI*.02,PI*1.02); ctx.stroke();
+    text(ctx,N+'잔의 행성',cx,W*.93,Math.round(W/38),'rgba(0,0,0,.36)');
   }});
 
 /* ---------- 518 방울 표본함 ---------- */
@@ -515,24 +494,24 @@ GALLERY.add({ id:'s518', name:'방울 표본함', cat:'데이터',
 
 /* ---------- 519 밤하늘 불꽃 ---------- */
 GALLERY.add({ id:'s519', name:'밤하늘 불꽃', cat:'공간', bg:'#141827',
-  desc:'기록 하나가 불꽃 하나로 터져요. 맛이 좋았던 차일수록 높이 올라가고, 좋았던 만큼 크게 퍼지며, 불티 색은 느낀 풍미예요.',
+  desc:'기록 하나가 불꽃 하나로 터져요. 맛이 좋았던 차일수록 높이, 크게 터지고, 오래된 기록일수록 희미하게 스러져요. 불티 색은 느낀 풍미예요.',
   render(ctx,W,recs,H){
     const N=recs.length, R=H.rng(519), sc=N>60?.58:N>25?.75:1;
     for(let i=0;i<60;i++){ ctx.fillStyle=`rgba(255,255,255,${.08+R()*.25})`; circle(ctx,R()*W,R()*W*.8,W*(.0006+R()*.0012)); ctx.fill(); }
     ctx.fillStyle='rgba(255,255,255,.035)'; ctx.beginPath(); ctx.moveTo(0,W); for(let x=0;x<=W;x+=W/40) ctx.lineTo(x,W*.93-H.fbm(x/W*3,1.3,3)*W*.05); ctx.lineTo(W,W); ctx.fill();
     const recent=recs.slice(-5);
-    const B=recs.map(r=>{ const Rr=W*(.03+.065*pref(r))*sc; return {rec:r,Rr,x:W*(.1+.8*r.x),y:W*(.1+.66*r.y),r:Rr*.55}; });
-    relax(B,40,W*.05,W*.05,W*.95,W*.82);
+    const B=recs.map((r,k)=>{ const fresh=N<2?1:k/(N-1), Rr=W*(.03+.06*pref(r))*sc*(.5+.5*fresh); return {rec:r,fresh,Rr,x:W*(.1+.8*r.x),y:W*(.1+.66*r.y),r:Rr*.5}; });
+    relax(B,40,W*.05,W*.05,W*.95,W*.84);
     const lw=Math.max(.6,W/600);
-    B.forEach(b=>{ const r=b.rec, x=b.x, y=b.y, Rr=b.Rr, rr=H.rng(H.hash(r.id)), nr=12+Math.round(10*r.i), cols=r.colors.map(c=>lift(c.rgb,.3)), al=N>60?.75:.9;
+    B.forEach(b=>{ const r=b.rec, x=b.x, y=b.y, Rr=b.Rr, f=b.fresh, rr=H.rng(H.hash(r.id)), nr=Math.round((8+12*r.i)*(.5+.5*f)), cols=r.colors.map(c=>lift(c.rgb,.3)), al=(.22+.7*f*f);
       if(recent.includes(r)){ ctx.strokeStyle='rgba(255,240,220,.1)'; ctx.lineWidth=lw; ctx.beginPath(); ctx.moveTo(x+(rr()-.5)*W*.05,W*.95); ctx.quadraticCurveTo(x+(rr()-.5)*W*.03,(y+W)/2,x,y+Rr*.2); ctx.stroke(); }
       const off=rr()*TAU;
-      for(let j=0;j<nr;j++){ const a=off+j/nr*TAU+(rr()-.5)*.15, len=Rr*(.75+.35*rr()), c=cols[1+j%(cols.length-1)]||cols[0], droop=Rr*.14;
+      for(let j=0;j<nr;j++){ const a=off+j/nr*TAU+(rr()-.5)*.15, len=Rr*(.75+.35*rr()), c=cols[1+j%(cols.length-1)]||cols[0], droop=Rr*(.12+.35*(1-f));
         const x0=x+Math.cos(a)*len*.25, y0=y+Math.sin(a)*len*.25, x1=x+Math.cos(a)*len, y1=y+Math.sin(a)*len+droop, mx=x+Math.cos(a)*len*.62, my=y+Math.sin(a)*len*.62+droop*.2;
         const g=ctx.createLinearGradient(x0,y0,x1,y1); g.addColorStop(0,rgba(c,0)); g.addColorStop(1,rgba(c,al));
-        ctx.strokeStyle=g; ctx.lineWidth=lw*(.8+.6*r.i); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(mx,my,x1,y1); ctx.stroke();
-        ctx.fillStyle=rgba(lift(c,.2),al); circle(ctx,x1,y1,W*(.0018+.0014*r.i)); ctx.fill(); }
-      ctx.fillStyle=rgba(lift(r.tea,.5),.7); circle(ctx,x,y,W*.003); ctx.fill(); });
+        ctx.strokeStyle=g; ctx.lineWidth=lw*(.7+.7*r.i)*(.6+.4*f); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(mx,my,x1,y1); ctx.stroke();
+        ctx.fillStyle=rgba(lift(c,.2),al); circle(ctx,x1,y1,W*(.0014+.0016*r.i)*(.6+.4*f)); ctx.fill(); }
+      ctx.fillStyle=rgba(lift(r.tea,.5),.3+.5*f); circle(ctx,x,y,W*.003*(.6+.4*f)); ctx.fill(); });
   }});
 
 /* ---------- 520 차꽃 화단 ---------- */

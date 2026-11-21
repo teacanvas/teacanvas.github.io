@@ -51,6 +51,8 @@ function isoLines(f,n,lv){
   return out;
 }
 const neutral=[.72,.69,.64];
+// 가까운 기록끼리 묶기(먼저 마신 기록이 묶음의 중심)
+function cluster(recs,d){ const C=[]; recs.forEach(r=>{ let best=null, bd=d; for(const c of C){ const e=Math.hypot(c.x-r.x,c.y-r.y); if(e<bd){ bd=e; best=c; } } if(best) best.m.push(r); else C.push({x:r.x,y:r.y,m:[r]}); }); return C; }
 
 /* =========================================================
    s201 실 걸이 판 (string art)
@@ -99,11 +101,10 @@ GALLERY.add({ id:'s202', name:'베틀 위의 천', cat:'직물', bg:'#F5F2EA',
         const y=y0+g*rh, alt=rpr>1&&m%2===1;
         for(let c=0;c<cols;c++){
           const inlay=Math.abs(c+.5-cm)<hw;
-          const over=inlay?((c+g)%2===0||(c+g)%4===1):((c+g)%4<2);
-          const x=x0+c*cw;
-          if(over){ const col=inlay?pc(fl(r,m+(c%3===0?1:0)),.04,1.1):(alt?pc(fl(r,m),.25,1):base);
-            ctx.fillStyle=H.rgbStr(col); ctx.fillRect(x-.25,y+rh*.04,cw+.5,rh*.92); }
-          else { ctx.fillStyle='rgb(233,227,214)'; ctx.fillRect(x+cw*.12,y,cw*.76,rh); }
+          const over=(c+g)%4!==0, x=x0+c*cw;
+          const col=inlay?pc(fl(r,m+(c%3===0?1:0)),.06,1.08):(alt?pc(fl(r,m),.25,1):base);
+          if(over){ ctx.fillStyle=H.rgbStr(col); ctx.fillRect(x-.3,y,cw+.6,rh); }
+          else { ctx.fillStyle=H.rgbStr(H.mix(col,[.92,.89,.83],.55)); ctx.fillRect(x-.3,y,cw+.6,rh); ctx.fillStyle='rgba(120,100,80,.12)'; ctx.fillRect(x+cw*.3,y,cw*.4,rh); }
         }
       }
     });
@@ -120,13 +121,13 @@ GALLERY.add({ id:'s203', name:'십자수 취향 지도', cat:'직물', bg:'#F6F4
   desc:'기록 하나가 십자수 한 무더기예요. 맛과 향 자리에 가운데는 찻물 색, 둘레는 풍미 색으로 수놓고, 자리가 차 있으면 옆으로 번져 나가요.',
   render(ctx,W,recs){
     const N=recs.length, n=42, m=W*.06, c=(W-2*m)/n;
-    const col=new Array(n*n), K=N<=10?2.2:N<=50?.8:.5;
+    const col=new Array(n*n), K=N<=10?2.2:N<=50?.75:.45;
     recs.forEach(r=>{ const gx=r.x*n, gy=r.y*n, cnt=Math.max(3,Math.round((7+16*r.i)*K)), cand=[];
       for(let W2=4;cand.length<cnt&&W2<n;W2+=4){ cand.length=0;
         for(let j=Math.floor(gy-W2);j<=gy+W2;j++) for(let i=Math.floor(gx-W2);i<=gx+W2;i++){ if(i<0||j<0||i>=n||j>=n||col[j*n+i]) continue;
           const dx=i+.5-gx, dy=j+.5-gy; cand.push([Math.abs(dx)+Math.abs(dy)+.15*Math.hypot(dx,dy)+.01*((i*7+j*13)%5),j*n+i]); } }
       cand.sort((a,b)=>a[0]-b[0]); const take=cand.slice(0,cnt), nf=r.colors.length;
-      take.forEach((c,q)=>{ const t=q/cnt; col[c[1]]=t<.22?r.tea:(nf>1?r.colors[1+Math.floor((t-.22)/.78*(nf-1)*.999)].rgb:H.shade(r.tea,.2)); }); });
+      take.forEach((c,q)=>{ const t=q/cnt; col[c[1]]=t<.35?r.tea:(t<.8||nf<3?acc(r):r.colors[2].rgb); }); });
     // 천의 구멍
     ctx.fillStyle='rgba(0,0,0,.07)'; const hs=Math.max(1,W*.0022);
     for(let j=0;j<=n;j++) for(let i=0;i<=n;i++) ctx.fillRect(m+i*c-hs/2,m+j*c-hs/2,hs,hs);
@@ -273,14 +274,15 @@ GALLERY.add({ id:'s209', name:'스피로그래프 표본첩', cat:'실',
    s210 차 종류별 별자리
    ========================================================= */
 GALLERY.add({ id:'s210', name:'찻물 위 동심원', cat:'선',
-  desc:'기록 하나가 찻물에 떨어진 방울이 만든 동심원이에요. 진한 차일수록 물결이 멀리 퍼지고, 여러 잔의 물결이 겹친 곳에 무아레 무늬가 생겨요.',
+  desc:'비슷한 취향의 기록끼리 한 점에서 물결을 일으켜요. 한 잔마다 찻물 색과 풍미 색 물결이 한 겹씩 더해져 멀리 퍼지고, 물결이 겹친 곳에 무아레 무늬가 생겨요.',
   render(ctx,W,recs){
-    const N=recs.length, k=dk(N), m=W*.12, s=W/480, sp=W*(.0072+.002*k);
-    ctx.lineWidth=s*.7;
-    recs.forEach(r=>{ const cx=m+r.x*(W-2*m), cy=m+r.y*(W-2*m), Rm=W*(.05+.1*r.i)*(.5+.5*k), n=Math.max(3,Math.floor(Rm/sp)), cols=[r.tea,...r.colors.slice(1).map(c=>c.rgb)];
-      for(let q=1;q<=n;q++){ const t=q/n; ctx.strokeStyle=lc(pc(cols[q%cols.length],0,1.15),.75*Math.pow(1-t,.6)*(.25+.75*k)+.04);
+    const N=recs.length, k=dk(N), m=W*.13, s=W/480, sp=W*.0078, C=cluster(recs,.07);
+    ctx.lineWidth=s*.75;
+    C.forEach(c=>{ const cx=m+c.x*(W-2*m), cy=m+c.y*(W-2*m), cols=[]; c.m.forEach(r=>{ cols.push(r.tea,acc(r)); if(r.i>.65) cols.push(fl(r,1)); });
+      const n=cols.length+4;
+      for(let q=1;q<=n;q++){ const t=q/n, col=cols[Math.min(cols.length-1,Math.max(0,q-3))]; ctx.strokeStyle=lc(pc(col,0,1.15),.8*Math.pow(1-t,.5)+.06);
         ctx.beginPath(); ctx.arc(cx,cy,q*sp,0,TAU); ctx.stroke(); }
-      ctx.fillStyle=lc(r.tea,.8); ctx.beginPath(); ctx.arc(cx,cy,s*1.4,0,TAU); ctx.fill(); });
+      ctx.fillStyle=lc(c.m[0].tea,.85); ctx.beginPath(); ctx.arc(cx,cy,s*1.6,0,TAU); ctx.fill(); });
   }});
 
 /* =========================================================
@@ -454,12 +456,12 @@ GALLERY.add({ id:'s218', name:'아플리케 퀼트', cat:'직물', bg:'#F6F3EC',
    s219 현 (harp strings)
    ========================================================= */
 GALLERY.add({ id:'s219', name:'이캇 날실', cat:'직물', bg:'#F4F0E8',
-  desc:'기록 하나가 염색한 날실 한 묶음이에요. 왼쪽부터 마신 순서대로 놓이고, 맛이 좋았던 높이에 찻물 색과 풍미 색이 번지듯 물들어 있어요.',
+  desc:'기록 하나가 염색한 날실 한 묶음이에요. 향이 좋았던 차일수록 오른쪽에 놓이고, 맛이 좋았던 높이에 찻물 색과 풍미 색이 번지듯 물들어 있어요.',
   render(ctx,W,recs){
     const N=recs.length, tpr=Math.max(1,Math.round(84/N)), T=N*tpr, x0=W*.1, x1=W*.9, tw=(x1-x0)/T, top=W*.07, bot=W*.93, s=W/480;
     ctx.lineCap='butt'; ctx.lineWidth=tw*.78; ctx.strokeStyle='rgb(228,221,207)';
     for(let t=0;t<T;t++){ const x=x0+(t+.5)*tw; ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bot); ctx.stroke(); }
-    recs.forEach((r,k)=>{ const R=H.rng(H.hash(r.id)), yc=W*(.14+.72*r.y), hh=W*(.035+.085*r.i), cols=[r.tea,...r.colors.slice(1).map(c=>c.rgb)];
+    [...recs].sort((a,b)=>a.x-b.x).forEach((r,k)=>{ const R=H.rng(H.hash(r.id)), yc=W*(.14+.72*r.y), hh=W*(.035+.085*r.i)*(.55+.45*dk(N)), cols=[r.tea,...r.colors.slice(1).map(c=>c.rgb)];
       for(let q=0;q<tpr;q++){ const t=k*tpr+q, x=x0+(t+.5)*tw, mid=(tpr-1)/2, sh=tpr>1?1-Math.abs(q-mid)/(mid+1)*.85:1;
         const yy=yc+(H.noise(t*.25,7)-.5)*W*.03, h=hh*sh*(.92+.16*R()), jt=(R()-.5)*W*.01;
         const seg=(y1,y2,c,a)=>{ ctx.strokeStyle=H.rgbStr(c,a); ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke(); };

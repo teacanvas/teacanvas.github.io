@@ -277,12 +277,12 @@ A({id:'s110',name:'보케',cat:'빛',
   desc:'초점이 나간 불빛처럼 기록이 동그란 빛망울이 돼요. 진한 차일수록 크고, 오래된 기록일수록 더 흐릿하게 물러나요.',
   bg:'#16141A',
   render(ctx,W,recs,H){
-    const N=recs.length, sc=.45+.55*dens(N), al=Math.min(1,.5+2.4/Math.sqrt(N));
+    const N=recs.length, sc=.45+.55*dens(N), al=Math.min(1,.35+2/Math.sqrt(N));
     const order=recs.map((r,k)=>({r,k})).sort((a,b)=>b.r.daysAgo-a.r.daysAgo);
     ctx.save(); ctx.globalCompositeOperation='screen';
     order.forEach(({r,k})=>{
       const age=1-k/Math.max(1,N-1), x=(.06+.88*r.x)*W, y=(.06+.88*r.y)*W, R=W*(.03+.055*r.i)*sc*(1+age*.35);
-      const c=H.pastel(r.colors[0].rgb,.1,1.3), e=H.pastel((r.colors[1]||r.colors[0]).rgb,.25,1.3), a=al*(.75-.35*age);
+      const c=H.pastel(r.colors[0].rgb,.3,1.3), e=H.pastel((r.colors[1]||r.colors[0]).rgb,.3,1.3), a=al*(.75-.35*age);
       const soft=.06+.22*age, g=ctx.createRadialGradient(x,y,0,x,y,R);
       g.addColorStop(0,rgba(c,a*.32)); g.addColorStop(Math.max(.05,.86-soft),rgba(c,a*.42));
       g.addColorStop(Math.max(.1,.95-soft*.6),rgba(e,a*.75)); g.addColorStop(1,rgba(e,0));
@@ -398,13 +398,12 @@ A({id:'s115',name:'베이어 디더',cat:'그라데이션',
   bg:'#F6F3EC',
   render(ctx,W,recs,H){
     const M=96, F=cfield(recs,M,H,{rad:.08,sharp:2,covK:1.3}), paper=[.965,.953,.925];
-    const pal=[paper]; const seen=new Set(); recs.forEach(r=>r.colors.forEach(c=>{ if(!seen.has(c.hex)){ seen.add(c.hex); pal.push(H.pastel(c.rgb,.1,1.1)); } }));
+    const pal=[paper]; const seen=new Set(); recs.forEach(r=>r.colors.forEach(c=>{ if(!seen.has(c.hex)){ seen.add(c.hex); pal.push(H.pastel(c.rgb,.18,1.1)); } }));
     const B=[0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21];
     const im=ctx.createImageData(M,M), d=im.data;
     const D=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;
     for(let j=0;j<M;j++) for(let i=0;i<M;i++){ const q=j*M+i, cv=F.cov[q];
-      const t=[paper[0]+(H.pastel([F.g[q*3],F.g[q*3+1],F.g[q*3+2]],.1,1.2)[0]-paper[0])*ssf(0,.85,cv),0,0];
-      const fc=H.pastel([F.g[q*3],F.g[q*3+1],F.g[q*3+2]],.1,1.2), m=ssf(0,.85,cv); t[1]=paper[1]+(fc[1]-paper[1])*m; t[2]=paper[2]+(fc[2]-paper[2])*m;
+      const fc=H.pastel([F.g[q*3],F.g[q*3+1],F.g[q*3+2]],.18,1.2), m=ssf(0,.85,cv), t=paper.map((p,k)=>p+(fc[k]-p)*m);
       let a=0,b=0,da=1e9,db=1e9; pal.forEach((p,k)=>{ const dd=D(p,t); if(dd<da){ db=da; b=a; da=dd; a=k; } else if(dd<db){ db=dd; b=k; } });
       const pa=pal[a], pb=pal[b], ab=D(pa,pb)||1; const tt=cl(((t[0]-pa[0])*(pb[0]-pa[0])+(t[1]-pa[1])*(pb[1]-pa[1])+(t[2]-pa[2])*(pb[2]-pa[2]))/ab);
       const c=tt>(B[(j%8)*8+i%8]+.5)/64?pb:pa; d[q*4]=c[0]*255; d[q*4+1]=c[1]*255; d[q*4+2]=c[2]*255; d[q*4+3]=255; }
@@ -488,10 +487,11 @@ A({id:'s119',name:'반짝이 가루',cat:'입자',
       if(f>.95&&p.cov>.25) gl.push([x,y,base]);
     }
     ctx.lineCap='round';
-    gl.forEach(([x,y,b])=>{ const L=cell*(2.6+rnd()*2.6), g=ctx.createRadialGradient(x,y,0,x,y,L);
-      g.addColorStop(0,'rgba(255,255,255,.95)'); g.addColorStop(.35,rgba(lift(b,.6),.35)); g.addColorStop(1,rgba(lift(b,.6),0));
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,L,0,TAU); ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.95)'; ctx.lineWidth=Math.max(.6,W/700); ctx.beginPath(); ctx.moveTo(x-L*1.2,y); ctx.lineTo(x+L*1.2,y); ctx.moveTo(x,y-L*1.2); ctx.lineTo(x,y+L*1.2); ctx.stroke(); });
+    gl.forEach(([x,y,b])=>{ const L=cell*(2.2+rnd()*2.2), c=H.pastel(b,.1,1.3);
+      for(const [dx,dy,k] of [[1,0,1],[0,1,1],[.7,.7,.45],[.7,-.7,.45]]){ const g=ctx.createLinearGradient(x-dx*L*k,y-dy*L*k,x+dx*L*k,y+dy*L*k);
+        g.addColorStop(0,rgba(c,0)); g.addColorStop(.5,rgba(c,.95)); g.addColorStop(1,rgba(c,0));
+        ctx.strokeStyle=g; ctx.lineWidth=Math.max(.7,W/600); ctx.beginPath(); ctx.moveTo(x-dx*L*k,y-dy*L*k); ctx.lineTo(x+dx*L*k,y+dy*L*k); ctx.stroke(); }
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,cell*.55,0,TAU); ctx.fill(); });
   }});
 /* ───────── 020 찻잔 속 빛 ───────── */
 A({id:'s120',name:'찻잔 속 물빛',cat:'빛',
