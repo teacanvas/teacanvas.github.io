@@ -1195,7 +1195,7 @@ const SCREENS = {
 
 home(){
   return `<div class="home">
-    <h1 class="home-q ${HQ}" style="margin-top:${HL.qt}px">${/split/.test(HQ)?'<em>오늘의 차,</em>당신에게 어떤 색들이 담겨 있나요?':'오늘의 차,<br>당신에게 어떤 색들이 담겨 있나요?'}</h1>
+    <h1 class="home-q ${HQ}" style="margin-top:${HL.qt}px">${/split/.test(HQ)?'<em>오늘의 차,</em>어떤 색들이 담겨 있나요?':'오늘의 차,<br>어떤 색들이 담겨 있나요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
     ${(()=>{ const v=loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="dropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
     <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
