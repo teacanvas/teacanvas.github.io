@@ -198,6 +198,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .own-l{display:block;font-size:11px;color:var(--g2);letter-spacing:.04em;margin-bottom:4px}
 .own q{display:block;font-family:'Gowun Batang',serif;font-size:15px;line-height:1.55;color:#333;quotes:"“" "”"}
 .own-m{font-size:11.5px;color:#9A9A9A;margin-top:6px}
+.ai-busy{font-size:12px;color:#999;text-align:center;margin-top:6px;animation:blink 1.6s ease-in-out infinite}
 .ai-in{animation:fade .5s ease}
 /* 채팅 안에서 누를 수 있는 버튼: 말풍선(회색)과 헷갈리지 않게 흰 바탕 + 진한 테두리 */
 #msgs .chip{background:#fff;border:1.5px solid #222;color:#111;font-weight:600}
@@ -665,7 +666,24 @@ const daysAgo=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d; };
 const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.`;
 /* 예시 기록 사진: 위키미디어 공용의 자유 이용 사진(작가·라이선스는 assets/photos/credits.json) */
 const SEED_PHOTOS={"s1": {"src": "assets/photos/s1.jpg", "by": "Na visky", "lic": "Unsplash License", "url": "https://unsplash.com/photos/white-ceramic-teacup-on-brown-wooden-table-3hRRT4qztzs"}, "s2": {"src": "assets/photos/s2.jpg", "by": "Quelcrime", "lic": "Public domain", "url": "https://commons.wikimedia.org/wiki/File:Tieguanyin2.jpg"}, "s4": {"src": "assets/photos/s4.jpg", "by": "soultea.de/André Helbig", "lic": "CC BY-SA 3.0", "url": "https://commons.wikimedia.org/wiki/File:Frisch_aufgebr%C3%BChter_wei%C3%9Fer_Tee_Pai_Mu_Tan.jpg"}, "s8": {"src": "assets/photos/s8.jpg", "by": "Hari Prasad Nadig", "lic": "CC BY-SA 2.0", "url": "https://commons.wikimedia.org/wiki/File:Assam_Tea.jpg"}};
-function seedRecords(){
+function seedRecords(){ return SAMPLE==='many'?[...baseSeeds(),...manySeeds()]:baseSeeds(); }
+/* 찻방울이 많은 캔버스용 예시 40잔: 여러 차 · 3~4가지 풍미 · 반년에 걸친 날짜 */
+function manySeeds(){
+  let sd=20261121; const r=()=>{ sd|=0; sd=sd+0x6D2B79F5|0; let t=Math.imul(sd^sd>>>15,1|sd); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }, pick=a=>a[Math.floor(r()*a.length)];  // 앱이 뜨기 전에 쓰이므로 자체 난수
+  const names=[['green','우전','오설록'],['green','세작','하동 다원'],['green','센차','이토엔'],['green','호지차','티하우스'],['green','현미녹차','동서'],['green','자스민 녹차','티하우스'],
+    ['white','백호은침','운남 다원'],['white','수미','티하우스'],['oolong','동방미인','대만 다원'],['oolong','대홍포','무이산'],['oolong','봉황단총','광동 다원'],['oolong','문산포종','대만 다원'],
+    ['black','다즐링','트와이닝'],['black','아쌈','티하우스'],['black','기문','기문 다원'],['black','실론','딜마'],['black','잉글리시 브렉퍼스트','트와이닝'],['dark','생차 보이','운남 다원'],['dark','육보차','광서 다원'],
+    ['herb','캐모마일','오설록'],['herb','페퍼민트','티하우스'],['herb','루이보스','티하우스'],['herb','히비스커스','티하우스'],['herb','레몬그라스','티하우스']];
+  const LEAN={green:['vegetal','fresh','sweet','nutty'],white:['sweet','floral','soft'],oolong:['floral','fruity','nutty','sweet'],black:['fruity','sweet','astringent','citrus','spicy'],dark:['earthy','nutty','sweet','soft'],herb:['floral','fresh','citrus','soft','spicy']};
+  const out=[];
+  for(let i=0;i<40;i++){ const [type,name,brand]=pick(names), pool=[...LEAN[type],...FKEYS.filter(k=>!LEAN[type].includes(k))];
+    const n=3+(r()<.4?1:0), ks=[]; while(ks.length<n){ const k=r()<.8?pool[Math.floor(r()*LEAN[type].length)]:pick(FKEYS); if(!ks.includes(k)) ks.push(k); }
+    const like=r()<.62, d=daysAgo(1+Math.floor(r()*180));
+    out.push({id:'m'+i,type,name,brand,ts:d.getTime(),date:fmtDate(d),stars:1+Math.floor(r()*3),comment:'',photo:false,
+      canvas:{x:+(like?.53+.4*r():.07+.86*r()).toFixed(3),y:+(like?.07+.4*r():.07+.86*r()).toFixed(3),i:.6},
+      flavors:ks.map((k,j)=>({k,w:+(.9-j*.18).toFixed(2)})),exprs:[],tags:[],memo:[],seed:true}); }
+  return out; }
+function baseSeeds(){
   const R=(id,type,name,brand,ago,stars,comment,photo,canvas,flavors,exprs,memo)=>{ const d=daysAgo(ago);
     return {id,type,name,brand,ts:d.getTime(),date:fmtDate(d),stars,comment,photo,canvas,flavors:flavors.map(([k,w])=>({k,w})),exprs,tags:exprs.slice(0,3),memo,seed:true}; };
   return [
@@ -684,12 +702,14 @@ function seedRecords(){
    STATE
    ========================================================= */
 /* 기록 저장: 관람객 기록이 한 캔버스에 계속 모이도록 localStorage에 쌓는다 */
-const STORE_KEY='teacanvas.v2.records';
+/* ?sample=many 이면 찻방울이 많은 캔버스(따로 저장). 저장 이름을 v5로 바꿔, 예전 버전에서 남긴 기록 없이 예시만으로 시작한다 */
+const SAMPLE=(()=>{ try{ return new URLSearchParams(location.search).get('sample')==='many'?'many':''; }catch(e){ return ''; } })();
+const STORE_KEY=SAMPLE?'teacanvas.v5.many':'teacanvas.v5.records';
 function loadRecords(){
   try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const r=JSON.parse(raw); if(Array.isArray(r)){ const sd=Object.fromEntries(seedRecords().map(x=>[x.id,x])); r.forEach(x=>{ if(x.seed&&sd[x.id]){ x.flavors=sd[x.id].flavors; x.exprs=sd[x.id].exprs; x.photo=sd[x.id].photo; } }); return r; } } }catch(e){}
   return seedRecords();
 }
-function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S.records)); }catch(e){} }
+function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S.records)); }catch(e){ try{ toast('이 기기에 기록을 저장하지 못했어요. 화면을 닫으면 사라질 수 있어요'); }catch(_){} } }
 
 const S = {
   stack:[], records:loadRecords(), draft:null, timer:null,
@@ -987,7 +1007,7 @@ function dropBitmap(drop,px){
   if(BMP.has(k)) return BMP.get(k);
   if(BMP.size>300) BMP.clear();
   const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
-  drawRec1(x,dropFlav(drop),px/2,px/2,px*.27,dropSid(drop),CV_SPREAD+1.4,.95);
+  drawRec1(x,dropFlav(drop),px/2,px/2,px*.33,dropSid(drop),CV_SPREAD+1.4,.95);
   BMP.set(k,c); return c;
 }
 const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
@@ -1051,12 +1071,15 @@ function render(keepScroll){
   const view=$('#view'); const top=view.scrollTop;
   const cur=S.stack[S.stack.length-1];
   const fn=SCREENS[cur.name];
-  view.innerHTML=`<div class="scr scr-${cur.name} ${keepScroll?'':'in-'+NAV_DIR}">${fn(cur.params||{})}</div>`;
-  view.scrollTop = keepScroll ? top : 0;
-  const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
-  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  (AFTER[cur.name]||(()=>{}))(cur.params||{});
-  paintDrops(view);
+  try{
+    if(!fn) throw new Error('없는 화면: '+cur.name);
+    view.innerHTML=`<div class="scr scr-${cur.name} ${keepScroll?'':'in-'+NAV_DIR}">${fn(cur.params||{})}</div>`;
+    view.scrollTop = keepScroll ? top : 0;
+    const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+    (AFTER[cur.name]||(()=>{}))(cur.params||{});
+    paintDrops(view);
+  }catch(e){ console.warn('화면 오류',e); view.innerHTML=`<div class="scr scr-error in-fade">${SCREENS.error({})}</div>`; }
 }
 
 /* =========================================================
@@ -1101,10 +1124,15 @@ function collectExprs(d){
   if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
 }
+/* 정도 표현: '살짝·조금·약간·은은하게'는 옅게, '많이·진하게·엄청·확'은 진하게 */
+function amountOf(text){ const t=String(text||'').replace(/\s/g,'');
+  if(/(엄청|너무|아주|정말|진짜|완전|많이|강하게|강한|진하게|진한|확|가득|꽉|짙)/.test(t)) return 1.6;
+  if(/(살짝|조금|약간|은은|희미|살며시|미세|옅게|옅은|어렴풋|아주조금|살짝은)/.test(t)) return .55;
+  return 1; }
 // 먼저 떠올린 표현과 여러 번 나온 풍미일수록 진하게(최대 4가지)
 function scoreFlavors(exprs){
   const sc={}; let i=0;
-  exprs.forEach(e=>{ if(!e.fl.length) return; const w=1+(i===0?.4:i===1?.2:0); i++; e.fl.forEach(k=>sc[k]=(sc[k]||0)+w*(e.fl.length>2?.8:1)); });
+  exprs.forEach(e=>{ if(!e.fl.length) return; const w=(1+(i===0?.4:i===1?.2:0))*amountOf(e.text); i++; e.fl.forEach(k=>sc[k]=(sc[k]||0)+w*(e.fl.length>2?.8:1)); });
   const ks=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]).slice(0,4), mx=sc[ks[0]]||1;
   return ks.map(k=>({k,w:+(.35+.6*sc[k]/mx).toFixed(2)}));
 }
@@ -1137,7 +1165,7 @@ function ownHTML(words){ if(!words.length) return '';
 function recommendTeas(all,n=3){ const w={}; (all||[]).forEach(f=>w[f.k]=f.w); const had=new Set(S.records.map(r=>r.name.replace(/\s/g,'')));
   return REC_TEAS.filter(t=>!had.has(t.name.replace(/\s/g,''))).map(t=>({...t,score:t.fl.reduce((s,k,i)=>s+(w[k]||0)*(1-i*.15),0),match:t.fl.filter(k=>w[k])}))
     .filter(t=>t.score>0).sort((a,b)=>b.score-a.score).slice(0,n); }
-function recHTML(list){ return list.length?`<h3 class="rec-h">이런 차도 좋아할 것 같아요</h3><div class="recs">${list.map(t=>`<div class="rec1">${orb({id:'rec-'+t.name,comps:t.fl.map((k,i)=>({key:k,c:FLAVORS[k].color,w:1-i*.25}))},52)}<div><b>${esc(t.name)}<small>${TEAS[t.type].label}</small></b><p>${esc(t.note)}</p>${t.match&&t.match.length?`<span>${t.match.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')}가 닮았어요</span>`:''}</div></div>`).join('')}</div>`:''; }
+function recHTML(list){ return list.length?`<h3 class="rec-h">이런 차도 좋아할 것 같아요</h3><div class="recs">${list.map(t=>`<div class="rec1">${orb({id:'rec-'+t.name,comps:t.fl.map((k,i)=>({key:k,c:FLAVORS[k].color,w:1-i*.25}))},52)}<div><b>${esc(t.name)}<small>${TEAS[t.type].label}</small></b><p>${esc(t.note)}</p>${t.match&&t.match.length?`<span>${t.match.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')}</span>`:''}</div></div>`).join('')}</div>`:''; }
 async function aiRecommend(fav){ const j=await aiCall('recommend',{flavors:fav.all.map(f=>HOME_EN[f.k]),recorded:S.records.map(r=>r.name)});
   const el=$('#recBox'); if(!el||!j||!Array.isArray(j.teas)) return;
   const list=j.teas.slice(0,3).map(t=>({name:String(t.name||''),type:ORDER.includes(t.type)?t.type:(findType(String(t.name||''))||'green'),fl:(t.flavors||[]).map(x=>Object.keys(HOME_EN).find(k=>HOME_EN[k].toLowerCase()===String(x).toLowerCase())).filter(Boolean),note:String(t.why||'')})).filter(t=>t.name&&t.fl.length);
@@ -1416,6 +1444,7 @@ compare(){
   return `${stepbar(4)}
   <h1 class="t">내 감각과 설명을 함께 볼까요?</h1>
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
+  <p class="ai-busy" id="cmpBusy" hidden>AI가 내 표현을 정리하고 있어요…</p>
   ${d3Box('cmp3d',240)}
   ${d.flavors.length?`<div class="center-chips">${flChips(d.flavors)}</div>`:''}
   ${ownHTML(ownWords(d.exprs))}
@@ -1467,7 +1496,7 @@ teaTag(){
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
-    ${orb(r,140,'big')}
+    ${orb(r,210,'big')}
     <div class="nm">${esc(r.name)}</div>
     <div class="meta">${esc(r.brand)} · ${r.date} · ${stars(r.stars)}</div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
@@ -1526,7 +1555,7 @@ detail(p){
   ${ownHTML(recOwn(r))}
   <div class="detail">
     <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
-    ${SEED_PHOTOS[r.id]?`<figure class="photo real"><img src="${SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy"></figure>`:r.photo?`<div class="photo"><span>사진</span></div>`:''}
+    ${SEED_PHOTOS[r.id]?`<figure class="photo real"><img src="${SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy" onerror="this.parentNode.style.display='none'"></figure>`:r.photo?`<div class="photo"><span>사진</span></div>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
   </div>
@@ -1566,6 +1595,12 @@ noti(){
   </div>`;
 },
 
+thin(){
+  return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button><span></span><span></span></div>
+  <div class="state">${orb('clear',120,'big')}<h2>아직 담을 맛과 향이 없어요</h2><p>향이나 맛을 한 마디라도 내 말로 남기면<br>그 표현이 색이 되어 찻방울로 번져요.</p></div>
+  <button class="btn" onclick="back()">채팅으로 돌아가 남기기</button>
+  <button class="link" onclick="finishChat(true)">색 없이 맑은 찻방울로 남기기</button><div style="height:30px"></div>`;
+},
 error(p){
   return `<div class="state">${I.warn}<h2>잠시 문제가 생겼어요</h2><p>지금은 요청을 처리할 수 없어요.<br>조금 후에 다시 시도해 주세요.</p></div>
   <button class="btn" onclick="retryError('${p.retry||''}')">다시 시도하기</button>
@@ -1604,7 +1639,7 @@ function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur(
 
 /* 기록 삭제: 확인 후 지운다 */
 /* 기록 그만하기: 저장해두면 홈에서 이어서 할 수 있다 */
-const PAUSE_KEY='teacanvas.v2.paused';
+const PAUSE_KEY=SAMPLE?'teacanvas.v5.many.paused':'teacanvas.v5.paused';
 let PAUSED_MEM;  // 브라우저 저장소를 못 쓰는 환경에서도 이 화면을 닫기 전까지는 이어할 수 있게
 function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAUSE_KEY); if(raw!==null) v=JSON.parse(raw); }catch(e){} return v&&v.draft&&Array.isArray(v.stack)&&v.stack.length?v:null; }
 function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
@@ -1835,8 +1870,9 @@ async function aiCall(mode,extra){
 async function askAI(q){ const j=await aiCall('question',{question:q}); return j&&typeof j.text==='string'&&j.text.trim()?j.text.trim():null; }
 /* 비교 화면 정리: 받는 것 {expert, mine, common:[], diff:[], ai} — 빠진 칸은 정해진 내용 그대로 */
 async function aiCompare(){
-  const d=S.draft; if(!d) return;
+  const d=S.draft; if(!d) return; const busy=$('#cmpBusy'); if(busy&&AI_ENDPOINT) busy.hidden=false;
   const j=await aiCall('compare',{expressions:collectExprs(d).map(e=>e.text),feel:{color:d.feel.color,aroma:d.feel.aroma,taste:d.feel.taste},flavors:(d.flavors||[]).map(f=>HOME_EN[f.k])});
+  { const b=$('#cmpBusy'); if(b) b.hidden=true; }
   if(!j||cur()!=='compare') return; const set=(id,html)=>{ const el=$('#'+id); if(el&&html){ el.innerHTML=html; el.classList.add('ai-in'); } };
   if(typeof j.expert==='string') set('cmpExpert',esc(j.expert));
   if(typeof j.mine==='string') set('cmpMine',esc(j.mine));
@@ -2095,7 +2131,8 @@ function paintVoice(botText){ const d=S.draft; if(!d) return;
   if(hd) hd.textContent=VOICE.interim?`“${VOICE.interim}”`:'';
   if(bn) bn.textContent=VOICE.on?'대화 멈추기':'눌러서 대화 시작';
   const fl=$('#vFl'); if(fl){ const ks=vwFlavors(); fl.innerHTML=ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join(''); } }
-function finishChat(){ if(VOICE.on) stopVoice(); S.listening=false; if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
+function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false;
+  if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
 
 /* deep */
 function openBrew(n,isAdd){
@@ -2119,7 +2156,7 @@ function myExpression(d){
   if(mine.length) return mine.slice(0,3).join(', ') + '.';
   const f=['color','aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}이(가) 먼저 느껴졌어요.`;
-  return '풀 향이 먼저 나고, 따뜻한 물 마시듯 편안했어요. 끝에 살짝 고소하고 포근한 느낌이 남았어요.';
+  return '이번에는 남긴 표현이 없어요.';
 }
 
 /* 캔버스 찍기 시트 → 기록 저장 */
@@ -2651,7 +2688,8 @@ function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.
 function closeSheet(){ $('#sheetWrap').classList.remove('open'); }
 
 /* error */
-function retryError(){ rerender(); }
+let lastErrToast=0; addEventListener('error',()=>{ if(Date.now()-lastErrToast>5000){ lastErrToast=Date.now(); try{ toast('잠시 문제가 생겼어요. 다시 시도해 주세요'); }catch(e){} } });
+function retryError(){ if(S.stack.length>1){ S.stack.pop(); NAV_DIR='back'; render(); } else goTab('home'); }
 
 function resetAll(){ savePaused(null);
   try{ localStorage.removeItem(STORE_KEY); }catch(e){}
