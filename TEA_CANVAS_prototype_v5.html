@@ -1942,7 +1942,8 @@ function startHome3D(el){
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
   const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
-  const LEAD=.6, SPREAD=2.6, FADE=.9, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
+  // 번짐(2.9초) → 다 만들어진 모습 그대로 잠시 유지(1.4초) → 옅어짐(0.9초)
+  const LEAD=.6, SPREAD=2.9, HOLD=1.4, FADE=.9, STEPT=LEAD+SPREAD+HOLD+FADE, LOOP=STEPT*ORDER_F.length;
   const N=Math.min(260,Math.round(px*.55)); const cache={};
   const wash=(k,i)=>cache[k+i]||(cache[k+i]=makeWash(N,FLAVORS[k].color,WC.hash(k)+i*977));
   let lastShown=''; const t0=performance.now();
@@ -1952,10 +1953,10 @@ function startHome3D(el){
     const tt=window.HOME_T!=null?window.HOME_T:Math.max(0,(now-t0)/1000), lt=tt%LOOP, idx=Math.floor(lt/STEPT), k=ORDER_F[idx], st=lt-idx*STEPT, cyc=Math.floor(tt/LOOP);
     if(lastShown!==k+cyc){ lastShown=k+cyc; label.classList.remove('on'); void label.offsetWidth; const F=FLAVORS[k];
       lb.textContent=HOME_EN[k]; lb.style.color=inkText(F.color); ls.textContent=HOME_EX[k]||''; label.classList.add('on'); }
-    if(st>LEAD+SPREAD+FADE*.4) label.classList.remove('on');
+    if(st>LEAD+SPREAD+HOLD+FADE*.3) label.classList.remove('on');
     x.clearRect(0,0,px,px);
-    const age=st-LEAD; if(age>0){ const fade=1-Math.max(0,Math.min(1,(age-SPREAD)/FADE));
-      const img=wash(k,cyc%3).frame(age,fade); const m=px*.06; x.drawImage(img,m,m,px-2*m,px-2*m); }
+    const age=st-LEAD; if(age>0){ const fade=1-Math.max(0,Math.min(1,(age-SPREAD-HOLD)/FADE));
+      const img=wash(k,cyc%3).frame(Math.min(age,SPREAD),fade); const m=px*.06; x.drawImage(img,m,m,px-2*m,px-2*m); }
     requestAnimationFrame(loop);
   })(performance.now());
   return true;
