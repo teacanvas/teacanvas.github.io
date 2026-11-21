@@ -904,12 +904,15 @@ function orb(src,size,cls=''){
   DROPS[drop.id]=drop;
   return `<canvas class="wcd ${cls}" data-dk="${esc(drop.id)}" data-sz="${size}" style="width:${size}px;height:${size}px"></canvas>`;
 }
+/* 모든 방울을 ① 수채로: 풍미 색만 쓰고, 풍미가 없으면 맑은 물. 같은 기록은 어디서나 같은 모양(id로 시드) */
+function dropFlav(drop){ const f=(drop.comps||[]).filter(c=>FLAVORS[c.key]); return f.length?f.map(c=>({k:c.key,c:FLAVORS[c.key].color,w:c.w})):[{k:'clear',c:CLEAR,w:.6}]; }
+const dropSid=drop=>String(drop.id).replace(/^draft-/,'n').replace(/^rb-/,'');
 function dropBitmap(drop,px){
   const k=drop.id+'|'+px+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
   if(BMP.has(k)) return BMP.get(k);
   if(BMP.size>300) BMP.clear();
   const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
-  BLOOM.draw(x,drop,px/2,px/2,px*.3,1,1.4);
+  drawRec1(x,dropFlav(drop),px/2,px/2,px*.27,dropSid(drop),CV_SPREAD+1.4,.95);
   BMP.set(k,c); return c;
 }
 const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
@@ -1006,14 +1009,7 @@ function canvasBox(id,{labels=true,cls=''}={}){
 const dropR=(W,i,k=1)=>W*.16*Math.pow(10/Math.max(10,S.records.length),.3)*(.65+.5*(i??.5))*k;
 const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
 function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.09)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke(); x.restore(); }
-function paintCanvas(cv,recs,{alpha=1,highlight=null,k=1,paper=CANVAS_BG}={}){
-  const px=pxFor(cv.clientWidth); cv.width=cv.height=px; const x=cv.getContext('2d');
-  x.fillStyle=paper; x.fillRect(0,0,px,px); axes(x,px);
-  recs.forEach(r=>BLOOM.draw(x,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k),1,highlight?(r.id===highlight?1:.18):alpha));
-  if(highlight){ const r=recs.find(q=>q.id===highlight); if(r){ x.save(); x.strokeStyle='rgba(0,0,0,.55)'; x.lineWidth=Math.max(1,px/300); x.setLineDash([px/90,px/110]); x.beginPath(); x.arc(r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,k)*1.05,0,Math.PI*2); x.stroke(); x.restore(); } }
-  
-  return px;
-}
+
 const posText=c=>c?`마시기 전 향은 ${c.x>=.5?'좋았고':'아쉬웠고'}, 마신 뒤 맛은 ${c.y<.5?'좋았어요':'아쉬웠어요'}.`:'';
 const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><i style="background:${FLAVORS[f.k].color}"></i>${FLAVORS[f.k].label}</span>`).join('')}</div>`;
 const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font-size:14px">${t}</b></div>`;
@@ -1822,14 +1818,14 @@ function bindPick(cv){
   const d=S.draft, drop=draftDrop(d), others=recsAsc(), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
   const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
   const b=bg.getContext('2d'); b.fillStyle=CANVAS_BG; b.fillRect(0,0,px,px); axes(b,px);
-  others.forEach(r=>BLOOM.draw(b,recDrop(r),r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i),1,.28));
-  
+  others.forEach(r=>drawRec1(b,recFlav(r),r.canvas.x*px,r.canvas.y*px,R1(px),r.id,CV_SPREAD,.25));
+  const L=dropFlav(drop), sid=dropSid(drop);
   let prog=1, holding=false, raf=0, t0=0, last=0;
-  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) BLOOM.draw(ctx,drop,d.canvas.x*px,d.canvas.y*px,dropR(px,d.canvas.i),prog); };
+  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) drawRec1(ctx,L,d.canvas.x*px,d.canvas.y*px,R1(px),sid,prog*(CV_SPREAD+1.4),.55+.45*d.canvas.i); };
   const loop=now=>{
     if(!cv.isConnected){ raf=0; return; }
     if(holding){ d.canvas.i=Math.min(1,d.canvas.i+(now-last)/2200); }
-    last=now; prog=Math.min(1,(now-t0)/1000); frame();
+    last=now; prog=Math.min(1,(now-t0)/1500); frame();
     if(holding||prog<1) raf=requestAnimationFrame(loop); else { raf=0; }
   };
   const pos=e=>{ const r=cv.getBoundingClientRect(); return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)}; };
@@ -1850,7 +1846,7 @@ function saveRecord(){
   memo.push(myExpression(d));
   const tags=[...['aroma','taste'].flatMap(k=>String(d.feel[k]||'').split(', ')).filter(v=>v&&v!=='잘 모르겠어요'),...d.picked];
   const now=new Date();
-  const rec={id:'n'+Date.now(),type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
+  const rec={id:S.records.some(q=>q.id==='n'+d.tid)?'n'+Date.now():'n'+d.tid,type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
     canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
     chat:d.chat.filter(m=>m.who!=='sys').map(({who,text,color})=>color?{who,text,color}:{who,text}),voice:d.voice,deep:dp,
     teaColor:d.feel.color&&d.feel.color!=='잘 모르겠어요'?{name:d.feel.color,hex:d.feel.colorHex||null}:null};
@@ -1880,21 +1876,25 @@ function runInfusion(){
   // 수채: 찻물 색이 먼저 옅게 번지고, 표현이 가라앉을 때마다 그 풍미 색 꽃잎이 하나씩 번져 들어온다
   const size=236, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height=size+'px'; box.innerHTML=''; box.appendChild(cv);
   const x=cv.getContext('2d'), teaC={key:'water',c:CLEAR,w:.6}; // 맑은 물에서 시작해, 풍미 색이 하나씩 번져 들어온다
+  const sid='n'+d.tid, IL=fk.map(k=>({k,c:FLAVORS[k].color,w:(d.flavors.find(f=>f.k===k)||{w:.5}).w})), IP=IL.length?parts1(IL,px*.27,WC.hash(sid)%1000/1000*6.28):[];
+  const io=document.createElement('canvas'); io.width=io.height=px; const ioc=io.getContext('2d');
   const starts={}; let ei=0, done=false; const t0=performance.now();
   (function loop(now){
     if(cur()!=='analyzing'||S.stack.length!==at||!cv.isConnected) return;
     const t=now-t0;
     while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; if(e.chip) floatChip(e.chip); else starts[e.k]=e.t; }
     x.clearRect(0,0,px,px);
-    BLOOM.draw(x,{id:fin.id+'-tea',comps:[teaC]},px/2,px/2,px*.3,Math.min(1,t/1200),1.4);
-    fk.forEach((k,i)=>{ if(starts[k]==null) return; const a=i/Math.max(1,fk.length)*6.283, c=fin.comps.find(q=>q.key===k);
-      BLOOM.draw(x,{id:fin.id+'-'+k,comps:[c]},px/2+Math.cos(a)*px*.08,px/2+Math.sin(a)*px*.08,px*.24,Math.min(1,(t-starts[k])/1300),1.6); });
+    { const D=px*1.05, wt=Math.min(CV_SPREAD,t/1000*1.9), fade=fk.length?Math.max(.25,1-Object.keys(starts).length*.2):1; x.globalAlpha=.85*fade;
+      x.drawImage(cvWash(150,'clear',CLEAR,77).frame(wt),px/2-D/2,px/2-D/2,D,D); x.globalAlpha=1; }
+    if(IP.length){ ioc.clearRect(0,0,px,px); ioc.globalCompositeOperation='multiply';
+      IP.forEach(p=>{ if(starts[p.k]==null) return; const lt=Math.min(CV_SPREAD+1.4,(t-starts[p.k])/1000*1.9), D=p.r*3.6;
+        ioc.globalAlpha=p.a; ioc.drawImage(cvWash(Math.max(80,Math.min(240,Math.round(D*.85))),p.k,p.c,WC.hash(sid+p.k)%100000).frame(Math.min(CV_SPREAD,lt)),px/2+p.dx-D/2,px/2+p.dy-D/2,D,D); });
+      x.globalAlpha=.95; x.drawImage(io,0,0); x.globalAlpha=1; }
     const ph=t<total*.3?0:t<total*.82?1:2; document.querySelectorAll('#phases .ph').forEach((el,k)=>el.classList.toggle('on',k===ph));
     if(t>total&&!done){ done=true; setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },900); }
     if(!done||t<total+900) requestAnimationFrame(loop);
   })(t0);
 }
-/* 방금 찍은 방울이 캔버스에서 다시 번지는 연출 */
 /* 캔버스 ①: 모든 잔이 같은 크기. 강한 풍미는 진하게·약한 풍미는 옅게, 한 자리에 겹쳐 홈처럼 젖은 채로 번진다 */
 const CV1={ws:{}}, CV_SPREAD=2.9;
 function cvWash(N,k,hex,seed){ const id=N+'|'+k+'|'+seed; let o=CV1.ws[id]; if(!o){ const w=makeWash(N,hex,seed); let lt=-1,c=null; o=CV1.ws[id]={frame(t){ t=Math.round(t*20)/20; if(t!==lt){ lt=t; c=w.frame(t); } return c; }}; } return o; }
@@ -1960,18 +1960,7 @@ function startVoiceWash(cv){
     const sc=S.listening?1.04+.06*Math.sin(T*4.2):1+.025*Math.sin(T*1.6); cv.style.transform=`scale(${sc.toFixed(4)})`;
     requestAnimationFrame(loop); })(performance.now());
 }
-function bloomOn(cv,r,px){
-  const ctx=cv.getContext('2d'), snap=document.createElement('canvas'); snap.width=snap.height=px;
-  const others=recsAsc().filter(q=>q.id!==r.id), s=snap.getContext('2d');
-  s.fillStyle=CANVAS_BG; s.fillRect(0,0,px,px); axes(s,px);
-  others.forEach(q=>BLOOM.draw(s,recDrop(q),q.canvas.x*px,q.canvas.y*px,dropR(px,q.canvas.i,1.1)));
-  
-  const t0=performance.now(), drop=recDrop(r);
-  const loop=now=>{ if(!cv.isConnected) return; const p=Math.min(1,(now-t0)/1300);
-    ctx.drawImage(snap,0,0); BLOOM.draw(ctx,drop,r.canvas.x*px,r.canvas.y*px,dropR(px,r.canvas.i,1.1),p);
-    if(p<1) requestAnimationFrame(loop); };
-  setTimeout(()=>requestAnimationFrame(loop),250);
-}
+
 /* @@D3_BEGIN (src/drop3d.js에서 빌드) */
 /* =========================================================
    D3 — 3D 찻방울 (WebGL, 라이브러리 없음)
@@ -2313,7 +2302,8 @@ function mountDrop3D(el,drop,size){
   if(!el) return null;
   const cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height=size+'px'; cv.className='wc-big';
   el.innerHTML=''; el.appendChild(cv); const x=cv.getContext('2d'), t0=performance.now();
-  (function f(now){ if(!cv.isConnected) return; const p=Math.min(1,(now-t0)/1400); x.clearRect(0,0,px,px); BLOOM.draw(x,drop,px/2,px/2,px*.3,p,1.8); if(p<1) requestAnimationFrame(f); })(t0);
+  const L=dropFlav(drop), sid=dropSid(drop), END=CV_SPREAD+1.4;
+  (function f(now){ if(!cv.isConnected) return; const lt=(now-t0)/1000*1.9; x.clearRect(0,0,px,px); drawRec1(x,L,px/2,px/2,px*.27,sid,Math.min(END,lt),.95); if(lt<END) requestAnimationFrame(f); })(t0);
   return {};
 }
 const d3Box=(id,size,hint=false)=>`<div class="d3wrap"><div id="${id}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
