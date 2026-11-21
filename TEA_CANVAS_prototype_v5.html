@@ -1904,7 +1904,7 @@ function makeWash(N,hex,seed){
     const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
     const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
     for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
-      const bead=Math.max(0,1-t/.55);
+      const bead=0;
       if(tk>water+soft&&!(bead>0&&Math.hypot((k%N+.5)/N*2-1,(Math.floor(k/N)+.5)/N*2-1)<.075)){ d[o+3]=0; continue; }
       // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
       const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
@@ -1926,7 +1926,7 @@ function makeWash(N,hex,seed){
     }
     x.putImageData(im,0,0);
     // 첫 순간: 위에서 본 둥근 물감 방울이 종이에 맺혔다가 퍼지며 사라진다
-    const bead=Math.max(0,1-t/.7);
+    const bead=0; // 맺히는 방울은 쓰지 않는다
     if(bead>0){ const R0=N*.05*(1+.5*(1-bead)), c=`rgb(${body.map(v=>Math.round(Math.max(0,Math.min(1,v*.88))*255))})`;
       x.save(); x.globalAlpha=Math.min(1,bead*1.4)*fade; x.fillStyle=c; x.beginPath(); x.arc(N/2,N/2,R0,0,6.283); x.fill();
       x.globalAlpha=.55*bead*fade; x.fillStyle='#fff'; x.beginPath(); x.ellipse(N/2-R0*.32,N/2-R0*.32,R0*.28,R0*.2,-.6,0,6.283); x.fill(); x.restore(); }
