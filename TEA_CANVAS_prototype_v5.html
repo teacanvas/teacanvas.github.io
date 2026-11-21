@@ -1015,7 +1015,7 @@ function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML
    ========================================================= */
 const HQ=(()=>{ try{ return (new URLSearchParams(location.search).get('hq')||'center').replace(/[^a-z ]/g,''); }catch(e){ return ''; } })();
 // 홈 여백 시안용: ?qt=제목 위 여백 &nb=회색 문구~버튼 간격 &bb=버튼 아래 여백 &ns=회색 문구 글자 크기 (px)
-const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(0,Math.min(160,v)):d; }; return {qt:n('qt',30),nb:n('nb',12),bb:n('bb',18),ns:n('ns',12.5)}; }catch(e){ return {qt:30,nb:12,bb:18,ns:12.5}; } })();
+const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(0,Math.min(160,v)):d; }; return {qt:n('qt',56),nb:n('nb',8),bb:n('bb',40),ns:n('ns',12.5)}; }catch(e){ return {qt:56,nb:8,bb:40,ns:12.5}; } })();
 const SCREENS = {
 
 home(){
