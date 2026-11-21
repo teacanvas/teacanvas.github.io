@@ -205,6 +205,10 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 #msgs .chip.sel,#msgs .chip.dark{background:#111;color:#fff;border-color:#111}
 #msgs .chip.done{border-color:#C9C9C9;color:#999;font-weight:500}
 .kept em{font-style:normal;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:13px}
+.kept-btn{align-self:flex-end;background:none;border:0;padding:2px 0;cursor:pointer;font:inherit}.kept-btn u{text-decoration:none;color:#777;border-bottom:1px solid #C9C9C9;margin-left:4px}
+.fl-edit{align-self:stretch;background:#fff;border:1px solid var(--g1);border-radius:var(--r-card);padding:12px 12px 10px;animation:fade .3s ease}
+.fl-edit p{font-size:12.5px;color:var(--g2);margin-bottom:8px}.fl-edit .chip i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.fl-edit .feelnext{margin-top:10px}
 .kept{align-self:flex-end;font-size:11px;color:#B5B5B5;margin-top:-6px}
 .chips.end{justify-content:flex-end}
 .gcard{align-self:flex-start;width:88%;background:#fff;border:1px solid var(--g1);border-radius:var(--r-card);padding:14px 16px;font-size:13px;animation:fade .3s ease}
@@ -627,6 +631,9 @@ const KW_MORE={
   nutty:['군고구마','고구마','누룽지','시리얼','땅콩','아몬드','호두','참기름','빵'],
   spicy:['따끔','화끈','얼얼','정향','팔각','카레'],
   vegetal:['풀밭','잔디','깻잎','오이','시금치','해초','미역','완두','나물','허브']};
+/* 외래어로 말한 풍미(스윗, 소프트, 플로럴…) */
+Object.entries({sweet:['스윗','스위트'],soft:['소프트','스무스','부드러'],floral:['플로럴','플로랄'],fruity:['프루티','후르티'],citrus:['시트러스','시트러시'],vegetal:['그래시','그라시','베지탈'],
+  fresh:['프레시','프레쉬'],nutty:['너티','넛티'],earthy:['얼씨','어씨','스모키'],spicy:['스파이시'],astringent:['떫','아스트린'] }).forEach(([k,a])=>(KW_MORE[k]=KW_MORE[k]||[]).push(...a));
 Object.entries(KW_MORE).forEach(([k,a])=>a.forEach(w=>{ if(!FLAVORS[k].kw.includes(w)) FLAVORS[k].kw.push(w); }));
 /* 나만의 표현: 풍미로 잇지 못한 말은 그대로 남긴다 */
 function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'').trim(); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
@@ -1088,9 +1095,9 @@ const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font
 /* 표현 → 풍미 계열 */
 function matchFlavors(text){ const t=String(text||'').replace(/\s/g,''); return FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.includes(w))); }
 function collectExprs(d){
-  const out=[], add=t=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:matchFlavors(t)}); };
+  const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
   ['aroma','taste'].forEach(k=>String((d.feel&&d.feel[k])||'').split(', ').forEach(add)); // 찻물 색은 찻방울 색에 넣지 않는다
-  (d.chat||[]).filter(m=>m.who==='me'&&!m.ans).forEach(m=>add(m.text));
+  (d.chat||[]).filter(m=>m.who==='me'&&!m.ans&&!m.fix).forEach(m=>add(m.text,m.fl));
   if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
 }
@@ -1935,7 +1942,7 @@ function bindAskColor(){
 function paintMsgs(){
   const box=$('#msgs'); if(!box) return;
   const d=S.draft, msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
-  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?`<span class="kept">${(()=>{ const ks=matchFlavors(m.text); return ks.length?ks.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')+'로 담았어요':'담았어요'; })()}</span>`:''}${m.guide?guideCard(m):''}`).join('')
+  box.innerHTML = msgs.map((m,i)=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('')
     + (!S.typing&&d.stage==='free'?`<div class="chips end"><button class="chip" onclick="freeEnough()">이제 충분해요</button></div>`:'')
     + (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')">📷 사진으로 찾기</button></div>`:'')
@@ -1950,6 +1957,13 @@ function paintMsgs(){
   const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
   const v=$('#view'); v.scrollTop=v.scrollHeight;
 }
+/* '…로 담았어요'를 누르면 풍미를 직접 고른다(여러 개, 없음도 가능) */
+function msgFl(m){ return Array.isArray(m.fl)?m.fl:matchFlavors(m.text); }
+function keptLabel(m,i){ if(m.fix) return `<span class="kept">앞의 표현을 ${(()=>{ const p=[...S.draft.chat.slice(0,i)].reverse().find(x=>x.who==='me'&&x.kept&&!x.fix); return p?msgFl(p).map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · '):''; })()}로 고쳤어요</span>`;
+  const ks=msgFl(m), lab=ks.length?ks.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')+'로 담았어요':'맛·향으로는 담지 않았어요';
+  if(S.editMsg!==i) return `<button class="kept kept-btn" onclick="S.editMsg=${i};paintMsgs()">${lab} <u>바꾸기</u></button>`;
+  return `<div class="fl-edit"><p>이 표현에 담긴 맛과 향을 골라주세요</p><div class="chips">${FKEYS.map(k=>`<button class="chip ${ks.includes(k)?'sel':''}" onclick="toggleMsgFl(${i},'${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]}</button>`).join('')}</div><button class="feelnext" onclick="S.editMsg=null;paintMsgs()">다 골랐어요</button></div>`; }
+function toggleMsgFl(i,k){ const m=S.draft.chat[i]; const cur=msgFl(m).slice(); const j=cur.indexOf(k); j<0?cur.push(k):cur.splice(j,1); m.fl=cur; paintMsgs(); }
 function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; sendMsg(t); }
 /* 말(또는 글)로 버튼을 대신하기: '네', '우림 시작할게요', '건너뛸게요', '이제 충분해요', '정리할게요'… */
 function textIntent(d,text){
@@ -1976,7 +1990,10 @@ function sendMsg(text,isChip){
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
   if(isAsk(d.stage)){ if(d.stage==='color'){ const hd=colorFromWords(text); d.feel.colorHD=hd; d.feel.colorHex=hd?tcColor(hd[0],hd[1]):null; return answer('color',text,hd?{color:d.feel.colorHex}:{}); } return answer(d.stage,text); }
   if(d.stage==='deep') return deepAnswer(text);  // 질문 중에 직접 적으면 그 질문의 대답
-  if(d.stage==='free'||((d.stage==='wait'||d.stage==='wait2')&&!d.talkPending)){ d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); return paintMsgs(); }  // 끼어들지 않고 담기만
+  if(d.stage==='free'||((d.stage==='wait'||d.stage==='wait2')&&!d.talkPending)){
+    const fix=/(아니라|아니고|말고)/.exec(text), prev=[...d.chat].reverse().find(m=>m.who==='me'&&m.kept&&!m.fix);
+    if(fix&&prev){ const after=matchFlavors(text.slice(fix.index+fix[0].length)); if(after.length){ prev.fl=after; d.chat.push({who:'me',text,kept:true,fix:true}); d.lastMeAt=Date.now(); return paintMsgs(); } }
+    d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); return paintMsgs(); }  // 끼어들지 않고 담기만
   if(d.stage==='after'){ d.chat.push({who:'me',text}); d.stage='more'; return botSay(moreMsg('그 여운도 함께 담아둘게요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),600); }
   d.chat.push({who:'me',text}); if(isChip && text!=='잘 모르겠어요') d.picked.push(text);
   S.typing=true; paintMsgs();
