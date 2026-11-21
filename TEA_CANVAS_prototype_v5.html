@@ -186,6 +186,12 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .askrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
 .askrow .feelnext{margin:0 0 0 auto}
 .askhint{font-size:12px;color:#999}
+.gcard{align-self:flex-start;width:88%;background:#fff;border:1px solid var(--g1);border-radius:var(--r-card);padding:14px 16px;font-size:13px;animation:fade .3s ease}
+.gcard b{font-size:14.5px}.gcard dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px}
+.gcard dt{color:var(--g2)}.gcard dd{font-weight:600}.gcard dd small{display:block;font-weight:400;color:var(--g2);font-size:12px}
+.gcard .gtip{margin-top:10px;font-size:12px;color:#666;background:var(--g0);border-radius:10px;padding:8px 10px}
+.tearow.pin{position:sticky;top:0;z-index:3;background:#fff;padding:6px 0 10px;margin:8px 0 6px;border-bottom:1px solid var(--g0)}
+.tearow .gsum{display:block;font-size:12px;color:var(--g2)}
 .chips.more .chip.done{color:#999}
 .chip.dark{background:#111;color:#fff}
 .msg.sys{align-self:center;background:none;font-size:12px;color:var(--g2);padding:2px}
@@ -989,7 +995,7 @@ function render(keepScroll){
    ========================================================= */
 function stepbar(n){
   return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button>
-    <div class="mid"><div class="dots">${[1,2,3,4].map(i=>`<i class="${i<n?'done':i===n?'on':''}"></i>`).join('')}</div><span class="stepnum">${n} / 4</span></div>
+    <div class="mid"></div>
     <button class="quit" onclick="askQuit()">그만하기</button></div>`;
 }
 function timerText(){
@@ -1170,9 +1176,9 @@ feel(){
 
 chat(){
   const d=S.draft;
+  const g=d.type?(d.basic?BASIC:TEAS[d.type]):null;
   const head = `${stepbar(3)}
-  <h1 class="t">내 감각 기록하기</h1><p class="sub">떠오르는 색이나 장면으로 표현해도 돼요.</p>
-  <div class="seg" style="margin-top:14px"><button class="${S.chatMode==='chat'?'on':''}" onclick="setMode('chat')">채팅</button>
+  <div class="seg" style="margin-top:0"><button class="${S.chatMode==='chat'?'on':''}" onclick="setMode('chat')">채팅</button>
     <button class="${S.chatMode==='voice'?'on':''}" onclick="setMode('voice')">음성</button></div>`;
   if(S.chatMode==='voice'){
     const last=d.voice[d.voice.length-1];
@@ -1187,13 +1193,13 @@ chat(){
     <button class="link" onclick="finishChat()">기록 마치고 정리하기</button>`;
   }
   return `${head}
-  <div class="tearow">${orb('clear',72)}<div><b>${esc(d.name)}</b>
-    ${S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)}</div>`}</div></div>
+  ${d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${orb('clear',56)}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${g.time}</span>
+    ${S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:''}
   <div id="msgs"></div>
   <div class="chatfoot">
     <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
       <button class="send" onclick="sendInput()" aria-label="보내기">${I.up}</button></div>
-    <button class="btn" onclick="finishChat()">기록 마치고 정리하기</button>
+    ${['tea','teaOK','teaType','guide'].includes(d.stage)?'':`<button class="btn" onclick="finishChat()">기록 마치고 정리하기</button>`}
   </div>`;
 },
 
@@ -1410,6 +1416,7 @@ detail(p){
   if(dp.origin||dp.vintage) info.push(['산지·빈티지',[dp.origin,dp.vintage&&dp.vintage+'년'].filter(Boolean).join(' · ')]);
   if(dp.temp||dp.min||dp.sec) info.push(['온도·시간',[dp.temp&&dp.temp+'°C',(dp.min||dp.sec)&&`${dp.min||0}분 ${dp.sec||0}초`].filter(Boolean).join(' · ')]);
   Object.entries(dp.brews||{}).forEach(([n,b])=>{ if(b.feel||b.next) info.push([n+'차 우림',[b.feel,b.next].filter(Boolean).join(' / ')]); });
+  const tk=r.talk||{}, talk=[['기분',tk.mood],['상황',tk.scene],['고른 이유',tk.why]].filter(x=>x[1]);
   return `<div class="dtop"><button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
     <button class="ghost" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash}</button></div>
   <div class="det-drop"><canvas id="detCv1"></canvas></div>
@@ -1425,6 +1432,7 @@ detail(p){
   <h3 class="sec">캔버스 속 위치</h3>
   ${canvasBox('detCv',{cls:'sm'})}
   <p class="cap">${posText(r.canvas)}</p>
+  ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
   <div class="memo"><h4>MEMO</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
     ${info.length?`<dl>${info.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div>
   ${r.chat&&r.chat.length?`<button class="link" onclick="go('fullChat',{id:'${r.id}'})">대화 기록 보기 ›</button>`:''}
@@ -1488,7 +1496,7 @@ const cur=()=>S.stack[S.stack.length-1].name;
 /* =========================================================
    ACTIONS
    ========================================================= */
-function startRecord(){ closeSheet(); stopTimer(); S.colorInput=false; S.feelStep=null; S.draft=newDraft(); S.chatMode='chat'; S.voiceIdx=0; go('teaInput',{}, {reset:true}); }
+function startRecord(){ closeSheet(); stopTimer(); S.colorInput=false; S.feelStep=null; S.draft=newDraft(); S.chatMode='chat'; S.voiceIdx=0; go('chat',{}, {reset:true}); }
 function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur()==='noti') S.stack=[{name:'canvas',params:{tab:'list'}}]; go('detail',{id}); }
 
 /* 기록 삭제: 확인 후 지운다 */
@@ -1627,12 +1635,52 @@ const FREE=['좋아요. 이제 천천히 마시면서 떠오르는 걸 편하게
   '식으면서 달라진 점이나, 끝에 남는 여운은 어떤가요?',
   '좋아요, 그 표현도 함께 담아둘게요.'];
 function seedChat(){
-  const d=S.draft; if(!d.stage){ d.stage='wait'; d.freeN=0; }
-  if(!d.chat.length){
-    if(S.timer&&S.timer.left>0) d.chat.push({who:'bot',text:'우림을 시작했어요. 다 우려지면 알려드릴게요.\n그동안 마른 찻잎 향을 살짝 맡아봐도 좋아요.',wait:true});
-  }
+  const d=S.draft;
+  if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 적어주세요. 브랜드도 함께 적으면 좋아요.\n예: 오설록 제주 세작, 철관음, 얼그레이',teaAsk:true}); }
   chatTick();
 }
+/* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
+const BRANDS=['오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원'];
+function parseTea(text){ const t=String(text).trim(); let brand=''; for(const b of BRANDS){ if(t.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+  let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
+  return {name,brand,type:findType(t)}; }
+const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
+function botSay(msg,delay=600){ const d=S.draft; S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; d.chat.push(typeof msg==='function'?msg():msg); if(cur()==='chat') rerender(); },delay); }
+function teaInput(text){
+  const d=S.draft, r=parseTea(text); d.chat.push({who:'me',text,ans:'tea'}); d.name=r.name; d.brand=r.brand;
+  if(r.type){ d.type=r.type; d.stage='teaOK'; botSay({who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
+  else { d.stage='teaType'; botSay({who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true}); }
+}
+function teaChip(c){
+  const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:c,ans:'tea'});
+  if(d.stage==='teaType'){ const k=ORDER.find(k=>TEAS[k].label===c); if(k){ d.type=k; return showGuide(); } }
+  if(d.stage==='teaOK'){ if(c==='맞아요') return showGuide(); d.stage='tea'; return botSay({who:'bot',text:'좋아요, 다시 알려주세요.\n차 이름과 브랜드를 적어주세요.',teaAsk:true}); }
+  if(d.stage==='guide'){
+    if(c.startsWith('우림 시작')) return beginBrew();
+    if(c==='바로 마실게요'){ d.stage='wait'; d.chat.push({who:'bot',text:'좋아요, 바로 마셔봐요.'}); chatTick(); return rerender(); }
+    d.basic=!d.basic; return showGuide(true);
+  }
+}
+function showGuide(again){ const d=S.draft; d.stage='guide';
+  botSay(()=>({who:'bot',guide:true,basic:!!d.basic,text:again?(d.basic?'어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.':`다시 ${d.name}에 맞춘 가이드예요.`):`${d.name}${josa(d.name,'을','를')} 가장 맛있게 우리는 방법이에요.\n준비되면 ‘우림 시작’을 눌러주세요.`,
+    chips:['우림 시작 ▶',d.basic?'추천 가이드로 볼래요':'기본 가이드로 볼래요','바로 마실게요']})); }
+/* 우리는 동안 가벼운 이야기: 기분 · 상황 · 이 차를 고른 이유 (찻방울 색에는 넣지 않고 기록에만 남긴다) */
+const TALK=[['mood','그동안 잠깐 이야기 나눠요.\n오늘 기분은 어때요?'],['scene','지금은 어떤 상황에서 마시고 있어요?\n혼자 쉬는 중, 누군가와 함께, 일하다가… 편하게요.'],['why','오늘 이 차를 고른 이유가 있을까요?']];
+const TALK_ACK=['그렇군요. 오늘의 마음도 함께 남겨둘게요.','좋아요, 그 장면도 기억해둘게요.','그 이유도 기록에 담아둘게요.'];
+function talkNext(delay=1800){ setTimeout(()=>{ const d=S.draft; if(!d||cur()!=='chat'||S.typing) return;
+  if(!(d.stage==='wait'||d.stage==='wait2')||d.talkPending) return; const i=d.talkI||0; if(i>=TALK.length) return;
+  d.talkPending=TALK[i][0]; d.chat.push({who:'bot',text:TALK[i][1],talk:TALK[i][0]}); if(S.chatMode==='chat') paintMsgs(); },delay); }
+function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=null; d.talkI=(d.talkI||0)+1;
+  if(!skip){ (d.talk||(d.talk={}))[k]=text; }
+  d.chat.push({who:'me',text:skip?'건너뛸게요':text,ans:'talk'});
+  botSay({who:'bot',text:skip?'괜찮아요.':TALK_ACK[TALK.findIndex(t=>t[0]===k)]},600); talkNext(1700); }
+function beginBrew(){ const d=S.draft, g=d.basic?BASIC:TEAS[d.type];
+  S.timer={total:g.secs,left:g.secs,running:true}; d.stage='wait';
+  d.chat.push({who:'bot',text:'우림을 시작했어요. 다 우려지면 알려드릴게요.\n그동안 마른 찻잎 향을 살짝 맡아봐도 좋아요.',wait:true}); rerender(); talkNext(2600); }
+function guideCard(m){ const d=S.draft, g=m.basic?BASIC:TEAS[d.type];
+  return `<div class="gcard"><b>${m.basic?'기본 우림 가이드':esc(d.name)+' 우림 가이드'}</b>
+    <dl><dt>물 온도</dt><dd>${g.temp}</dd><dt>우리는 시간</dt><dd>${g.time}</dd><dt>양</dt><dd>${g.amount}</dd><dt>맛있게</dt><dd>${g.how[0]}<small>${g.how[1]}</small></dd></dl>
+    <p class="gtip">✦ ${g.tip}</p></div>`; }
 const brewDone=()=>!S.timer||S.timer.left<=0, brewed=()=>S.timer?S.timer.total-S.timer.left:1e9;
 /* 우리는 중: 1분 지나면(또는 다 우리면) 색을 묻고, 색 뒤에는 다 우려질 때까지 기다렸다가 향을 묻는다 */
 function chatTick(){ const d=S.draft; if(!d) return false;
@@ -1641,8 +1689,8 @@ function chatTick(){ const d=S.draft; if(!d) return false;
   return false; }
 function askNext(){
   const d=S.draft, order=['wait','color','wait2','aroma','taste','free'], i=order.indexOf(d.stage);
-  d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]};
-  if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); return; } }
+  d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]}; d.talkPending=null;
+  if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); talkNext(2200); return; } }
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE[0]}); d.freeN=1; }
   else d.chat.push({who:'bot',text:ASK[d.stage],ask:d.stage});
 }
@@ -1691,19 +1739,25 @@ function bindAskColor(){
 function paintMsgs(){
   const box=$('#msgs'); if(!box) return;
   const d=S.draft, msgs=d.chat, last=msgs[msgs.length-1];
-  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('')
+  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.guide?guideCard(m):''}`).join('')
+    + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')">📷 사진으로 찾기</button></div>`:'')
+    + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
     + (S.typing?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
+    + (!S.typing&&last&&last.who==='bot'&&last.talk&&d.talkPending===last.talk?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">건너뛸게요</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button>`:''}</div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.wait&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button></div>`:'')
     + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
     + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${l}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">이제 정리할게요</button></div>`:'')
     + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'');
   bindAskColor();
-  const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
+  const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
   const v=$('#view'); v.scrollTop=v.scrollHeight;
 }
 function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; sendMsg(t); }
 function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
+  if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
+  if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
+  if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
   if(isAsk(d.stage)){ if(d.stage==='color'){ d.feel.colorHD=null; d.feel.colorHex=null; } return answer(d.stage,text); }
   if(d.stage==='deep') return deepAnswer(text);  // 질문 중에 직접 적으면 그 질문의 대답
   d.chat.push({who:'me',text}); if(isChip && text!=='잘 모르겠어요') d.picked.push(text);
@@ -1758,6 +1812,7 @@ function deepAnswer(t){
     if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },600);
 }
 function toggleListen(){
+  if(S.draft&&['tea','teaOK','teaType','guide'].includes(S.draft.stage)){ setMode('chat'); toast('차 이름은 채팅으로 먼저 알려주세요'); return; }
   if(!S.listening){ S.listening=true; rerender(); return; }
   S.listening=false;
   const d=S.draft, line=VOICE_LINES[S.voiceIdx++ % VOICE_LINES.length];
@@ -1787,7 +1842,7 @@ function saveDeep(map){ const dp=S.draft.deep; for(const [k,sel] of Object.entri
 
 /* compare helpers */
 function myExpression(d){
-  const mine=(d.chat||[]).filter(m=>m.who==='me').map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
+  const mine=(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))).map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
   if(mine.length) return mine.slice(0,3).join(', ') + '.';
   const f=['color','aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}이(가) 먼저 느껴졌어요.`;
@@ -1849,6 +1904,7 @@ function saveRecord(){
   const rec={id:S.records.some(q=>q.id==='n'+d.tid)?'n'+Date.now():'n'+d.tid,type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
     canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
     chat:d.chat.filter(m=>m.who!=='sys').map(({who,text,color})=>color?{who,text,color}:{who,text}),voice:d.voice,deep:dp,
+    talk:d.talk||null,
     teaColor:d.feel.color&&d.feel.color!=='잘 모르겠어요'?{name:d.feel.color,hex:d.feel.colorHex||null}:null};
   S.records.unshift(rec); S.lastSaved=rec; persist();
   stopTimer(); closeSheet(); S.draft=null;
