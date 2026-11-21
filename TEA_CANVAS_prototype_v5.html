@@ -200,6 +200,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 #msgs .chip:hover{background:#F3F3F3}
 #msgs .chip.sel,#msgs .chip.dark{background:#111;color:#fff;border-color:#111}
 #msgs .chip.done{border-color:#C9C9C9;color:#999;font-weight:500}
+.kept em{font-style:normal;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:13px}
 .kept{align-self:flex-end;font-size:11px;color:#B5B5B5;margin-top:-6px}
 .chips.end{justify-content:flex-end}
 .gcard{align-self:flex-start;width:88%;background:#fff;border:1px solid var(--g1);border-radius:var(--r-card);padding:14px 16px;font-size:13px;animation:fade .3s ease}
@@ -274,6 +275,10 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .canvas .lbl{position:absolute;font-size:11.5px;color:#9A9A9A;pointer-events:none}
 .drop{position:absolute;border-radius:50%;transform:translate(-50%,-50%);filter:blur(1.5px);pointer-events:none;transition:width .05s,height .05s}
 .cap{font-size:13px;color:var(--g2);text-align:center;margin-top:10px}
+.photo.real{display:block;height:auto;background:none;position:relative;margin:0}
+.photo.real::after,.photo.real::before{display:none}
+.photo.real img{display:block;width:100%;height:150px;object-fit:cover;border-radius:2px}
+.photo.real figcaption{font-size:10px;color:#9A9A9A;margin-top:3px;text-align:right}
 .stars{display:flex;gap:6px;justify-content:center;margin:6px 0}
 .stars button{font-size:26px;color:#D5D5D5;line-height:1}
 .stars button.on{color:#000}
@@ -615,11 +620,13 @@ const VOICE_LINES = ['풀 향이 먼저 났어요.','따뜻하고 둥글게 퍼�
 
 const daysAgo=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d; };
 const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.`;
+/* 예시 기록 사진: 위키미디어 공용의 자유 이용 사진(작가·라이선스는 assets/photos/credits.json) */
+const SEED_PHOTOS={"s2": {"src": "assets/photos/s2.jpg", "by": "Quelcrime", "lic": "Public domain", "url": "https://commons.wikimedia.org/wiki/File:Tieguanyin2.jpg"}, "s4": {"src": "assets/photos/s4.jpg", "by": "soultea.de/André Helbig", "lic": "CC BY-SA 3.0", "url": "https://commons.wikimedia.org/wiki/File:Frisch_aufgebr%C3%BChter_wei%C3%9Fer_Tee_Pai_Mu_Tan.jpg"}, "s8": {"src": "assets/photos/s8.jpg", "by": "Hari Prasad Nadig", "lic": "CC BY-SA 2.0", "url": "https://commons.wikimedia.org/wiki/File:Assam_Tea.jpg"}};
 function seedRecords(){
   const R=(id,type,name,brand,ago,stars,comment,photo,canvas,flavors,exprs,memo)=>{ const d=daysAgo(ago);
     return {id,type,name,brand,ts:d.getTime(),date:fmtDate(d),stars,comment,photo,canvas,flavors:flavors.map(([k,w])=>({k,w})),exprs,tags:exprs.slice(0,3),memo,seed:true}; };
   return [
-    R('s1','green','제주 세작','오설록',3,3,'봄 햇살 같은 산뜻함',true,{x:.74,y:.24,i:.85},[['vegetal',.9],['fresh',.55],['sweet',.3],['nutty',.2]],['풀 향이 먼저 났어요','산뜻함','깔끔해요'],['풀 향이 싱그럽고 끝이 깔끔했다.']),
+    R('s1','green','제주 세작','오설록',3,3,'봄 햇살 같은 산뜻함',false,{x:.74,y:.24,i:.85},[['vegetal',.9],['fresh',.55],['sweet',.3],['nutty',.2]],['풀 향이 먼저 났어요','산뜻함','깔끔해요'],['풀 향이 싱그럽고 끝이 깔끔했다.']),
     R('s2','oolong','철관음','티하우스',12,3,'집에서 혼자 마셔 본 첫 우롱차!',true,{x:.84,y:.4,i:.75},[['nutty',.8],['floral',.55],['sweet',.4],['fruity',.25]],['구수한 향','꽃향','단맛이 남아요'],['첫인상 대만족. 다음엔 호지차랑 나란히 두고 향이랑 색깔 비교해 봐야겠음.','엄청 구수한데 다 삼키면 산뜻한 단맛이 맴돎.']),
     R('s3','black','얼그레이','트와이닝',20,2,'오후에 기분 전환하기 좋았던 차',false,{x:.6,y:.14,i:.7},[['citrus',.85],['fruity',.5],['floral',.3],['astringent',.2]],['상큼한 레몬 향','과일 같은 단맛'],['베르가못 향이 생각보다 강했지만 기분이 환해졌다.']),
     R('s4','white','백모단','운남 다원',34,2,'맑고 가벼워서 오후에 딱 좋았던 차',true,{x:.38,y:.3,i:.6},[['sweet',.6],['floral',.5],['soft',.4],['fruity',.2]],['꿀 같은 단맛','은은함'],['물처럼 가볍지만 끝에 꿀 같은 단맛이 살짝.']),
@@ -1472,7 +1479,7 @@ detail(p){
   ${r.flavors&&r.flavors.length?`<div class="fav-en det-en">${[...r.flavors].sort((a,b)=>b.w-a.w).map(f=>`<span style="color:${inkText(FLAVORS[f.k].color)}">${HOME_EN[f.k]}</span>`).join('')}</div>`:''}
   <div class="detail">
     <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
-    ${r.photo?`<div class="photo"><span>사진</span></div>`:''}
+    ${SEED_PHOTOS[r.id]?`<figure class="photo real"><img src="${SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy"><figcaption>사진 ${esc(SEED_PHOTOS[r.id].by)} · ${esc(SEED_PHOTOS[r.id].lic)}</figcaption></figure>`:r.photo?`<div class="photo"><span>사진</span></div>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
   </div>
@@ -1683,13 +1690,28 @@ const ASK={
 /* 자유 대화: 챗봇은 끼어들지 않고 담기만 한다. 끝내는 건 사용자가 '이제 충분해요'로.
    오래 조용하면(마신 지 5분 넘고 1분 넘게 말이 없으면) 한 번만 부드럽게 말을 건다 */
 const FREE_INTRO='좋아요. 이제 천천히 마시면서 떠오르는 걸 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 돼요.\n충분히 마셨다면 아래 ‘이제 충분해요’를 눌러주세요.';
+const ASK_VAR={
+  aroma:['다 우려졌어요. 찻잔을 들고 향을 맡아볼까요?\n처음 떠오르는 향을 내 말로 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 좋아요.',
+    '다 우려졌어요. 잔을 코 가까이 가져가 천천히 숨을 들이쉬어 보세요.\n어떤 향이 먼저 다가오나요? 내 말로 편하게요.',
+    '차가 다 우려졌어요. 첫 향은 무엇을 떠올리게 하나요?\n장소, 계절, 기억… 무엇이든 좋아요.'],
+  taste:['이제 한 모금 마셔봐요.\n입안에 처음 느껴지는 맛을 내 말로 편하게 말해주세요.',
+    '한 모금 머금고 잠깐 혀 위에 두었다가 넘겨보세요.\n어떤 맛이 남았나요? 내 말로 편하게요.',
+    '첫 모금은 어땠어요?\n혀끝, 혀 가운데, 목 넘김… 느껴지는 대로 말해주세요.']};
+/* 자유 대화 중 오래 조용할 때 건네는 말(대답을 기다리지 않음): 최대 3번, 2분 이상 간격 */
+const FREE_NUDGES=['한 모금 머금고 3초만 기다렸다가 넘겨보세요.\n넘긴 뒤 코로 숨을 내쉬면 향이 다시 올라와요.',
+  '차가 조금 식었을 거예요.\n처음 한 모금과 지금은 어떻게 다른가요?',
+  '찻잔을 다시 손으로 감싸 보세요.\n처음보다 온기가 어떻게 달라졌나요?',
+  '잠깐 눈을 감고 한 모금 마셔봐요.\n떠오르는 장면이 있다면 들려주세요.',
+  '입안에 남은 여운이 얼마나 오래가는지 느껴봐요.'];
 const FREE_NUDGE='천천히 마시고 있네요.\n식으면서 달라지는 맛이 있다면 편하게 들려주세요.';
 const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는 여운이 있었나요?';
 function freeEnough(){ const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'}); d.stage='after';
   botSay({who:'bot',text:AFTER_ASK,after:true},500); }
-setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||d.nudged||!d.drinkAt||cur()!=='chat'||S.typing) return;
-  const now=Date.now(); if(now-d.drinkAt<5*60000||now-(d.lastMeAt||d.drinkAt)<60000) return;
-  d.nudged=true; d.chat.push({who:'bot',text:FREE_NUDGE,nudge:true}); if(S.chatMode==='chat') paintMsgs(); },10000);
+setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
+  const now=Date.now(), inp=$('#chatIn'); if(inp&&inp.value.trim()) return;
+  if(now-d.drinkAt<90000||now-(d.lastMeAt||d.drinkAt)<75000||now-(d.nudgeAt||0)<120000) return;
+  const r=WC.rng((d.tid||1)+7), order=[...FREE_NUDGES].sort(()=>r()-.5);
+  d.nudged=true; d.nudgeAt=now; d.chat.push({who:'bot',text:order[d.nudgeN||0],nudge:true}); d.nudgeN=(d.nudgeN||0)+1; if(S.chatMode==='chat') paintMsgs(); },10000);
 function seedChat(){
   const d=S.draft;
   if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 적어주세요. 브랜드도 함께 적으면 좋아요.\n예: 오설록 제주 세작, 철관음, 얼그레이',teaAsk:true}); }
@@ -1774,11 +1796,29 @@ function answerQuestion(text){
   askAI(text).then(a=>{ const reply=a||faqAnswer(text); setTimeout(()=>{ S.typing=false; d.chat.push({who:'bot',text:reply,ai:!!a,qa:true}); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },Math.max(0,700-(Date.now()-t0))); });
 }
 /* 우리는 동안 가벼운 이야기: 기분 · 상황 · 이 차를 고른 이유 (찻방울 색에는 넣지 않고 기록에만 남긴다) */
-const TALK=[['mood','그동안 잠깐 이야기 나눠요.\n오늘 기분은 어때요?'],['scene','지금은 어떤 상황에서 마시고 있어요?\n혼자 쉬는 중, 누군가와 함께, 일하다가… 편하게요.'],['why','오늘 이 차를 고른 이유가 있을까요?']];
+/* 우리는 동안의 대화 계획: 감각을 깨우는 말과 가벼운 이야기를 번갈아. 말투는 기록마다 조금씩 다르게 고른다 */
+const SENSE_WAIT=[
+  '찻잔을 두 손으로 감싸 보세요.\n손끝으로 전해지는 온기를 잠깐 느껴봐요.',
+  '찻잎이 물속에서 천천히 펴지고 있을 거예요.\n잠깐 바라봐도 좋아요.',
+  '김이 올라오는 쪽으로 얼굴을 살짝 가까이 해보세요.\n스치는 향이 있나요?',
+  '숨을 천천히 한 번 들이쉬고 내쉬어 봐요.\n차를 기다리는 시간도 오늘의 기록이에요.',
+  '주변 소리에 잠깐 귀 기울여 봐요.\n지금 들리는 소리도 이 차와 함께 남을 거예요.',
+  '찻물 색이 조금씩 짙어지고 있어요.\n처음과 어떻게 달라지는지 지켜봐요.',
+  '마른 찻잎이 남아 있다면 손바닥에 올려 향을 맡아보세요.\n우린 뒤의 향과 비교해보면 재미있어요.'];
+const TALK_POOL={
+  mood:['그동안 잠깐 이야기 나눠요.\n오늘 기분은 어때요?','오늘 하루는 어땠어요?\n한 단어로 말해도 좋아요.','지금 마음은 어떤 날씨에 가까워요?\n맑음, 흐림, 비… 편하게요.'],
+  scene:['지금은 어떤 상황에서 마시고 있어요?\n혼자 쉬는 중, 누군가와 함께, 일하다가… 편하게요.','지금 있는 곳은 어디예요?\n어떤 자리에서 이 차를 마시고 있나요?','오늘 이 차, 누구와 함께 마시고 있나요?\n혼자여도 좋아요.'],
+  why:['오늘 이 차를 고른 이유가 있을까요?','이 차는 어떻게 만나게 됐어요?\n선물, 추천, 우연히… 무엇이든요.','오늘은 왜 이 차가 당겼을까요?']};
+const TALK=[['mood'],['scene'],['why']];
+const pick=(arr,seed)=>arr[Math.floor(WC.rng(seed)()*arr.length)];
+function waitPlan(d){ if(d.plan) return d.plan; const r=WC.rng(d.tid||1), sh=[...SENSE_WAIT].sort(()=>r()-.5);
+  return d.plan=[{s:sh[0]},{k:'mood'},{s:sh[1]},{k:'scene'},{s:sh[2]},{k:'why'},{s:sh[3]}].map((x,i)=>x.k?{...x,text:pick(TALK_POOL[x.k],(d.tid||1)+i)}:x); }
 function talkNext(delay=1800){ setTimeout(()=>{ const d=S.draft; if(!d||cur()!=='chat'||S.typing) return;
-  if(!(d.stage==='wait'||d.stage==='wait2')||d.talkPending) return; const i=d.talkI||0; if(i>=TALK.length) return;
-  d.talkPending=TALK[i][0]; d.chat.push({who:'bot',text:TALK[i][1],talk:TALK[i][0]}); if(S.chatMode==='chat') paintMsgs(); },delay); }
-function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=null; d.talkI=(d.talkI||0)+1;
+  if(!(d.stage==='wait'||d.stage==='wait2')||d.talkPending) return; const inp=$('#chatIn'); if(inp&&inp.value.trim()) return talkNext(4000);
+  const plan=waitPlan(d), i=d.planI||0; if(i>=plan.length) return; const it=plan[i];
+  if(it.s){ d.planI=i+1; d.chat.push({who:'bot',text:it.s,sense:true}); if(S.chatMode==='chat') paintMsgs(); return talkNext(9000); }
+  d.talkPending=it.k; d.chat.push({who:'bot',text:it.text,talk:it.k}); if(S.chatMode==='chat') paintMsgs(); },delay); }
+function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=null; d.talkI=(d.talkI||0)+1; d.planI=(d.planI||0)+1;
   if(!skip){ (d.talk||(d.talk={}))[k]=text; }
   d.chat.push({who:'me',text:skip?'건너뛸게요':text,ans:'talk'});
   paintMsgs(); talkNext(1100); }  // 맞장구 없이 다음 이야기로
@@ -1802,7 +1842,7 @@ function askNext(){
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
   else if(d.stage==='color'&&d.type&&TC_GUESS[d.type]){ S.ask.hd=[...TC_GUESS[d.type]]; const t=TEAS[d.type].label;
     d.chat.push({who:'bot',text:`찻물에 색이 우러나기 시작했어요.\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
-  else d.chat.push({who:'bot',text:ASK[d.stage],ask:d.stage});
+  else d.chat.push({who:'bot',text:(ASK_VAR[d.stage]?pick(ASK_VAR[d.stage],(d.tid||1)+d.stage.length):ASK[d.stage]),ask:d.stage});
 }
 const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
 function answer(k,text,extra={}){
@@ -1849,7 +1889,7 @@ function bindAskColor(){
 function paintMsgs(){
   const box=$('#msgs'); if(!box) return;
   const d=S.draft, msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
-  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?'<span class="kept">담았어요</span>':''}${m.guide?guideCard(m):''}`).join('')
+  box.innerHTML = msgs.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?`<span class="kept">${(()=>{ const ks=matchFlavors(m.text); return ks.length?ks.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')+'로 담았어요':'담았어요'; })()}</span>`:''}${m.guide?guideCard(m):''}`).join('')
     + (!S.typing&&d.stage==='free'?`<div class="chips end"><button class="chip" onclick="freeEnough()">이제 충분해요</button></div>`:'')
     + (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="toast('사진으로 차 정보를 읽는 기능은 준비 중이에요')">📷 사진으로 찾기</button></div>`:'')
@@ -1873,7 +1913,7 @@ function sendMsg(text,isChip){
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
   if(isAsk(d.stage)){ if(d.stage==='color'){ d.feel.colorHD=null; d.feel.colorHex=null; } return answer(d.stage,text); }
   if(d.stage==='deep') return deepAnswer(text);  // 질문 중에 직접 적으면 그 질문의 대답
-  if(d.stage==='free'){ d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); return paintMsgs(); }  // 끼어들지 않고 담기만
+  if(d.stage==='free'||((d.stage==='wait'||d.stage==='wait2')&&!d.talkPending)){ d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); return paintMsgs(); }  // 끼어들지 않고 담기만
   if(d.stage==='after'){ d.chat.push({who:'me',text}); d.stage='more'; return botSay(moreMsg('그 여운도 함께 담아둘게요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),600); }
   d.chat.push({who:'me',text}); if(isChip && text!=='잘 모르겠어요') d.picked.push(text);
   S.typing=true; paintMsgs();

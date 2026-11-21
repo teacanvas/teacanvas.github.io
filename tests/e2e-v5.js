@@ -28,11 +28,12 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   await chip('우림 시작'); ok(await ev(()=>!!S.timer&&S.draft.stage==='wait'),'우림 시작 → 타이머');
 
   console.log('채팅: 우리는 동안 이야기 · 질문 · 색');
-  await wait(3000); ok(await ev(()=>S.draft.talkPending==='mood'),'기분을 물음');
+  await wait(2500); ok(await ev(()=>S.draft.chat.some(m=>m.sense)),'우리는 동안 감각을 깨우는 말');
+  await p.waitForFunction(()=>S.draft.talkPending==='mood',null,{timeout:15000}).catch(()=>{}); ok(await ev(()=>S.draft.talkPending==='mood'),'기분을 물음');
   await say('조금 피곤했는데 차 마시니까 좋아요'); await wait(2000);
   await say('물 온도는 몇 도가 좋아요?');
   ok(await ev(()=>/70/.test(S.draft.chat[S.draft.chat.length-1].text)),'질문에는 차에 맞춘 대답(정해진 대답)');
-  await chip('건너뛸게요'); await wait(2000);
+  await chip('건너뛸게요'); await p.waitForFunction(()=>S.draft.talkPending==='why',null,{timeout:15000}).catch(()=>{});
   await say('비 오는 날이라 따뜻한 차가 생각났어요');
   ok(await ev(()=>S.draft.talk&&S.draft.talk.mood&&S.draft.talk.why&&!S.draft.talk.scene),'이야기 저장(건너뛴 건 비움)');
   await ev(()=>{ S.timer.left=S.timer.total-60; }); await wait(2300);
@@ -51,7 +52,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>S.draft.feel.taste==='단맛, 고소함'),'모르겠을 때만 보기 → 여러 개 고르기');
   await say('끝에 꿀 같은 단맛이 남아요'); await say('목 넘김이 부드러워요');
   ok(await ev(()=>S.draft.stage==='free'&&S.draft.chat.slice(-2).every(m=>m.who==='me'&&m.kept)),'자유 대화 중엔 끼어들지 않고 담기만');
-  await ev(()=>{ S.draft.drinkAt-=60000; S.draft.lastMeAt=Date.now()-61000; }); await wait(10500);
+  await ev(()=>{ S.draft.drinkAt-=60000; S.draft.lastMeAt=Date.now()-76000; }); await wait(10500);
   ok(await ev(()=>S.draft.nudged&&S.draft.stage==='free'),'오래 조용하면 한 번만 부드럽게 말 걸기');
   await chip('이제 충분해요'); ok(await ev(()=>S.draft.stage==='after'),'이제 충분해요 → 여운 질문');
   await say('식으니까 더 달아요');
