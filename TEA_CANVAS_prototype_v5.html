@@ -2587,7 +2587,7 @@ function makeWash(N,hex,seed){
 // 가운데 크기 시안용: ?w=번짐(px) &b=영문(px) &s=예시(px) &pos=top|bottom|mid
 const HC=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d,lo,hi)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(lo,Math.min(hi,v)):d; }; return {w:n('w',540,200,600),b:n('b',52,16,56),s:n('s',15,10,18),pos:/^(top|bottom|mid)$/.test(q.get('pos')||'')?q.get('pos'):'mid'}; }catch(e){ return {w:540,b:52,s:15,pos:'mid'}; } })();
 /* 홈 풍미 이름이 나타나고 사라지는 방식(시안용 ?la=): scale 가운데서 커짐 · fade 페이드 · slow 천천히 페이드 · blur 흐림→또렷 · track 자간이 모이며 · rise 살짝 떠오름 · ink 번지듯 · letters 한 글자씩 */
-const HLA=(()=>{ try{ const v=new URLSearchParams(location.search).get('la'); return /^(scale|fade|slow|blur|track|rise|ink|letters)$/.test(v||'')?v:'scale'; }catch(e){ return 'scale'; } })();
+const HLA=(()=>{ try{ const v=new URLSearchParams(location.search).get('la'); return /^(scale|fade|slow|blur|track|rise|ink|letters)$/.test(v||'')?v:'blur'; }catch(e){ return 'blur'; } })();
 function startHome3D(el){
   const size=HC.w, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px'; if(size>340) cv.style.margin=`${-(size-340)/2}px ${-(size-340)/2}px`;
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; const x=cv.getContext('2d');
