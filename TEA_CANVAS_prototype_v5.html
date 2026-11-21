@@ -143,11 +143,16 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 /* ---------- feel ---------- */
 .feelcard{background:var(--g0);border-radius:var(--r-card);padding:12px 14px 14px;margin-top:10px}
 .feelcard .q{font-size:12.5px;color:var(--g2);margin-bottom:9px}
-.sw{display:grid;grid-template-columns:repeat(5,1fr);gap:8px 4px;margin:2px 0 12px}
-.sw button{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:#555}
-.sw i{width:36px;height:36px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);transition:box-shadow .15s}
-.sw button.sel i{box-shadow:0 0 0 2px #fff,0 0 0 4px #111}
-.sw button.sel span{color:#111;font-weight:700}
+.tc-cup{display:flex;align-items:center;gap:12px;margin:0 0 6px}
+.tc-cup i{width:46px;height:46px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1.5px #D5D5D5;flex-shrink:0}
+.tc.on .tc-cup i{box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.tc-cup b{font-size:15px}.tc:not(.on) .tc-cup b{color:#999;font-weight:500}
+.tc-cup span{display:block;font-size:11.5px;color:#999}
+.tc-lab{font-size:11.5px;color:#666;font-weight:600;margin:10px 0 5px}
+.tc-track{position:relative;height:28px;border-radius:14px;touch-action:none;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+.tc-track i{position:absolute;top:50%;width:26px;height:26px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);transform:translate(-50%,-50%);pointer-events:none}
+.tc:not(.on) .tc-track i{opacity:.55}
+.tc-tl{display:flex;justify-content:space-between;font-size:11px;color:#999;margin:5px 0 12px}
 .pill-in.sm{height:42px;font-size:14px;margin-top:10px;background:#fff}
 .pill-in.sm::placeholder{color:#AAA;font-weight:500}
 .feelcard .q b{font-size:15px;color:#111;margin-right:9px}
@@ -547,9 +552,17 @@ const FEEL = {
   aroma:{q:'처음 맡았을 때 떠오르는 향은?', label:'향', opts:['풀향','꽃향','상쾌한 향','잘 모르겠어요']},
   taste:{q:'한 모금 마셨을 때 느껴지는 맛은?', label:'맛', opts:['부드러움','산뜻함','은은함','잘 모르겠어요']},
 };
-/* 찻물 색 견본: 실제 찻물 범위(연한 노랑 → 진한 갈색, 꽃차의 보라·분홍) */
-const TEA_SW=[['연한 노랑','#F1E6B0'],['맑은 연두','#D6E4A4'],['진한 연두','#ADC678'],['황금빛','#EBC870'],['호박색','#DC9C46'],
-  ['붉은 주황','#CF7442'],['적갈색','#A4502F'],['진한 갈색','#6B3D2A'],['보랏빛','#B9A6D6'],['분홍빛','#E9B6C2']];
+/* 찻물 색: 색 계열(빨주노초파남보) + 진하기(맑게~진하게) 두 슬라이드로 고른다.
+   찻물 색은 기록에만 남고, 찻방울 색(맛·향 분석)에는 들어가지 않는다 */
+const TC_FAM=[['빨강','#C8452F'],['주황','#DE8A3A'],['노랑','#E6CC55'],['초록','#8DBB5A'],['파랑','#5B95C9'],['남색','#3E4E9A'],['보라','#9A7BC4']];
+const tcHx=h=>{ const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; };
+const tcMix=(a,b,t)=>'#'+tcHx(a).map((v,i)=>Math.round(v+(tcHx(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
+function tcBase(h){ const f=Math.max(0,Math.min(1,h))*(TC_FAM.length-1), i=Math.min(TC_FAM.length-2,Math.floor(f)); return tcMix(TC_FAM[i][1],TC_FAM[i+1][1],f-i); }
+const tcColor=(h,d)=>{ const c=tcBase(h); return d<.5?tcMix('#FBF8EE',c,.25+d*1.5):tcMix(c,'#2A1A12',(d-.5)*.9); };
+function tcName(h,d){ const f=TC_FAM[Math.round(Math.max(0,Math.min(1,h))*(TC_FAM.length-1))][0];
+  if(d>=.75){ if(f==='빨강') return '적갈색'; if(f==='주황') return '갈색'; if(f==='노랑') return '호박색'; }
+  if(d<.5&&f==='빨강') return d<.25?'맑은 분홍빛':'분홍빛';
+  return (d<.25?'맑은 ':d<.5?'연한 ':d<.75?'':'진한 ')+f; }
 const VOICE_LINES = ['풀 향이 먼저 났어요.','따뜻하고 둥글게 퍼졌어요.','볶은 곡물처럼 고소하고 편안해요.','식으니까 단맛이 조금 더 느껴져요.'];
 
 const daysAgo=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d; };
@@ -986,7 +999,7 @@ const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font
 function matchFlavors(text){ const t=String(text||'').replace(/\s/g,''); return FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.includes(w))); }
 function collectExprs(d){
   const out=[], add=t=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:matchFlavors(t)}); };
-  ['aroma','taste','color'].forEach(k=>add(d.feel&&d.feel[k]));
+  ['aroma','taste'].forEach(k=>add(d.feel&&d.feel[k])); // 찻물 색은 찻방울 색에 넣지 않는다
   (d.chat||[]).filter(m=>m.who==='me').forEach(m=>add(m.text));
   if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
@@ -1123,7 +1136,7 @@ feel(){
   ${Object.entries(FEEL).map(([k,f])=>`<div class="feelcard"><div class="q"><b>${f.label}</b>${f.q}</div>
     ${f.swatch?swatchHTML(d):''}
     <div class="chips">${f.swatch?`<button class="chip ${S.colorInput?'sel':''}" onclick="toggleColorInput()">직접 쓰기</button>`:''}${f.opts.map(o=>`<button class="chip ${d.feel[k]===o?'sel':''}" onclick="pickFeel('${k}','${o}')">${o}</button>`).join('')}</div>
-    ${f.swatch&&S.colorInput?`<input class="pill-in sm" id="inColor" placeholder="예: 맑은 호박색, 투명한 금빛" value="${esc(TEA_SW.some(x=>x[0]===d.feel.color)||d.feel.color==='잘 모르겠어요'?'':(d.feel.color||''))}" oninput="S.draft.feel.color=this.value.trim()||undefined">`:''}</div>`).join('')}
+    ${f.swatch&&S.colorInput?`<input class="pill-in sm" id="inColor" placeholder="예: 맑은 호박색, 투명한 금빛" value="${esc(d.feel.colorHD||d.feel.color==='잘 모르겠어요'?'':(d.feel.color||''))}" oninput="S.draft.feel.color=this.value.trim()||undefined;S.draft.feel.colorHD=null">`:''}</div>`).join('')}
   <div class="tip"><b>✦ 작은 팁</b>정답은 없어요. 떠오르는 느낌 그대로 고르면 충분해요.</div>
   <div class="spacer"></div>
   <button class="btn" onclick="go('chat')">내 감각 기록하기</button>
@@ -1423,6 +1436,7 @@ error(p){
 
 /* after-render hooks */
 const AFTER = {
+  feel(){ bindTeaColor(); },
   home(){ mountHomeDrop($('#homeDrop')); },
   chat(){ if(S.chatMode==='chat'){ seedChat(); paintMsgs(); } },
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('depth',{},{replace:true}); },1600); },
@@ -1535,9 +1549,27 @@ setInterval(()=>{
 },1000);
 
 /* feel */
-function pickFeel(k,o){ const f=S.draft.feel; f[k]= f[k]===o ? undefined : o; if(k==='color') S.colorInput=false; rerender(); }
-function swatchHTML(d){ return `<div class="sw">${TEA_SW.map(([n,c])=>`<button class="${d.feel.color===n?'sel':''}" onclick="pickFeel('color','${n}')" aria-label="${n}"><i style="background:${c}"></i><span>${n}</span></button>`).join('')}</div>`; }
-function toggleColorInput(){ S.colorInput=!S.colorInput; if(S.colorInput&&TEA_SW.some(x=>x[0]===S.draft.feel.color)) S.draft.feel.color=undefined; rerender(); if(S.colorInput) setTimeout(()=>{ const i=$('#inColor'); if(i) i.focus(); },50); }
+function pickFeel(k,o){ const f=S.draft.feel; f[k]= f[k]===o ? undefined : o; if(k==='color'){ S.colorInput=false; f.colorHD=null; f.colorHex=null; } rerender(); }
+function swatchHTML(d){ const hd=d.feel.colorHD||[.33,.4], on=!!d.feel.colorHD, c=tcColor(hd[0],hd[1]);
+  return `<div class="tc ${on?'on':''}" id="tcBox"><div class="tc-cup"><i style="background:${on?c:'transparent'}"></i><div><b>${on?d.feel.color:'끌어서 골라주세요'}</b><span>고른 찻물 색</span></div></div>
+    <div class="tc-lab">색 계열</div><div class="tc-track" id="tcH" style="background:linear-gradient(90deg,${TC_FAM.map(x=>x[1]).join(',')})"><i style="left:${hd[0]*100}%;background:${tcBase(hd[0])}"></i></div>
+    <div class="tc-lab">진하기</div><div class="tc-track" id="tcD" style="background:linear-gradient(90deg,${tcColor(hd[0],0)},${tcColor(hd[0],.5)},${tcColor(hd[0],1)})"><i style="left:${hd[1]*100}%;background:${c}"></i></div>
+    <div class="tc-tl"><span>맑게</span><span>진하게</span></div></div>`; }
+/* 슬라이드: 끄는 동안은 화면만 바꾸고, 손을 떼면 다시 그린다 */
+function bindTeaColor(){
+  const box=$('#tcBox'); if(!box) return; const d=S.draft;
+  const paint=()=>{ const [h,v]=d.feel.colorHD, c=tcColor(h,v); box.classList.add('on');
+    box.querySelector('.tc-cup i').style.background=c; box.querySelector('.tc-cup b').textContent=d.feel.color;
+    const a=box.querySelector('#tcH i'), b=box.querySelector('#tcD i'); a.style.left=h*100+'%'; a.style.background=tcBase(h); b.style.left=v*100+'%'; b.style.background=c;
+    box.querySelector('#tcD').style.background=`linear-gradient(90deg,${tcColor(h,0)},${tcColor(h,.5)},${tcColor(h,1)})`;
+    box.closest('.feelcard').querySelectorAll('.chips .chip').forEach(x=>x.classList.remove('sel')); };
+  [['#tcH',0],['#tcD',1]].forEach(([sel,ix])=>{ const tr=box.querySelector(sel);
+    const mv=e=>{ const r=tr.getBoundingClientRect(), t=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); const hd=d.feel.colorHD?[...d.feel.colorHD]:[.33,.4]; hd[ix]=+t.toFixed(3);
+      d.feel.colorHD=hd; d.feel.color=tcName(hd[0],hd[1]); d.feel.colorHex=tcColor(hd[0],hd[1]); S.colorInput=false; paint(); };
+    tr.addEventListener('pointerdown',e=>{ tr.setPointerCapture(e.pointerId); mv(e); tr.onpointermove=mv; });
+    tr.addEventListener('pointerup',()=>{ tr.onpointermove=null; rerender(); }); });
+}
+function toggleColorInput(){ S.colorInput=!S.colorInput; if(S.colorInput&&S.draft.feel.colorHD){ S.draft.feel.color=undefined; S.draft.feel.colorHD=null; } rerender(); if(S.colorInput) setTimeout(()=>{ const i=$('#inColor'); if(i) i.focus(); },50); }
 
 /* chat */
 function setMode(m){ S.chatMode=m; S.listening=false; rerender(); }
