@@ -1010,14 +1010,14 @@ function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML
 /* =========================================================
    SCREENS
    ========================================================= */
-const HQ=(()=>{ try{ return (new URLSearchParams(location.search).get('hq')||'').replace(/[^a-z ]/g,''); }catch(e){ return ''; } })();
+const HQ=(()=>{ try{ return (new URLSearchParams(location.search).get('hq')||'center').replace(/[^a-z ]/g,''); }catch(e){ return ''; } })();
 const SCREENS = {
 
 home(){
   return `<div class="home">
     <h1 class="home-q ${HQ}">${/split/.test(HQ)?'<em>당신에게 이 차는</em>어떤 색들이 담겨 있나요?':'당신에게 이 차는<br>어떤 색들이 담겨 있나요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
-    <p class="home-note">기록한 맛과 향의 색이 모여, 나만의 찻방울이 돼요</p>
+    <p class="home-note">맛과 향을 기록해서 색으로 보관해요</p>
     <button class="bigbtn" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
 },
