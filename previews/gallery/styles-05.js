@@ -166,6 +166,7 @@ GALLERY.add({ id:'s505', name:'취향 별자리', cat:'공간', bg:'#0F1421',
       while(inT.size<ps.length){ let best=null,bd=1e9; for(const a of inT) for(let b=0;b<ps.length;b++){ if(inT.has(b)) continue; const d=Math.hypot(ps[a].x-ps[b].x,ps[a].y-ps[b].y); if(d<bd){ bd=d; best=[a,b]; } } inT.add(best[1]); edges.push([...best,bd]); }
       ctx.strokeStyle=rgba(lift(typeCol(H,t),.4),.32);
       for(const [a,b,d] of edges){ if(d>RR*.5) continue; ctx.beginPath(); ctx.moveTo(ps[a].x,ps[a].y); ctx.lineTo(ps[b].x,ps[b].y); ctx.stroke(); }
+    }
     const k=N>50?.8:1;
     for(const p of P){ const r=p.r, s=W*(.0028+.0022*r.stars+.0018*r.i)*k, col=lift(r.tea,.25);
       const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,s*5); g.addColorStop(0,rgba(col,.5)); g.addColorStop(.3,rgba(lift(flc(r),.2),.16)); g.addColorStop(1,rgba(col,0));
