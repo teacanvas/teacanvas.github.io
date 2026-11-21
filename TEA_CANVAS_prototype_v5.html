@@ -1955,7 +1955,7 @@ function makeWash(N,hex,seed){
   return {frame};
 }
 // 가운데 크기 시안용: ?w=번짐(px) &b=영문(px) &s=예시(px) &pos=top|bottom|mid
-const HC=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d,lo,hi)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(lo,Math.min(hi,v)):d; }; return {w:n('w',320,200,600),b:n('b',30,16,56),s:n('s',12.5,10,18),pos:/^(top|bottom|mid)$/.test(q.get('pos')||'')?q.get('pos'):'top'}; }catch(e){ return {w:320,b:30,s:12.5,pos:'top'}; } })();
+const HC=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d,lo,hi)=>{ const v=parseFloat(q.get(k)); return isFinite(v)?Math.max(lo,Math.min(hi,v)):d; }; return {w:n('w',540,200,600),b:n('b',52,16,56),s:n('s',15,10,18),pos:/^(top|bottom|mid)$/.test(q.get('pos')||'')?q.get('pos'):'mid'}; }catch(e){ return {w:540,b:52,s:15,pos:'mid'}; } })();
 function startHome3D(el){
   const size=HC.w, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px'; if(size>340) cv.style.margin=`${-(size-340)/2}px ${-(size-340)/2}px`;
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; const x=cv.getContext('2d');
