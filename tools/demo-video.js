@@ -28,7 +28,7 @@ const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo-'+Date.now())
   const p=await ctx.newPage(); let n=0;
   const cap=async(title,desc='')=>{ n++; await p.evaluate(([n,t,d])=>{ const c=document.getElementById('demoCap'); if(c) c.innerHTML=`<div class="n">${String(n).padStart(2,'0')}</div><h3>${t}</h3><p>${d}</p>`; },[n,title,desc]); };
   const wait=ms=>p.waitForTimeout(ms);
-  const tap=async sel=>{ const el=await p.waitForSelector(sel,{state:'visible',timeout:15000}); const r=await el.boundingBox(); await p.mouse.move(r.x+r.width/2,r.y+r.height/2,{steps:12}); await wait(250); await p.mouse.down(); await wait(90); await p.mouse.up(); await wait(500); };
+  const tap=async sel=>{ const el=await p.waitForSelector(sel,{state:'visible',timeout:15000}); await el.scrollIntoViewIfNeeded(); await wait(300); const r=await el.boundingBox(); await p.mouse.move(r.x+r.width/2,r.y+r.height/2,{steps:12}); await wait(250); await p.mouse.down(); await wait(90); await p.mouse.up(); await wait(500); };
   const type=async t=>{ await tap('#chatIn'); await p.keyboard.type(t,{delay:55}); await wait(300); await p.keyboard.press('Enter'); await wait(1400); };
   const ev=f=>p.evaluate(f);
 
@@ -55,23 +55,25 @@ const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo-'+Date.now())
   await cap('고쳐 말하기','“A가 아니라 B”라고 하면\n앞 표현의 풍미를 고쳐요.'); await type('팬케이크의 스윗함이 아니라 소프트함이야'); await wait(1200);
   await cap('직접 고르기','‘바꾸기’를 눌러 풍미를 직접 골라도 돼요.'); await tap('.kept-btn >> nth=0'); await wait(900); await tap('.fl-edit .chip >> text=Sweet'); await wait(600); await tap('.fl-edit .feelnext'); await wait(900);
   await type('끝에 꿀 같은 단맛이 엄청 진하게 남아요');
-  await cap('끝낼 때는 내가','‘이제 충분해요’를 눌러야\n여운을 묻고 정리로 넘어가요.'); await tap('#msgs .chip >> text=이제 충분해요'); await wait(2000); await type('여운이 꽤 길어요'); await wait(800);
+  await cap('끝낼 때는 내가','아래 ‘이제 충분해요’를 눌러야\n여운을 묻고 정리로 넘어가요.'); await tap('.chatfoot .btn >> text=이제 충분해요'); await wait(2000); await type('여운이 꽤 길어요'); await wait(800);
   await cap('조금 더 남기기','우림 변화 · 산지 · 온도 · 메모를\n채팅에서 하나씩 남겨요.'); await tap('#msgs .chip >> text=우림 변화'); await tap('#msgs .chip >> text=2차'); await tap('#msgs .chip >> text=단맛이 늘었어요'); await tap('#msgs .chip >> text=더 짧게'); await wait(800);
   await cap('정리 (로딩)','남긴 표현이 하나씩 찻방울에 스며들어요.'); await tap('#msgs .chip >> text=이제 정리할게요'); await wait(9500);
   await cap('비교','내 표현과 전문가 설명을 나란히.\n(AI가 연결되면 AI가 정리)'); await wait(1800); await ev(()=>document.querySelector('#view').scrollBy({top:420,behavior:'smooth'})); await wait(2500);
   await cap('캔버스에 찍기','향 · 맛이 좋았는지에 따라 위치를 찍어요.'); await tap('text=캔버스에 찻방울 찍기'); await wait(1000);
   { const r=await (await p.$('#pickCv')).boundingBox(); await p.mouse.move(r.x+r.width*.72,r.y+r.height*.28,{steps:14}); await wait(200); await p.mouse.down(); await wait(150); await p.mouse.up(); await wait(1800); }
+  await cap('사진 남기기','휴대폰에서는 카메라가 열려요.\n(영상에서는 사진 고르기)'); { const fc=p.waitForEvent('filechooser'); await tap('#photoBtn'); await (await fc).setFiles(path.join(ROOT,'assets','photos','s2.jpg')); await wait(1800); }
   await tap('text=저장하고 완료하기'); await wait(2200);
   await cap('완료','대화 기록과 Tea Tag를 볼 수 있어요.'); await wait(1500); await tap('text=Tea Tag 확인하기'); await wait(2500);
   await cap('나의 캔버스','모든 찻방울이 한꺼번에 번지고,\n아래에 나의 취향 찻방울과 추천 차.'); await ev(()=>goTab('canvas')); await wait(4500); await ev(()=>document.querySelector('#view').scrollBy({top:640,behavior:'smooth'})); await wait(3500);
   await cap('기록 목록 · 풍미 필터','오늘 플로럴한 차가 당길 때\n풍미로 지난 기록을 찾아요.'); await ev(()=>go('canvas',{tab:'list'},{reset:true})); await wait(1500); await tap('.fchip.flc >> text=Floral'); await wait(2000);
   await cap('상세 기록','사진 · 나만의 표현 · 찻물 색 ·\n그날의 이야기 · 마신 시간까지.'); await ev(()=>openDetail('s3')); await wait(2500); await ev(()=>document.querySelector('#view').scrollBy({top:600,behavior:'smooth'})); await wait(2500);
 
-  await cap('기록이 부족할 때','아무 맛 · 향도 남기지 않고 정리하면\n‘아직 담을 맛과 향이 없어요’.'); await ev(()=>startRecord()); await wait(600); await type('철관음'); await tap('#msgs .chip >> text=맞아요'); await tap('#msgs .chip >> text=바로 마실게요'); await wait(800); await tap('text=기록 마치고 정리하기'); await wait(3200);
+  await cap('My · 설정','이름, 대화 저장, 음성 소리, 알림을\n직접 바꿀 수 있고 앱으로 설치할 수 있어요.'); await ev(()=>goTab('my')); await wait(1500); await tap('text=계정'); await wait(600); await p.fill('#prefName','차 좋아하는 사람'); await wait(600); await tap('#sheet .btn'); await wait(1800);
+  await cap('기록이 부족할 때','아무 맛 · 향도 남기지 않고 정리하면\n‘아직 담을 맛과 향이 없어요’.'); await ev(()=>startRecord()); await wait(600); await type('철관음'); await tap('#msgs .chip >> text=맞아요'); await tap('#msgs .chip >> text=바로 마실게요'); await wait(800); await ev(()=>{ S.draft.stage='free'; S.draft.chat.push({who:'bot',text:FREE_INTRO}); rerender(); }); await wait(900); await tap('.chatfoot .btn >> text=이제 충분해요'); await wait(1500); await type('딱히 없어요'); await wait(600); await tap('#msgs .chip >> text=이제 정리할게요'); await wait(3200);
   await cap('그만하기 · 이어하기','중간에 그만둘 때 저장해두면\n홈에서 이어할 수 있어요.'); await tap('text=채팅으로 돌아가 남기기'); await wait(800); await tap('.stepbar .quit'); await wait(800); await tap('text=저장하고 나가기'); await wait(2200); await tap('.resume>button:first-child'); await wait(2200);
-  await cap('음성으로만','한 번 누르면 말로 계속 대화해요.\n(마이크가 없으면 시연용 목소리)'); await ev(()=>setMode('voice')); await wait(800); await tap('#vBtn'); await wait(14000); await tap('#vBtn'); await wait(800);
-  await cap('오류 화면','문제가 생기면 다시 시도 · 홈으로.'); await ev(()=>{ setMode('chat'); go('detail',{id:'없는기록'}); }); await wait(3000);
-  await cap('빈 캔버스','첫 기록 전에는 이렇게 보여요.'); await ev(()=>{ S.records=[]; goTab('canvas'); }); await wait(3500);
+  await cap('음성으로만','한 번 누르면 말로 계속 대화해요.\n(마이크가 없으면 시연용 목소리)'); await ev(()=>{ S.quitTo='home'; quitRecord(false); startRecord(); setMode('voice'); }); await wait(1500); await ev(()=>toggleVoice()); await wait(24000); await ev(()=>{ if(VOICE.on) toggleVoice(); }); await wait(800);
+  await cap('오류 화면','문제가 생기면 다시 시도 · 홈으로.'); await ev(()=>{ setMode('chat'); S.draft=null; go('detail',{id:'없는기록'}); }); await wait(3000);
+  await cap('빈 캔버스 · 빈 알림','첫 기록 전에는 이렇게 보여요.'); await ev(()=>{ S.records=[]; goTab('canvas',true); }); await wait(3000); await ev(()=>go('noti')); await wait(2200);
   await cap('찻방울이 많을 때','48잔이 쌓인 캔버스.'); await p.goto(APP+'?sample=many'); await wait(700); await ev(()=>goTab('canvas')); await wait(4500); await ev(()=>document.querySelector('#view').scrollBy({top:640,behavior:'smooth'})); await wait(3500);
   await cap('끝','TEA CANVAS v5'); await ev(()=>goTab('home')); await wait(3500);
 
