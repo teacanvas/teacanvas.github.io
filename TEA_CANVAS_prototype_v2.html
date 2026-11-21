@@ -294,7 +294,10 @@ canvas.wcd.big{margin:14px auto}
 .home{display:flex;flex-direction:column;flex:1}
 .home .hello{margin:22px 26px 0}
 .home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative}
-.home-drop canvas.gl{width:350px;height:350px;display:block}
+.home-drop canvas.d3{display:block}
+.d3wrap{display:flex;flex-direction:column;align-items:center;margin:10px 0 6px}
+.d3wrap canvas.d3{display:block}
+.d3hint{font-size:11.5px;color:var(--g2);margin-top:2px}
 .home-cap{text-align:center;font-size:13px;color:var(--g2);margin:0 0 18px}
 .home-cap b{color:#111;font-weight:700}
 .bigbtn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:108px;padding:22px 26px;background:#000;color:#fff;
@@ -356,7 +359,7 @@ canvas.wcd.big{margin:14px auto}
 
 /* analysis infusion */
 .infuse{position:relative;height:330px;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
-.infuse canvas{display:block;margin-bottom:6px}
+.infuse #inf3d{margin-bottom:6px}
 .floatzone{position:absolute;left:0;right:0;top:0;height:150px;pointer-events:none}
 .ffloat{position:absolute;top:8px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px;background:#fff;border:1px solid #DDD;border-radius:16px;padding:5px 12px;
   animation:floatIn 1.45s cubic-bezier(.3,.6,.3,1) forwards}
@@ -1081,7 +1084,7 @@ analyzing(){
   return `${stepbar(6)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 방울에 스며들어요.</p>
-  <div class="infuse"><div class="floatzone" id="floatzone"></div><canvas id="infCv" style="width:236px;height:236px"></canvas></div>
+  <div class="infuse"><div class="floatzone" id="floatzone"></div><div id="inf3d" style="width:236px;height:236px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
@@ -1093,7 +1096,7 @@ compare(){
   return `${stepbar(6)}
   <h1 class="t">내 감각과 설명을 함께 볼까요?</h1>
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
-  ${orb(draftDrop(d),150,'big')}
+  ${d3Box('cmp3d',190)}
   ${d.flavors.length?`<div class="center-chips">${flChips(d.flavors)}</div>`:''}
   <div class="cmp"><div class="lb">${I.book}전문가 설명</div><div class="bd">${t.expert}</div></div>
   <div class="cmp"><div class="lb">${I.person}나의 기록</div><div class="bd">${esc(myExpression(d))}</div></div>
@@ -1108,7 +1111,7 @@ compare(){
 done(){
   const r=S.lastSaved||S.records[0];
   return `${stepbar(6)}
-  <div class="done-drop">${orb(r,170,'breath')}</div>
+  ${d3Box('done3d',190)}
   <h1 class="t">기록을 완료했어요</h1>
   <p class="sub">오늘의 찻방울이 나의 캔버스에 스며들었어요.<br>대화와 감각이 정리되어 아카이브에 쌓였어요.</p>
   <div style="height:16px"></div>
@@ -1197,8 +1200,9 @@ detail(p){
   Object.entries(dp.brews||{}).forEach(([n,b])=>{ if(b.feel||b.next) info.push([n+'차 우림',[b.feel,b.next].filter(Boolean).join(' / ')]); });
   return `<div class="dtop"><button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
     <button class="ghost" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash}</button></div>
+  ${d3Box('det3d',170)}
   <div class="detail">
-    <div class="dhead">${orb(r,88)}<div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
+    <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
     ${r.photo?`<div class="photo"><span>사진</span></div>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
@@ -1258,7 +1262,9 @@ const AFTER = {
       let best=null, bd=1e9; recs.forEach(r=>{ const d=Math.hypot(r.canvas.x-x,r.canvas.y-y); if(d<bd){bd=d;best=r;} });
       if(best && bd<dropR(1,best.canvas.i,1.1)*1.2) openDetail(best.id); else toast('방울을 눌러 기록을 열어보세요'); };
   },
-  detail(p){ const cv=$('#detCv'); if(cv) paintCanvas(cv,recsAsc(),{highlight:p.id}); },
+  detail(p){ const r=S.records.find(x=>x.id===p.id); if(r) mountDrop3D($('#det3d'),recDrop(r),170); const cv=$('#detCv'); if(cv) paintCanvas(cv,recsAsc(),{highlight:p.id}); },
+  compare(){ mountDrop3D($('#cmp3d'),draftDrop(S.draft),190); },
+  done(){ const r=S.lastSaved||S.records[0]; if(r) mountDrop3D($('#done3d'),recDrop(r),190); },
 };
 const cur=()=>S.stack[S.stack.length-1].name;
 
@@ -1472,30 +1478,26 @@ function floatChip(e){
   z.appendChild(el); setTimeout(()=>el.remove(),1500);
 }
 function runInfusion(){
-  const d=S.draft, at=S.stack.length, cv=$('#infCv'); if(!cv) return;
+  const d=S.draft, at=S.stack.length, box=$('#inf3d'); if(!box) return;
   const exprs=collectExprs(d); d.flavors=scoreFlavors(exprs); d.exprs=exprs.map(e=>e.text);
   const matched=exprs.filter(e=>e.fl.length), show=(matched.length?matched:exprs).slice(0,5);
-  const base=teaDrop(d.type), fin=draftDrop(d), fk=d.flavors.map(f=>f.k);
-  const px=pxFor(236); cv.width=cv.height=px; const x=cv.getContext('2d');
-  const STEP=1250, T0=450, total=T0+show.length*STEP+(fk.length?700:1500), ev=[], seen=new Set();
-  show.forEach((e,i)=>{ const t=T0+i*STEP; ev.push({t,chip:e}); e.fl.forEach(k=>{ if(fk.includes(k)&&!seen.has(k)){ seen.add(k); ev.push({t:t+780,k}); } }); });
+  const fin=draftDrop(d), F=d3Field(fin), fk=d.flavors.map(f=>f.k);
+  F.inks.forEach(k=>k.vis=0);
+  const STEP=1300, T0=500, total=T0+show.length*STEP+(fk.length?1100:1600), ev=[], seen=new Set();
+  show.forEach((e,i)=>{ const t=T0+i*STEP; ev.push({t,chip:e}); e.fl.forEach(k=>{ if(fk.includes(k)&&!seen.has(k)){ seen.add(k); ev.push({t:t+800,k}); } }); });
   fk.filter(k=>!seen.has(k)).forEach(k=>ev.push({t:T0+show.length*STEP,k}));
-  fin.comps.filter(c=>!fk.includes(c.key)).forEach(c=>ev.push({t:T0*.5,k:c.key}));
   ev.sort((a,b)=>a.t-b.t);
-  const starts={}; let ei=0; const t0=performance.now();
-  const loop=now=>{
-    if(cur()!=='analyzing'||S.stack.length!==at||!cv.isConnected) return;
-    const t=now-t0;
-    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; if(e.chip) floatChip(e.chip); else starts[e.k]=e.t; }
+  const starts={}; let ei=0, done=false; const t0=performance.now();
+  // 잉크가 들어올 때 방울이 빨리 돌며 섞이고, 끝나면 천천히 멈춘다
+  const st=D3.mount(box,F,{size:236,interactive:false,spin:.5,flow:.09,swirl:1.1,onFrame(_,s){
+    const t=performance.now()-t0;
+    if(cur()!=='analyzing'||S.stack.length!==at) return;
+    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; if(e.chip) floatChip(e.chip); else { starts[e.k]=e.t; s.vy+=1.6; } }
+    F.inks.forEach(k=>{ const s0=starts[k.key]; k.vis=s0==null?0:Math.min(1,(t-s0)/1400); });
     const ph=t<total*.3?0:t<total*.82?1:2; document.querySelectorAll('#phases .ph').forEach((el,k)=>el.classList.toggle('on',k===ph));
-    x.clearRect(0,0,px,px);
-    WC.draw(x,base,px/2,px/2,px*.42,1,Math.max(0,1-t/(total*.9)));
-    const keys={}; for(const k in starts) keys[k]=Math.min(1,Math.max(0,(t-starts[k])/1100));
-    WC.draw(x,fin,px/2,px/2,px*.42,1,1,keys);
-    if(t<total) requestAnimationFrame(loop);
-    else{ WC.grain(x,px,px); setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },650); }
-  };
-  requestAnimationFrame(loop);
+    if(t>total&&!done){ done=true; setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },900); }
+  }});
+  if(!st){ box.innerHTML=orb(fin,236); paintDrops(box); setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },total); show.forEach((e,i)=>setTimeout(()=>floatChip(e),T0+i*STEP)); }
 }
 /* 방금 찍은 방울이 캔버스에서 다시 번지는 연출 */
 function bloomOn(cv,r,px){
@@ -1510,120 +1512,183 @@ function bloomOn(cv,r,px){
     if(p<1) requestAnimationFrame(loop); else WC.grain(ctx,px,px); };
   setTimeout(()=>requestAnimationFrame(loop),250);
 }
+/* @@D3_BEGIN (src/drop3d.js에서 빌드) */
 /* =========================================================
-   홈 3D 찻방울 (WebGL, 라이브러리 없음)
-   ink: 물속에 잉크가 피어오르는 방울 · jelly: 말랑한 유리 젤리
+   D3 — 3D 찻방울 (WebGL, 라이브러리 없음)
+   방울 속 3D 색 공간: 찻물 색(바탕) 위에 풍미 잉크가 각자 자리에서 번지고,
+   흐르는 노이즈로 경계가 섞인다. 같은 색 공간을 JS로도 계산해 2D 캔버스에 칠한다.
    ========================================================= */
-const HOME_STYLE = 'ink';
-const startHome3D = (()=>{
+const D3 = (()=>{
   const VERT = `attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
-  const NOISE = `
-float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
-float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*noise(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }`;
-  const FRAG = {ink:`precision highp float; varying vec2 v; uniform float t, life;
-uniform vec3 inkC[6]; uniform vec3 inkP[6];
-${NOISE}
-void main(){
-  vec2 uv=v; float ang=atan(uv.y,uv.x);
-  float R=.74+.016*sin(t*1.1)+.03*(noise(vec2(cos(ang)*1.3+t*.25, sin(ang)*1.3+t*.2))-.5);
-  float r=length(uv), edge=smoothstep(R,R-.01,r);
-  if(edge<=0.){ gl_FragColor=vec4(1.); return; }
-  vec2 s=uv/R; float z=sqrt(max(0.,1.-dot(s,s))); vec3 n=vec3(s,z);
-  vec2 q=s*(1.-.22*(1.-z));
-  vec2 w=vec2(fbm(q*2.2+vec2(0.,t*.08)), fbm(q*2.2+vec2(5.2,-t*.07)));
-  vec2 qw=q+(w-.5)*.6;
-  vec3 col=vec3(.985,.985,.98);
-  for(int i=0;i<6;i++){
-    float age=t-inkP[i].z;
-    if(age<0. || age>life) continue;
-    float grow=1.-exp(-age*.32), rad=.06+.8*grow;
-    vec2 d=qw-inkP[i].xy;
-    float tn=fbm(qw*4.5+float(i)*3.1+t*.05);
-    float dist=length(d)+(tn-.5)*.42*grow;
-    float dens=smoothstep(rad,rad*.1,dist)*(.5+.5*fbm(qw*7.-t*.04+float(i)));
-    dens*=smoothstep(life,life*.55,age)*smoothstep(0.,.5,age)*(1.2-.5*grow); dens=min(dens,.95);
-    col*=mix(vec3(1.),inkC[i],dens);
+  const GLSL_FIELD = `
+float h3(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+float fbm(vec3 p){ float s=0., a=.5; for(int i=0;i<4;i++){ s+=a*n3(p); p=p*2.02+vec3(3.1,1.7,5.3); a*=.5; } return s; }
+uniform vec3 baseC; uniform float baseW; uniform vec3 inkC[10]; uniform vec3 inkP[10]; uniform float inkW[10]; uniform float t, flow, swirl;
+vec3 fieldC(vec3 q){
+  vec3 w=vec3(fbm(q*1.6+vec3(0.,0.,t*flow)), fbm(q*1.6+vec3(5.2,1.3,-t*flow)), fbm(q*1.6+vec3(2.7,8.1,t*flow*.7)));
+  q+=(w-.5)*swirl;
+  float b=baseW*baseW*sqrt(baseW); vec3 acc=baseC*b; float tot=b;
+  for(int i=0;i<10;i++){
+    float wi=inkW[i]; if(wi<.001) continue;
+    vec3 d=q-inkP[i]; float f=wi*exp(-dot(d,d)/(.05+.22*wi));
+    f=f*f*sqrt(f); acc+=inkC[i]*f; tot+=f;
   }
-  vec3 L=normalize(vec3(-.4,.6,.7));
-  col*=.93+.07*dot(n,L);
-  float fres=pow(1.-z,2.5);
-  col=mix(col,vec3(.84,.85,.87),fres*.4);
-  col+=pow(max(dot(reflect(-L,n),vec3(0,0,1)),0.),48.)*.45;
-  gl_FragColor=vec4(mix(vec3(1.),col,edge),1.);
-}`, jelly:`precision highp float; varying vec2 v; uniform float t, poke; uniform vec3 cA, cB;
-float sdf(vec3 p){
-  float br=sin(t*1.2);
-  vec3 q=p; q.y/=(1.-.04*br-.16*poke); q.xz/=(1.+.03*br+.09*poke);
-  float d=length(q)-.8;
-  d+=.04*sin(3.*q.x+t*1.6)*sin(3.*q.y+t*1.2)*sin(3.*q.z+t*1.)+.02*sin(5.*q.y-t*1.4)*(1.+poke*2.);
-  return d*.8;
-}
-vec3 nrm(vec3 p){ vec2 e=vec2(.002,0.); return normalize(vec3(sdf(p+e.xyy)-sdf(p-e.xyy),sdf(p+e.yxy)-sdf(p-e.yxy),sdf(p+e.yyx)-sdf(p-e.yyx))); }
+  return acc/max(tot,1e-6);
+}`;
+  const FRAG = `precision highp float; varying vec2 v; uniform mat3 rot; uniform float wob;
+${GLSL_FIELD}
 void main(){
-  vec3 ro=vec3(0.,0.,2.7), rd=normalize(vec3(v,-2.45));
-  float d=0.; bool hit=false; vec3 p;
-  for(int i=0;i<72;i++){ p=ro+rd*d; float h=sdf(p); if(h<.001){hit=true;break;} d+=h; if(d>6.) break; }
-  if(!hit){ gl_FragColor=vec4(1.); return; }
-  vec3 n=nrm(p);
-  vec3 r2=refract(rd,n,1./1.33);
-  float th=0.; vec3 m=p;
-  for(int i=0;i<28;i++){ m=p+r2*(th+.02); float h=-sdf(m); if(h<.002) break; th+=max(h,.02); }
-  vec3 mid=p+r2*th*.5;
-  float pool=smoothstep(.25,-.7,mid.y+.07*sin(mid.x*4.+t*.8));
-  vec3 mixc=mix(cA,cB,smoothstep(-.35,.35,mid.x+.25*sin(mid.y*3.+t*.6)));
-  vec3 tint=mix(vec3(1.),mixc,clamp(pool*.9+.08,0.,1.)*clamp(th*.9,0.,1.));
-  float fres=pow(1.-max(dot(n,-rd),0.),3.);
-  vec3 irid=.5+.5*cos(6.2831*(fres*1.3+t*.03+vec3(0.,.33,.67)));
-  vec3 L=normalize(vec3(-.5,.7,.6));
-  float spec=pow(max(dot(reflect(rd,n),L),0.),60.);
-  vec3 col=vec3(.975)*tint*(1.-fres*.35)+fres*mix(vec3(.88,.89,.92),irid,.55)*.55+spec*.7;
-  gl_FragColor=vec4(col,1.);
-}`};
-  const INKS=[...ORDER.map(k=>TEAS[k].color),...FKEYS.filter(k=>k!=='soft').map(k=>FLAVORS[k].color)];
-  const hex3=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
-  const pick=()=>hex3(INKS[Math.floor(Math.random()*INKS.length)]);
-  let ok=null;
-  return function(el){
-    const cv=document.createElement('canvas'); cv.className='gl';
-    const gl=cv.getContext('webgl',{antialias:true});
-    if(!gl || ok===false) return false;
-    try{
-      const sh=(t,src)=>{ const o=gl.createShader(t); gl.shaderSource(o,src); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
-      const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG[HOME_STYLE])); gl.linkProgram(pr); gl.useProgram(pr);
-      const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-      const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-      ok=true;
-      const U=n=>gl.getUniformLocation(pr,n), t0=performance.now(), now=()=>(performance.now()-t0)/1000;
-      el.innerHTML=''; el.appendChild(cv);
-      const px=Math.min(900,Math.round(350*Math.min(2,(devicePixelRatio||1))*SCALE)); cv.width=cv.height=px; gl.viewport(0,0,px,px);
-      let step;
-      if(HOME_STYLE==='ink'){
-        const IV=3.2, LIFE=IV*6, inks=[]; let next=IV, slot=0;
-        for(let i=0;i<6;i++){ const a=Math.random()*6.28, d=Math.random()*.45; inks.push({c:pick(),p:[Math.cos(a)*d,Math.sin(a)*d,-(5-i)*IV]}); }
-        const drop=(x,y)=>{ inks[slot]={c:pick(),p:[x,y,now()]}; slot=(slot+1)%6; };
-        cv.addEventListener('pointerdown',e=>{ const r=cv.getBoundingClientRect(); drop(((e.clientX-r.left)/r.width*2-1)/.74,-((e.clientY-r.top)/r.height*2-1)/.74); next=now()+IV; });
-        step=t=>{ if(t>next){ const a=Math.random()*6.28, d=Math.random()*.5; drop(Math.cos(a)*d,Math.sin(a)*d); next=t+IV; }
-          gl.uniform1f(U('t'),t); gl.uniform1f(U('life'),LIFE); gl.uniform3fv(U('inkC'),inks.flatMap(k=>k.c)); gl.uniform3fv(U('inkP'),inks.flatMap(k=>k.p)); };
-      }else{
-        let A=pick(), B=pick(), tA=A, tB=B, poke=0, vel=0, last=0, swap=5;
-        cv.addEventListener('pointerdown',()=>{ vel+=5; });
-        step=t=>{ const dt=Math.min(.05,t-last); last=t; vel+=(-90*poke-6*vel)*dt; poke+=vel*dt;
-          if(t>swap){ tA=pick(); tB=pick(); swap=t+6; }
-          A=A.map((v,i)=>v+(tA[i]-v)*dt*.5); B=B.map((v,i)=>v+(tB[i]-v)*dt*.5);
-          gl.uniform1f(U('t'),t); gl.uniform1f(U('poke'),poke); gl.uniform3fv(U('cA'),A); gl.uniform3fv(U('cB'),B); };
-      }
-      (function loop(){ if(!cv.isConnected) return; step(now()); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); requestAnimationFrame(loop); })();
-      return true;
-    }catch(err){ ok=false; console.warn('3D 방울을 그리지 못해 수채화 방울로 대신해요',err); return false; }
-  };
-})();
+  vec2 uv=v; float r=length(uv), ang=atan(uv.y,uv.x);
+  float R=.8+wob*(.012*sin(t*1.3)+.024*(n3(vec3(cos(ang)*1.3,sin(ang)*1.3,t*.3))-.5));
+  if(r>R){ gl_FragColor=vec4(0.); return; }
+  vec2 s=uv/R; float z=sqrt(max(0.,1.-dot(s,s)));
+  vec3 N=vec3(s,z), col=vec3(0.); float ws=0.;
+  for(int k=0;k<2;k++){ float zz=z*(1.-float(k)*.6); vec3 q=rot*vec3(s*.94,zz*.94); float w=k==0?1.:.3; col+=fieldC(q)*w; ws+=w; }
+  col/=ws;
+  float lum=dot(col,vec3(.299,.587,.114)); col=clamp(mix(vec3(lum),col,1.28),0.,1.);
+  vec3 L=normalize(vec3(-.45,.6,.65));
+  col*=.9+.16*max(dot(N,L),0.);
+  float fres=pow(1.-z,2.6);
+  col=mix(col,col*.72,fres*.6);
+  col+=pow(max(dot(reflect(-L,N),vec3(0,0,1)),0.),46.)*.6;
+  col+=vec3(.95,.97,1.)*smoothstep(.45,1.,fres)*.28;
+  float a=smoothstep(R,R-.014,r);
+  gl_FragColor=vec4(col*a,a);
+}`;
 
+  /* ---------- 색 공간 데이터 ---------- */
+  const rng = seed => { let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; };
+  const hash = s => { let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; };
+  const rgb = h => { const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
+  // comps: [{key:'tea',c,w}, {key:flavor,c,w}...] → 바탕 + 잉크(강한 풍미는 가운데 가까이, 약한 풍미는 가장자리)
+  function fromComps(id,comps){
+    const r=rng(hash(id)), tea=comps.find(c=>c.key==='tea')||comps[0];
+    const fl=comps.filter(c=>c!==tea).sort((a,b)=>b.w-a.w).slice(0,5);
+    // 풍미마다 1~3개의 덩어리를 방울 표면 가까이 고르게 흩어, 어느 쪽으로 돌려도 색이 보이게
+    const lobes=[]; fl.forEach(c=>{ for(let k=0,n=1+Math.round(c.w*2);k<n;k++) lobes.push(c); });
+    const L=lobes.slice(0,10), N=L.length, off=r()*6.28;
+    const order=L.map((_,i)=>i).sort(()=>r()-.5);
+    const inks=L.map((c,j)=>{
+      const i=order[j], y=1-2*(i+.5)/N, s=Math.sqrt(1-y*y), th=i*2.39996+off, d=.6+.22*r();
+      return {key:c.key,c:rgb(c.c),p:[s*Math.cos(th)*d,y*d,s*Math.sin(th)*d],w:c.w};
+    });
+    return {base:rgb(tea.c),baseW:fl.length?.45:1,inks};
+  }
+
+  /* ---------- 같은 색 공간을 JS로 (2D 캔버스용) ---------- */
+  const fr=x=>x-Math.floor(x);
+  function h3(x,y,z){ x=fr(x*.3183099+.1)*17; y=fr(y*.3183099+.1)*17; z=fr(z*.3183099+.1)*17; return fr(x*y*z*(x+y+z)); }
+  function n3(x,y,z){
+    const ix=Math.floor(x), iy=Math.floor(y), iz=Math.floor(z); let fx=x-ix, fy=y-iy, fz=z-iz;
+    fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); fz=fz*fz*(3-2*fz);
+    const L=(a,b,t)=>a+(b-a)*t;
+    return L(L(L(h3(ix,iy,iz),h3(ix+1,iy,iz),fx),L(h3(ix,iy+1,iz),h3(ix+1,iy+1,iz),fx),fy),
+             L(L(h3(ix,iy,iz+1),h3(ix+1,iy,iz+1),fx),L(h3(ix,iy+1,iz+1),h3(ix+1,iy+1,iz+1),fx),fy),fz);
+  }
+  function fbm(x,y,z){ let s=0,a=.5; for(let i=0;i<4;i++){ s+=a*n3(x,y,z); x=x*2.02+3.1; y=y*2.02+1.7; z=z*2.02+5.3; a*=.5; } return s; }
+  function colorAt(F,x,y,z,t=0,flow=.04,swirl=.9){
+    const wx=fbm(x*1.6,y*1.6,z*1.6+t*flow), wy=fbm(x*1.6+5.2,y*1.6+1.3,z*1.6-t*flow), wz=fbm(x*1.6+2.7,y*1.6+8.1,z*1.6+t*flow*.7);
+    x+=(wx-.5)*swirl; y+=(wy-.5)*swirl; z+=(wz-.5)*swirl;
+    const bw=F.baseW**2.5; let r=F.base[0]*bw, g=F.base[1]*bw, b=F.base[2]*bw, tot=bw;
+    for(const k of F.inks){ const w=k.w*(k.vis??1); if(w<.001) continue; const dx=x-k.p[0], dy=y-k.p[1], dz=z-k.p[2];
+      let f=w*Math.exp(-(dx*dx+dy*dy+dz*dz)/(.05+.22*w)); f=f*f*Math.sqrt(f); r+=k.c[0]*f; g+=k.c[1]*f; b+=k.c[2]*f; tot+=f; }
+    r/=tot; g/=tot; b/=tot; const l=.299*r+.587*g+.114*b, S=1.35, c=v=>Math.max(0,Math.min(1,l+(v-l)*S));
+    return [c(r),c(g),c(b)];
+  }
+
+  /* ---------- 렌더러 ---------- */
+  function makeGL(cv,preserve=false){
+    const gl=cv.getContext('webgl',{premultipliedAlpha:true,alpha:true,antialias:true,preserveDrawingBuffer:preserve});
+    if(!gl) return null;
+    const sh=(type,src)=>{ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FRAG)); gl.linkProgram(pr); gl.useProgram(pr);
+    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    const U={}; ['rot','wob','baseC','baseW','inkC','inkP','inkW','t','flow','swirl'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+    return {gl,
+      draw(F,yaw,pitch,t,o={}){
+        const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+        // R = Ry(yaw) * Rx(pitch), column-major
+        gl.uniformMatrix3fv(U.rot,false,[cy,0,-sy, sy*sp,cp,cy*sp, sy*cp,-sp,cy*cp]);
+        gl.uniform1f(U.t,t); gl.uniform1f(U.wob,o.wob??1); gl.uniform1f(U.flow,o.flow??.04); gl.uniform1f(U.swirl,o.swirl??.9);
+        gl.uniform3fv(U.baseC,F.base); gl.uniform1f(U.baseW,F.baseW);
+        const C=[],P=[],W=[]; for(let i=0;i<10;i++){ const k=F.inks[i]; C.push(...(k?k.c:[0,0,0])); P.push(...(k?k.p:[0,0,0])); W.push(k?k.w*(k.vis??1):0); }
+        gl.uniform3fv(U.inkC,C); gl.uniform3fv(U.inkP,P); gl.uniform1fv(U.inkW,W);
+        gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      },
+      dispose(){ const e=gl.getExtension('WEBGL_lose_context'); e&&e.loseContext(); }};
+  }
+  // 스냅샷용 공유 렌더러(화면 밖 캔버스 하나)
+  let snapR=null, snapCv=null;
+  function snapshot(F,px,yaw=0,pitch=0,t=0,o){
+    if(!snapCv){ snapCv=document.createElement('canvas'); try{ snapR=makeGL(snapCv,true); }catch(e){ snapR=null; } }
+    if(!snapR) return null;
+    if(snapCv.width!==px){ snapCv.width=snapCv.height=px; }
+    snapR.draw(F,yaw,pitch,t,{wob:0,...o}); return snapCv;
+  }
+
+  /* 화면 속 3D 방울: 자동으로 천천히 돌고, interactive면 드래그로 돌려본다 */
+  function mount(el,F,{size=200,px=null,interactive=false,spin=.32,flow=.04,swirl=.9,wob=1,onFrame=null}={}){
+    const cv=document.createElement('canvas'); cv.className='d3'; cv.style.width=cv.style.height=size+'px';
+    let R; try{ R=makeGL(cv); }catch(e){ R=null; } if(!R) return null;
+    el.innerHTML=''; el.appendChild(cv);
+    const n=px||Math.min(1000,Math.round(size*Math.min(2,window.devicePixelRatio||1)*(typeof SCALE!=='undefined'?SCALE:1))); cv.width=cv.height=n;
+    const st={F,yaw:Math.random()*6.28,pitch:.25,vy:spin,drag:false,t0:performance.now(),last:performance.now()};
+    if(interactive){
+      cv.style.cursor='grab'; cv.style.touchAction='none';
+      let px0=0,py0=0,lt=0;
+      cv.addEventListener('pointerdown',e=>{ st.drag=true; cv.setPointerCapture(e.pointerId); px0=e.clientX; py0=e.clientY; lt=performance.now(); cv.style.cursor='grabbing'; });
+      cv.addEventListener('pointermove',e=>{ if(!st.drag) return; const b=cv.getBoundingClientRect(), k=4/b.width, now=performance.now(), dx=(e.clientX-px0)*k, dy=(e.clientY-py0)*k;
+        st.yaw+=dx; st.pitch=Math.max(-1.2,Math.min(1.2,st.pitch+dy)); st.vy=dx/Math.max(.008,(now-lt)/1000); px0=e.clientX; py0=e.clientY; lt=now; });
+      const up=()=>{ st.drag=false; cv.style.cursor='grab'; st.vy=Math.max(-4,Math.min(4,st.vy)); };
+      cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+    }
+    (function loop(now){
+      if(!cv.isConnected){ R.dispose(); return; }
+      const dt=Math.min(.05,(now-st.last)/1000); st.last=now; const t=(now-st.t0)/1000;
+      if(!st.drag){ st.vy+=(spin-st.vy)*Math.min(1,dt*1.5); st.yaw+=st.vy*dt; st.pitch+=(.25-st.pitch)*dt*.6; }
+      onFrame&&onFrame(t,st);
+      R.draw(st.F,st.yaw,st.pitch,t,{flow,swirl,wob});
+      requestAnimationFrame(loop);
+    })(performance.now());
+    return st;
+  }
+  return {fromComps,colorAt,snapshot,mount,rgb,rng,hash};
+})();
+/* @@D3_END */
+
+/* 홈 3D 찻방울: 여러 찻물·풍미 색이 계속 피어나고 사라지며 방울 속을 꽉 채운 채 돈다 */
+function startHome3D(el){
+  const PAL=[...ORDER.map(k=>TEAS[k].color),...FKEYS.filter(k=>k!=='soft').map(k=>FLAVORS[k].color)];
+  const pick=()=>D3.rgb(PAL[Math.floor(Math.random()*PAL.length)]);
+  const LIFE=14, N=6, spot=()=>{ const u=Math.random()*2-1, th=Math.random()*6.28, s=Math.sqrt(1-u*u), d=.25+Math.random()*.45; return [s*Math.cos(th)*d,s*Math.sin(th)*d,u*d]; };
+  const F={base:pick(),baseW:.22,inks:[]}, born=[];
+  for(let i=0;i<N;i++){ F.inks.push({c:pick(),p:spot(),w:.95,vis:0}); born.push(-i*LIFE/N); }
+  let tb=F.base, nb=F.base;
+  return !!D3.mount(el,F,{size:350,interactive:true,spin:.38,flow:.06,swirl:1.05,onFrame(t){
+    F.inks.forEach((k,i)=>{ let a=t-born[i]; if(a>LIFE){ born[i]=t; a=0; k.c=pick(); k.p=spot(); }
+      k.vis=Math.min(1,a/2.5)*Math.min(1,(LIFE-a)/2.5); });
+    if(Math.floor(t/9)!==Math.floor((t-.02)/9)) nb=pick();
+    tb=tb.map((v,i)=>v+(nb[i]-v)*.01); F.base=tb;
+  }});
+}
+/* 기록 3D 방울: 드래그로 돌려보고, WebGL이 없으면 수채화 방울로 대신한다 */
+function d3Field(drop){ return D3.fromComps(drop.id,drop.comps); }
+function mountDrop3D(el,drop,size,opt={}){
+  if(!el) return null;
+  const st=D3.mount(el,d3Field(drop),{size,interactive:true,...opt});
+  if(!st){ el.innerHTML=orb(drop,size); paintDrops(el); }
+  return st;
+}
+const d3Box=(id,size,hint=true)=>`<div class="d3wrap"><div id="${id}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 3D를 못 쓰는 환경이면 수채화 방울로 대신한다 */
 function mountHomeDrop(el){
   if(!el) return;
-  if(typeof startHome3D==='function' && startHome3D(el)) return;
+  if(startHome3D(el)) return;
   const k=ORDER[Math.floor(Math.random()*6)], f=FKEYS[Math.floor(Math.random()*FKEYS.length)];
   el.innerHTML=orb({id:'home-'+k+f,comps:[{key:'tea',c:TEAS[k].color,w:.7},{key:f,c:FLAVORS[f].color,w:.5}]},230,'breath');
 }
