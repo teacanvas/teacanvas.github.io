@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TEA CANVAS v3</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
 <style>
 :root{
   --white:#FFFFFF; --g1:#ECECEC; --g0:#F3F3F3; --g2:#737373; --black:#000000;
@@ -296,9 +297,13 @@ canvas.wcd.big{margin:14px auto}
 .home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative}
 .home-drop canvas.d3{display:block}
 .hd-stage{display:flex;flex-direction:column;align-items:center;gap:4px}
-.hd-label{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s ease}
+.hd-label{min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s ease}
 .hd-label.on{opacity:1;transform:none}
-.hd-label b{font-size:22px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.hd-label b{font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:600;letter-spacing:.02em;line-height:1.1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;transition:color .4s}
+.hd-label b em{font-style:normal}
+.hd-drop{position:relative;display:flex;flex-direction:column;align-items:center}
+.hd-drop canvas{position:relative;z-index:1}
+.hd-shadow{width:62%;height:26px;margin-top:-22px;border-radius:50%;filter:blur(3px)}
 .hd-label span{font-size:12.5px;color:var(--g2);margin-top:2px}
 .hd-label i{width:12px;height:12px;border-radius:50%;display:block;margin-bottom:6px}
 .d3wrap{display:flex;flex-direction:column;align-items:center;margin:10px 0 6px}
@@ -1734,7 +1739,10 @@ void main(){
 const HOME_GROUPS=[['floral','vegetal','citrus','nutty'],['fruity','fresh','sweet','earthy'],['spicy','soft','astringent']];
 const HOME_EX={floral:'꽃, 자스민, 장미 같은 향',fruity:'사과, 복숭아처럼 상큼한',citrus:'레몬, 유자처럼 산뜻한',vegetal:'갓 벤 풀처럼 싱그러운',fresh:'민트처럼 시원하고 깔끔한',
   nutty:'볶은 곡물처럼 고소한',sweet:'꿀, 캐러멜처럼 달큰한',earthy:'흙, 나무처럼 묵직한',spicy:'계피, 생강처럼 알싸한',soft:'둥글고 포근한',astringent:'쌉쌀하고 떫은'};
-const HOME_STEP=4.2, HOME_DROP=.9, HOME_HOLD=3.4, HOME_CLEAR=1.4;
+const HOME_EN={floral:'Floral',fruity:'Fruity',citrus:'Citrus',vegetal:'Grassy',fresh:'Fresh',nutty:'Nutty',sweet:'Sweet',earthy:'Earthy',spicy:'Spicy',soft:'Smooth',astringent:'Astringent'};
+/* 글자색: 풍미 색 그대로 쓰되, 흰 바탕에서 읽히도록 밝은 색은 조금 어둡게 */
+function inkText(hex){ const n=parseInt(hex.slice(1),16); let c=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; const k=L>.55?(.55/L):1; c=c.map(v=>Math.round(v*k*255)); return `rgb(${c})`; }
+const HOME_STEP=5.6, HOME_DROP=.9, HOME_HOLD=3.4, HOME_CLEAR=1.4;
 const HOME_FRAG=`precision highp float; varying vec2 v;
 uniform float t, wob; uniform mat3 rot; uniform vec3 bg; uniform vec3 IC[4]; uniform float IA[4]; uniform float IW[4]; uniform vec3 IP[4];
 float h3(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
@@ -1744,27 +1752,33 @@ float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
 float fbm(vec3 p){ return .55*n3(p)+.3*n3(p*2.03+3.1)+.15*n3(p*4.1+7.7); }
 float eo(float x){ x=clamp(x,0.,1.); return 1.-(1.-x)*(1.-x)*(1.-x); }
 /* 잉크 하나: 위에서 떨어져(0~.5초) 팍 퍼지고, 시간이 갈수록 라떼처럼 소용돌이 결이 생긴다 */
+/* 찻물 우러나기: 잉크가 톡 떨어진 자리에서 색이 가는 실처럼 아래로 흘러내리고,
+   바닥부터 차오르며 물 전체로 천천히 번진다(티백에서 차가 우러나는 모습) */
 float ink(vec3 p, float a, vec3 off){
   if(a<=0.) return 0.;
-  float fall=eo(a*2.2), burst=eo((a-.35)*.9);
-  vec3 c=vec3(off.x*.35, .78-.85*fall, off.z*.35);
-  float sw=(2.2+1.6*burst)*eo(a*.35);              // 소용돌이 세기
-  vec3 q=p-c; float rxz=length(q.xz), r=length(q.xy), ang=sw*(1.-clamp(r,0.,1.))*(1.-clamp(r,0.,1.))+off.y;
-  float ca=cos(ang), sa=sin(ang); q.xy=vec2(ca*q.x-sa*q.y, sa*q.x+ca*q.y);
-  float R=.07+.62*burst;
-  vec3 w=(vec3(fbm(q*2.4+t*.12),fbm(q*2.4+5.3-t*.1),fbm(q*2.4+9.1))-.5)*(.18+.5*burst);
-  vec3 qq=q+w; qq.z*=1.7-.4*burst;
-  float body=exp(-dot(qq,qq)/(R*R*.55+.003));
-  float arms=.55+.45*sin(atan(qq.y,qq.x+1e-4)*2.+length(qq.xy)*9.-sw*1.3);
-  float drop=exp(-dot(q,q)/.004)*(1.-burst);       // 떨어지는 동안의 작은 방울
-  float tail=exp(-rxz*rxz/.002)*smoothstep(0.,.05,q.y)*smoothstep(.6,0.,q.y)*(1.-burst)*.8;
-  return body*mix(.55,1.,arms)*(.7+.5*fbm(qq*3.5))+drop*1.4+tail;
+  float fall=eo(a*2.6);
+  vec3 s=vec3(off.x*.32, .62-.18*fall, off.z*.32);           // 잉크가 멈춘 자리(위쪽)
+  float drop=exp(-dot(p-vec3(s.x,.95-.5*fall,s.z),p-vec3(s.x,.95-.5*fall,s.z))/.003)*(1.-smoothstep(.25,.5,a));
+  // 흘러내리는 실: 높이에 따라 비틀리며 퍼진다
+  float depth=s.y-p.y, reach=1.7*eo(a*.32);
+  vec2 sw=(vec2(fbm(vec3(p.y*2.2+off.y,t*.08,off.x*3.)),fbm(vec3(p.y*2.2+5.1,off.y,t*.07)))-.5)*(.25+.9*max(depth,0.));
+  vec2 dq=p.xz-s.xz-sw;
+  float wdt=.004+.03*max(depth,0.)+.02*eo(a*.2);
+  float thread=exp(-dot(dq,dq)/wdt)*smoothstep(-.05,.05,depth)*smoothstep(reach,reach-.35,depth);
+  thread*=.55+.9*fbm(vec3(dq*9.,p.y*6.-t*.3));
+  // 머리(잉크가 녹아 나오는 자리)
+  float head=exp(-dot(p-s,p-s)/(.006+.02*eo(a*.5)))*(.9-.4*eo(a*.2));
+  // 바닥부터 차오르는 찻물 + 전체로 번지는 옅은 물빛
+  float level=-.95+.75*eo((a-1.2)*.12);
+  float pool=smoothstep(level+.15,level-.3,p.y+(fbm(p*2.5+t*.05)-.5)*.35)*.28;
+  float tint=.07*eo((a-1.5)*.15)*(.7+.6*smoothstep(.6,-.8,p.y));
+  return drop*1.6+head+thread*1.2+pool+tint;
 }
 void main(){
   vec2 uv=v; float R=.8*(1.+wob*.012*sin(t*1.3));
   vec3 ro=vec3(0.,0.,2.6), rd=normalize(vec3(uv*.9,-2.2));
   float b=dot(ro,rd), c=dot(ro,ro)-R*R, h=b*b-c;
-  if(h<0.){ gl_FragColor=vec4(bg,1.); return; }
+  if(h<0.){ gl_FragColor=vec4(0.); return; }
   float t0=-b-sqrt(h), t1=-b+sqrt(h); vec3 n=normalize(ro+rd*t0);
   vec3 T=vec3(1.), acc=vec3(0.); const int N=26; float ds=(t1-t0)/float(N);
   for(int i=0;i<N;i++){ vec3 pw=(ro+rd*(t0+ds*(float(i)+.5)))/R; vec3 p=rot*pw; float lim=smoothstep(1.,.86,length(p));
@@ -1788,11 +1802,11 @@ void main(){
   // 바깥 가는 선(테두리 마감)
   float line=smoothstep(.0,.012,h)*(1.-smoothstep(.012,.05,h));
   colr=mix(colr,vec3(.55,.59,.63),line*.35);
-  gl_FragColor=vec4(mix(bg,colr,edge),1.);
+  gl_FragColor=vec4(colr*edge,edge);
 }`;
 function startHome3D(el){
   const cv=document.createElement('canvas'); cv.className='d3'; const size=340; cv.style.width=cv.style.height=size+'px';
-  const gl=cv.getContext('webgl',{antialias:true}); if(!gl) return false;
+  const gl=cv.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:true}); if(!gl) return false;
   let pr; try{ const VS=`attribute vec2 p; varying vec2 v; void main(){ v=p; gl_Position=vec4(p,0.,1.); }`;
     const sh=(ty,src)=>{ const o=gl.createShader(ty); gl.shaderSource(o,src); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
     pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,HOME_FRAG)); gl.linkProgram(pr); gl.useProgram(pr);
@@ -1802,8 +1816,9 @@ function startHome3D(el){
   const U=n=>gl.getUniformLocation(pr,n);
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; gl.viewport(0,0,px,px);
   // 글자 + 방울
-  el.innerHTML=`<div class="hd-stage"><div class="hd-label" id="hdLabel"><i></i><b></b><span></span></div></div>`;
-  const stage=el.firstChild; stage.appendChild(cv);
+  el.innerHTML=`<div class="hd-stage"><div class="hd-label" id="hdLabel"><i></i><b></b><span></span></div><div class="hd-drop"></div></div>`;
+  const stage=el.firstChild, dropBox=stage.querySelector('.hd-drop'); dropBox.appendChild(cv);
+  const shadow=document.createElement('div'); shadow.className='hd-shadow'; dropBox.appendChild(shadow);
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span'), li=label.querySelector('i');
   // 시간표: 그룹마다 [풍미…], 끝에 완성 안내
   const plan=[]; let T0=.6;
@@ -1816,12 +1831,12 @@ function startHome3D(el){
   cv.addEventListener('pointermove',e=>{ if(!st.drag) return; st.yaw+=(e.clientX-px0)*.012; st.pitch=Math.max(-1,Math.min(1,st.pitch+(e.clientY-py0)*.012)); px0=e.clientX; py0=e.clientY; });
   const up=()=>{ st.drag=false; }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
   const t0=performance.now(); let lastT=0;
-  function show(key,title,sub,color){ if(lastShown===key) return; lastShown=key; label.classList.remove('on'); void label.offsetWidth;
-    lb.textContent=title; ls.textContent=sub; li.style.background=color||'transparent'; li.style.display=color?'':'none'; label.classList.add('on'); }
+  function show(key,title,sub,color,html){ if(lastShown===key) return; lastShown=key; label.classList.remove('on'); void label.offsetWidth;
+    if(html) lb.innerHTML=title; else lb.textContent=title; lb.style.color=color?inkText(color):''; ls.textContent=sub; li.style.display='none'; label.classList.add('on'); }
   function hide(){ if(lastShown==='') return; lastShown=''; label.classList.remove('on'); }
   (function loop(now){
     if(!cv.isConnected) return;
-    const tt=(now-t0)/1000, dt=Math.min(.05,tt-lastT); lastT=tt; const lt=tt%LOOP;
+    const tt=window.HOME_T!=null?window.HOME_T:(now-t0)/1000, dt=Math.max(0,Math.min(.05,tt-lastT)); lastT=tt; const lt=tt%LOOP;
     if(!st.drag) st.yaw+=st.vy*dt;
     // 지금 보이는 그룹과 각 잉크 상태
     let cur=plan.filter(q=>q.at<=lt+HOME_DROP+.001).pop()||plan[0]; const g=cur.g, inks=plan.filter(q=>q.type==='ink'&&q.g===g);
@@ -1831,18 +1846,23 @@ function startHome3D(el){
     for(let k=0;k<4;k++){ const q=inks[k]; if(!q){ IC.push(0,0,0); IA.push(-1); IW.push(0); IP.push(0,0,0); continue; }
       const age=lt-(q.at+HOME_DROP), newest=inks.filter(x=>lt>=x.at+HOME_DROP).length-1;
       const c=D3.rgb(FLAVORS[q.k].color); IC.push(...c); IA.push(age);
-      IW.push(age<=0?0:(k===newest&&lt<mix.at?1.15:.78)*fadeAll);
+      IW.push(age<=0?0:(k===newest&&lt<mix.at?1.1:.6)*fadeAll);
       IP.push(Math.sin(q.i*2.4+g)*.9,q.i*1.7+g,Math.cos(q.i*2.4+g)*.9); }
     // 글자: 잉크보다 먼저 뜬다
     const showing=inks.find(q=>lt>=q.at&&lt<q.at+HOME_STEP-.35);
-    if(lt<mix.at&&showing){ const F=FLAVORS[showing.k]; show(showing.k,F.label,HOME_EX[showing.k]||'',F.color); }
-    else if(lt>=mix.at&&lt<clearAt){ show('mix'+g,'기록하면 섞여서 나만의 찻방울이 돼요',inks.map(q=>FLAVORS[q.k].label).join(' + '),null); }
+    if(lt<mix.at&&showing){ const F=FLAVORS[showing.k]; show(showing.k,HOME_EN[showing.k],HOME_EX[showing.k]||'',F.color); }
+    else if(lt>=mix.at&&lt<clearAt){ show('mix'+g,inks.map(q=>`<em style="color:${inkText(FLAVORS[q.k].color)}">${HOME_EN[q.k]}</em>`).join(' · '),'기록하면 섞여서 나만의 찻방울이 돼요',null,true); }
     else hide();
     const cy=Math.cos(st.yaw), sy=Math.sin(st.yaw), cp=Math.cos(st.pitch), sp=Math.sin(st.pitch);
     gl.uniformMatrix3fv(U('rot'),false,[cy,0,-sy, sy*sp,cp,cy*sp, sy*cp,-sp,cy*cp]);
     gl.uniform1f(U('t'),tt); gl.uniform1f(U('wob'),1); gl.uniform3fv(U('bg'),BG);
     gl.uniform3fv(U('IC'),IC); gl.uniform1fv(U('IA'),IA); gl.uniform1fv(U('IW'),IW); gl.uniform3fv(U('IP'),IP);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4); requestAnimationFrame(loop);
+    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    // 그림자: 물방울에 담긴 색이 바닥에 옅게 비친다
+    { let r=0,g=0,b=0,w=0; for(let k=0;k<4;k++){ const ww=Math.max(0,IW[k])*(IA[k]>0?1:0); r+=IC[k*3]*ww; g+=IC[k*3+1]*ww; b+=IC[k*3+2]*ww; w+=ww; }
+      const c=w>0?[r/w,g/w,b/w]:[.6,.62,.66], tint=Math.min(1,w*.8), mixc=c.map(v=>Math.round((v*tint+.55*(1-tint))*255));
+      shadow.style.background=`radial-gradient(closest-side, rgba(${mixc},.38), rgba(${mixc},.14) 55%, rgba(${mixc},0))`; }
+    requestAnimationFrame(loop);
   })(performance.now());
   return true;
 }
