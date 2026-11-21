@@ -4,7 +4,7 @@ const {chromium}=require('playwright'); const path=require('path'); const fs=req
 (async()=>{
   const file=process.argv[2]; const out=process.argv[3]||path.join(__dirname,'..','_check');
   fs.mkdirSync(out,{recursive:true});
-  const url='file://'+path.join(__dirname,'..','index.html')+(file==='ALL'?'?':'?f='+file+'&')+'all=1&size=200';
+  const url='file://'+path.join(__dirname,'..',process.env.PAGE||'index.html')+(file==='ALL'?'?':'?f='+file+'&')+'all=1&size=200';
   const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   const p=await b.newPage({viewport:{width:1100,height:900},deviceScaleFactor:1});
   const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
