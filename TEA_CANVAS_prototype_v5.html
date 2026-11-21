@@ -268,6 +268,9 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .endline{border-top:1px solid #777;margin:34px 6px 12px}
 .detail{border:1px solid #000;padding:18px 18px 14px;margin-top:10px}
 .dhead{display:flex;gap:18px;align-items:center;margin-bottom:16px}
+.det-drop{width:290px;margin:-10px auto 0}.det-drop canvas{display:block;width:100%;aspect-ratio:1.15}
+.det-en{margin:-6px 12px 6px}
+.tcrow{display:flex;align-items:center;gap:8px;font-size:14px}.tcrow i{width:16px;height:16px;border-radius:50%;display:block}
 .dhead div{font-size:13.5px;line-height:1.7}
 .dcomment{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;margin-top:12px}
 .memo{border:1px solid #000;padding:16px 18px;margin-top:20px;font-size:13.5px;line-height:1.75}
@@ -1413,7 +1416,8 @@ detail(p){
   Object.entries(dp.brews||{}).forEach(([n,b])=>{ if(b.feel||b.next) info.push([n+'차 우림',[b.feel,b.next].filter(Boolean).join(' / ')]); });
   return `<div class="dtop"><button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
     <button class="ghost" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash}</button></div>
-  ${d3Box('det3d',170)}
+  <div class="det-drop"><canvas id="detCv1"></canvas></div>
+  ${r.flavors&&r.flavors.length?`<div class="fav-en det-en">${[...r.flavors].sort((a,b)=>b.w-a.w).map(f=>`<span style="color:${inkText(FLAVORS[f.k].color)}">${HOME_EN[f.k]}</span>`).join('')}</div>`:''}
   <div class="detail">
     <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${stars(r.stars)} · ${r.date.replace(/\.$/,'')}</span></div></div>
     ${r.photo?`<div class="photo"><span>사진</span></div>`:''}
@@ -1421,6 +1425,7 @@ detail(p){
       <button onclick="toast('이미지 저장은 프로토타입에서 지원하지 않아요')" aria-label="저장">${I.down}</button></div>
   </div>
   ${r.flavors&&r.flavors.length?`<h3 class="sec">담긴 풍미</h3>${flChips(r.flavors)}`:''}
+  ${r.teaColor?`<h3 class="sec">찻물 색</h3><div class="tcrow">${r.teaColor.hex?`<i style="background:${r.teaColor.hex}"></i>`:''}${esc(r.teaColor.name)}</div>`:''}
   <h3 class="sec">캔버스 속 위치</h3>
   ${canvasBox('detCv',{cls:'sm'})}
   <p class="cap">${posText(r.canvas)}</p>
@@ -1476,7 +1481,9 @@ const AFTER = {
       let best=null, bd=1e9; recs.forEach(r=>{ const d=Math.hypot(r.canvas.x-x,r.canvas.y-y); if(d<bd){bd=d;best=r;} });
       if(best && bd<R1(1)*1.3) openDetail(best.id); else toast('방울을 눌러 기록을 열어보세요'); };
   },
-  detail(p){ const r=S.records.find(x=>x.id===p.id); if(r) mountDrop3D($('#det3d'),recDrop(r),170); const cv=$('#detCv'); if(cv) paintCanvas(cv,recsAsc(),{highlight:p.id}); },
+  detail(p){ const r=S.records.find(x=>x.id===p.id); if(!r) return;
+    const c=$('#detCv1'); if(c) animFav1(c,recFlav(r),r.id,.15);
+    const cv=$('#detCv'); if(cv) paintCanvas1(cv,recsAsc(),r.id); },
   compare(){ mountDrop3D($('#cmp3d'),draftDrop(S.draft),190); },
   done(){ const r=S.lastSaved||S.records[0]; if(r) mountDrop3D($('#done3d'),recDrop(r),190); },
 };
@@ -1841,11 +1848,12 @@ function saveRecord(){
   const memo=[]; const dp=d.useDeep?d.deep:{brews:{}};
   if(dp.memo) memo.push(dp.memo);
   memo.push(myExpression(d));
-  const tags=[...Object.values(d.feel).filter(v=>v&&v!=='잘 모르겠어요'),...d.picked];
+  const tags=[...['aroma','taste'].flatMap(k=>String(d.feel[k]||'').split(', ')).filter(v=>v&&v!=='잘 모르겠어요'),...d.picked];
   const now=new Date();
   const rec={id:'n'+Date.now(),type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:d.photo,
     canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
-    chat:d.chat.filter(m=>m.who!=='sys').map(({who,text})=>({who,text})),voice:d.voice,deep:dp};
+    chat:d.chat.filter(m=>m.who!=='sys').map(({who,text,color})=>color?{who,text,color}:{who,text}),voice:d.voice,deep:dp,
+    teaColor:d.feel.color&&d.feel.color!=='잘 모르겠어요'?{name:d.feel.color,hex:d.feel.colorHex||null}:null};
   S.records.unshift(rec); S.lastSaved=rec; persist();
   stopTimer(); closeSheet(); S.draft=null;
   S.stack=[{name:'home',params:{}}]; go('done');
@@ -1902,6 +1910,16 @@ function drawRec1(x,L,cx,cy,R,id,t,alpha=.94){
   x.save(); x.globalAlpha=alpha; x.drawImage(o,cx-S/2,cy-S/2); x.restore();
 }
 const R1=W=>W*.1*Math.pow(10/Math.max(10,S.records.length),.3);
+/* 작은 캔버스(상세): 다른 기록은 옅게, 이 기록은 진하게 + 점선 */
+function paintCanvas1(cv,recs,hl){
+  const px=pxFor(cv.clientWidth); cv.width=cv.height=px; const x=cv.getContext('2d'), R=R1(px);
+  x.fillStyle=CANVAS_BG; x.fillRect(0,0,px,px); axes(x,px);
+  const draw=()=>{ x.fillStyle=CANVAS_BG; x.fillRect(0,0,px,px); axes(x,px);
+    recs.forEach(r=>{ if(r.id!==hl) drawRec1(x,recFlav(r),r.canvas.x*px,r.canvas.y*px,R,r.id,CV_SPREAD,.22); });
+    const r=recs.find(q=>q.id===hl); if(!r) return; drawRec1(x,recFlav(r),r.canvas.x*px,r.canvas.y*px,R,r.id,CV_SPREAD,.95);
+    x.save(); x.strokeStyle='rgba(0,0,0,.5)'; x.lineWidth=Math.max(1,px/300); x.setLineDash([px/90,px/110]); x.beginPath(); x.arc(r.canvas.x*px,r.canvas.y*px,R*1.25,0,Math.PI*2); x.stroke(); x.restore(); };
+  requestAnimationFrame(()=>{ if(cv.isConnected) draw(); });
+}
 /* 기록이 하나씩 차례로 번진다. hl이 있으면 나머지는 그대로 두고 그 잔만 번진다. 끝나는 시각(초)을 돌려준다 */
 function animCanvas1(cv,recs,hl){
   const px=pxFor(cv.clientWidth); cv.width=cv.height=px; const x=cv.getContext('2d');
