@@ -1893,20 +1893,35 @@ function makeWash(N,hex,seed){
   const L=.2126*base[0]+.7152*base[1]+.0722*base[2], body=base.map(c=>{ c=L+(c-L)*1.15; return c+(1-c)*.38; }), rim=base.map(c=>{ c=L+(c-L)*1.25; return c*.78; });
   const cv=document.createElement('canvas'); cv.width=cv.height=N; const x=cv.getContext('2d'), im=x.createImageData(N,N), d=im.data;
   const REACH=.5;
-  // t: 지난 시간(초). 2.6초에 거의 다 퍼지고, 4초쯤 다 말라 테두리가 진해진다
+  // 젖은 단계 → 마르는 단계
+  //  0~0.3초: 물방울이 톡 떨어진 둥근 웅덩이(진하고 반짝임)
+  //  0.3~2.6초: 물이 먼저 퍼지고 색은 뒤따라 번짐(가장자리 흐림, 가운데 진함, 물 표면 반짝임)
+  //  2.6~5.5초: 마르며 반짝임이 사라지고 전체가 밝아지며, 안료가 가장자리로 몰려 테두리가 또렷·진해짐, 입자가 드러남
   function frame(t,fade=1){
-    const front=REACH*(1-Math.exp(-t/.85)), dry=Math.min(1,Math.max(0,(t-.9)/2.6)), wet=1-dry;
+    const water=.07+(REACH-.07)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
+    const pig=water*(.62+.38*(1-Math.exp(-t/1.8)));                    // 색이 번진 범위(물보다 늦다)
+    const w=1-Math.min(1,Math.max(0,(t-2.4)/3.0)), dry=1-w;            // 젖음 정도
+    const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
+    const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
     for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
-      if(tk>front){ d[o+3]=0; continue; }
-      const inside=front-tk;
-      const edgeA=Math.min(1,inside/.008);                       // 가장자리는 또렷하게(살짝 부드럽게)
-      const rimBand=Math.exp(-inside/(.018+.035*wet));           // 마를수록 가는 테두리
-      let amt=.32+.18*Math.min(1,tk/front)+H[k]*.35;             // 가운데는 맑고 바깥으로 갈수록 조금 진함
-      amt+= rimBand*(.15+.55*dry);                              // 테두리 진해짐
-      amt*= 1-.22*(G[k]-.5)*2*(.4+.6*dry);                      // 입자
-      const m=Math.min(1,rimBand*(.4+.6*dry));
-      const c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
-      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,amt*edgeA*fade))*255;
+      if(tk>water+soft){ d[o+3]=0; continue; }
+      // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
+      const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
+      // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
+      const inside=water-tk, rimBand=Math.exp(-Math.max(0,inside)/.02);
+      const dryA=.3+H[k]*.3+rimBand*.6;
+      let amt=wetA*w+dryA*dry;
+      amt*=1-.24*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
+      const edgeA=Math.max(0,Math.min(1,(water+soft*.4-tk)/soft));        // 경계: 젖을수록 부드럽게, 마르면 또렷
+      const m=Math.min(1,rimBand*dry*.9);
+      let c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
+      // 젖은 물감은 더 진하고 선명하다
+      { const L=.2126*c0+.7152*c1+.0722*c2, sat=1+.45*w, dk=1-.08*w; c0=Math.max(0,Math.min(1,(L+(c0-L)*sat)*dk)); c1=Math.max(0,Math.min(1,(L+(c1-L)*sat)*dk)); c2=Math.max(0,Math.min(1,(L+(c2-L)*sat)*dk)); }
+      // 물 표면 반짝임: 왼쪽 위에 넓고 부드러운 빛, 물 가장자리에 가는 밝은 테
+      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.18*water*2, hy=v+.22*water*2;
+      const gloss=sh*(.7*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))+.3*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
+      c0+= (1-c0)*gloss; c1+=(1-c1)*gloss; c2+=(1-c2)*gloss;
+      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,Math.max(amt,gloss*.6)*edgeA*fade))*255;
     }
     x.putImageData(im,0,0); return cv;
   }
@@ -1920,7 +1935,7 @@ function startHome3D(el){
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
   const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
-  const LEAD=.6, SPREAD=4.4, FADE=1.1, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
+  const LEAD=.6, SPREAD=6.2, FADE=1.1, STEPT=LEAD+SPREAD+FADE, LOOP=STEPT*ORDER_F.length;
   const N=Math.min(260,Math.round(px*.55)); const cache={};
   const wash=(k,i)=>cache[k+i]||(cache[k+i]=makeWash(N,FLAVORS[k].color,WC.hash(k)+i*977));
   let lastShown=''; const t0=performance.now();
