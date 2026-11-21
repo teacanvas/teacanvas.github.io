@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TEA CANVAS 캔버스 투표</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#F4EFE6;--surface:#FFFDF9;--ink:#2A2620;--muted:#7A7166;--line:#E3DACB;--accent:#7A5A2E;--accent-ink:#FFFDF9;--pick:#EFE3CC;
+  --f-display:'Gowun Batang',serif;--f-body:'Noto Sans KR',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#1C1915;--surface:#25211C;--ink:#F1EADF;--muted:#A79C8D;--line:#3A342C;--accent:#D9B37A;--accent-ink:#1C1915;--pick:#3A2F20;color-scheme:dark}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding:28px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--f-display);font-size:30px;line-height:1.25}
+.lead{color:var(--muted);max-width:62ch}
+.steps{display:flex;flex-wrap:wrap;gap:8px;font-size:13px}
+.steps span{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.field{display:flex;flex-direction:column;gap:6px;max-width:320px}
+.field label{font-weight:700;font-size:14px}
+input,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:220px 1fr;gap:18px}
+.card.first{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.meta{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tag{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
+.meta h2{font-family:var(--f-display);font-size:21px;line-height:1.3}
+.meta p{font-size:13.5px;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btn{font:inherit;font-size:13.5px;font-weight:700;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:7px 13px;cursor:pointer}
+.btn:hover{background:var(--pick)}
+.btn.on{background:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-width:0}
+.trio figure{display:flex;flex-direction:column;gap:4px;min-width:0}
+.trio img{width:100%;aspect-ratio:1/1;border-radius:8px;display:block;cursor:zoom-in}
+.trio figcaption{font-size:12px;color:var(--muted);text-align:center}
+.result{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.result .in{max-width:980px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.result pre{flex:1;min-width:0;font:inherit;font-size:13px;line-height:1.45;white-space:pre-wrap;color:var(--muted);max-height:84px;overflow:auto}
+.copy{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.copy:disabled{opacity:.45;cursor:default}
+#fallback{width:100%;height:90px}
+.zoom{position:fixed;inset:0;background:rgba(0,0,0,.8);display:grid;place-items:center;z-index:30;cursor:zoom-out}
+.zoom img{max-width:min(92vw,720px);max-height:88vh;border-radius:10px}
+@media (max-width:720px){.card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>캔버스는 어떤 모습이 좋을까요?</h1>
+    <p class="lead">TEA CANVAS 앱에서 내가 마신 차들이 쌓이는 캔버스 시안 8가지예요. 같은 사람이 차를 10잔, 50잔, 100잔 마셨을 때 모습이에요. 그림을 누르면 크게 볼 수 있어요.</p>
+    <div class="steps"><span>① 이름 적기</span><span>② 1순위·2순위 고르기</span><span>③ 한 줄 의견</span><span>④ 아래 "결과 복사하기" → 단톡방에 붙여넣기</span></div>
+    <div class="field"><label for="who">내 이름</label><input id="who" placeholder="예: 세훈" maxlength="20"></div>
+  </header>
+  <div id="list" style="display:flex;flex-direction:column;gap:16px"></div>
+  <div class="field" style="max-width:none"><label for="note">한 줄 의견 (선택)</label><textarea id="note" rows="2" maxlength="200" placeholder="예: 10잔일 때는 B가 예쁜데, 100잔이면 E가 덜 탁해 보여요."></textarea></div>
+</div>
+<div class="result"><div class="in">
+  <pre id="out"></pre>
+  <button class="copy" id="copy" type="button">결과 복사하기</button>
+  <textarea id="fallback" hidden readonly></textarea>
+</div></div>
+<script>
+const OPTIONS=[
+  {k:'A',id:'t001',name:'고운 점묘',desc:'한 잔이 아주 고운 점으로 된 둥근 방울이에요. 찻물 색과 풍미 색이 기록 비중대로 점으로 섞여요.'},
+  {k:'B',id:'t004',name:'번짐 + 고운 입자',desc:'찻물이 스민 수채 번짐 위에 고운 입자가 종이 결처럼 남아요.'},
+  {k:'C',id:'t007',name:'찻잔 자국 수채',desc:'물이 마르며 가장자리에 색이 맺혀, 찻잔을 내려놓은 자국처럼 보여요.'},
+  {k:'D',id:'t006',name:'수채 번짐',desc:'점 없이 맑은 수채 번짐만 있어요. 가장 부드러워요.'},
+  {k:'E',id:'t015',name:'번짐 + 자리 나눠 갖기',desc:'B와 같은 질감에, 같은 자리에 겹치면 방울이 살짝 비켜 앉아 색이 모두 살아남아요.'},
+  {k:'F',id:'o001',name:'유화 · 소용돌이 붓질',desc:'찻잔을 젓듯 동그랗게 도는 붓질로 방울을 채운 유화예요.'},
+  {k:'G',id:'o002',name:'유화 · 점묘',desc:'짧은 붓 터치를 촘촘히 찍은 유화예요.'},
+  {k:'H',id:'x001',name:'그라데이션',desc:'캔버스 전체가 하나로 이어진 부드러운 색면이에요.'},
+];
+const $=s=>document.querySelector(s);
+const st={first:null,second:null};
+try{ Object.assign(st,JSON.parse(localStorage.getItem('tc.vote')||'{}')); $('#who').value=localStorage.getItem('tc.vote.who')||''; $('#note').value=localStorage.getItem('tc.vote.note')||''; }catch(e){}
+const save=()=>{ try{ localStorage.setItem('tc.vote',JSON.stringify(st)); localStorage.setItem('tc.vote.who',$('#who').value); localStorage.setItem('tc.vote.note',$('#note').value); }catch(e){} };
+const nm=k=>{ const o=OPTIONS.find(x=>x.k===k); return o?`${o.k} ${o.name}`:'-'; };
+function text(){ return `[TEA CANVAS 캔버스 투표] ${$('#who').value.trim()||'이름 없음'}\n1순위: ${nm(st.first)}\n2순위: ${nm(st.second)}`+($('#note').value.trim()?`\n의견: ${$('#note').value.trim()}`:''); }
+function render(){
+  $('#list').innerHTML='';
+  OPTIONS.forEach(o=>{
+    const el=document.createElement('section'); el.className='card'+(st.first===o.k?' first':'');
+    el.innerHTML=`<div class="meta"><span class="tag">시안 ${o.k}</span><h2></h2><p></p>
+      <div class="btns"><button class="btn ${st.first===o.k?'on':''}" data-r="first" type="button">1순위</button><button class="btn ${st.second===o.k?'on':''}" data-r="second" type="button">2순위</button></div></div>
+      <div class="trio">${[10,50,100].map(n=>`<figure><img src="img/${o.id}-${n}.jpg" alt="시안 ${o.k}, ${n}잔" loading="lazy"><figcaption>${n}잔</figcaption></figure>`).join('')}</div>`;
+    el.querySelector('h2').textContent=o.name; el.querySelector('p').textContent=o.desc;
+    el.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{ const r=b.dataset.r, other=r==='first'?'second':'first';
+      st[r]=st[r]===o.k?null:o.k; if(st[other]===st[r]) st[other]=null; save(); render(); });
+    el.querySelectorAll('img').forEach(im=>im.onclick=()=>{ const z=document.createElement('div'); z.className='zoom'; z.innerHTML=`<img src="${im.src}" alt="">`; z.onclick=()=>z.remove(); document.body.appendChild(z); });
+    $('#list').appendChild(el);
+  });
+  $('#out').textContent=text(); $('#copy').disabled=!st.first;
+}
+['#who','#note'].forEach(s=>$(s).addEventListener('input',()=>{ save(); $('#out').textContent=text(); }));
+$('#copy').onclick=async()=>{ const t=text(), fb=$('#fallback'), b=$('#copy');
+  try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='결과 복사하기',2000); }
+  catch(e){ fb.hidden=false; fb.value=t; fb.focus(); fb.select(); b.textContent='아래 글을 선택해 복사하세요'; } };
+render();
+</script>
+</body>
+</html>
