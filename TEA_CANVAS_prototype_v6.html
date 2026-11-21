@@ -1664,6 +1664,47 @@ function teaChip(c){
 function showGuide(again){ const d=S.draft; d.stage='guide';
   botSay(()=>({who:'bot',guide:true,basic:!!d.basic,text:again?(d.basic?'어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.':`다시 ${d.name}에 맞춘 가이드예요.`):`${d.name}${josa(d.name,'을','를')} 가장 맛있게 우리는 방법이에요.\n준비되면 ‘우림 시작’을 눌러주세요.`,
     chips:['우림 시작 ▶',d.basic?'추천 가이드로 볼래요':'기본 가이드로 볼래요','바로 마실게요']})); }
+/* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
+   나중에 연결할 때 AI_ENDPOINT에 중간 서버 주소만 넣으면 된다. 보내는 것: {question, tea, history} / 받는 것: {text} */
+const AI_ENDPOINT='';   // 예: 'https://teacanvas-ai.<계정>.workers.dev/chat'
+const AI_TIMEOUT=8000;  // 이 시간 안에 대답이 없으면 정해진 대답으로
+const FAQ=[
+  [/떫|쓴|쓰다|씁쓸/, t=>`떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요.${t?` ${t.label}는 ${t.temp}, ${t.time}이 알맞아요.`:''}`],
+  [/몇 ?번|여러 ?번|다시 우려|재탕/, ()=>'잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.'],
+  [/카페인|잠|밤에/, ()=>'녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차가 편해요.'],
+  [/온도|몇 ?도|뜨거/, t=>t?`${t.label}는 ${t.temp}가 알맞아요. 끓인 물을 잠시 식혀서 부으면 돼요.`:'차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.'],
+  [/얼마나|시간|몇 ?분/, t=>t?`${t.label}는 ${t.time} 정도 우려보세요. 진하게 좋으면 조금 더 길게요.`:'보통 2~5분이에요. 처음엔 짧게, 맛을 보며 늘려보세요.'],
+  [/몇 ?그램|양|얼마나 넣/, ()=>'찻잎은 물 150~200ml에 2~3g(티스푼 하나 정도)이 알맞아요.'],
+  [/보관|유통|오래/, ()=>'빛·습기·냄새를 피해서 밀봉해 서늘한 곳에 두세요. 녹차는 개봉 후 한두 달 안에 마시는 게 좋아요.'],
+  [/우롱/, ()=>'우롱차는 녹차와 홍차 사이쯤 발효시킨 차예요. 꽃향부터 구운 향까지 폭이 넓어요.'],
+  [/보이|흑차/, ()=>'보이차는 오래 숙성시킨 차라 흙·나무 같은 깊은 향이 나요. 첫 물은 찻잎을 깨우는 용도로 버리기도 해요.'],
+  [/녹차/, ()=>'녹차는 발효시키지 않아 풀향과 산뜻함이 살아 있어요. 너무 뜨거운 물은 쓴맛을 끌어내요.'],
+  [/홍차|밀크티|우유/, ()=>'홍차는 완전히 발효시킨 차라 진하고 달큰해요. 진하게 우려서 우유를 넣으면 밀크티가 돼요.'],
+  [/백차/, ()=>'백차는 가장 덜 가공한 차라 은은하고 꿀 같은 단맛이 나요. 물을 조금 식혀서 우려보세요.'],
+  [/허브|캐모마일|민트/, ()=>'허브차는 찻잎이 아닌 꽃·잎·뿌리로 만들어 카페인이 거의 없어요. 끓는 물로 충분히 우려도 괜찮아요.'],
+  [/식으|식으니|온도가 내려/, ()=>'차는 식으면서 단맛과 여운이 더 잘 느껴져요. 따뜻할 때와 미지근할 때를 비교해 기록해보세요.'],
+  [/향이 (안|잘)|향이 약/, ()=>'향이 약하면 찻잔을 손으로 감싸 덮었다가 맡아보세요. 뚜껑이나 잔 안쪽에 향이 모여 있어요.'],
+  [/색이|진해|연해|탁/, ()=>'찻물 색은 우린 시간과 온도에 따라 달라져요. 진할수록 맛도 묵직해지는 편이에요.'],
+  [/티백|잎차/, ()=>'티백은 간편하고, 잎차는 찻잎이 충분히 펴지면서 향이 더 풍부해요. 둘 다 좋은 선택이에요.'],
+  [/냉침|차갑|아이스|얼음/, ()=>'찬물에 찻잎을 넣고 냉장고에서 6~8시간 두면 쓴맛 없이 부드러운 냉침차가 돼요.'],
+  [/감칠/, ()=>'감칠맛은 국물처럼 입안에 남는 깊은 맛이에요. 녹차, 특히 옥로나 말차에서 잘 느껴져요.'],
+  [/표현|뭐라고|어떻게 말|모르겠/, ()=>'떠오르는 장면이나 기억으로 말해도 좋아요. “비 온 뒤 숲길 같아요”처럼요. 정답은 없어요.'],
+];
+const isQuestion=t=>/\?|？/.test(t)||/^(왜|어떻게|무슨|뭐가|뭘|몇|언제|어디)|알려줘|알려 ?주|궁금/.test(String(t).trim());
+function faqAnswer(q){ const d=S.draft, t=d&&d.type?{...(d.basic?BASIC:TEAS[d.type]),label:TEAS[d.type].label}:null;
+  const hit=FAQ.find(([re])=>re.test(q)); return hit?hit[1](t):'좋은 질문이에요. 지금은 정확히 답하기 어렵지만, 기록에 남겨둘게요.\n마시면서 느낀 점도 계속 들려주세요.'; }
+async function askAI(q){
+  if(!AI_ENDPOINT) return null;
+  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),AI_TIMEOUT);
+  try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
+      body:JSON.stringify({question:q,tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-10).map(m=>({who:m.who,text:m.text}))})});
+    if(!r.ok) return null; const j=await r.json(); return j&&typeof j.text==='string'&&j.text.trim()?j.text.trim():null;
+  }catch(e){ return null; } finally{ clearTimeout(timer); } }
+function answerQuestion(text){
+  const d=S.draft; d.chat.push({who:'me',text,ans:'q'}); S.typing=true; paintMsgs();
+  const t0=Date.now();
+  askAI(text).then(a=>{ const reply=a||faqAnswer(text); setTimeout(()=>{ S.typing=false; d.chat.push({who:'bot',text:reply,ai:!!a}); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },Math.max(0,700-(Date.now()-t0))); });
+}
 /* 우리는 동안 가벼운 이야기: 기분 · 상황 · 이 차를 고른 이유 (찻방울 색에는 넣지 않고 기록에만 남긴다) */
 const TALK=[['mood','그동안 잠깐 이야기 나눠요.\n오늘 기분은 어때요?'],['scene','지금은 어떤 상황에서 마시고 있어요?\n혼자 쉬는 중, 누군가와 함께, 일하다가… 편하게요.'],['why','오늘 이 차를 고른 이유가 있을까요?']];
 const TALK_ACK=['그렇군요. 오늘의 마음도 함께 남겨둘게요.','좋아요, 그 장면도 기억해둘게요.','그 이유도 기록에 담아둘게요.'];
@@ -1757,6 +1798,7 @@ function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
+  if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
   if(isAsk(d.stage)){ if(d.stage==='color'){ d.feel.colorHD=null; d.feel.colorHex=null; } return answer(d.stage,text); }
   if(d.stage==='deep') return deepAnswer(text);  // 질문 중에 직접 적으면 그 질문의 대답
