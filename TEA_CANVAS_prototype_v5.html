@@ -365,7 +365,7 @@ canvas.wcd.big{margin:14px auto}
 .scr.scr-home{padding:0}
 .home{display:flex;flex-direction:column;flex:1}
 .home .hello{margin:22px 26px 0}
-.home-q{font-size:30px;font-weight:700;line-height:1.35;letter-spacing:-.6px;margin:30px 26px 0}
+.home-q{font-size:27px;font-weight:700;line-height:1.38;letter-spacing:-.9px;margin:30px 12px 0;word-break:keep-all}
 /* 제목 시안(?hq=…) */
 .home-q.center{text-align:center}
 .home-q.light{font-weight:500}
@@ -650,12 +650,12 @@ const VOICE_LINES = ['풀 향이 먼저 났어요.','따뜻하고 둥글게 퍼�
 const daysAgo=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d; };
 const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.`;
 /* 예시 기록 사진: 위키미디어 공용의 자유 이용 사진(작가·라이선스는 assets/photos/credits.json) */
-const SEED_PHOTOS={"s2": {"src": "assets/photos/s2.jpg", "by": "Quelcrime", "lic": "Public domain", "url": "https://commons.wikimedia.org/wiki/File:Tieguanyin2.jpg"}, "s4": {"src": "assets/photos/s4.jpg", "by": "soultea.de/André Helbig", "lic": "CC BY-SA 3.0", "url": "https://commons.wikimedia.org/wiki/File:Frisch_aufgebr%C3%BChter_wei%C3%9Fer_Tee_Pai_Mu_Tan.jpg"}, "s8": {"src": "assets/photos/s8.jpg", "by": "Hari Prasad Nadig", "lic": "CC BY-SA 2.0", "url": "https://commons.wikimedia.org/wiki/File:Assam_Tea.jpg"}};
+const SEED_PHOTOS={"s1": {"src": "assets/photos/s1.jpg", "by": "Na visky", "lic": "Unsplash License", "url": "https://unsplash.com/photos/white-ceramic-teacup-on-brown-wooden-table-3hRRT4qztzs"}, "s2": {"src": "assets/photos/s2.jpg", "by": "Quelcrime", "lic": "Public domain", "url": "https://commons.wikimedia.org/wiki/File:Tieguanyin2.jpg"}, "s4": {"src": "assets/photos/s4.jpg", "by": "soultea.de/André Helbig", "lic": "CC BY-SA 3.0", "url": "https://commons.wikimedia.org/wiki/File:Frisch_aufgebr%C3%BChter_wei%C3%9Fer_Tee_Pai_Mu_Tan.jpg"}, "s8": {"src": "assets/photos/s8.jpg", "by": "Hari Prasad Nadig", "lic": "CC BY-SA 2.0", "url": "https://commons.wikimedia.org/wiki/File:Assam_Tea.jpg"}};
 function seedRecords(){
   const R=(id,type,name,brand,ago,stars,comment,photo,canvas,flavors,exprs,memo)=>{ const d=daysAgo(ago);
     return {id,type,name,brand,ts:d.getTime(),date:fmtDate(d),stars,comment,photo,canvas,flavors:flavors.map(([k,w])=>({k,w})),exprs,tags:exprs.slice(0,3),memo,seed:true}; };
   return [
-    R('s1','green','제주 세작','오설록',3,3,'봄 햇살 같은 산뜻함',false,{x:.74,y:.24,i:.85},[['vegetal',.9],['fresh',.55],['sweet',.3],['nutty',.2]],['풀 향이 먼저 났어요','산뜻함','깔끔해요'],['풀 향이 싱그럽고 끝이 깔끔했다.']),
+    R('s1','green','제주 세작','오설록',3,3,'봄 햇살 같은 산뜻함',true,{x:.74,y:.24,i:.85},[['vegetal',.9],['fresh',.55],['sweet',.3],['nutty',.2]],['풀 향이 먼저 났어요','산뜻함','깔끔해요'],['풀 향이 싱그럽고 끝이 깔끔했다.']),
     R('s2','oolong','철관음','티하우스',12,3,'집에서 혼자 마셔 본 첫 우롱차!',true,{x:.84,y:.4,i:.75},[['nutty',.8],['floral',.55],['sweet',.4],['fruity',.25]],['구수한 향','꽃향','단맛이 남아요'],['첫인상 대만족. 다음엔 호지차랑 나란히 두고 향이랑 색깔 비교해 봐야겠음.','엄청 구수한데 다 삼키면 산뜻한 단맛이 맴돎.']),
     R('s3','black','얼그레이','트와이닝',20,2,'오후에 기분 전환하기 좋았던 차',false,{x:.6,y:.14,i:.7},[['citrus',.85],['fruity',.5],['floral',.3],['astringent',.2]],['상큼한 레몬 향','과일 같은 단맛','춤추고 싶어지는 맛'],['베르가못 향이 생각보다 강했지만 기분이 환해졌다.']),
     R('s4','white','백모단','운남 다원',34,2,'맑고 가벼워서 오후에 딱 좋았던 차',true,{x:.38,y:.3,i:.6},[['sweet',.6],['floral',.5],['soft',.4],['fruity',.2]],['꿀 같은 단맛','은은함'],['물처럼 가볍지만 끝에 꿀 같은 단맛이 살짝.']),
