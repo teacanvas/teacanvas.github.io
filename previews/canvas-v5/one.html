@@ -1,0 +1,248 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>①번 겹침 줄이기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px max(16px,env(safe-area-inset-right,0px)) 200px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1560px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:900px;line-height:1.55}
+.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:22px;margin-top:20px;align-items:start}
+.col{position:relative}
+.col>h2{font-size:17px;font-weight:800}
+.col>p.d{font-size:13px;color:#666;margin-top:4px;min-height:54px;line-height:1.5}
+.star{position:absolute;right:0;top:-2px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.cmp{background:#fff;border-radius:16px;padding:12px 10px 10px;margin-top:10px}
+.cmp h3,.phone h3{font-size:12px;color:#999;font-weight:700}
+.cmp .row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px}
+.cmp .row div{text-align:center;font-size:11.5px;color:#888}
+.cmp canvas{width:100%;aspect-ratio:1;display:block}
+.phone{background:#fff;border-radius:34px;box-shadow:0 0 0 7px #161616;margin-top:22px;padding:18px 0 22px;overflow:hidden}
+.seg{display:flex;margin:0 auto;width:210px;background:#F2F2F2;border-radius:20px;padding:3px}
+.seg b,.seg span{flex:1;text-align:center;font-size:13px;height:32px;line-height:32px;border-radius:17px}
+.seg b{background:#000;color:#fff}
+.q{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1.35;text-align:center;margin:22px 20px 0}
+.q small{display:block;font-size:13px;font-weight:500;color:#A6A6A6;margin-top:6px;letter-spacing:0}
+.cvwrap{position:relative;margin:12px 0 0}
+.cvwrap canvas{width:100%;aspect-ratio:1;display:block}
+.ax{position:absolute;font-size:10.5px;color:#B5B5B5}
+.fav{margin-top:26px;border-top:1px solid #F0F0F0;padding-top:24px}
+.fav .q{margin-top:0;font-size:20px}
+.favwrap{position:relative}
+.favwrap canvas{width:100%;aspect-ratio:1.15;display:block}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin:0 20px}
+.chips span{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:19px}
+.fav p.s{font-size:12.5px;color:#888;text-align:center;margin:10px 26px 0;line-height:1.55}
+.replay{font:inherit;font-size:12.5px;font-weight:700;border:1px solid #DDD;background:#fff;border-radius:16px;padding:6px 12px;cursor:pointer;margin-top:10px}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}
+.pickbox textarea{width:100%;height:80px}
+</style></head><body>
+<div class="wrap"><h1>① 크기 고정 · 겹침 줄이기 시안</h1>
+<p class="lead">①(모든 잔이 같은 크기, 강한 풍미는 진하게·약한 풍미는 옅게)을 그대로 두고, 색이 많을 때 겹쳐서 탁해지지 않도록 칠하는 방법을 바꿨어요. 맨 앞은 비교용 원래 ①이에요. 같은 기록 8잔이고, 홈처럼 한 잔씩 번져요. ☆로 고르고 오른쪽 아래에서 복사해 붙여넣으세요.</p>
+<div class="cols" id="cols"></div></div>
+<script>
+const WC={rng:seed=>{ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; },
+  hash:s=>{ let h=2166136261; for(const c of String(s)){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }};
+const FLAVORS = {
+  floral:    {label:'꽃향',     color:'#E9A9C6', kw:['꽃','플로럴','자스민','재스민','장미','라벤더','국화','향긋']},
+  fruity:    {label:'과일향',   color:'#F2946A', kw:['과일','사과','복숭아','베리','포도','머스캣','건포도','상큼','열대']},
+  citrus:    {label:'시트러스', color:'#E8D45A', kw:['레몬','시트러스','귤','오렌지','유자','베르가못','산뜻','새콤']},
+  vegetal:   {label:'풀향',     color:'#96C46A', kw:['풀','채소','해조','싱그','초록','잎','신선','풋']},
+  fresh:     {label:'상쾌함',   color:'#79C3BC', kw:['민트','상쾌','시원','청량','깔끔','맑','가벼','개운']},
+  nutty:     {label:'고소함',   color:'#A87A4E', kw:['고소','곡물','구수','볶은','견과','누룽지','보리','현미','토스트']},
+  sweet:     {label:'단맛',     color:'#E5B04F', kw:['단맛','달','꿀','캐러멜','설탕','바닐라','달큰']},
+  earthy:    {label:'흙·나무향', color:'#6B5643', kw:['흙','나무','묵직','스모키','훈연','낙엽','가죽','숲','깊']},
+  spicy:     {label:'스파이시', color:'#B8513A', kw:['계피','시나몬','생강','후추','스파이시','알싸','매콤']},
+  soft:      {label:'부드러움', color:'#E3D3BF', kw:['부드러','둥글','둥근','따뜻','포근','편안','순하','매끄','은은']},
+  astringent:{label:'떫은맛',   color:'#8E8A4C', kw:['쓴','쓰다','떫','텁텁','씁쓸','쌉쌀']},
+};
+
+const HOME_EX={floral:'꽃, 자스민, 장미 같은 향',fruity:'사과, 복숭아처럼 상큼한',citrus:'레몬, 유자처럼 산뜻한',vegetal:'갓 벤 풀처럼 싱그러운',fresh:'민트처럼 시원하고 깔끔한',
+  nutty:'볶은 곡물처럼 고소한',sweet:'꿀, 캐러멜처럼 달큰한',earthy:'흙, 나무처럼 묵직한',spicy:'계피, 생강처럼 알싸한',soft:'둥글고 포근한',astringent:'쌉쌀하고 떫은'};
+const HOME_EN={floral:'Floral',fruity:'Fruity',citrus:'Citrus',vegetal:'Grassy',fresh:'Fresh',nutty:'Nutty',sweet:'Sweet',earthy:'Earthy',spicy:'Spicy',soft:'Smooth',astringent:'Astringent'};
+
+function inkText(hex){ const n=parseInt(hex.slice(1),16); let c=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; const k=L>.55?(.55/L):1; c=c.map(v=>Math.round(v*k*255)); return `rgb(${c})`; }
+function makeWash(N,hex,seed){
+  const r=WC.rng(seed), s1=r()*50, s2=r()*50;
+  const fr=x=>x-Math.floor(x), h2=(x,y)=>fr(Math.sin(x*127.1+y*311.7)*43758.5453);
+  const nz=(x,y)=>{ const ix=Math.floor(x), iy=Math.floor(y); let fx=x-ix, fy=y-iy; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy); const a=h2(ix,iy), b=h2(ix+1,iy), c=h2(ix,iy+1), d=h2(ix+1,iy+1); return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy; };
+  const fbm=(x,y)=>.5*nz(x,y)+.25*nz(x*2.03+5,y*2.03+1)+.125*nz(x*4.1+2,y*4.1+7)+.0625*nz(x*8.3,y*8.3);
+  const T=new Float32Array(N*N), G=new Float32Array(N*N), H=new Float32Array(N*N);
+  const el=1, ea=0, ce=1, se=0; // 위에서 똑바로 내려다본 모습: 찌그러뜨리지 않는다
+  // 색이 고이는 자리 몇 군데(진한 얼룩)
+  const pools=[0,1,2].map(()=>({x:(r()-.5)*.8,y:(r()-.5)*.8,r:.12+.18*r(),k:.35+.5*r()}));
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    let u=(i+.5)/N*2-1, v=(j+.5)/N*2-1; const a=u*ce+v*se, b=-u*se+v*ce; const uu=a/el, vv=b*el;
+    const rr=Math.hypot(uu,vv), th=Math.atan2(vv,uu);
+    const ang=fbm(Math.cos(th)*1.3+s1,Math.sin(th)*1.3+s2);          // 방향별로 멀리/덜 퍼짐
+    const paper=fbm(u*5+s1,v*5+s2);                                   // 종이 결(낮은 곳으로 빨리 스민다)
+    const fine=fbm(u*16+s2,v*16+s1);                                  // 가장자리의 잔 톱니
+    const k=j*N+i;
+    T[k]=rr*(1+.26*(ang-.5)*2)*(1+.2*(paper-.5)*2)+.045*(fine-.5)*2;
+    G[k]=nz(i*.9+s1,j*.9+s2)*.6+nz(i*.35,j*.35)*.4;                   // 입자
+    let hp=0; for(const q of pools){ const d=Math.hypot(u-q.x,v-q.y); hp+=q.k*Math.exp(-d*d/(q.r*q.r)); } H[k]=hp*(.6+.8*fbm(u*3+s2,v*3));
+  }
+  const n=parseInt(hex.slice(1),16), base=[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];
+  const L=.2126*base[0]+.7152*base[1]+.0722*base[2], body=base.map(c=>{ c=L+(c-L)*1.15; return c+(1-c)*.38; }), rim=base.map(c=>{ c=L+(c-L)*1.25; return c*.78; });
+  const cv=document.createElement('canvas'); cv.width=cv.height=N; const x=cv.getContext('2d'), im=x.createImageData(N,N), d=im.data;
+  const REACH=.5;
+  // 젖은 단계 → 마르는 단계
+  //  0~0.3초: 물방울이 톡 떨어진 둥근 웅덩이(진하고 반짝임)
+  //  0.3~2.6초: 물이 먼저 퍼지고 색은 뒤따라 번짐(가장자리 흐림, 가운데 진함, 물 표면 반짝임)
+  //  2.6~5.5초: 마르며 반짝임이 사라지고 전체가 밝아지며, 안료가 가장자리로 몰려 테두리가 또렷·진해짐, 입자가 드러남
+  function frame(t,fade=1){
+    const water=.07+(REACH-.07)*(1-Math.exp(-t/1.25));                 // 물이 닿은 범위
+    const pig=water*(.62+.38*(1-Math.exp(-t/1.8)));                    // 색이 번진 범위(물보다 늦다)
+    const w=1-Math.min(1,Math.max(0,(t-2.4)/3.0)), dry=1-w;            // 젖음 정도
+    const soft=.012+.07*w*Math.min(1,t/.9);                                              // 경계 흐림(젖을수록 흐림)
+    const sh=Math.max(0,1-t/3.4)*1.25;                                       // 물 표면 반짝임
+    for(let k=0;k<N*N;k++){ const o=k*4, tk=T[k];
+      const bead=0;
+      if(tk>water+soft&&!(bead>0&&Math.hypot((k%N+.5)/N*2-1,(Math.floor(k/N)+.5)/N*2-1)<.075)){ d[o+3]=0; continue; }
+      // 젖은 색: 가운데가 진하고 물 가장자리로 갈수록 옅게 번진다
+      const q=tk/Math.max(.001,pig), wetA=(1.05*Math.exp(-q*q*1.2)+.25*(tk<pig?1:Math.exp(-(tk-pig)/(.02+.06*w))))*(1-.35*Math.min(1,tk/water));
+      // 마른 색: 속은 맑고 고르게, 테두리에 안료가 몰림
+      const inside=water-tk, rimBand=Math.exp(-Math.max(0,inside)/.02);
+      const dryA=.3+H[k]*.3+rimBand*.6;
+      let amt=wetA*w+dryA*dry;
+      amt*=1-.24*(G[k]-.5)*2*dry;                                      // 마르면 입자가 드러난다
+      const edgeA=Math.max(0,Math.min(1,(water+soft*.4-tk)/soft));        // 경계: 젖을수록 부드럽게, 마르면 또렷
+      const m=Math.min(1,rimBand*dry*.9);
+      let c0=body[0]+(rim[0]-body[0])*m, c1=body[1]+(rim[1]-body[1])*m, c2=body[2]+(rim[2]-body[2])*m;
+      // 젖은 물감은 더 진하고 선명하다
+      { const L=.2126*c0+.7152*c1+.0722*c2, sat=1+.45*w, dk=1-.08*w; c0=Math.max(0,Math.min(1,(L+(c0-L)*sat)*dk)); c1=Math.max(0,Math.min(1,(L+(c1-L)*sat)*dk)); c2=Math.max(0,Math.min(1,(L+(c2-L)*sat)*dk)); }
+      // 물 표면 반짝임: 왼쪽 위에 넓고 부드러운 빛, 물 가장자리에 가는 밝은 테
+      const i=k%N, j=(k-i)/N, u=(i+.5)/N*2-1, v=(j+.5)/N*2-1, hx=u+.12*water, hy=v+.12*water;
+      const gloss=sh*(.22*Math.exp(-(hx*hx+hy*hy)/(.004+.12*water*water))*(1-bead*.5)+.12*Math.exp(-Math.abs(water-tk)/.01)*(v<0?1:.3));
+      c0+= (1-c0)*gloss; c1+=(1-c1)*gloss; c2+=(1-c2)*gloss;
+      d[o]=c0*255; d[o+1]=c1*255; d[o+2]=c2*255; d[o+3]=Math.max(0,Math.min(1,Math.max(amt,gloss*.6)*edgeA*fade))*255;
+    }
+    x.putImageData(im,0,0);
+    // 첫 순간: 위에서 본 둥근 물감 방울이 종이에 맺혔다가 퍼지며 사라진다
+    const bead=0; // 맺히는 방울은 쓰지 않는다
+    if(bead>0){ const R0=N*.05*(1+.5*(1-bead)), c=`rgb(${body.map(v=>Math.round(Math.max(0,Math.min(1,v*.88))*255))})`;
+      x.save(); x.globalAlpha=Math.min(1,bead*1.4)*fade; x.fillStyle=c; x.beginPath(); x.arc(N/2,N/2,R0,0,6.283); x.fill();
+      x.globalAlpha=.55*bead*fade; x.fillStyle='#fff'; x.beginPath(); x.ellipse(N/2-R0*.32,N/2-R0*.32,R0*.28,R0*.2,-.6,0,6.283); x.fill(); x.restore(); }
+    return cv;
+  }
+  return {frame};
+}
+
+/* 같은 기록 8잔. x: 마시기 전 향(-1 별로 ~ 1 좋아), y: 마신 뒤 맛 */
+const RECS=[
+ {id:'r1',name:'제주 세작',x:.55,y:.5,f:{vegetal:.9,fresh:.45}},
+ {id:'r2',name:'철관음',x:.22,y:.72,f:{nutty:.8,floral:.5,sweet:.3}},
+ {id:'r3',name:'얼그레이',x:.7,y:.12,f:{citrus:.85,fruity:.4}},
+ {id:'r4',name:'동방미인',x:.72,y:.74,f:{fruity:.9,sweet:.75,floral:.6,nutty:.45,spicy:.3,soft:.3,citrus:.2,earthy:.15}},
+ {id:'r5',name:'보이숙차',x:-.6,y:-.52,f:{earthy:.9,nutty:.5,sweet:.3,soft:.25}},
+ {id:'r6',name:'캐모마일',x:-.55,y:.42,f:{floral:.7,sweet:.5,soft:.4}},
+ {id:'r7',name:'다즐링',x:.3,y:-.45,f:{floral:.8,fruity:.7,astringent:.5,spicy:.3,citrus:.25,vegetal:.2}},
+ {id:'r8',name:'말차',x:-.25,y:-.12,f:{vegetal:.8,astringent:.6,nutty:.3,soft:.3,fresh:.2}},
+];
+const FULL=RECS[3].f, TRIAL=[2,5,8].map(n=>Object.fromEntries(Object.entries(FULL).slice(0,n)));
+const sorted=f=>Object.entries(f).sort((a,b)=>b[1]-a[1]);
+/* 방법별로 한 잔을 어떤 번짐 조각들로 칠할지 정한다. 반환: [{k, dx, dy, r, a}] (R=한 잔의 바깥 반지름) */
+const GA=2.39996;
+/* 원 안에 n개를 겹치지 않게 채우는 자리(강한 색부터): 6개까지는 둥글게, 7개부터는 가운데 하나 + 둘레 */
+function pack(n,R,seed){ if(n===1) return [{x:0,y:0,r:R}];
+  const ring=(k,off)=>{ const s=Math.sin(Math.PI/k), r=R*s/(1+s); return Array.from({length:k},(_,i)=>{ const a=seed+i*Math.PI*2/k+off; return {x:Math.cos(a)*(R-r),y:Math.sin(a)*(R-r),r}; }); };
+  if(n<=6) return ring(n,0);
+  const P=ring(n-1,0), rr=Math.min(P[0].r,R-2*P[0].r>0?R-2*P[0].r:P[0].r); return [{x:0,y:0,r:Math.max(rr,P[0].r)}].concat(P); }
+const dark=(w,m)=>.32+.68*(w/m);
+const METHODS=[
+ {key:'①',name:'원래 ① (비교용)',desc:'한 자리에 겹쳐서 칠해요. 색이 많을수록 겹친 곳이 탁해져요.',blend:'multiply',
+  parts(f,R,seed){ const L=sorted(f), m=L[0][1], n=L.length; return L.map(([k,w],i)=>{ const ang=seed+i*GA, d=n===1?0:R*(i===0?.08:.36); return {k,dx:Math.cos(ang)*d,dy:Math.sin(ang)*d,r:R*(n===1?1:.66),a:dark(w,m)}; }).reverse(); }},
+ {key:'①-A',name:'자리 나눠 칠하기 (색이 안 섞임)',desc:'같은 크기 안에서 색마다 자기 자리를 가져요. 겹치는 곳은 그 자리에 더 가까운 색 하나만 남아서 섞이지 않아요. 경계는 수채처럼 번진 모양 그대로.',mode:'dom',
+  parts(f,R,seed){ return lay1(f,R,seed); }},
+ {key:'①-B',name:'자리 나누기 + 경계만 살짝 섞임',desc:'①-A와 같지만 색과 색이 만나는 좁은 경계에서만 살짝 섞여요. 물감이 맞닿은 수채 느낌이 더 나요.',mode:'soft',
+  parts(f,R,seed){ return lay1(f,R,seed); }},
+ {key:'①-C',name:'원 안에 나란히 (빈틈 채우기)',desc:'바깥 원 안에 색 번짐들을 서로 닿을 만큼만 나란히 채워요. 가장자리 번짐만 살짝 맞닿아요.',blend:'multiply',
+  parts(f,R,seed){ const L=sorted(f), m=L[0][1], P=pack(L.length,R,seed); return L.map(([k,w],i)=>({k,dx:P[i].x,dy:P[i].y,r:P[i].r*1.04,a:dark(w,m)})); }},
+ {key:'①-D',name:'꽃잎처럼 (가운데 위에 덮어 칠하기)',desc:'가장 강한 색이 가운데, 나머지가 꽃잎처럼 둘러요. 겹친 곳은 섞지 않고 위 색으로 덮어 칠해서 탁해지지 않아요.',blend:'source-over',
+  parts(f,R,seed){ const L=sorted(f), m=L[0][1], n=L.length; if(n===1) return [{k:L[0][0],dx:0,dy:0,r:R,a:1}];
+    const out=L.slice(1).map(([k,w],i)=>{ const a=seed+i*Math.PI*2/(n-1); return {k,dx:Math.cos(a)*R*.6,dy:Math.sin(a)*R*.6,r:R*Math.max(.3,Math.min(.45,1.3/(n-1))),a:dark(w,m)}; });
+    out.push({k:L[0][0],dx:0,dy:0,r:R*.55,a:dark(L[0][1],m)}); return out; }},
+ {key:'①-E',name:'자리 나누기 + 크게 (①-A를 원 가득)',desc:'①-A에서 색 자리를 더 크게 잡아 바깥 원을 꽉 채워요. 색이 많아도 빈틈 없이 한 덩어리로 보여요.',mode:'dom',
+  parts(f,R,seed){ return lay1(f,R,seed,1.25); }},
+];
+/* ①-A/B/E 배치: 강한 색일수록 가운데, 나머지는 둘레에 고르게 */
+function lay1(f,R,seed,g=1){ const L=sorted(f), m=L[0][1], n=L.length; if(n===1) return [{k:L[0][0],dx:0,dy:0,r:R,a:1,w:1}];
+  return L.map(([k,w],i)=>{ const a=seed+(i-1)*Math.PI*2/(n-1), d=i===0?0:R*.5; return {k,dx:Math.cos(a)*d,dy:Math.sin(a)*d,r:R*.62*g,a:dark(w,m),w:w/m}; }); }
+/* 번짐 조각 캐시 */
+const WS={}; function wash(N,k,seed){ const id=N+k+seed; if(!WS[id]){ const w=makeWash(N,FLAVORS[k].color,seed); let lt=-1, c=null; WS[id]={frame(t){ t=Math.round(t*20)/20; if(t!==lt){ lt=t; c=w.frame(t); } return c; }}; }
+  return WS[id]; }
+const DRY={};
+const SPREAD=2.9, REAL=1.5; // 실제 1.5초 동안 번짐 2.9초 분량
+/* 한 잔을 그린다: t는 번짐 진행(0~SPREAD) */
+function drawRec(x,M,f,cx,cy,R,id,t){
+  const seed=WC.hash(id)%1000/1000*6.28, P=M.parts(f,R,seed);
+  const ext=Math.max(...P.map(p=>Math.hypot(p.dx,p.dy)+p.r))*1.35, S=Math.ceil(ext*2);
+  const o=document.createElement('canvas'); o.width=o.height=S; const ox=o.getContext('2d');
+  const img=(p,i)=>{ const D=p.r*3.6, N=Math.max(80,Math.min(260,Math.round(D*.85))); const w=wash(N,p.k,WC.hash(id+p.k)%100000);
+    const lt=Math.max(0,Math.min(SPREAD,t-i*.12)); return lt<=0?null:{c:w.frame(lt),x:S/2+p.dx-D/2,y:S/2+p.dy-D/2,D}; };
+  if(!M.mode){ ox.globalCompositeOperation=M.blend; P.forEach((p,i)=>{ const g=img(p,i); if(!g) return; ox.globalAlpha=p.a; ox.drawImage(g.c,g.x,g.y,g.D,g.D); }); }
+  else {
+    // 조각마다 따로 그려 픽셀을 읽고, 자리마다 가장 센 색 하나(또는 경계만 살짝 섞어서)를 남긴다
+    const t2=document.createElement('canvas'); t2.width=t2.height=S; const tx=t2.getContext('2d',{willReadFrequently:true});
+    const L=P.map((p,i)=>{ const g=img(p,i); if(!g) return null; tx.clearRect(0,0,S,S); tx.drawImage(g.c,g.x,g.y,g.D,g.D); return {d:tx.getImageData(0,0,S,S).data,p}; }).filter(Boolean);
+    const out=ox.createImageData(S,S), od=out.data, soft=M.mode==='soft';
+    for(let k=0;k<S*S*4;k+=4){ let best=-1,bi=-1,sr=0,sg=0,sb=0,sw=0,sa=0;
+      for(let j=0;j<L.length;j++){ const A=L[j].d[k+3]/255; if(A<=0) continue; const sc=A*(.6+.4*(L[j].p.w??1));
+        if(sc>best){ best=sc; bi=j; }
+        if(soft){ const q=sc*sc*sc*sc*sc*sc; sr+=L[j].d[k]*q; sg+=L[j].d[k+1]*q; sb+=L[j].d[k+2]*q; sw+=q; sa+=A*L[j].p.a*q; } }
+      if(bi<0) continue; const B=L[bi];
+      if(soft&&sw>0){ od[k]=sr/sw; od[k+1]=sg/sw; od[k+2]=sb/sw; od[k+3]=Math.min(255,sa/sw*255); }
+      else { od[k]=B.d[k]; od[k+1]=B.d[k+1]; od[k+2]=B.d[k+2]; od[k+3]=B.d[k+3]*B.p.a; } }
+    ox.putImageData(out,0,0);
+  }
+  x.save(); x.globalAlpha=.94; x.drawImage(o,cx-S/2,cy-S/2); x.restore();
+}
+const cols=document.getElementById('cols');
+cols.innerHTML=METHODS.map((M,mi)=>`<section class="col" data-m="${mi}"><button class="star" data-i="${mi}">☆</button><h2>${M.key} ${M.name}</h2><p class="d">${M.desc}</p>
+ <div class="cmp"><h3>같은 차(동방미인)를 색 2·5·8개로</h3><div class="row"><div><canvas class="t"></canvas>2색</div><div><canvas class="t"></canvas>5색</div><div><canvas class="t"></canvas>8색</div></div></div>
+ <div class="phone"><div class="seg"><b>캔버스</b><span>기록</span></div>
+  <h2 class="q">8잔의 차가 번진<br>나의 TEA CANVAS<small>방울을 누르면 그 기록을 볼 수 있어요</small></h2>
+  <div class="cvwrap"><canvas class="cv"></canvas><span class="ax" style="left:50%;top:4px;transform:translateX(-50%)">맛이 좋아요</span><span class="ax" style="left:50%;bottom:4px;transform:translateX(-50%)">맛이 아쉬워요</span><span class="ax" style="left:8px;top:50%;transform:translateY(-50%)">향이 아쉬워요</span><span class="ax" style="right:8px;top:50%;transform:translateY(-50%)">향이 좋아요</span></div>
+  <div class="fav"><h2 class="q">나의 취향 찻방울</h2><div class="favwrap"><canvas class="fv"></canvas></div><div class="chips"></div><p class="s"></p></div>
+ </div><button class="replay">다시 번지기</button></section>`).join('');
+/* 취향 찻방울: 향도 맛도 좋았던 잔들의 풍미를 강도대로 모은다 */
+const LIKED=RECS.filter(r=>r.x>0&&r.y>0), FAVF={}; LIKED.forEach(r=>Object.entries(r.f).forEach(([k,w])=>FAVF[k]=(FAVF[k]||0)+w));
+const fm=Math.max(...Object.values(FAVF)); Object.keys(FAVF).forEach(k=>FAVF[k]=FAVF[k]/fm);
+const TOP=sorted(FAVF).slice(0,3).map(x=>x[0]);
+function setup(col){
+  const M=METHODS[+col.dataset.m], dpr=Math.min(2,devicePixelRatio||1);
+  const fit=c=>{ const r=c.getBoundingClientRect(); c.width=Math.round(r.width*dpr); c.height=Math.round(r.height*dpr); return c.getContext('2d'); };
+  const ts=[...col.querySelectorAll('canvas.t')].map(fit), cv=fit(col.querySelector('canvas.cv')), fv=fit(col.querySelector('canvas.fv'));
+  col.querySelector('.chips').innerHTML=sorted(FAVF).map(([k])=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join('');
+  col.querySelector('p.s').textContent=`향도 맛도 좋았던 ${LIKED.length}잔을 모았어요. ${TOP.map(k=>FLAVORS[k].label).join('·')} 풍미가 가장 진하게 담겼어요.`;
+  let t0=performance.now(), raf;
+  function frame(now){
+    const T=(now-t0)/1000*(SPREAD/REAL); let busy=false;
+    // 비교 3칸
+    ts.forEach((x,i)=>{ const W=x.canvas.width; x.clearRect(0,0,W,W); drawRec(x,M,TRIAL[i],W/2,W/2,W*.24,'trial',Math.min(SPREAD+1,T)); });
+    // 캔버스: 하나씩 차례로
+    const W=cv.canvas.width; cv.clearRect(0,0,W,W); cv.strokeStyle='#EFEFEF'; cv.lineWidth=dpr; cv.beginPath(); cv.moveTo(W/2,0); cv.lineTo(W/2,W); cv.moveTo(0,W/2); cv.lineTo(W,W/2); cv.stroke();
+    RECS.forEach((r,i)=>{ const lt=T-i*.9; if(lt<=0){ busy=true; return; } if(lt<SPREAD+1.2) busy=true; drawRec(cv,M,r.f,W/2+r.x*W*.36,W/2-r.y*W*.36,W*.1,r.id,Math.min(SPREAD+1,lt)); });
+    // 취향 찻방울: 캔버스가 다 번진 뒤
+    const fw=fv.canvas.width, fh=fv.canvas.height; fv.clearRect(0,0,fw,fh); const ft=T-RECS.length*.9-.4; if(ft>0) drawRec(fv,M,FAVF,fw/2,fh/2,fw*.22,'fav',Math.min(SPREAD+1.4,ft)); if(ft<SPREAD+1.6) busy=true;
+    if(busy) raf=requestAnimationFrame(frame); else col.dataset.done=1;
+  }
+  raf=requestAnimationFrame(frame);
+  col.querySelector('.replay').onclick=()=>{ cancelAnimationFrame(raf); delete col.dataset.done; t0=performance.now(); raf=requestAnimationFrame(frame); };
+}
+document.fonts.ready.then(()=>{ document.querySelectorAll('.col').forEach(setup); });
+/* 고르기 */
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.cv1.fav')||'[]')); }catch(e){}
+const names=()=>METHODS.map((M,i)=>FAV.has(i)?M.key+' '+M.name:null).filter(Boolean);
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length;
+  document.querySelectorAll('.star').forEach(b=>{ const on=FAV.has(+b.dataset.i); b.classList.toggle('on',on); b.textContent=on?'★':'☆'; }); }
+document.getElementById('cp').onclick=async()=>{ const t='① 겹침 줄이기 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+document.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.cv1.fav',JSON.stringify([...FAV])); }catch(e){} up(); });
+up();
+</script></body></html>
