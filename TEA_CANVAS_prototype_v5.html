@@ -194,6 +194,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .inrow input{flex:1;font-size:14.5px;min-width:0}
 .send{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;flex-shrink:0}
 .voiceorb{width:240px;height:240px;margin:10px auto 14px;display:block;border-radius:50%}
+.vw-fl{display:flex;flex-wrap:wrap;justify-content:center;gap:0 12px;margin-top:6px}.vw-fl span{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:20px}
 .voiceorb canvas{width:100%;height:100%;display:block;will-change:transform}
 @keyframes listen{50%{transform:scale(1.07)}}
 .heard{font-size:14px;text-align:center;margin-top:14px;min-height:22px}
@@ -1181,6 +1182,7 @@ chat(){
     <button class="voiceorb ${S.listening?'listen':''}" onclick="toggleListen()" aria-label="말하기"><canvas id="vwash"></canvas></button>
     <button class="btn dark" style="width:80%;margin:0 auto" onclick="toggleListen()">${S.listening?'듣고 있어요 · 눌러서 멈추기':'눌러서 말하기'}</button>
     <p class="heard">${last?`“${esc(last)}”`:''}</p>
+    ${(()=>{ const ks=vwFlavors(); return ks.length?`<div class="vw-fl">${ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join('')}</div>`:`<p class="hint">말한 맛과 향이 색이 되어 번져요.</p>`; })()}
     ${last?`<p class="hint">말한 내용은 채팅 탭에도 함께 남아요.</p>`:''}
     <div class="spacer"></div>
     <button class="link" onclick="finishChat()">기록 마치고 정리하기</button>`;
@@ -1918,17 +1920,24 @@ function animFav1(cv,L,id,delay){
   (function loop(now){ if(!cv.isConnected) return; const lt=((now-t0)/1000-delay)*k; x.clearRect(0,0,W,H);
     if(lt>0) drawRec1(x,L,W/2,H/2,W*.22,id,Math.min(END,lt),.96); if(lt<END) requestAnimationFrame(loop); })(t0);
 }
-/* 음성 탭: 여러 풍미 색 수채가 하나씩 번지며 겹치고, 먼저 번진 색부터 사라진다. 전체는 숨 쉬듯 커졌다 작아진다(말하는 중엔 더 크게) */
-const VW={t0:performance.now()}, VW_ORDER=['floral','citrus','fresh','fruity','vegetal','sweet','spicy','nutty','soft','astringent','earthy'];
+/* 음성 탭: 처음엔 맑은 물빛만 번지다가, 말하거나 적은 표현에서 풍미가 잡히면 그 색이 다음 번짐으로 들어온다.
+   먼저 번진 색부터 사라지고, 전체는 숨 쉬듯 커졌다 작아진다(말하는 중엔 더 크게) */
+const VW={t0:performance.now(),assign:{},seen:new Set(),queue:[],tid:null};
+function vwFlavors(){ const d=S.draft; if(!d) return []; const out=[]; collectExprs(d).forEach(e=>e.fl.forEach(k=>{ if(!out.includes(k)) out.push(k); })); return out; }
+function vwKey(n){
+  const d=S.draft; if(d&&VW.tid!==d.tid){ VW.tid=d.tid; VW.assign={}; VW.seen=new Set(); VW.queue=[]; }
+  if(!(n in VW.assign)){ const ks=vwFlavors(); ks.forEach(k=>{ if(!VW.seen.has(k)){ VW.seen.add(k); VW.queue.push(k); } });
+    const pal=['clear',...ks]; VW.assign[n]=VW.queue.length?VW.queue.shift():pal[n%pal.length]; }
+  return VW.assign[n]; }
 function startVoiceWash(cv){
   if(!cv) return; const px=pxFor(240); cv.width=cv.height=px; const x=cv.getContext('2d'), N=170, STEP=1.15, LIFE=4.4, FADE=1.3, k=1.9;
   (function loop(now){ if(!cv.isConnected) return; const T=(now-VW.t0)/1000; x.clearRect(0,0,px,px);
     const last=Math.floor(T/STEP); // 섞지 않고 새 색이 위로 번져 덮는다(탁해지지 않게)
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
-      const key=VW_ORDER[n%VW_ORDER.length], r=WC.rng(n*7919+13), a=r()*6.283, d=px*(.04+.08*r());
+      const key=vwKey(n), hex=key==='clear'?CLEAR:FLAVORS[key].color, r=WC.rng(n*7919+13), a=r()*6.283, d=px*(.04+.08*r());
       const fade=age>LIFE-FADE?(LIFE-age)/FADE:1, D=px*(1.38+.12*r());
       x.globalAlpha=Math.max(0,fade)*.78;
-      x.drawImage(cvWash(N,key,FLAVORS[key].color,(n%3)*977+WC.hash(key)%5000).frame(Math.min(CV_SPREAD,age*k)),px/2+Math.cos(a)*d-D/2,px/2+Math.sin(a)*d-D/2,D,D); }
+      x.drawImage(cvWash(N,key,hex,(n%3)*977+WC.hash(key)%5000).frame(Math.min(CV_SPREAD,age*k)),px/2+Math.cos(a)*d-D/2,px/2+Math.sin(a)*d-D/2,D,D); }
     x.globalAlpha=1;
     const sc=S.listening?1.04+.06*Math.sin(T*4.2):1+.025*Math.sin(T*1.6); cv.style.transform=`scale(${sc.toFixed(4)})`;
     requestAnimationFrame(loop); })(performance.now());
