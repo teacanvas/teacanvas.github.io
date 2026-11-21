@@ -690,6 +690,8 @@ const WC = (()=>{
    점마다 그 자리의 색 비중대로 색을 고른다: 강한 색은 가운데, 약한 색은 가장자리. 흐림 없음.
    ========================================================= */
 const CANVAS_BG='#F4ECDD';
+/* 물처럼 투명하게: 색을 밝게 들어 올리고, 점은 반투명, 아래에 아주 옅은 물빛을 깐다 */
+const WATER={lift:.28,sat:1.05,dotA:.42,wash:.16};
 const DD=(()=>{
   const hex=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
   const lift=(c,l=.04,s=1.15)=>{ const L=.2126*c[0]+.7152*c[1]+.0722*c[2]; return c.map(v=>{ v=Math.max(0,Math.min(1,L+(v-L)*s)); return v+(1-v)*l; }); };
@@ -698,8 +700,8 @@ const DD=(()=>{
   function zones(drop){
     if(ZC.has(drop.id)) return ZC.get(drop.id);
     const r=WC.rng(WC.hash(drop.id+'z')), tot=drop.comps.reduce((s,c)=>s+c.w,0), cs=[...drop.comps].sort((a,b)=>b.w-a.w), a0=r()*6.283;
-    const Z=cs.map((c,i)=>{ const share=c.w/tot, col=css(lift(hex(c.c))); if(i===0) return {col,share,x:0,y:0,s:.7};
-      const a=a0+(i-1)*6.283/Math.max(1,cs.length-1)+(r()-.5)*.6, d=.4*(1-share*.8); return {col,share,x:Math.cos(a)*d,y:Math.sin(a)*d,s:.55*(.7+share)}; });
+    const Z=cs.map((c,i)=>{ const share=c.w/tot, rgb=lift(hex(c.c),WATER.lift,WATER.sat), col=css(rgb); if(i===0) return {col,rgb,share,x:0,y:0,s:.7};
+      const a=a0+(i-1)*6.283/Math.max(1,cs.length-1)+(r()-.5)*.6, d=.4*(1-share*.8); return {col,rgb,share,x:Math.cos(a)*d,y:Math.sin(a)*d,s:.55*(.7+share)}; });
     ZC.set(drop.id,Z); return Z;
   }
   // 점 목록(반지름 1 기준) — 기록마다 늘 같은 모양
@@ -717,7 +719,13 @@ const DD=(()=>{
   function draw(ctx,drop,cx,cy,R,prog=1,alpha=1,dot=null){
     const d=dot||Math.max(.7,ctx.canvas.width*.0026), N=Math.max(60,Math.min(9000,Math.round(R*R/(d*d)*.62))), P=points(drop,N);
     const e=1-Math.pow(1-Math.min(1,prog),3);
-    ctx.save(); ctx.globalAlpha=.9*alpha;
+    const Z=zones(drop), e0=prog<1?(.6+.4*e):1;
+    // 물빛: 방울 자리에 찻물 색을 아주 옅게 깔아, 점 사이가 비지 않고 물에 비친 듯 보이게
+    ctx.save(); const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*e0); const c0=Z[0].rgb;
+    const rg=a=>`rgba(${Math.round(c0[0]*255)},${Math.round(c0[1]*255)},${Math.round(c0[2]*255)},${a})`;
+    g.addColorStop(0,rg(WATER.wash*alpha*Math.min(1,prog*1.5))); g.addColorStop(.85,rg(WATER.wash*.8*alpha*Math.min(1,prog*1.5))); g.addColorStop(1,rg(0));
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,R*e0,0,6.2832); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.globalAlpha=WATER.dotA*alpha;
     let last=null;
     for(const q of P){ if(prog<1&&q.o>e*1.05) continue; const s=prog<1?(.6+.4*e):1;
       if(q.c!==last){ ctx.fillStyle=q.c; last=q.c; } ctx.beginPath(); ctx.arc(cx+q.x*R*s,cy+q.y*R*s,d,0,6.2832); ctx.fill(); }
