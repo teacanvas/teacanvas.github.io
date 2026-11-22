@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#F2F2F0;color:var(--ink);line-height:1.5;
+body{word-break:keep-all;overflow-wrap:anywhere;font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#F2F2F0;color:var(--ink);line-height:1.5;
   -webkit-font-smoothing:antialiased;min-height:100vh;overflow:hidden}
 
 /* ---------- exhibition stage ---------- */
@@ -1158,7 +1158,7 @@ function favDrop(){
 
 /* 기록 목록 검색 · 필터 */
 /* 알림: 지금 기록으로 만든다 */
-function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class="state" style="padding-top:60px"><h2 style="font-size:16px">아직 알림이 없어요</h2><p>차를 기록하면 지난 기록과 추천 차를 알려드릴게요.</p></div>`;
+function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class="state" style="padding-top:60px"><h2 style="font-size:16px">아직 알림이 없어요</h2><p>차를 기록하면 지난 기록과<br>추천 차를 알려드릴게요.</p></div>`;
   const r=rs[0], ex=(r.exprs||[])[0], fav=favDrop(), rec=fav?recommendTeas(fav.all,1)[0]:null;
   const L=[[r,`지난번 ${esc(r.name)}${josa(r.name,'은','는')} ${ex?`“${esc(ex)}”로 남겼어요`:'기록으로 남아 있어요'}. 오늘은 어떤 차를 마셔볼까요?`,'오늘',`openDetail('${r.id}')`],
     ['clear',`찻방울이 ${n}개 모였어요. Canvas 탭에서 나의 취향 찻방울을 확인해보세요.`,'3일 전',`goTab('canvas')`]];
@@ -1309,7 +1309,7 @@ done(){
   return `${stepbar(4)}
   ${d3Box('done3d',250)}
   <h1 class="t">기록을 완료했어요</h1>
-  <p class="sub">오늘의 찻방울이 나의 캔버스에 스며들었어요.<br>대화와 감각이 정리되어 아카이브에 쌓였어요.</p>
+  <p class="sub">오늘의 찻방울이 나의 캔버스에 번졌어요.</p>
   <div style="height:16px"></div>
   <button class="rowlink" onclick="go('fullChat')"><span class="ric"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 3.5h12a1 1 0 0 1 1 1v7.5a1 1 0 0 1-1 1H8.5L5 15.8V13H3a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 7.3h7M5.5 10h4.5" stroke="#111" stroke-width="1.4" stroke-linecap="round"/></svg></span>대화 기록 보기<span class="chev">›</span></button>
   <button class="rowlink" onclick="go('teaTag')"><span class="ric"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M2.5 9.2V3.5a1 1 0 0 1 1-1h5.7l6.6 6.6a1 1 0 0 1 0 1.4l-5.3 5.3a1 1 0 0 1-1.4 0z" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><circle cx="6.2" cy="6.2" r="1.3" fill="#111"/></svg></span>Tea Tag 확인하기<span class="chev">›</span></button>
@@ -1374,7 +1374,7 @@ canvas(p){
   ${canvasBox('bigCv',{cls:'scrollable'})}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
   ${fav?`<canvas id="favCv"></canvas><div class="fav-en">${fav.all.map(f=>`<span style="color:${inkText(f.c)}">${HOME_EN[f.k]}</span>`).join('')}</div><p class="fav-s">${fav.title}. ${fav.desc}</p><div id="recBox">${recHTML(recommendTeas(fav.all))}</div>`
-      :`<p class="fav-s">향도 맛도 좋았던 기록이 모이면, 그 차들의 풍미를 모아 나만의 찻방울을 만들어드려요.</p>`}</section>
+      :`<p class="fav-s">향도 맛도 좋았던 차가 모이면,<br>그 풍미로 나의 취향 찻방울을 만들어요.</p>`}</section>
   <div style="height:8px"></div>`;
 },
 
@@ -1549,17 +1549,17 @@ function sendOrVoice(){ const i=$('#chatIn'); if(i&&i.value.trim()){ sendInput()
    d.stage: wait(우리는 중) · color · aroma · taste · free */
 const ASK={
   color:'찻물에 색이 우러나기 시작했어요.\n지금 찻물 색은 어떤가요? 가장 가까운 색을 골라주세요.',
-  aroma:'다 우려졌어요. 찻잔을 들고 향을 맡아볼까요?\n처음 떠오르는 향을 내 말로 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 좋아요.',
-  taste:'이제 한 모금 마셔봐요.\n입안에 처음 느껴지는 맛을 내 말로 편하게 말해주세요.',
+  aroma:'다 우려졌어요. 찻잔을 들고 향을 맡아볼까요?\n어떤 향인지 내 말로 편하게 말해주세요.\n장면이나 기억으로 말해도 좋아요.',
+  taste:'이제 한 모금 마셔봐요.\n입안에 처음 느껴지는 맛은 어떤가요?',
 };
 /* 자유 대화: 챗봇은 끼어들지 않고 담기만 한다. 끝내는 건 사용자가 '이제 충분해요'로.
    오래 조용하면(마신 지 5분 넘고 1분 넘게 말이 없으면) 한 번만 부드럽게 말을 건다 */
-const FREE_INTRO='좋아요. 이제 천천히 마시면서 떠오르는 걸 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 돼요.\n충분히 마셨다면 아래 ‘이제 충분해요’를 눌러주세요.';
+const FREE_INTRO='좋아요. 이제 천천히 마시면서 느끼는 대로 말해주세요.\n충분히 마셨다면 ‘이제 충분해요’를 눌러주세요.';
 const ASK_VAR={
-  aroma:['다 우려졌어요. 찻잔을 들고 향을 맡아볼까요?\n처음 떠오르는 향을 내 말로 편하게 말해주세요.\n떠오르는 장면이나 기억으로 말해도 좋아요.',
+  aroma:['다 우려졌어요. 찻잔을 들고 향을 맡아볼까요?\n어떤 향인지 내 말로 편하게 말해주세요.\n장면이나 기억으로 말해도 좋아요.',
     '다 우려졌어요. 잔을 코 가까이 가져가 천천히 숨을 들이쉬어 보세요.\n어떤 향이 먼저 다가오나요? 내 말로 편하게요.',
     '차가 다 우려졌어요. 첫 향은 무엇을 떠올리게 하나요?\n장소, 계절, 기억… 무엇이든 좋아요.'],
-  taste:['이제 한 모금 마셔봐요.\n입안에 처음 느껴지는 맛을 내 말로 편하게 말해주세요.',
+  taste:['이제 한 모금 마셔봐요.\n입안에 처음 느껴지는 맛은 어떤가요?',
     '한 모금 머금고 잠깐 혀 위에 두었다가 넘겨보세요.\n어떤 맛이 남았나요? 내 말로 편하게요.',
     '첫 모금은 어땠어요?\n혀끝, 혀 가운데, 목 넘김… 느껴지는 대로 말해주세요.']};
 /* 자유 대화 중 오래 조용할 때 건네는 말(대답을 기다리지 않음): 최대 3번, 2분 이상 간격 */
@@ -1580,7 +1580,7 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
 function seedChat(){
   const d=S.draft;
   if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’이에요.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
-  if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 적어주세요. 브랜드도 함께 적으면 좋아요.\n예: 오설록 제주 세작, 철관음, 얼그레이',teaAsk:true}); }
+  if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }
   chatTick();
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
@@ -1591,7 +1591,7 @@ function parseTea(text){ const t=String(text).trim().replace(/[.!?~]+$/,'').repl
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
 function botSay(msg,delay=600){ const d=S.draft; S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; d.chat.push(typeof msg==='function'?msg():msg); if(cur()==='chat') rerender(); },delay); }
 function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=true; d.chat.push({who:'me',text:'',img:url,ans:'tea'});
-  botSay({who:'bot',text:'사진을 받았어요. 이 사진은 오늘 기록에 함께 담아둘게요.\n사진 속 글자를 읽는 건 아직 어려워서, 차 이름을 적어주시겠어요?',teaAsk:true},700); }); }
+  botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},700); }); }
 function teaInput(text){
   const d=S.draft, r=parseTea(text); d.chat.push({who:'me',text,ans:'tea'}); d.name=r.name; d.brand=r.brand;
   if(r.type){ d.type=r.type; d.stage='teaOK'; botSay({who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
@@ -1600,7 +1600,7 @@ function teaInput(text){
 function teaChip(c){
   const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:c,ans:'tea'});
   if(d.stage==='teaType'){ const k=ORDER.find(k=>TEAS[k].label===c); if(k){ d.type=k; return showGuide(); } }
-  if(d.stage==='teaOK'){ if(c==='맞아요') return showGuide(); d.stage='tea'; return botSay({who:'bot',text:'좋아요, 다시 알려주세요.\n차 이름과 브랜드를 적어주세요.',teaAsk:true}); }
+  if(d.stage==='teaOK'){ if(c==='맞아요') return showGuide(); d.stage='tea'; return botSay({who:'bot',text:'좋아요, 차 이름과 브랜드를 다시 알려주세요.',teaAsk:true}); }
   if(d.stage==='guide'){
     if(c.startsWith('우림 시작')) return beginBrew();
     if(c==='바로 마실게요'){ startDrink(); d.direct=true; d.stage='wait'; d.chat.push({who:'bot',text:'좋아요, 바로 마셔봐요.'}); chatTick(); return rerender(); }
@@ -1638,7 +1638,7 @@ const FAQ=[
 ];
 const isQuestion=t=>{ t=String(t).trim(); if(/\?|？/.test(t)||/(알려줘|알려 ?주세요|궁금해요?)$/.test(t)) return true; return /^(왜|어떻게|무슨|뭐가|뭘|몇|언제|어디)/.test(t)&&/(나요|까요|가요|어요|죠|니|나|까)$/.test(t)&&!matchFlavors(t).length; };
 function faqAnswer(q){ const d=S.draft, t=d&&d.type?{...(d.basic?BASIC:TEAS[d.type]),label:TEAS[d.type].label}:null;
-  const hit=FAQ.find(([re])=>re.test(q)); return hit?hit[1](t):'좋은 질문이에요. 지금은 정확히 답하기 어렵지만, 기록에 남겨둘게요.\n마시면서 느낀 점도 계속 들려주세요.'; }
+  const hit=FAQ.find(([re])=>re.test(q)); return hit?hit[1](t):'좋은 질문이에요. 지금은 정확히 답하기 어려워요.\n마시면서 느낀 점을 계속 들려주세요.'; }
 /* AI 중간 서버 호출(공용). mode: 'question' | 'compare'. 실패·시간 초과면 null → 정해진 대답 */
 async function aiCall(mode,extra){
   if(!AI_ENDPOINT) return null;
@@ -1809,7 +1809,7 @@ function sendMsg(text,isChip){
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
-  if(d.stage==='color'&&!colorFromWords(text)&&matchFlavors(text).length){ d.chat.push({who:'me',text,kept:true}); return botSay({who:'bot',text:'좋아요, 그 표현도 담아둘게요.\n찻물 색은 어떤가요? 보이는 색을 알려주세요.',ask:'color'},500); }
+  if(d.stage==='color'&&!colorFromWords(text)&&matchFlavors(text).length){ d.chat.push({who:'me',text,kept:true}); return botSay({who:'bot',text:'좋아요, 그 표현도 담아둘게요.\n찻물 색은 어떤가요?',ask:'color'},500); }
   if(isAsk(d.stage)){ if(d.stage==='color'){ const hd=colorFromWords(text); d.feel.colorHD=hd; d.feel.colorHex=hd?tcColor(hd[0],hd[1]):null; return answer('color',text,hd?{color:d.feel.colorHex}:{}); } return answer(d.stage,text); }
   if(d.stage==='deep') return deepAnswer(text);  // 질문 중에 직접 적으면 그 질문의 대답
   if(d.stage==='free'||((d.stage==='wait'||d.stage==='wait2')&&!d.talkPending)){
@@ -1847,7 +1847,7 @@ const DEEPQ={
     {q:()=>'얼마나 우렸나요?',chips:()=>{ const s=S.timer?S.timer.total:0; return [...new Set([s?`${Math.floor(s/60)}분${s%60?' '+s%60+'초':''}`:null,'1분','2분','3분','5분'].filter(Boolean))].concat('잘 몰라요'); },
      set:t=>{ const dp=S.draft.deep; if(skip(t)){ dp.min=dp.sec=''; return; } const m=String(t).match(/(\d+)\s*분/), c=String(t).match(/(\d+)\s*초/); dp.min=m?m[1]:(c?'0':num(t)); dp.sec=c?c[1]:''; }}],
   memo:[
-    {q:()=>'기억하고 싶은 점을 자유롭게 적어주세요.\n함께 마신 사람, 장소, 그날의 기분도 좋아요.',chips:()=>[],set:t=>{ const dp=S.draft.deep; dp.memo=dp.memo?dp.memo+'\n'+t:t; }}],
+    {q:()=>'기억하고 싶은 점을 자유롭게 남겨주세요.\n함께 마신 사람, 장소, 그날의 기분도 좋아요.',chips:()=>[],set:t=>{ const dp=S.draft.deep; dp.memo=dp.memo?dp.memo+'\n'+t:t; }}],
 };
 function moreMsg(text){ const d=S.draft; d.stage='more'; return {who:'bot',text,menu:true}; }
 function morePick(key){
@@ -1863,7 +1863,7 @@ function deepAnswer(t){
   S.typing=true; paintMsgs();
   setTimeout(()=>{ S.typing=false;
     if(d.dq.i<DEEPQ[d.dq.key].length) deepAsk();
-    else { (d.moreDone||(d.moreDone={}))[d.dq.key]=true; d.chat.push(moreMsg('남겨둘게요.\n또 남기고 싶은 게 있나요? 다 남겼다면 정리해볼게요.')); }
+    else { (d.moreDone||(d.moreDone={}))[d.dq.key]=true; d.chat.push(moreMsg('남겨둘게요.\n더 남기고 싶은 게 있나요? 없으면 정리할게요.')); }
     if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },600);
 }
 /* 음성 대화: 한 번 누르면 챗봇이 말하고(소리) → 내 말을 듣고 → 다시 말하는 대화를 계속 이어간다.
@@ -1877,7 +1877,7 @@ const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaTyp
 function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#msgs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
-  if(VOICE.demo) toast('이 기기에서는 마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
+  if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=m.text||''; if(m.guide){ const d=S.draft, g=m.basic?BASIC:TEAS[d.type]; t+=` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
@@ -1934,7 +1934,7 @@ function myExpression(d){
   const mine=(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))).map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
   if(mine.length) return mine.slice(0,3).join(', ') + '.';
   const f=['color','aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
-  if(f.length) return `${f.join(', ')}이(가) 먼저 느껴졌어요.`;
+  if(f.length) return `${f.join(', ')}${josa(f[f.length-1],'이','가')} 먼저 느껴졌어요.`;
   return '이번에는 남긴 표현이 없어요.';
 }
 
@@ -1943,7 +1943,7 @@ function openCanvasSheet(){
   const d=S.draft; ensureFlavors(d);
   openSheet(`<div class="grab"></div>
     <h1 class="t">캔버스에 찻방울 찍기</h1>
-    <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요. 다시 누르면 옮겨져요.</p>
+    <p class="sub">오늘의 차는 어디쯤일까요?<br>눌러서 찍고, 다시 누르면 옮겨져요.</p>
     <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 찻방울은 지난 기록이에요.'}</p>
@@ -1980,7 +1980,7 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
 }
 /* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
-  openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">마셔보니 느낌이 달라졌다면, 새 자리를 눌러주세요.</p>
+  openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
     <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
     <div style="height:14px"></div><button class="btn" id="moveSave">이 자리로 옮기기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`);
