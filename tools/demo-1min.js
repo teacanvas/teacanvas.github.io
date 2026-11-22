@@ -31,7 +31,7 @@ const SPEED=1.45;   // 영상 전체를 살짝 빠르게
   const tap=async sel=>{ const el=await p.waitForSelector(sel,{state:'visible',timeout:15000}); await el.scrollIntoViewIfNeeded(); await wait(200); const r=await el.boundingBox(); await p.mouse.move(r.x+r.width/2,r.y+r.height/2,{steps:10}); await wait(180); await p.mouse.down(); await wait(80); await p.mouse.up(); await wait(400); };
   const type=async t=>{ await tap('#chatIn'); await p.keyboard.type(t,{delay:40}); await wait(250); await p.keyboard.press('Enter'); await wait(1300); };
 
-  await p.goto(APP); await ev(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await wait(700);
+  await p.goto(APP); await wait(700);   // 새 브라우저라 저장된 기록이 없어 바로 예시 상태로 시작(다시 불러오며 깜빡이지 않게)
   await cap('TEA CANVAS','마신 차의 맛과 향을\n내 말로 기록하면, 색으로 물들어요.'); await wait(3000);
 
   await cap('채팅으로 기록','차 이름을 알려주면\n우림 가이드와 타이머가 나와요.'); await tap('.bigbtn'); await wait(900);
