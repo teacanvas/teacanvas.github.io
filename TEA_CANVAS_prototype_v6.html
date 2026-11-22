@@ -216,7 +216,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .opt p{font-size:12.5px;color:var(--g2)}
 .opt .chev{color:#888;font-size:18px}
 .cmp{display:flex;gap:12px;align-items:center;background:var(--g0);border-radius:var(--r-card);padding:14px 14px;margin-top:10px}
-.cmp .lb{display:flex;align-items:center;gap:9px;width:104px;flex-shrink:0;font-size:14px;font-weight:700;border-right:1px solid #DDD;align-self:stretch}
+.cmp .lb{display:flex;align-items:center;gap:9px;width:82px;flex-shrink:0;font-size:14px;font-weight:700;border-right:1px solid #DDD;align-self:stretch}
 .cmp .bd{font-size:13px;line-height:1.6;flex:1}
 .cmp .bd ul{list-style:none}
 .cmp .bd li::before{content:"·";margin-right:6px}
@@ -437,6 +437,12 @@ canvas.wcd.big{margin:14px auto}
 .dhead span{display:block}
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.dhead .dline{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.dtop-r{display:flex;gap:4px}
+.efld{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px;color:var(--g2)}.efld>span:first-child{font-weight:600;color:#333}
+.efld input,.efld select,.efld textarea{background:var(--g0);border-radius:10px;padding:11px 14px;font-size:15px;color:#111;border:0;font-family:inherit;resize:vertical}
+.ephoto{display:flex;align-items:center;gap:8px}.ephoto img{width:52px;height:52px;border-radius:10px;object-fit:cover}.ephoto .pillbtn{margin:0;padding:6px 12px}
+#eFl .chip small{color:#999;font-size:11px}
 .vpanel{display:none;position:relative;height:150px;margin:0 -22px 8px;overflow:hidden}
 .chatfoot.voicing .vpanel{display:block}.chatfoot.voicing .inrow{display:none}
 .vpanel canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -1235,11 +1241,11 @@ compare(){
   ${d3Box('cmp3d',240)}
   ${d.flavors.length?`<div class="center-chips">${flChips(d.flavors)}</div>`:''}
   ${ownHTML(ownWords(d.exprs))}
-  <div class="cmp"><div class="lb">${I.book}전문가 설명</div><div class="bd" id="cmpExpert">${t.expert}</div></div>
-  <div class="cmp"><div class="lb">${I.person}나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
-  ${(()=>{ const c=cmpFacts(d); return `<div class="cmp"><div class="lb">${I.rings}공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
-  <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
-  <div class="cmp"><div class="lb">${I.spark}AI 해석</div><div class="bd" id="cmpAI">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
+  <div class="cmp"><div class="lb">전문가 설명</div><div class="bd" id="cmpExpert">${t.expert}</div></div>
+  <div class="cmp"><div class="lb">나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
+  ${(()=>{ const c=cmpFacts(d); return `<div class="cmp"><div class="lb">공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
+  <div class="cmp"><div class="lb">차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
+  <div class="cmp"><div class="lb">AI 해석</div><div class="bd" id="cmpAI">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
   <div class="spacer" style="min-height:22px"></div>
   <button class="link u" onclick="backToChat()">채팅으로 돌아가 더 남기기</button>
   <div class="stickfoot"><button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button></div>`;
@@ -1330,14 +1336,14 @@ detail(p){
   if(r.drinkMin) info.unshift(['마신 시간',`${r.drinkMin}분`]);
   const tk=r.talk||{}, talk=[['기분',tk.mood],['상황',tk.scene],['고른 이유',tk.why]].filter(x=>x[1]);
   return `<div class="dtop"><button class="backtext" onclick="back()">${I.larr} 상세 기록</button>
-    <button class="ghost danger-ic" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash.replace('stroke="#111"','stroke="#D6453D"')}</button></div>
+    <span class="dtop-r"><button class="ghost" onclick="openEditSheet('${r.id}')" aria-label="기록 수정">${I.pen}</button><button class="ghost danger-ic" onclick="askDelete('${r.id}')" aria-label="기록 삭제">${I.trash.replace('stroke="#111"','stroke="#D6453D"')}</button></span></div>
   <div class="det-drop"><canvas id="detCv1"></canvas></div>
   ${r.flavors&&r.flavors.length?`<div class="fav-en det-en">${[...r.flavors].sort((a,b)=>b.w-a.w).map(f=>`<span style="color:${inkText(FLAVORS[f.k].color)}">${HOME_EN[f.k]}</span>`).join('')}</div>`:''}
   ${ownHTML(recOwn(r))}
   <div class="detail">
-    <div class="dhead"><div><b class="dn">${esc(r.name)}</b>${r.seed?' <em class="ex">예시 기록</em>':''}<span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${dot(r.date.replace(/\.$/,''),stars(r.stars))}</span></div></div>
-    ${(r.photoData||SEED_PHOTOS[r.id])?`<figure class="photo real"><img src="${r.photoData||SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy" onerror="this.parentNode.style.display='none'"></figure>`:''}
-    <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
+    <div class="dhead"><div><b class="dn">${esc(r.name)}</b>${r.seed?' <em class="ex">예시 기록</em>':''}<span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span class="dline">${r.date.replace(/\.$/,'')}${r.stars?' · '+stars(r.stars):''}</span></div></div>
+    ${(r.photoData||(!r.noPhoto&&SEED_PHOTOS[r.id]))?`<figure class="photo real"><img src="${r.photoData||SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy" onerror="this.parentNode.style.display='none'"></figure>`:''}
+    <div class="dcomment"><span onclick="openEditSheet('${r.id}','cmt')" style="cursor:pointer">한 줄 코멘트 | ${esc(r.comment)||'<u style="color:#999">눌러서 적기</u>'}</span>
       <button onclick="saveTagImage('${r.id}')" aria-label="저장">${I.down}</button></div>
   </div>
   ${r.flavors&&r.flavors.length?`<h3 class="sec">담긴 풍미</h3>${flChips(r.flavors)}`:''}
@@ -1967,7 +1973,9 @@ const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaTyp
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(VOICE.on) stopVoice(); else hush(); } });
 addEventListener('pagehide',()=>{ VOICE.on=false; hush(); });
 function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
-document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#msgs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
+document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.target.closest('#msgs button,#chatEnd button')) return;
+  hush(); if(S.draft) VOICE.spoken=S.draft.chat.length;   // 아직 안 읽은 말은 건너뛰고, 누른 뒤에 나오는 말부터
+  try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
@@ -2085,6 +2093,32 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null,drag=false){
   cv.onpointercancel=()=>{ down=null; };
 }
 /* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
+/* 저장한 기록 고치기: 이름·브랜드·종류·별점·한 줄 코멘트·사진·풍미·메모·그날의 이야기 */
+function openEditSheet(id,focus){ const r=S.records.find(x=>x.id===id); if(!r) return;
+  const E=S.edit={id,stars:r.stars||0,fl:(r.flavors||[]).map(f=>f.k),photo:r.photoData||null,noPhoto:!!r.noPhoto}; const tk=r.talk||{};
+  const fld=(id,label,v,ph='',tag='input')=>`<label class="efld"><span>${label}</span>${tag==='input'?`<input id="${id}" value="${esc(v||'')}" placeholder="${ph}" maxlength="40">`:`<textarea id="${id}" rows="3" placeholder="${ph}">${esc(v||'')}</textarea>`}</label>`;
+  openSheet(`<div class="grab"></div><h1 class="t">기록 고치기</h1>
+    ${fld('eName','차 이름',r.name)}${fld('eBrand','브랜드',r.brand,'없으면 비워두세요')}
+    <label class="efld"><span>차 종류</span><select id="eType">${ORDER.map(k=>`<option value="${k}" ${k===r.type?'selected':''}>${TEAS[k].label}</option>`).join('')}</select></label>
+    <div class="rate" style="margin-top:14px"><h3 class="sec">별점</h3><div class="stars" id="eStars">${[1,2,3].map(i=>`<button class="${i<=E.stars?'on':''}" onclick="S.edit.stars=S.edit.stars===${i}?${i-1}:${i};[...this.parentNode.children].forEach((b,j)=>b.classList.toggle('on',j<S.edit.stars))" aria-label="찻잎 ${i}개">${LEAF}</button>`).join('')}</div></div>
+    ${fld('eCmt','한 줄 코멘트',r.comment,'예: 집에서 혼자 마셔본 첫 차!')}
+    <label class="efld"><span>사진</span><span class="ephoto" id="ePhoto"></span></label>
+    <h3 class="sec" style="margin-top:16px">담긴 풍미 <small class="muted" style="font-weight:400">· 찻방울 색이 바뀌어요</small></h3><div class="chips" id="eFl"></div>
+    ${fld('eMemo','메모',(r.memo||[]).join('\n'),'기억하고 싶은 점','textarea')}
+    <h3 class="sec" style="margin-top:16px">그날의 이야기</h3>${fld('eMood','기분',tk.mood)}${fld('eScene','상황',tk.scene)}${fld('eWhy','고른 이유',tk.why)}
+    <div style="height:16px"></div><button class="btn" onclick="saveEdit()">고친 내용 저장</button><button class="link" onclick="closeSheet()">취소</button>`);
+  paintEdit(); if(focus==='cmt') setTimeout(()=>{ const c=$('#eCmt'); if(c){ c.focus(); c.scrollIntoView({block:'center'}); } },300); }
+function paintEdit(){ const E=S.edit, r=S.records.find(x=>x.id===E.id); if(!r) return;
+  const ph=E.noPhoto?null:(E.photo||(SEED_PHOTOS[r.id]&&SEED_PHOTOS[r.id].src));
+  $('#ePhoto').innerHTML=`${ph?`<img src="${ph}" alt="">`:''}<button class="pillbtn" type="button" onclick="pickPhoto(u=>{ S.edit.photo=u; S.edit.noPhoto=false; paintEdit(); })">${ph?'바꾸기':'사진 넣기'}</button>${ph?`<button class="pillbtn" type="button" onclick="S.edit.noPhoto=true;S.edit.photo=null;paintEdit()">지우기</button>`:''}`;
+  $('#eFl').innerHTML=FKEYS.map(k=>`<button class="chip ${E.fl.includes(k)?'sel':''}" onclick="const a=S.edit.fl,i=a.indexOf('${k}');i<0?a.push('${k}'):a.splice(i,1);paintEdit()"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]} <small>${FLAVORS[k].label}</small></button>`).join(''); }
+function saveEdit(){ const E=S.edit, r=S.records.find(x=>x.id===E.id); if(!r) return; const v=id=>($('#'+id)||{}).value||'';
+  r.name=v('eName').trim()||r.name; r.brand=v('eBrand').trim(); r.type=v('eType')||r.type; r.stars=E.stars; r.comment=v('eCmt').trim();
+  if(E.noPhoto){ r.photoData=null; r.photo=false; r.noPhoto=true; } else if(E.photo){ r.photoData=E.photo; r.photo=true; r.noPhoto=false; }
+  const old=Object.fromEntries((r.flavors||[]).map(f=>[f.k,f.w])); r.flavors=E.fl.map(k=>({k,w:old[k]??.6})); r.flAll=[...new Set([...(r.flAll||[]).filter(k=>E.fl.includes(k)),...E.fl])];
+  r.memo=v('eMemo').split('\n').map(x=>x.trim()).filter(Boolean);
+  const t={mood:v('eMood').trim(),scene:v('eScene').trim(),why:v('eWhy').trim()}; r.talk=(t.mood||t.scene||t.why)?t:null; r.seed=r.seed&&false;
+  BMP.clear(); persist(); closeSheet(); rerender(); toast('고친 내용을 저장했어요'); }
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
@@ -2143,7 +2177,7 @@ Object.assign(EN,{
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
