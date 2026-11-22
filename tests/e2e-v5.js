@@ -3,7 +3,7 @@
 // 홈 → 채팅(차 이름 · 가이드 · 우림 · 이야기 · 색 · 향 · 맛 · 질문 · 조금 더 남기기) → 분석 → 비교 → 캔버스에 찍기 → 저장
 // → 캔버스 · 상세 · 기록 목록(풍미 필터) · 음성 탭 · 그만하기/이어하기 를 차례로 눌러 보고, 오류와 결과를 확인한다.
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs');
-const FILE='file://'+path.join(__dirname,'..','TEA_CANVAS_prototype_v5.html');
+const FILE='file://'+path.join(__dirname,'..',process.env.TC_FILE||'TEA_CANVAS_prototype_v5.html');
 const OUT=process.argv[2]||null; if(OUT) fs.mkdirSync(OUT,{recursive:true});
 let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); if(!cond) fails++; };
 (async()=>{

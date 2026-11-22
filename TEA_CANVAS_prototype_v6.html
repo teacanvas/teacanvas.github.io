@@ -185,7 +185,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .gcard b{font-size:14.5px}.gcard dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px}
 .gcard dt{color:var(--g2)}.gcard dd{font-weight:600}.gcard dd small{display:block;font-weight:400;color:var(--g2);font-size:12px}
 .gcard .gtip{margin-top:10px;font-size:12px;color:#666;background:var(--g0);border-radius:10px;padding:8px 10px}
-.tearow.pin{position:sticky;top:0;z-index:3;background:#fff;padding:6px 0 10px;margin:8px 0 6px;border-bottom:1px solid var(--g0)}
+.scr-chat .stepbar{position:sticky;top:0;z-index:4;background:#fff;margin-bottom:0}
+.tearow.pin{position:sticky;top:44px;z-index:3;background:#fff;padding:6px 0 10px;margin:8px 0 6px;border-bottom:1px solid var(--g0)}
 .tearow.pin b{max-width:230px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .tearow .gsum{display:block;font-size:12px;color:var(--g2)}
 .chips.more .chip.done{color:#999}
@@ -296,7 +297,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .state h2{font-size:19px;font-weight:700;margin-top:22px}
 .state p{font-size:13.5px;color:var(--g2);margin-top:10px}
 /* ---------- overlays ---------- */
-.toast{position:absolute;left:50%;bottom:76px;transform:translate(-50%,8px);background:rgba(0,0,0,.84);color:#fff;font-size:12.5px;padding:9px 15px;border-radius:18px;
+.toast{position:absolute;left:50%;top:64px;bottom:auto;transform:translate(-50%,-8px);background:rgba(0,0,0,.84);color:#fff;font-size:12.5px;padding:9px 15px;border-radius:18px;
   opacity:0;transition:.25s;pointer-events:none;max-width:86%;text-align:center;z-index:60}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .sheetWrap{position:absolute;inset:0;background:rgba(0,0,0,.07);display:none;z-index:40;align-items:flex-end}
@@ -426,7 +427,7 @@ canvas.wcd.big{margin:14px auto}
 .ritem{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;padding:4px 0;border-radius:12px;transition:background .15s}
 .ritem:hover{background:var(--g0)}
 .ritem b{font-weight:600;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
-.ritem span{color:var(--g2);font-size:11.5px}
+.ritem span{color:var(--g2);font-size:11.5px}.ritem em.ex,.dn+em.ex{font-style:normal;font-size:10.5px;color:#8A6D3B;background:#F6EEDF;border-radius:6px;padding:1px 5px}
 .empty-q{grid-column:1/-1;text-align:center;color:var(--g2);font-size:13px;padding:40px 0}
 /* detail */
 .dtop{display:flex;justify-content:space-between;align-items:center}
@@ -1095,10 +1096,11 @@ function favDrop(){
 
 /* 기록 목록 검색 · 필터 */
 /* 알림: 지금 기록으로 만든다 */
+const agoText=ts=>{ const d=Math.floor((Date.now()-(ts||0))/864e5); return d<1?'오늘':d<7?`${d}일 전`:d<30?`${Math.floor(d/7)}주 전`:`${Math.floor(d/30)}달 전`; };
 function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class="state" style="padding-top:60px"><h2 style="font-size:16px">아직 알림이 없어요</h2><p>차를 기록하면 지난 기록과<br>추천 차를 알려드릴게요.</p></div>`;
   const r=rs[0], ex=(r.exprs||[])[0], fav=favDrop(), rec=fav?recommendTeas(fav.all,1)[0]:null;
-  const L=[[r,`지난번 ${esc(r.name)}${josa(r.name,'은','는')} ${ex?`“${esc(ex)}”로 남겼어요`:'기록으로 남아 있어요'}. 오늘은 어떤 차를 마셔볼까요?`,'오늘',`openDetail('${r.id}')`],
-    ['clear',`찻방울이 ${n}개 모였어요. Canvas 탭에서 나의 취향 찻방울을 확인해보세요.`,'3일 전',`goTab('canvas')`]];
+  const L=[[r,`지난번 ${esc(r.name)}${josa(r.name,'은','는')} ${ex?`“${esc(ex)}”로 남겼어요`:'기록으로 남아 있어요'}. 오늘은 어떤 차를 마셔볼까요?`,agoText(r.ts),`openDetail('${r.id}')`],
+    ['clear',`찻방울이 ${n}개 모였어요. Canvas 탭에서 나의 취향 찻방울을 확인해보세요.`,agoText(r.ts),`goTab('canvas')`]];
   if(rec&&PREF.recNoti) L.push([{id:'rec-'+rec.name,comps:rec.fl.map((k,i)=>({key:k,c:FLAVORS[k].color,w:1-i*.25}))},`나의 취향과 닮은 ${esc(rec.name)}${josa(rec.name,'을','를')} 추천해요. ${esc(rec.note)}.`,'1주 전',`goTab('canvas')`]);
   return L.map(([o,m,w,go])=>`<button class="noti" onclick="${go}">${orb(o,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join(''); }
 /* Tea Tag 이미지로 저장하기: 찻방울 · 이름 · 날짜 · 풍미 · 한 줄을 한 장으로 */
@@ -1119,11 +1121,11 @@ function filtered(){
   const to=f.date==='range'&&f.to?new Date(f.to+'T23:59:59').getTime():Infinity;
   return sortRecs().filter(r=>{
     if((r.ts||0)<from||(r.ts||0)>to) return false;
-    if(f.fl.length&&!f.fl.every(k=>(r.flavors||[]).some(x=>x.k===k))) return false;   // 고른 풍미가 모두 담긴 기록만
+    if(f.fl.length&&!f.fl.every(k=>flAll(r).includes(k))) return false;   // 고른 풍미가 모두 담긴 기록만
     if(!q) return true;
     const hay=[r.name,r.brand,r.comment,TEAS[r.type].label,...(r.exprs||[]),...(r.tags||[]),...(r.flavors||[]).flatMap(x=>[FLAVORS[x.k].label,HOME_EN[x.k]])].join(' ').replace(/\s/g,'').toLowerCase();
     return hay.includes(q);
-  }).sort((a,b)=>f.fl.length?flScore(b)-flScore(a):0);
+  });
 }
 /* 풍미 필터: 고른 풍미 중 하나라도 담긴 기록을, 그 풍미가 진한 순서로 */
 const flScore=r=>(r.flavors||[]).filter(x=>S.filter.fl.includes(x.k)).reduce((s,x)=>s+x.w,0);
@@ -1163,10 +1165,11 @@ function applyRange(){ const c=S.cal; if(!c.a) return toast('날짜를 골라주
   Object.assign(S.filter,{date:'range',from:a,to:b}); closeSheet(); rerender(); }
 function openFlSheet(){ openSheet(`<div class="grab"></div><h1 class="t">풍미</h1><p class="sub">고른 풍미가 모두 담긴 기록을 보여줘요.</p>
     <div id="flSheet" style="margin-top:16px">${flRow()}</div><div style="height:18px"></div><button class="btn" onclick="closeSheet()">보기</button>`); }
+const flAll=r=>[...new Set([...(r.flavors||[]).map(x=>x.k),...(r.flAll||[])])];
 function gridHTML(){
   const rs=filtered();
   if(!rs.length) return `<div class="empty-q"><p>조건에 맞는 기록이 없어요.</p>${(S.filter.q||S.filter.date!=='all'||S.filter.fl.length)?`<button class="btn line" style="width:auto;padding:0 22px;margin:14px auto 0" onclick="resetFilter()">조건 지우기</button>`:''}</div>`;
-  return rs.map(r=>`<button class="ritem" onclick="openDetail('${r.id}')">${orb(r,92)}<b>${esc(r.name)}</b><span>${S.filter.fl.length?(r.flavors||[]).filter(x=>S.filter.fl.includes(x.k)).map(x=>HOME_EN[x.k]).join(' · '):r.date.slice(2).replace(/\.$/,'')}</span></button>`).join('');
+  return rs.map(r=>`<button class="ritem" onclick="openDetail('${r.id}')">${orb(r,92)}<b>${esc(r.name)}</b><span>${r.seed?'<em class="ex">예시</em> ':''}${r.date.slice(2).replace(/\.$/,'')}</span>${S.filter.fl.length?`<span>${flAll(r).filter(k=>S.filter.fl.includes(k)).map(k=>HOME_EN[k]).join(' · ')}</span>`:''}</button>`).join('');
 }
 function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML(); paintDrops(g); }
 
@@ -1182,7 +1185,7 @@ home(){
   return `<div class="home">
     <h1 class="home-q ${HQ}" style="margin-top:min(${HL.qt}px,4.5dvh)">${/split/.test(HQ)?'<em>오늘의 차,</em>어떤 색들이 담겨 있나요?':'오늘의 차,<br>어떤 색들이 담겨 있나요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
-    ${(()=>{ const v=loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="dropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
+    ${(()=>{ const v=loadLive()||loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="dropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
     <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
     <button class="bigbtn" style="margin-bottom:min(${HL.bb}px,3.5dvh)" onclick="startRecord()"><span>새로운 차 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
@@ -1219,7 +1222,8 @@ analyzing(){
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
-    <div class="ph"><i></i>정리 중</div></div>`;
+    <div class="ph"><i></i>정리 중</div></div>
+  <button class="link" style="margin-top:6px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
 compare(){
@@ -1233,8 +1237,8 @@ compare(){
   ${ownHTML(ownWords(d.exprs))}
   <div class="cmp"><div class="lb">${I.book}전문가 설명</div><div class="bd" id="cmpExpert">${t.expert}</div></div>
   <div class="cmp"><div class="lb">${I.person}나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
-  <div class="cmp"><div class="lb">${I.rings}공통점</div><div class="bd chips" id="cmpCommon">${t.common.map(c=>`<span class="chip">${c}</span>`).join('')}</div></div>
-  <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd" id="cmpDiff"><ul>${t.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
+  ${(()=>{ const c=cmpFacts(d); return `<div class="cmp"><div class="lb">${I.rings}공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
+  <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
   <div class="cmp"><div class="lb">${I.spark}AI 해석</div><div class="bd" id="cmpAI">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
   <div class="spacer" style="min-height:22px"></div>
   <button class="link u" onclick="backToChat()">채팅으로 돌아가 더 남기기</button>
@@ -1331,7 +1335,7 @@ detail(p){
   ${r.flavors&&r.flavors.length?`<div class="fav-en det-en">${[...r.flavors].sort((a,b)=>b.w-a.w).map(f=>`<span style="color:${inkText(FLAVORS[f.k].color)}">${HOME_EN[f.k]}</span>`).join('')}</div>`:''}
   ${ownHTML(recOwn(r))}
   <div class="detail">
-    <div class="dhead"><div><b class="dn">${esc(r.name)}</b><span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${dot(stars(r.stars),r.date.replace(/\.$/,''))}</span></div></div>
+    <div class="dhead"><div><b class="dn">${esc(r.name)}</b>${r.seed?' <em class="ex">예시 기록</em>':''}<span class="muted">${esc(r.brand)||TEAS[r.type].label}</span><span>${dot(r.date.replace(/\.$/,''),stars(r.stars))}</span></div></div>
     ${(r.photoData||SEED_PHOTOS[r.id])?`<figure class="photo real"><img src="${r.photoData||SEED_PHOTOS[r.id].src}" alt="${esc(r.name)} 사진" loading="lazy" onerror="this.parentNode.style.display='none'"></figure>`:''}
     <div class="dcomment"><span>한 줄 코멘트 | ${esc(r.comment)||'—'}</span>
       <button onclick="saveTagImage('${r.id}')" aria-label="저장">${I.down}</button></div>
@@ -1418,6 +1422,12 @@ function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur(
 const PAUSE_KEY=SAMPLE?'teacanvas.v6.many.paused':'teacanvas.v6.paused';
 let PAUSED_MEM;  // 브라우저 저장소를 못 쓰는 환경에서도 이 화면을 닫기 전까지는 이어할 수 있게
 function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAUSE_KEY); if(raw!==null) v=JSON.parse(raw); }catch(e){} return v&&v.draft&&Array.isArray(v.stack)&&v.stack.length?v:null; }
+const LIVE_KEY=PAUSE_KEY+'.live';
+function snapDraft(){ return {draft:S.draft,stack:S.stack.map(x=>({name:x.name,params:x.params||{}})).filter(x=>REC_SCREENS.includes(x.name)),chatMode:S.chatMode,timer:S.timer?{...S.timer}:null,at:Date.now()}; }
+function loadLive(){ try{ const v=JSON.parse(localStorage.getItem(LIVE_KEY)||'null'); return v&&v.draft&&Array.isArray(v.stack)&&v.stack.length?v:null; }catch(e){ return null; } }
+function saveLive(){ try{ if(S.draft&&recording()&&S.draft.chat.some(m=>m.who==='me')) localStorage.setItem(LIVE_KEY,JSON.stringify(snapDraft())); }catch(e){} }
+function clearLive(){ try{ localStorage.removeItem(LIVE_KEY); }catch(e){} }
+setInterval(saveLive,3000); addEventListener('pagehide',saveLive); document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveLive(); });
 function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
 function askQuit(to){ const other=loadPaused();
   S.quitTo=typeof to==='string'?to:'home';
@@ -1434,19 +1444,20 @@ function askQuit(to){ const other=loadPaused();
 function quitRecord(keep,quiet){
   if(S.typing){ closeSheet(); return setTimeout(()=>quitRecord(keep,quiet),250); }
   if(VOICE.on) stopVoice();
-  if(keep&&S.draft) savePaused({draft:S.draft,stack:S.stack.map(x=>({name:x.name,params:x.params||{}})).filter(x=>REC_SCREENS.includes(x.name)),chatMode:S.chatMode,timer:S.timer?{...S.timer}:null,at:Date.now()});
+  if(keep&&S.draft) savePaused(snapDraft()); clearLive();
   closeSheet(); stopTimer(); S.draft=null; S.listening=false; goTab(S.quitTo||'home',true); S.quitTo=null;
   if(!quiet) toast(keep?'기록을 저장해뒀어요':'기록을 지웠어요');
 }
 function resumeRecord(){
-  const v=loadPaused(); if(!v){ rerender(); return toast('이어할 기록을 찾지 못했어요'); } savePaused(null);
+  const lv=loadLive(), v=lv||loadPaused(); if(!v){ rerender(); return toast('이어할 기록을 찾지 못했어요'); } if(lv) clearLive(); else savePaused(null);
+  if(v.timer&&v.timer.running!==false&&v.at) v.timer.left=Math.max(0,v.timer.left-Math.round((Date.now()-v.at)/1000));   // 나가 있던 동안에도 차는 계속 우러났다
   // 예전 버전에서 멈춘 기록(지금은 없는 화면)이면 채팅으로 이어간다
   const OLD=['teaInput','teaConfirm','searchError','brew','feel','depth','deepBrew','deepOrigin','deepTemp','deepMemo'];
   let stack=v.stack.filter(x=>x&&SCREENS[x.name]&&!OLD.includes(x.name)); if(!stack.length||!['chat','organizing','analyzing','compare'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
   if(['organizing','analyzing'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
   closeSheet(); stopTimer(); S.draft=v.draft; S.timer=v.timer&&v.timer.left>0?{...v.timer,running:v.timer.running!==false}:null; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; render(); if(S.draft.stage==='wait'||S.draft.stage==='wait2') talkNext(2500);
 }
-function dropPaused(){ savePaused(null); rerender(); toast('저장해둔 기록을 지웠어요'); }
+function dropPaused(){ if(loadLive()) clearLive(); else savePaused(null); rerender(); toast('저장해둔 기록을 지웠어요'); }
 function askDelete(id){
   const r=S.records.find(x=>x.id===id); if(!r) return;
   openSheet(`<div class="grab"></div>
@@ -1547,7 +1558,7 @@ function teaChip(c){
 }
 function showGuide(again){ const d=S.draft; d.stage='guide';
   botSay(()=>({who:'bot',guide:true,basic:!!d.basic,text:again?(d.basic?'어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.':`다시 ${d.name}에 맞춘 가이드예요.`):`${d.name}${josa(d.name,'을','를')} 가장 맛있게 우리는 방법이에요.\n준비되면 ‘우림 시작’을 눌러주세요.`,
-    chips:['우림 시작 ▶',d.basic?'추천 가이드로 볼래요':'기본 가이드로 볼래요','바로 마실게요']})); }
+    chips:['우림 시작 ▶',d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기','바로 마실게요']})); }
 /* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
    나중에 연결할 때 AI_ENDPOINT에 중간 서버 주소만 넣으면 된다. 보내는 것: {question, tea, history} / 받는 것: {text} */
 const AI_ENDPOINT=window.TC_AI_ENDPOINT||'';   // 여기에 중간 서버 주소를 넣는다. 예: 'https://teacanvas-ai.<계정>.workers.dev/chat'
@@ -1706,7 +1717,7 @@ const EN={
  "반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작":"Hello! What tea are you having today?\nTell me its name, and the brand if you know it.\ne.g. Twinings Earl Grey",
  "사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?":"I'll keep the photo with today's entry.\nI can't read text in photos yet, so could you tell me the tea's name?",
  "맞아요":"Yes","다시 적을게요":"Let me retype","좋아요, 차 이름과 브랜드를 다시 알려주세요.":"Okay, tell me the tea name and brand again.",
- "우림 시작 ▶":"Start brewing ▶","우림 시작":"Start brewing","바로 마실게요":"I'll drink now","추천 가이드로 볼래요":"Show the tea's guide","기본 가이드로 볼래요":"Show the basic guide",
+ "우림 시작 ▶":"Start brewing ▶","우림 시작":"Start brewing","바로 마실게요":"I'll drink now","이 차에 맞춘 가이드 보기":"Show this tea's guide","어떤 차든 쓰는 기본 가이드 보기":"Show the basic guide for any tea",
  "좋아요, 바로 마셔봐요.":"Great, let's drink right away.","어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.":"Here's a basic guide that works for any tea.",
  "아래에서 가장 가까운 차 종류를 골라주세요.":"Pick the closest tea type below.","준비되면 아래 ‘우림 시작’을 눌러주세요.":"Tap ‘Start brewing’ below when you're ready.",
  "우림을 시작했어요. 다 우려지면 알려드릴게요.\n그동안 마른 찻잎 향을 살짝 맡아봐도 좋아요.":"Brewing started. I'll let you know when it's ready.\nMeanwhile, try smelling the dry leaves.",
@@ -1860,7 +1871,7 @@ function textIntent(d,text){
   if(/[a-z]/.test(e)){   // 영어로 한 말
     if(d.stage==='teaOK'){ if(/^(yes|yeah|yep|yup|right|correct|that's right|sure|ok|okay)\b/.test(e)) return ()=>teaChip('맞아요'); if(/^(no|nope|not|wrong)\b/.test(e)) return ()=>teaChip('다시 적을게요'); }
     if(d.stage==='teaType'){ const k=ORDER.find(k=>TYPE_EN[k].some(w=>e.replace(/\s/g,'').includes(w))); if(k) return ()=>teaChip(TEAS[k].label); }
-    if(d.stage==='guide'){ if(/(drink now|right away|skip brewing|just drink)/.test(e)) return ()=>teaChip('바로 마실게요'); if(/basic guide/.test(e)) return ()=>teaChip('기본 가이드로 볼래요'); if(/(start|let's brew|brew it|begin)/.test(e)) return ()=>teaChip('우림 시작 ▶'); }
+    if(d.stage==='guide'){ if(/(drink now|right away|skip brewing|just drink)/.test(e)) return ()=>teaChip('바로 마실게요'); if(/basic guide/.test(e)) return ()=>teaChip('어떤 차든 쓰는 기본 가이드 보기'); if(/(start|let's brew|brew it|begin)/.test(e)) return ()=>teaChip('우림 시작 ▶'); }
     if(W&&d.talkPending&&/^(skip|pass|next)/.test(e)) return ()=>talkAnswer('',true);
     if(W&&S.timer&&S.timer.left>0&&/(already brewed|it's ready|its ready|done brewing|it's done|finished brewing)/.test(e)) return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); };
     if((d.stage==='aroma'||d.stage==='taste')&&/^(i'm not sure|im not sure|not sure|i don't know|i dont know|no idea)/.test(e)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
@@ -1870,7 +1881,7 @@ function textIntent(d,text){
   if(d.stage==='teaOK'){ if(/^(네|예|응|웅|그래|맞아|맞아요|맞습니다|맞네|좋아요|ㅇㅇ)[.!~요]*$/.test(t)||/^(네|예|응),?맞/.test(t)) return ()=>teaChip('맞아요'); if(start(/^(아니|아뇨|다시|틀렸)/)) return ()=>teaChip('다시 적을게요'); }
   if(d.stage==='teaType'){ const k=ORDER.find(k=>t.includes(TEAS[k].label.replace(/차$/,''))); if(k) return ()=>teaChip(TEAS[k].label);
     return ()=>{ d.chat.push({who:'me',text,ans:'tea'}); botSay({who:'bot',text:'아래에서 가장 가까운 차 종류를 골라주세요.',chips:ORDER.map(k=>TEAS[k].label),tea:true},500); }; }
-  if(d.stage==='guide'){ if(start(/^바로마실|^그냥마실|^바로마셔/)) return ()=>teaChip('바로 마실게요'); if(start(/^기본가이드|^추천가이드/)) return ()=>teaChip(d.basic?'추천 가이드로 볼래요':'기본 가이드로 볼래요'); if(start(/^(우림)?시작|^우릴게|^우려볼게|^지금우릴/)) return ()=>teaChip('우림 시작 ▶'); }
+  if(d.stage==='guide'){ if(start(/^바로마실|^그냥마실|^바로마셔/)) return ()=>teaChip('바로 마실게요'); if(start(/^기본가이드|^추천가이드|^어떤차든|^이차에맞춘/)) return ()=>teaChip(d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기'); if(start(/^(우림)?시작|^우릴게|^우려볼게|^지금우릴/)) return ()=>teaChip('우림 시작 ▶'); }
   if(W&&d.talkPending&&start(/^(건너뛸|건너뛰|패스|넘어가|다음으로|다음질문)/)) return ()=>talkAnswer('',true);
   if(W&&S.timer&&S.timer.left>0&&start(/^(벌써)?다우렸|^다됐|^다우러졌|^벌써다/)){ return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); }; }
   if((d.stage==='aroma'||d.stage==='taste')&&start(/^(잘)?모르겠/)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
@@ -1992,7 +2003,10 @@ function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
   VOICE.rec=r; r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
   r.onresult=e=>{ let fin='', mid=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(mid+=x[0].transcript)); } VOICE.interim=fin||mid; if(fin) got=fin; paintVoice(); };
   r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='network'||e.error==='audio-capture'){ VOICE.demo=true; toast('마이크를 쓸 수 없어 시연용 목소리로 이어갈게요'); } };
-  r.onend=()=>res(got.trim()||null); try{ r.start(); }catch(e){ res(null); } }); }
+  let heard=false; r.onaudiostart=()=>{ heard=true; };
+  const t1=setTimeout(()=>{ if(!heard&&vAlive(id)){ VOICE.demo=true; toast('마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요'); try{ r.abort(); }catch(e){} } },3500);
+  const t2=setTimeout(()=>{ if(vAlive(id)&&!got&&!VOICE.interim){ const st=$('#vState'); if(st) st.textContent=L('잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요'); } },8000);
+  r.onend=()=>{ clearTimeout(t1); clearTimeout(t2); res(got.trim()||null); }; try{ r.start(); }catch(e){ res(null); } }); }
 async function voiceLoop(id){
   while(vAlive(id)){
     const d=S.draft;
@@ -2016,9 +2030,16 @@ function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTim
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
 
 /* compare helpers */
+/* 비교 카드: 이 차 종류의 대표 풍미(전문가)와 내가 말한 풍미를 비교 */
+const TYPE_FL={green:['vegetal','fresh','sweet','nutty'],white:['sweet','floral','soft'],oolong:['floral','fruity','nutty','sweet'],black:['fruity','sweet','astringent','citrus'],dark:['earthy','nutty','sweet','soft'],herb:['floral','fresh','soft']};
+function cmpFacts(d){ const mine=(d.flavors||[]).map(f=>f.k), ex=TYPE_FL[d.type]||[], lab=k=>FLAVORS[k].label;
+  const common=mine.filter(k=>ex.includes(k)).map(lab), onlyMe=mine.filter(k=>!ex.includes(k)), onlyEx=ex.filter(k=>!mine.includes(k));
+  const said=k=>{ const e=collectExprs(d).find(e=>e.fl.includes(k)); return e?e.text.replace(/[.!?]+$/,''):lab(k); };
+  const diff=[]; if(onlyMe.length) diff.push(`나는 ‘${esc(said(onlyMe[0]))}’라고 표현했어요`); if(onlyEx.length) diff.push(`전문가는 ‘${lab(onlyEx[0])}’도 짚어요`); if(!diff.length) diff.push('느낀 풍미가 전문가 설명과 거의 같아요');
+  return {common,diff}; }
 function myExpression(d){
   const mine=(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))).map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
-  if(mine.length) return mine.slice(0,3).join(', ') + '.';
+  if(mine.length) return mine.slice(0,6).join(', ') + '.';
   const f=['color','aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}${josa(f[f.length-1],'이','가')} 먼저 느껴졌어요.`;
   return '이번에는 남긴 표현이 없어요.';
@@ -2122,7 +2143,7 @@ Object.assign(EN,{
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
@@ -2137,6 +2158,7 @@ Object.assign(EN,{
  "꽃, 자스민, 장미 같은 향":"like flowers, jasmine, rose","사과, 복숭아처럼 상큼한":"crisp like apple and peach","레몬, 유자처럼 산뜻한":"bright like lemon and yuja","갓 벤 풀처럼 싱그러운":"fresh like cut grass","민트처럼 시원하고 깔끔한":"cool and clean like mint","볶은 곡물처럼 고소한":"nutty like toasted grain","꿀, 캐러멜처럼 달큰한":"sweet like honey and caramel","흙, 나무처럼 묵직한":"deep like earth and wood","계피, 생강처럼 알싸한":"warm like cinnamon and ginger","둥글고 포근한":"round and cozy","쌉쌀하고 떫은":"bitter and astringent",
 });
 EN_RE.push(
+ [/^나는 ‘(.+)’라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
  [/^(\d+)잔의 찻방울이 물든$/,(m,a)=>`${a} drops have colored`],
  [/^향도 맛도 좋았던 (\d+)잔을 모았어요\. (.+?) 풍미가 가장 진하게 담겼어요\. 좋은 기억은 주로 (.+?)에서 남았어요\.$/,(m,a,b,c)=>`${a} teas you loved, gathered. ${b.split(', ').map(x=>EN[x]||x).join(', ')} come through the most. Your best memories came mostly from ${(EN[c]||c).toLowerCase()}.`],
  [/^향도 맛도 좋았던 (\d+)잔을 모았어요\.(.*)$/,(m,a)=>`${a} teas you loved, gathered.`],
@@ -2171,8 +2193,7 @@ function openSettings(k){
   const row=(key,label,desc)=>`<label class="pref"><span><b>${label}</b><small>${desc}</small></span><input type="checkbox" ${PREF[key]?'checked':''} onchange="PREF.${key}=this.checked;savePref()"></label>`;
   const body={chat:['대화 기록 설정',row('keepChat','대화 내용 함께 저장','끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요')],
     app:['앱 설정',`<label class="pref col"><b>대화 언어</b><small>채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요</small>
-      <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label>`+row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+(koVoices().length?`<label class="pref col"><b>목소리</b><small>기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요</small>
-      <span class="vpick"><select id="prefVoice" onchange="PREF.voiceName=this.value;savePref()">${koVoices().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option ${v===koVoice()?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="pillbtn" type="button" onclick="previewVoice()">들어보기</button></span></label>`:'')+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
+      <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label>`+row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
@@ -2201,11 +2222,11 @@ function saveRecord(){
   const tags=[...['aroma','taste'].flatMap(k=>String(d.feel[k]||'').split(', ')).filter(v=>v&&v!=='잘 모르겠어요'),...d.picked];
   const now=new Date();
   const rec={id:S.records.some(q=>q.id==='n'+d.tid)?'n'+Date.now():'n'+d.tid,type:d.type,name:d.name||TEAS[d.type].label,brand:d.brand,ts:now.getTime(),date:fmtDate(now),stars:d.stars,comment:d.comment,photo:!!d.photoData,photoData:d.photoData||null,
-    canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
+    canvas:{x:+d.canvas.x.toFixed(3),y:+d.canvas.y.toFixed(3),i:+d.canvas.i.toFixed(2)},memo,flAll:[...new Set(collectExprs(d).flatMap(e=>e.fl))],tags:[...new Set(tags)],flavors:d.flavors,exprs:d.exprs,
     chat:(PREF.keepChat?d.chat:[]).filter(m=>m.who!=='sys'&&!m.img).map(({who,text,color})=>color?{who,text,color}:{who,text}),voice:d.voice,deep:dp,
     talk:d.talk||null, own:ownWords(d.exprs), drinkMin:d.drinkAt?Math.max(1,Math.round(((d.endAt||Date.now())-d.drinkAt)/60000)):null,
     teaColor:d.feel.color&&d.feel.color!=='잘 모르겠어요'?{name:d.feel.color,hex:d.feel.colorHex||null}:null};
-  S.records.unshift(rec); S.lastSaved=rec; persist();
+  S.records.unshift(rec); S.lastSaved=rec; persist(); clearLive();
   stopTimer(); closeSheet(); S.draft=null;
   S.stack=[{name:'home',params:{}}]; go('done');
 }
@@ -2216,7 +2237,7 @@ function runInfusion(){
   const exprs=collectExprs(d); d.flavors=scoreFlavors(exprs); d.exprs=exprs.map(e=>e.text);
   const fin=draftDrop(d), fk=d.flavors.map(f=>f.k);
   // 풍미 하나씩 차례로: 이름(+내가 한 말)이 희미하게 나타나고 → 그 색이 번지고 → 이름이 옅어지면 다음 풍미
-  const LEAD=600, STEP=2300, T0=2200, total=T0+Math.max(1,fk.length)*STEP+1100;   // 처음 2.2초는 맑은 물만
+  const LEAD=500, STEP=1900, T0=1800, total=T0+Math.max(1,fk.length)*STEP+1100;   // 처음 2.2초는 맑은 물만
   const said=k=>{ const e=exprs.find(e=>e.fl.includes(k)); return e?`“${e.text.length>22?e.text.slice(0,21)+'…':e.text}”`:HOME_EX[k]; };
   const ev=fk.map((k,i)=>({t:T0+i*STEP,k}));
   const lab=$('#infLabel'), lb=lab&&lab.querySelector('b'), ls=lab&&lab.querySelector('span');

@@ -1,7 +1,7 @@
 // 점검에서 나온 문제들이 고쳐졌는지 확인: 사진 · 설정 · 빈 상태 · 기록 중 이동 · 말 알아듣기 · 오류 화면
 // 사용법: node tests/fixes-v5.js
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs'); const os=require('os');
-const FILE='file://'+path.join(__dirname,'..','TEA_CANVAS_prototype_v5.html');
+const FILE='file://'+path.join(__dirname,'..',process.env.TC_FILE||'TEA_CANVAS_prototype_v5.html');
 const IMG=path.join(__dirname,'..','assets','photos','s1.jpg');
 let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fails++; };
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage({viewport:{width:393,height:852}}); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
