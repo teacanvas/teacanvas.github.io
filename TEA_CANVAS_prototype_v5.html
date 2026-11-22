@@ -19,7 +19,6 @@
 html,body{height:100%}
 body{word-break:keep-all;overflow-wrap:anywhere;font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#F2F2F0;color:var(--ink);line-height:1.5;
   -webkit-font-smoothing:antialiased;min-height:100vh;overflow:hidden}
-
 /* ---------- exhibition stage ---------- */
 .stage{height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--gap,40px);padding:24px 16px}
 .ex-top{text-align:center}
@@ -33,7 +32,6 @@ body{word-break:keep-all;overflow-wrap:anywhere;font-family:Pretendard,'Noto San
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 input,textarea{font:inherit;color:inherit;border:0;outline:0;background:none}
 textarea{resize:none}
-
 /* ---------- phone frame ---------- */
 /* iPhone 16 · 393 × 852 */
 .phone{width:393px;height:852px;background:#fff;border-radius:38px;overflow:hidden;position:relative;display:flex;flex-direction:column;
@@ -46,36 +44,29 @@ textarea{resize:none}
 .nav{height:60px;flex-shrink:0;border-top:1px solid var(--line);display:flex;padding-bottom:4px}
 .nav button{flex:1;font-size:15px;font-weight:700;color:#A3A3A3}
 .nav button.on{color:#000}
-
 /* ---------- layout ---------- */
 .scr{padding:4px 22px 28px;min-height:100%;display:flex;flex-direction:column}
 .fade{animation:fade .45s ease}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .spacer{flex:1;min-height:16px}
 .center{text-align:center}
-
 .stepbar{display:flex;align-items:center;justify-content:space-between;height:44px;margin-bottom:10px}
 .back{width:30px;height:30px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;flex-shrink:0}
 .dots{display:flex;gap:6px;align-items:center}
 .dots i{width:6px;height:6px;border-radius:3px;background:#DADADA;transition:width .4s,background .4s}
 .dots i.done{background:#333}
 .dots i.on{background:#333;width:18px}
-.stepnum{font-size:12.5px;color:var(--g2);min-width:30px;text-align:right}
-.stepbar .mid{display:flex;align-items:center;gap:10px}.stepbar .mid .stepnum{min-width:0}
+.stepbar .mid{display:flex;align-items:center;gap:10px}
 .stepbar .quit{font-size:13px;color:var(--g2);padding:6px 2px 6px 10px}.stepbar .quit:hover{color:#111}
 .resume{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 22px 10px;background:var(--g0);border-radius:var(--r-card);padding:0 6px 0 16px;height:46px;font-size:13.5px}
 .resume>button:first-child{flex:1;text-align:left;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;height:100%}
 .resume .x{font-size:12.5px;color:var(--g2);padding:8px 10px}
-
-.kicker{font-size:12px;color:var(--g2);text-align:center}
 h1.t{font-size:20px;font-weight:700;text-align:center;letter-spacing:-.3px}
 .sub{font-size:13px;color:var(--g2);text-align:center;margin-top:6px}
 h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .muted{color:var(--g2)}
-
 .breath{animation:breath 4s ease-in-out infinite}
 @keyframes breath{50%{transform:scale(1.035)}}
-
 .btn{display:block;width:100%;height:52px;border-radius:var(--r-btn);background:#000;color:#fff;font-size:15.5px;font-weight:700;flex-shrink:0;transition:background .2s,transform .15s}
 .btn:hover{background:#262626}
 .btn:active{transform:scale(.985)}
@@ -87,7 +78,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .btn + .btn{margin-top:12px}
 .link{display:block;margin:14px auto 0;font-size:13.5px;color:var(--g2);padding:4px 8px}
 .link.u{text-decoration:underline;text-underline-offset:3px}
-
 .card{background:var(--g0);border-radius:var(--r-card);padding:14px 16px}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{display:inline-flex;align-items:center;height:31px;padding:0 13px;border-radius:16px;background:var(--g1);font-size:13px;white-space:nowrap;transition:background .15s}
@@ -95,20 +85,13 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .chip.sel{background:#000;color:#fff}
 .tip{background:var(--tip);border-radius:var(--r-card);padding:11px 14px;font-size:12.5px;color:#666;margin-top:14px}
 .tip b{color:#111;margin-right:8px}
-
 .seg{display:flex;background:var(--g0);border-radius:20px;width:216px;margin:6px auto 16px;padding:0}
 .seg button{flex:1;height:36px;border-radius:18px;font-size:13.5px;font-weight:600;color:#222}
 .seg button.on{background:#000;color:#fff}
 .seg.wide{width:100%}
-
-/* ---------- home ---------- */
-.hello{font-size:20px;font-weight:700;line-height:1.55;margin:26px 4px 0}
 .last{display:flex;gap:16px;align-items:center;width:100%;text-align:left;border:1px solid #000;padding:14px 16px}
 .last b{font-size:13.5px;font-weight:600;display:block;margin-bottom:6px}
 .last span{display:block;font-size:13px}
-.recent{display:flex;justify-content:space-between}
-.recent button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px}
-
 /* ---------- inputs ---------- */
 .ask{font-size:21px;font-weight:500;line-height:1.55;margin:30px 8px 0}
 .pill-in{display:block;width:100%;height:48px;border:1px solid #CFCFCF;border-radius:24px;text-align:center;font-size:15px;font-weight:600;margin-top:12px}
@@ -130,31 +113,16 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .note{background:var(--g0);border-radius:var(--r-card);padding:16px 18px;margin-top:22px}
 .note b{display:block;font-size:14px;margin-bottom:6px}
 .note p{font-size:13px;color:var(--g2)}
-
 /* ---------- tea confirm / guide ---------- */
 .confirm{text-align:center;margin-top:70px}
 .confirm .brand{font-size:15px}
 .confirm .name{font-size:32px;font-weight:500;margin:6px 0}
-.teacard{display:flex;align-items:center;gap:18px;background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:14px 18px;margin-top:18px}
-.teacard b{font-size:18px;font-weight:700;display:block}
-.teacard span{font-size:13px;color:var(--g2)}
 .grow{display:flex;align-items:center;background:var(--g0);border-radius:var(--r-card);padding:13px 16px;margin-top:9px;font-size:13.5px}
 .grow .k{width:96px;color:var(--g2);flex-shrink:0}
 .grow .v{font-weight:700;font-size:15px}
 .grow .v small{display:block;font-weight:400;font-size:12px;color:var(--g2)}
-
-/* ---------- feel ---------- */
-.feelcard{background:var(--g0);border-radius:var(--r-card);padding:12px 14px 14px;margin-top:10px}
-.feelcard .q{font-size:12.5px;color:var(--g2);margin-bottom:9px}
 .feelcard.enter,.btn.enter{animation:feelIn .45s ease both}
 @keyframes feelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.feelsteps{display:flex;justify-content:center;align-items:center;gap:8px;font-size:12.5px;color:#BDBDBD;margin:4px 0 6px}
-.feelsteps span.on{color:#111;font-weight:700}.feelsteps span.ok{color:#737373}.feelsteps em{font-style:normal;color:#DADADA}
-.feeldone{display:flex;align-items:center;gap:10px;width:100%;background:var(--g0);border-radius:var(--r-card);padding:0 16px;height:48px;margin-top:10px;font-size:14px;text-align:left}
-.feeldone b{font-size:13px;color:var(--g2);font-weight:600;width:22px}
-.feeldone i{width:16px;height:16px;border-radius:50%;display:block;flex-shrink:0}
-.feeldone span{flex:1;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.feeldone em{font-style:normal;font-size:12px;color:#999}
 .feelnext{display:block;margin:14px 0 0 auto;height:38px;padding:0 16px;border-radius:19px;background:#111;color:#fff;font-size:13.5px;font-weight:700}
 .feelnext[hidden]{display:none}
 .tc-cup{display:flex;align-items:center;gap:12px;margin:0 0 6px}
@@ -169,10 +137,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tc-tl{display:flex;justify-content:space-between;font-size:11px;color:#999;margin:5px 0 12px}
 .pill-in.sm{height:42px;font-size:14px;margin-top:10px;background:#fff}
 .pill-in.sm::placeholder{color:#AAA;font-weight:500}
-.feelcard .q b{font-size:15px;color:#111;margin-right:9px}
-.timerchip{display:flex;justify-content:center;margin-top:10px}
-.timerchip button{font-size:12.5px;background:var(--g0);border-radius:14px;padding:5px 12px;color:#444}
-
 /* ---------- chat ---------- */
 .tearow{display:flex;align-items:center;gap:16px;justify-content:center;margin:2px 0 14px}
 .tearow b{display:block;font-size:15px}
@@ -200,7 +164,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .own{text-align:center;margin:6px 16px 14px}
 .own-l{display:block;font-size:11px;color:var(--g2);letter-spacing:.04em;margin-bottom:4px}
 .own q{display:block;font-family:'Gowun Batang',serif;font-size:15px;line-height:1.55;color:#333;quotes:"“" "”"}
-.own-m{font-size:11.5px;color:#9A9A9A;margin-top:6px}
 .ai-busy{font-size:12px;color:#999;text-align:center;margin-top:6px;animation:blink 1.6s ease-in-out infinite}
 .ai-in{animation:fade .5s ease}
 /* 채팅 안에서 누를 수 있는 버튼: 말풍선(회색)과 헷갈리지 않게 흰 바탕 + 진한 테두리 */
@@ -232,7 +195,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .send{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;flex-shrink:0}
 .vstate{font-size:12.5px;color:#9A9A9A;text-align:center;margin-top:2px;min-height:18px}
 .heard{font-size:14px;text-align:center;margin-top:14px;min-height:22px}
-
 /* ---------- loaders ---------- */
 .loader{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding-bottom:40px}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -242,7 +204,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .phases .ph.on{color:#000;font-weight:700}
 .phases .ph.on i{background:#000}
 .phases .ar{color:#999;margin-top:-4px}
-
 /* ---------- depth / compare ---------- */
 .opt{display:flex;align-items:center;gap:12px;background:var(--g0);border-radius:var(--r-card);padding:13px 14px;margin-top:10px;width:100%;text-align:left}
 .opt .ic{width:24px;display:grid;place-items:center;flex-shrink:0}
@@ -250,20 +211,12 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .opt b{font-size:15px}
 .opt b small{font-weight:400;font-size:12px;color:var(--g2);margin-left:4px}
 .opt p{font-size:12.5px;color:var(--g2)}
-.opt .saved{font-size:11.5px;color:#555;font-weight:600}
 .opt .chev{color:#888;font-size:18px}
-.rounds{display:flex;gap:6px}
-.rounds button{height:30px;min-width:34px;padding:0 9px;border-radius:15px;background:#fff;font-size:13px}
-.rounds button.done{background:#000;color:#fff}
-.tabs4{display:flex;gap:8px;margin:18px 0 14px;overflow-x:auto}
-.tabs4 button{flex:1;min-width:64px;height:40px;border-radius:20px;background:var(--g0);font-size:14px}
-.tabs4 button.on{background:var(--dark);color:#fff;font-weight:700}
 .cmp{display:flex;gap:12px;align-items:center;background:var(--g0);border-radius:var(--r-card);padding:14px 14px;margin-top:10px}
 .cmp .lb{display:flex;align-items:center;gap:9px;width:104px;flex-shrink:0;font-size:14px;font-weight:700;border-right:1px solid #DDD;align-self:stretch}
 .cmp .bd{font-size:13px;line-height:1.6;flex:1}
 .cmp .bd ul{list-style:none}
 .cmp .bd li::before{content:"·";margin-right:6px}
-
 /* ---------- done / tag ---------- */
 .wave{height:120px;position:relative;margin:4px 0 10px;overflow:hidden}
 .wave i{position:absolute;border-radius:50%;filter:blur(14px)}
@@ -276,7 +229,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
 .tagcard .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:16px}
 .tagcard .line{font-size:13.5px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-
 /* ---------- canvas ---------- */
 .canvas{position:relative;width:100%;aspect-ratio:1/1;background:#FCFBFA;border:1px solid #BDBDBD;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
 .canvas.bare{background:none;border:0}
@@ -303,12 +255,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .pref.col{flex-direction:column;align-items:stretch;border:0}
 .addphoto img{width:34px;height:34px;object-fit:cover;border-radius:6px}
 .addphoto{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border:1px dashed #BDBDBD;border-radius:12px;font-size:13.5px;color:var(--g2);width:100%}
-
 /* ---------- archive ---------- */
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px 10px;margin-top:10px}
-.gitem{display:flex;align-items:center;gap:14px;text-align:left}
-.gitem div{font-size:13px;line-height:1.7}
-.endline{border-top:1px solid #777;margin:34px 6px 12px}
 .detail{border:1px solid #000;padding:18px 18px 14px;margin-top:10px}
 .dhead{display:flex;gap:18px;align-items:center;margin-bottom:16px}
 .det-drop{width:220px;margin:-14px auto -14px}.det-drop canvas{display:block;width:100%;aspect-ratio:1.3}
@@ -321,11 +269,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .memo p+p{margin-top:10px}
 .memo dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin-top:10px;font-size:12.5px;color:var(--g2)}
 .backtext{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin:4px 0}
-
-/* ---------- stats / my ---------- */
-.summary{display:flex;gap:16px;align-items:center;background:var(--g0);border-radius:var(--r-card);padding:16px}
-.summary b{font-size:14.5px;display:block;line-height:1.5}
-.summary span{font-size:12.5px;color:var(--g2)}
 .fits{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .fits div{background:var(--g0);border-radius:10px;padding:11px 8px;font-size:12.5px;text-align:center;line-height:1.45}
 .rec{display:flex;align-items:center;gap:14px;background:var(--g0);border-radius:var(--r-card);padding:11px 14px;margin-top:8px;width:100%;text-align:left}
@@ -349,7 +292,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:30px}
 .state h2{font-size:19px;font-weight:700;margin-top:22px}
 .state p{font-size:13.5px;color:var(--g2);margin-top:10px}
-
 /* ---------- overlays ---------- */
 .toast{position:absolute;left:50%;bottom:76px;transform:translate(-50%,8px);background:rgba(0,0,0,.84);color:#fff;font-size:12.5px;padding:9px 15px;border-radius:18px;
   opacity:0;transition:.25s;pointer-events:none;max-width:86%;text-align:center;z-index:60}
@@ -359,7 +301,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:12px 22px 24px;max-height:90%;overflow-y:auto;animation:up .3s ease}
 .grab{width:52px;height:5px;border-radius:3px;background:#000;margin:0 auto 18px}
 @keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
-
 /* ---------- v2 components ---------- */
 .opt,.rowlink,.chip,.noti,.setrow{transition:background .15s}
 button.opt:hover,.rowlink:hover,.setrow:hover{background:var(--g1)}
@@ -373,11 +314,9 @@ canvas.wcd.big{margin:14px auto}
 .in-fade{animation:fade .45s ease}
 @keyframes inFwd{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 @keyframes inBack{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-
 /* home */
 .scr.scr-home{padding:0}
 .home{display:flex;flex-direction:column;flex:1}
-.home .hello{margin:22px 26px 0}
 .home-q{font-size:27px;font-weight:700;line-height:1.38;letter-spacing:-.9px;margin:30px 12px 0;word-break:keep-all}
 /* 제목 시안(?hq=…) */
 .home-q.center{text-align:center}
@@ -420,7 +359,6 @@ canvas.wcd.big{margin:14px auto}
 .hd-drop{position:relative;display:flex;flex-direction:column;align-items:center}
 .hw-paper{display:block;background:transparent}
 .hd-drop canvas{position:relative;z-index:1}
-.hd-shadow{width:62%;height:26px;margin-top:-22px;border-radius:50%;filter:blur(3px)}
 .hd-label span{font-size:12.5px;color:var(--g2);margin-top:2px}
 .hd-label i{width:12px;height:12px;border-radius:50%;display:block;margin-bottom:6px}
 .d3wrap{display:flex;flex-direction:column;align-items:center;margin:10px 0 6px}
@@ -438,21 +376,12 @@ canvas.wcd.big{margin:14px auto}
 .home .bigbtn{width:auto;min-height:0;height:64px;margin:0 22px 18px;padding:0 10px 0 28px;border-radius:32px;font-size:19px}
 .home .bigbtn{justify-content:center;gap:12px;padding:0 24px}
 .home .bigbtn i{width:auto;height:auto;border:0;border-radius:0}
-
-/* camera button */
-.cambtn{display:flex;flex-direction:column;align-items:center;gap:6px;margin:18px auto 0;font-size:12.5px;color:#444}
-.cambtn .ring{width:56px;height:56px;border-radius:50%;border:1px solid #CFCFCF;display:grid;place-items:center;transition:background .2s,border-color .2s}
-.cambtn .ring svg{transform:scale(.72)}
-.cambtn:hover .ring{background:var(--g0);border-color:#999}
-.cambtn:active .ring{background:var(--g1)}
-
 /* 2-axis canvas */
 .cvbox{position:relative;width:100%;aspect-ratio:1/1;border:0;border-radius:6px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
 .cvbox.scrollable,.cvbox.tapcv{touch-action:pan-y}.cvbox.scrollable canvas{cursor:pointer}   /* 보기용 캔버스: 위아래 스크롤은 되고, 톡 누르면 기록 열기 */
-.cvleg{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-size:12px;color:#8A8A8A;margin-top:9px}.cvleg span{display:inline-flex;align-items:center;gap:5px}.cvleg em{font-style:normal}.cvleg b{color:#333;font-weight:700}
+.cvleg{display:flex;justify-content:center;gap:2px 14px;flex-wrap:wrap;font-size:12px;line-height:1.5;color:#8A8A8A;margin-top:9px}.cvleg span{display:inline-flex;align-items:center;gap:5px}.cvleg em{font-style:normal}.cvleg b{color:#333;font-weight:700}
 .sheet .pickfit{margin-top:14px}
-.cv-head{font-size:14px;text-align:center;margin:2px 0 12px;color:#444}
 .cv-q{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1.35;text-align:center;margin:20px 16px 12px}
 .cv-q small{display:block;font-size:13px;font-weight:500;color:#A6A6A6;margin-top:6px;letter-spacing:0}
 .cv-q.sm{font-size:21px;margin:0 16px 0}
@@ -461,7 +390,6 @@ canvas.wcd.big{margin:14px auto}
 .fav-en{display:flex;flex-wrap:wrap;justify-content:center;gap:0 12px;margin:0 12px}
 .fav-en span{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:21px;line-height:1.35}
 .fav-s{font-size:12.5px;color:var(--g2);margin:10px 18px 0;line-height:1.55}
-.cv-head b{color:#111}
 .fav{display:flex;gap:16px;align-items:center;background:var(--g0);border-radius:14px;padding:14px 16px}
 .fav b{display:block;font-size:14.5px;line-height:1.5}
 .fav p{font-size:12.5px;color:var(--g2);margin-top:4px;line-height:1.55}
@@ -469,7 +397,6 @@ canvas.wcd.big{margin:14px auto}
 .chips.fl .chip{background:var(--g0);gap:6px}
 .chips.fl .chip i{width:9px;height:9px;border-radius:50%}
 .center-chips .chips{justify-content:center;margin:0 0 6px}
-
 /* records list */
 .search{display:flex;align-items:center;gap:10px;background:var(--g0);border-radius:24px;padding:0 16px;height:44px}
 .search input{flex:1;min-width:0;font-size:14px}
@@ -498,14 +425,12 @@ canvas.wcd.big{margin:14px auto}
 .ritem b{font-weight:600;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
 .ritem span{color:var(--g2);font-size:11.5px}
 .empty-q{grid-column:1/-1;text-align:center;color:var(--g2);font-size:13px;padding:40px 0}
-
 /* detail */
 .dtop{display:flex;justify-content:space-between;align-items:center}
 .ghost{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;transition:background .15s}
 .ghost:hover{background:var(--g0)}
 .dhead .dn{display:block;font-size:16px;font-weight:700}
 .dhead span{display:block}
-
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
 .vpanel{display:none;position:relative;height:150px;margin:0 -22px 8px;overflow:hidden}
@@ -540,8 +465,6 @@ canvas.wcd.big{margin:14px auto}
 .ffloat i{width:8px;height:8px;border-radius:50%}
 @keyframes floatIn{0%{opacity:0;transform:translateY(8px)}18%{opacity:1;transform:none}55%{opacity:1;transform:none}100%{opacity:0;transform:translateY(120px) scale(.55)}}
 .pulse{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle,#CFCFCF 0%,#E6E6E6 55%,rgba(230,230,230,0) 72%);animation:breath 1.8s ease-in-out infinite}
-.done-drop{display:flex;justify-content:center;margin:6px 0 10px}
-
 /* ---------- dev panel ---------- */
 .dev{display:none;width:260px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;font-size:12.5px;position:fixed;right:20px;top:20px;max-height:calc(100vh - 40px);overflow-y:auto;z-index:100}
 .dev.show{display:block}
@@ -554,7 +477,6 @@ canvas.wcd.big{margin:14px auto}
 .dev .acts button{display:block;width:100%;text-align:left;background:var(--g0);border-radius:6px;padding:6px 10px;margin-top:5px}
 .dev p{color:var(--g2);line-height:1.6;margin-top:6px}
 .dev .tag{background:#FFF1E6;border-radius:4px;padding:0 4px}
-
 @media (max-width:700px){
   body{background:#fff}
   .stage{padding:0;gap:0}
@@ -571,7 +493,7 @@ canvas.wcd.big{margin:14px auto}
 <div class="phone" id="phone">
   <header class="appbar">
     <button class="logo" onclick="goTab('home')">TEA CANVAS</button>
-    <button class="bell" onclick="go('noti')" aria-label="알림">
+    <button class="bell" onclick="recording()?askQuit('noti'):go('noti')" aria-label="알림">
       <svg width="20" height="22" viewBox="0 0 20 22"><path d="M10 1.5c-3.6 0-6 2.7-6 6.3v4.4L2 15.6V17h16v-1.4l-2-3.4V7.8c0-3.6-2.4-6.3-6-6.3z" fill="#000"/><circle cx="10" cy="19.5" r="2" fill="#000"/></svg>
     </button>
   </header>
@@ -1023,6 +945,7 @@ function back(){
 }
 function goTab(tab,force){ if(!force&&recording()) return askQuit(tab); closeSheet(); go(tab,{},{reset:true}); }
 function rerender(){ render(true); }
+function backToChat(){ NAV_DIR='back'; const i=S.stack.map(x=>x.name).lastIndexOf('chat'); if(i<0) return back(); S.stack=S.stack.slice(0,i+1); render(); }
 function render(keepScroll){
   const view=$('#view'); const top=view.scrollTop;
   const cur=S.stack[S.stack.length-1];
@@ -1033,6 +956,7 @@ function render(keepScroll){
     view.scrollTop = keepScroll ? top : 0;
     const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
     document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+    if(VOICE.on&&cur.name!=='chat'){ VOICE.on=false; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} }
     fitIn(view);
     (AFTER[cur.name]||(()=>{}))(cur.params||{});
     fitIn(view,false);
@@ -1070,9 +994,9 @@ const CV_LEGEND=`<div class="cvleg"><span><svg width="16" height="10" viewBox="0
 function canvasBox(id,{labels=true,cls=''}={}){
   return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas></div>${labels?CV_LEGEND:''}`;
 }
-const dropR=(W,i,k=1)=>W*.16*Math.pow(10/Math.max(10,S.records.length),.3)*(.65+.5*(i??.5))*k;
 const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
-function axes(){ }   /* 십자선 없이 네모 캔버스만 */
+/* 가운데 가로·세로 기준선(글자 없이). 설명은 캔버스 아래 한 줄 */
+function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.08)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke(); x.restore(); }
 
 const posText=c=>c?`마시기 전 향은 ${c.x>=.5?'좋았고':'아쉬웠고'}, 마신 뒤 맛은 ${c.y<.5?'좋았어요':'아쉬웠어요'}.`:'';
 const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><i style="background:${FLAVORS[f.k].color}"></i>${FLAVORS[f.k].label}</span>`).join('')}</div>`;
@@ -1294,7 +1218,7 @@ compare(){
   <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd" id="cmpDiff"><ul>${t.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
   <div class="cmp"><div class="lb">${I.spark}AI 해석</div><div class="bd" id="cmpAI">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
   <div class="spacer" style="min-height:22px"></div>
-  <button class="link u" onclick="back()">채팅으로 돌아가 더 남기기</button>
+  <button class="link u" onclick="backToChat()">채팅으로 돌아가 더 남기기</button>
   <div class="stickfoot"><button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button></div>`;
 },
 
@@ -1303,7 +1227,7 @@ done(){
   return `${stepbar(4)}
   ${d3Box('done3d',250)}
   <h1 class="t">기록을 완료했어요</h1>
-  <p class="sub">오늘의 찻방울이 나의 캔버스에 번졌어요.</p>
+  <p class="sub">오늘의 찻방울이 나의 캔버스에 물들었어요.</p>
   <div style="height:16px"></div>
   <button class="rowlink" onclick="go('fullChat')"><span class="ric"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 3.5h12a1 1 0 0 1 1 1v7.5a1 1 0 0 1-1 1H8.5L5 15.8V13H3a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 7.3h7M5.5 10h4.5" stroke="#111" stroke-width="1.4" stroke-linecap="round"/></svg></span>대화 기록 보기<span class="chev">›</span></button>
   <button class="rowlink" onclick="go('teaTag')"><span class="ric"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M2.5 9.2V3.5a1 1 0 0 1 1-1h5.7l6.6 6.6a1 1 0 0 1 0 1.4l-5.3 5.3a1 1 0 0 1-1.4 0z" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><circle cx="6.2" cy="6.2" r="1.3" fill="#111"/></svg></span>Tea Tag 확인하기<span class="chev">›</span></button>
@@ -1349,7 +1273,7 @@ canvas(p){
     <button class="${tab==='list'?'on':''}" onclick="go('canvas',{tab:'list'},{reset:true})">기록</button></div>`;
   if(S.forceEmpty || !S.records.length){
     return `${seg}<div class="state"><h2 style="margin-top:0">아직 모인 찻방울이 없어요</h2>
-      <p>첫 차를 기록하면 이곳에 나만의 찻방울이 하나씩 번져요.</p>
+      <p>첫 차를 기록하면 이곳에 나만의 찻방울이 하나씩 물들어요.</p>
       <div style="margin:48px 0">${orb(null,150,'breath')}</div></div>
       <button class="btn" onclick="startRecord()">첫 기록 시작하기</button>
       <button class="link u" onclick="goTab('home')">홈으로 가기</button>`;
@@ -1364,7 +1288,7 @@ canvas(p){
   }
   const fav=favDrop();
   return `${seg}
-  <h2 class="cv-q">${S.records.length}잔의 찻방울이 번진<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
+  <h2 class="cv-q">${S.records.length}잔의 찻방울이 물든<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
   ${canvasBox('bigCv',{cls:'scrollable'})}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
   ${fav?`<canvas id="favCv"></canvas><div class="fav-en">${fav.all.map(f=>`<span style="color:${inkText(f.c)}">${HOME_EN[f.k]}</span>`).join('')}</div><p class="fav-s">${fav.title}. ${fav.desc}</p><div id="recBox">${recHTML(recommendTeas(fav.all))}</div>`
@@ -1397,7 +1321,6 @@ detail(p){
   ${r.teaColor?`<h3 class="sec">찻물 색</h3><div class="tcrow">${r.teaColor.hex?`<i style="background:${r.teaColor.hex}"></i>`:''}${esc(r.teaColor.name)}</div>`:''}
   <div class="sec-row"><h3 class="sec">캔버스 속 위치</h3><button class="pillbtn" onclick="openMoveSheet('${r.id}')">위치 옮기기</button></div>
   ${canvasBox('detCv',{cls:'sm scrollable'})}
-  <p class="cap">${posText(r.canvas)}</p>
   ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
   <div class="memo"><h4>MEMO</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
     ${info.length?`<dl>${info.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div>
@@ -1430,7 +1353,7 @@ noti(){
 
 thin(){
   return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button><span></span><span></span></div>
-  <div class="state">${orb('clear',120,'big')}<h2>아직 담을 맛과 향이 없어요</h2><p>향이나 맛을 한 마디라도 내 말로 남기면<br>그 표현이 색이 되어 찻방울로 번져요.</p></div>
+  <div class="state">${orb('clear',120,'big')}<h2>아직 담을 맛과 향이 없어요</h2><p>향이나 맛을 한 마디라도 내 말로 남기면<br>그 표현이 색이 되어 찻방울에 물들어요.</p></div>
   <button class="btn" onclick="back()">채팅으로 돌아가 남기기</button>
   <button class="link" onclick="finishChat(true)">색 없이 맑은 찻방울로 남기기</button><div style="height:30px"></div>`;
 },
@@ -1479,7 +1402,8 @@ function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAU
 function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
 function askQuit(to){ const other=loadPaused();
   S.quitTo=typeof to==='string'?to:'home';
-  if(!S.draft||!S.draft.chat.some(m=>m.who==='me')) return quitRecord(false,true);   // 아직 아무것도 안 남겼으면 묻지 않고 바로 나간다
+  if(!S.draft||!S.draft.chat.some(m=>m.who==='me')) return quitRecord(false,true);
+  if(VOICE.on) stopVoice();   // 아직 아무것도 안 남겼으면 묻지 않고 바로 나간다
   openSheet(`<div class="grab"></div>
     <h1 class="t" style="margin-top:14px">기록을 그만할까요?</h1>
     <p class="sub">저장해두면 홈에서 이어서 기록할 수 있어요.${other&&other.draft.tid!==(S.draft&&S.draft.tid)?`<br>앞서 저장해둔 ‘${esc(other.draft.name||'새 기록')}’ 기록은 이 기록으로 바뀌어요.`:''}</p>
@@ -1489,6 +1413,7 @@ function askQuit(to){ const other=loadPaused();
     <button class="link" onclick="closeSheet()">계속 기록하기</button>`);
 }
 function quitRecord(keep,quiet){
+  if(S.typing){ closeSheet(); return setTimeout(()=>quitRecord(keep,quiet),250); }
   if(VOICE.on) stopVoice();
   if(keep&&S.draft) savePaused({draft:S.draft,stack:S.stack.map(x=>({name:x.name,params:x.params||{}})).filter(x=>REC_SCREENS.includes(x.name)),chatMode:S.chatMode,timer:S.timer?{...S.timer}:null,at:Date.now()});
   closeSheet(); stopTimer(); S.draft=null; S.listening=false; goTab(S.quitTo||'home',true); S.quitTo=null;
@@ -1500,7 +1425,7 @@ function resumeRecord(){
   const OLD=['teaInput','teaConfirm','searchError','brew','feel','depth','deepBrew','deepOrigin','deepTemp','deepMemo'];
   let stack=v.stack.filter(x=>x&&SCREENS[x.name]&&!OLD.includes(x.name)); if(!stack.length||!['chat','organizing','analyzing','compare'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
   if(['organizing','analyzing'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
-  closeSheet(); stopTimer(); S.draft=v.draft; S.timer=v.timer&&v.timer.left>0?{...v.timer,running:true}:null; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; render();
+  closeSheet(); stopTimer(); S.draft=v.draft; S.timer=v.timer&&v.timer.left>0?{...v.timer,running:v.timer.running!==false}:null; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; render(); if(S.draft.stage==='wait'||S.draft.stage==='wait2') talkNext(2500);
 }
 function dropPaused(){ savePaused(null); rerender(); toast('저장해둔 기록을 지웠어요'); }
 function askDelete(id){
@@ -1564,7 +1489,7 @@ const FREE_NUDGES=['한 모금 머금고 3초만 기다렸다가 넘겨보세요
   '입안에 남은 여운이 얼마나 오래가는지 느껴봐요.'];
 const FREE_NUDGE='천천히 마시고 있네요.\n식으면서 달라지는 맛이 있다면 편하게 들려주세요.';
 const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는 여운이 있었나요?';
-function freeEnough(){ const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'}); d.stage='after';
+function freeEnough(){ const d=S.draft; if(S.typing) return; S.endAt=Date.now(); d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'}); d.stage='after';
   botSay({who:'bot',text:AFTER_ASK,after:true},500); }
 setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
   const now=Date.now(), inp=$('#chatIn'); if(inp&&inp.value.trim()) return;
@@ -1749,17 +1674,17 @@ function bindAskColor(){
     tr.addEventListener('pointerdown',e=>{ tr.setPointerCapture(e.pointerId); mv(e); tr.onpointermove=mv; });
     tr.addEventListener('pointerup',()=>{ tr.onpointermove=null; }); });
 }
-function paintMsgs(){
+function paintMsgs(keep){
   const box=$('#msgs'), d=S.draft; if(!d) return;
   if(!box) return;
   const msgs=d.chat;
   box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
-  const v=$('#view'); v.scrollTop=v.scrollHeight;
+  const v=$('#view'); if(!keep) v.scrollTop=v.scrollHeight;
 }
 /* 지금 단계에서 누를 수 있는 간편 선택지(채팅·음성 공통) */
-function actsHTML(d){ const msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
+function actsHTML(d){ const msgs=d.chat.filter(m=>m.who!=='sys'), tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
   return (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">📷 사진으로 찾기</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
@@ -1770,14 +1695,14 @@ function actsHTML(d){ const msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&ta
     + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${l}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">이제 정리할게요</button></div>`:'')
     + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:''); }
 /* 채팅 아래 끝내기 버튼: 자유 대화에선 '이제 충분해요'(여운부터), 그 뒤엔 '기록 마치고 정리하기' */
-const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">이제 충분해요</button>':['after','more','deep'].includes(d.stage)?'<button class="btn" onclick="finishChat()">기록 마치고 정리하기</button>':'';
+const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">이제 충분해요</button>':['after','more','deep'].includes(d.stage)?'<button class="btn" onclick="if(Date.now()-(S.endAt||0)>900)finishChat()">기록 마치고 정리하기</button>':'';
 /* '…로 담았어요'를 누르면 풍미를 직접 고른다(여러 개, 없음도 가능) */
 function msgFl(m){ return Array.isArray(m.fl)?m.fl:matchFlavors(m.text); }
 function keptLabel(m,i){ if(m.fix) return `<span class="kept">앞의 표현을 ${(()=>{ const p=[...S.draft.chat.slice(0,i)].reverse().find(x=>x.who==='me'&&x.kept&&!x.fix); return p?msgFl(p).map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · '):''; })()}로 고쳤어요</span>`;
   const ks=msgFl(m), lab=ks.length?ks.map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · ')+'로 담았어요':'맛·향으로는 담지 않았어요';
-  if(S.editMsg!==i) return `<button class="kept kept-btn" onclick="S.editMsg=${i};paintMsgs()">${lab} <u>바꾸기</u></button>`;
-  return `<div class="fl-edit"><p>이 표현에 담긴 맛과 향을 골라주세요</p><div class="chips">${FKEYS.map(k=>`<button class="chip ${ks.includes(k)?'sel':''}" onclick="toggleMsgFl(${i},'${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]}</button>`).join('')}</div><button class="feelnext" onclick="S.editMsg=null;paintMsgs()">다 골랐어요</button></div>`; }
-function toggleMsgFl(i,k){ const m=S.draft.chat[i]; const cur=msgFl(m).slice(); const j=cur.indexOf(k); j<0?cur.push(k):cur.splice(j,1); m.fl=cur; paintMsgs(); }
+  if(S.editMsg!==i) return `<button class="kept kept-btn" onclick="S.editMsg=${i};paintMsgs(true)">${lab} <u>바꾸기</u></button>`;
+  return `<div class="fl-edit"><p>이 표현에 담긴 맛과 향을 골라주세요</p><div class="chips">${FKEYS.map(k=>`<button class="chip ${ks.includes(k)?'sel':''}" onclick="toggleMsgFl(${i},'${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]}</button>`).join('')}</div><button class="feelnext" onclick="S.editMsg=null;paintMsgs(true)">다 골랐어요</button></div>`; }
+function toggleMsgFl(i,k){ const m=S.draft.chat[i]; const cur=msgFl(m).slice(); const j=cur.indexOf(k); j<0?cur.push(k):cur.splice(j,1); m.fl=cur; paintMsgs(true); }
 function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; sendMsg(t); }
 /* 말(또는 글)로 버튼을 대신하기: '네', '우림 시작할게요', '건너뛸게요', '이제 충분해요', '정리할게요'… */
 function textIntent(d,text){
@@ -1800,7 +1725,7 @@ function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
-  if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
+  if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending) return talkAnswer(text);
   if(d.stage==='color'&&!colorFromWords(text)&&matchFlavors(text).length){ d.chat.push({who:'me',text,kept:true}); return botSay({who:'bot',text:'좋아요, 그 표현도 담아둘게요.\n찻물 색은 어떤가요?',ask:'color'},500); }
@@ -1939,7 +1864,6 @@ function openCanvasSheet(){
     <h1 class="t">캔버스에 찻방울 찍기</h1>
     <p class="sub">오늘의 차는 어디쯤일까요?<br>눌러서 찍고, 다시 누르면 옮겨져요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
-    <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 찻방울은 지난 기록이에요.'}</p>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div></div>
     <h3 class="sec cmt-h" style="margin-top:12px">한 줄 코멘트</h3>
     <div class="field" style="margin-top:0"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}"></div></div>
@@ -1978,7 +1902,7 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null,drag=false){
 /* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
-    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
+    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
     <div style="height:14px"></div><button class="btn" id="moveSave">이 자리로 옮기기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`);
   bindPick($('#pickCv'),tmp,recDrop(r),r.id,true);
   $('#moveSave').onclick=()=>{ r.canvas={x:+tmp.canvas.x.toFixed(3),y:+tmp.canvas.y.toFixed(3),i:r.canvas.i??.6}; persist(); closeSheet(); rerender(); toast('찻방울을 옮겼어요'); }; }
@@ -2432,7 +2356,7 @@ setInterval(()=>{
   const atHome=cur()==='home' && !$('#sheetWrap').classList.contains('open');
   if(atHome && !S.draft) return;
   if(S.draft&&(VOICE.on||(S.timer&&S.timer.left>0&&S.timer.running))) return;   // 우리는 중 · 음성 대화 중에는 그대로
-  if(recording()){ S.quitTo='home'; quitRecord(true); return; }             // 작성 중인 기록은 이어하기로 남긴다
+  if(recording()){ S.quitTo='home'; const said=S.draft&&S.draft.chat.some(m=>m.who==='me'); quitRecord(said,!said); return; }             // 작성 중인 기록은 이어하기로 남긴다
   closeSheet(); stopTimer(); S.draft=null; S.listening=false; goTab('home',true);
 },5000);
 
