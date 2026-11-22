@@ -660,6 +660,8 @@ function baseSeeds(){
     R('s9','oolong','동방미인','티하우스',130,3,'꿀 향이 오래 남은 차',false,{x:.9,y:.12,i:.8},[['sweet',.85],['fruity',.6],['floral',.4]],['꿀 같은 단맛','잘 익은 과일 향'],['식을수록 단맛이 올라왔다. 손님이 오면 내놓고 싶은 차.']),
     R('s10','herb','페퍼민트','오설록',165,2,'점심 먹고 개운하게',false,{x:.56,y:.36,i:.55},[['fresh',.9],['soft',.3]],['시원하고 개운해요','입안이 맑아져요'],['향은 좋은데 맛이 조금 밋밋했다.']),
     R('s11','green','우전','하동 다원',210,2,'여리고 부드러운 첫물차',false,{x:.46,y:.58,i:.5},[['vegetal',.7],['nutty',.45],['soft',.4]],['연한 풀 향','고소함이 살짝'],['기대보다 맛이 약했다. 물을 조금 더 식혀서 다시 우려볼 것.']),
+    R('s12','oolong','대홍포','운남 다원',250,2,'불향이 묵직하게 남은 바위차',false,{x:.32,y:.18,i:.6},[['nutty',.8],['earthy',.6],['sweet',.35]],['구운 듯 고소한 향','묵직한 여운'],['첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.']),
+    R('s13','black','다즐링','트와이닝',290,3,'머스캣 향이 산뜻했던 오후',false,{x:.78,y:.08,i:.75},[['fruity',.85],['floral',.55],['citrus',.3]],['청포도 같은 향','산뜻하고 가벼워요'],['우유 없이 마시는 게 더 좋았다. 향이 오래 남음.']),
     R('s8','black','아쌈','티하우스',100,2,'우유를 넣으면 더 좋았을 차',true,{x:.86,y:.62,i:.6},[['nutty',.55],['sweet',.5],['astringent',.45],['earthy',.25]],['진한 몰트 향','떫은맛'],['그냥 마시기엔 떫었다. 밀크티로 다시 도전.']),
   ];
 }
@@ -669,6 +671,8 @@ function baseSeeds(){
    ========================================================= */
 /* 기록 저장: 관람객 기록이 한 캔버스에 계속 모이도록 localStorage에 쌓는다 */
 /* ?sample=many 이면 찻방울이 많은 캔버스(따로 저장). 저장 이름을 v5로 바꿔, 예전 버전에서 남긴 기록 없이 예시만으로 시작한다 */
+/* 처음 받았을 때 모습으로 한 번 되돌리기: 그동안 만든 기록·설정을 지우고 예시 13개로 시작 */
+(()=>{ try{ if(!localStorage.getItem('teacanvas.v5.fresh13')){ Object.keys(localStorage).filter(k=>k.startsWith('teacanvas.v5.')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('teacanvas.v5.fresh13','1'); localStorage.setItem('teacanvas.v5.seed11','1'); } }catch(e){} })();
 const SAMPLE=(()=>{ try{ return new URLSearchParams(location.search).get('sample')==='many'?'many':''; }catch(e){ return ''; } })();
 const STORE_KEY=SAMPLE?'teacanvas.v5.many':'teacanvas.v5.records';
 function loadRecords(){
@@ -2125,7 +2129,7 @@ Object.assign(EN,{
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
  "차 이름 입력하기":"Tea name",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
- "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon",
+ "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon","불향이 묵직하게 남은 바위차":"A rock oolong with a deep roasty finish","머스캣 향이 산뜻했던 오후":"A bright afternoon of muscat notes","구운 듯 고소한 향":"Toasty aroma","묵직한 여운":"Heavy finish","청포도 같은 향":"Like green grapes","산뜻하고 가벼워요":"Bright and light","첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.":"Smoky at first; sweetness came through by the third cup.","우유 없이 마시는 게 더 좋았다. 향이 오래 남음.":"Better without milk. The aroma lingers.",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
  "오설록":"Osulloc","티하우스":"Tea House","트와이닝":"Twinings","운남 다원":"Yunnan Estate","하동 다원":"Hadong Estate",
  "꿀과 익은 과일 향이 나는 대만 우롱":"Taiwanese oolong with honey and ripe fruit","꽃과 과일 향이 화사하게 퍼지는 우롱":"Oolong bursting with flowers and fruit","불에 구운 듯 고소하고 묵직한 암차":"Roasty, rich rock oolong","볶은 찻잎의 구수함과 부드러움":"Toasty, mellow roasted green tea","볶은 현미의 고소함이 더해진 녹차":"Green tea with toasted brown rice","첫물 찻잎의 싱그러움과 은은한 단맛":"Fresh first-flush leaves, gently sweet","풀향이 선명하고 끝이 깔끔한 일본 녹차":"Japanese green tea, grassy and clean","꿀처럼 은은하고 가벼운 백차":"Light white tea, soft as honey","머스캣 향이 나는 산뜻한 홍차":"Bright black tea with muscat notes","몰트처럼 진하고 달큰한 홍차":"Rich, malty black tea","베르가못 향이 상큼한 가향 홍차":"Black tea scented with bergamot","젖은 흙과 나무 향의 깊은 숙성차":"Deep aged tea of wet earth and wood","사과 같은 꽃향의 편안한 허브차":"Calming herbal tea with apple-like florals","시원하고 깔끔한 민트 허브차":"Cool, clean mint tea","새콤달콤한 유자 향":"Sweet and tangy yuja",
