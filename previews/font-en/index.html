@@ -1,0 +1,53 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영문 키워드 폰트 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px 16px 200px}
+.wrap{max-width:1600px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:860px;line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:22px;margin-top:22px;align-items:start}
+.item{position:relative}
+.item h2{font-size:15.5px;padding-right:30px}
+.item p.d{font-size:12.5px;color:#737373;margin-top:3px;min-height:38px;line-height:1.5}
+.sample{background:#fff;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:22px;line-height:1.3;text-align:center}
+.star{position:absolute;right:0;top:-3px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.frame{margin-top:10px;width:290px;height:627px;border-radius:22px;overflow:hidden;background:#fff}
+.frame iframe{width:390px;height:844px;border:0;transform:scale(.7436);transform-origin:0 0}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font-weight:700;border-radius:10px;padding:8px 12px;background:#fff;color:#111;border:0;font:inherit;cursor:pointer}
+.pickbox button:disabled{opacity:.4}
+.pickbox textarea{width:100%;height:70px;font:inherit;font-size:12px}
+</style></head><body><div class="wrap">
+<h1>영문 키워드 폰트 시안</h1>
+<p class="lead">홈 화면에서 바뀌며 나오는 영문 풍미 키워드(Floral, Nutty…)를 세리프에서 프리텐다드로 바꾼 모습이에요. 실제 앱 화면이라 키워드가 바뀌는 것도 그대로 볼 수 있어요. 고른 굵기는 아카이브, 기록 과정, Tea Tag 이미지의 영문 키워드에도 똑같이 적용할게요. 마음에 드는 시안의 ☆을 눌러주세요.</p>
+<div class="grid" id="grid"></div></div>
+<script>
+const V=[
+  {k:'A',name:'지금 (세리프 Cormorant)',d:'비교용. 지금 앱에 들어간 영문 세리프체예요.',w:null},
+  {k:'B',name:'Pretendard Regular 400',d:'가장 가볍고 차분해요. 한글 본문과 같은 굵기예요.',w:400},
+  {k:'C',name:'Pretendard Medium 500',d:'살짝 힘이 있어요. 가볍지만 또렷하게 보여요.',w:500},
+  {k:'D',name:'Pretendard SemiBold 600',d:'조원 제안. 강조가 필요한 키워드에 알맞은 굵기예요.',w:600},
+  {k:'E',name:'Pretendard Bold 700',d:'가장 굵어요. 화면 제목과 비슷한 무게감이에요.',w:700}];
+const CSS=w=>`.hd-label b,.inflabel b{font-family:Pretendard,system-ui,sans-serif!important;font-weight:${w}!important;font-size:28px!important;letter-spacing:-.01em!important}
+.rec1 em,.kept em{font-family:Pretendard,system-ui,sans-serif!important;font-weight:${w}!important;font-size:12.5px!important;letter-spacing:0!important}
+.fav-en span{font-family:Pretendard,system-ui,sans-serif!important;font-weight:${w}!important;font-size:18px!important;letter-spacing:-.01em!important}`;
+const SAMPLE='Floral · Nutty · Sweet';
+document.getElementById('grid').innerHTML=V.map((v,i)=>`<div class="item"><h2>${v.k}. ${v.name}</h2><button class="star" data-i="${i}">☆</button><p class="d">${v.d}</p>
+  <div class="sample" style="${v.w?`font-family:Pretendard;font-weight:${v.w};letter-spacing:-.01em`:`font-family:'Cormorant Garamond',Georgia,serif;font-weight:600`}">${SAMPLE}</div>
+  <div class="frame"><iframe src="../../TEA_CANVAS_prototype_v6.html" data-w="${v.w||''}" loading="lazy" title="${v.name}"></iframe></div></div>`).join('');
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{ const w=f.dataset.w; if(!w) return; try{ const d=f.contentDocument, s=d.createElement('style'); s.textContent=CSS(w); d.head.appendChild(s); }catch(e){} }));
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.fonten.fav')||'[]')); }catch(e){}
+const names=()=>V.filter((v,i)=>FAV.has(i)).map(v=>v.k+'. '+v.name);
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length;
+  document.querySelectorAll('.star').forEach(b=>{ const on=FAV.has(+b.dataset.i); b.classList.toggle('on',on); b.textContent=on?'★':'☆'; }); }
+document.getElementById('cp').onclick=async()=>{ const t='영문 키워드 폰트 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+document.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.fonten.fav',JSON.stringify([...FAV])); }catch(e){} up(); });
+up();
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap">
+</body></html>
