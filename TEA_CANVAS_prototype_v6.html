@@ -1075,7 +1075,9 @@ const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font
 
 /* 표현 → 풍미 계열 */
 function matchFlavors(text){ const raw=String(text||''), t=raw.replace(/\s/g,''), lo=' '+raw.toLowerCase().replace(/[^a-z]+/g,' ')+' ';
-  const has=w=>{ let i=t.indexOf(w); while(i>=0){ if(!/(없|않|아니|별로|안나|안느)/.test(t.slice(i+w.length,i+w.length+7))) return true; i=t.indexOf(w,i+1); } return false; };   // 뒤에 '없/않/아니'가 붙으면 그 풍미는 빼기
+  const neg=i=>{ let seg=t.slice(i,i+16); const c=seg.search(/(고(?!소)|며|지만|는데|그리고|[,.!?~])/); if(c>=0) seg=seg.slice(0,c);   // 같은 마디 안에서만 본다(‘꽃향이 나고 쓴맛은 없어요’)
+    return /(없|않|아니|별로|안나|안느|제로|zero)/i.test(seg); };
+  const has=w=>{ let i=t.indexOf(w); while(i>=0){ const pre=t.slice(Math.max(0,i-1),i); if(!(pre==='안'||pre==='못')&&!neg(i+w.length)) return true; i=t.indexOf(w,i+1); } return false; };   // 뒤에 '없/않/아니/별로/제로', 앞에 '안/못'이 붙으면 그 풍미는 빼기
   return FKEYS.filter(k=>FLAVORS[k].kw.some(has)||(typeof FL_EN!=='undefined'&&FL_EN[k].some(w=>lo.includes(' '+w)&&!new RegExp('(no|not|without|hardly|barely)\\s+(any\\s+)?'+w).test(lo)))); }
 function collectExprs(d){
   const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
