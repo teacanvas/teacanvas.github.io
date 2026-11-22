@@ -230,12 +230,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .inrow{display:flex;align-items:center;background:var(--g0);border-radius:26px;padding:5px 5px 5px 18px;margin-bottom:10px}
 .inrow input{flex:1;font-size:14.5px;min-width:0}
 .send{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;flex-shrink:0}
-.voiceorb{width:240px;height:240px;margin:10px auto 14px;display:block;border-radius:50%}
 .vstate{font-size:12.5px;color:#9A9A9A;text-align:center;margin-top:2px;min-height:18px}
-.vbot{font-size:15.5px;line-height:1.6;text-align:center;white-space:pre-line;margin:8px 20px 0;min-height:50px;color:#222}
-.vw-fl{display:flex;flex-wrap:wrap;justify-content:center;gap:0 12px;margin-top:6px}.vw-fl span{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:20px}
-.voiceorb canvas{width:100%;height:100%;display:block;will-change:transform}
-@keyframes listen{50%{transform:scale(1.07)}}
 .heard{font-size:14px;text-align:center;margin-top:14px;min-height:22px}
 
 /* ---------- loaders ---------- */
@@ -303,7 +298,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
   background:linear-gradient(135deg,#d9c3a1,#b98b56 40%,#e9dcc6 70%,#c7a77c);position:relative;overflow:hidden}
 .photo::after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#c98a3d 0 45%,#f4ead9 47% 60%,transparent 62%);left:38%;top:22%}
 .photo span{position:absolute;left:10px;bottom:6px;background:rgba(255,255,255,.75);padding:1px 7px;border-radius:8px;z-index:1}
-.setrow.install{display:flex;align-items:center;gap:10px;font-weight:700;color:#111}.setrow.install img{width:26px;height:26px;border-radius:7px;box-shadow:inset 0 0 0 1px #eee}
+.setrow.install{display:flex;align-items:center;gap:10px;font-weight:700;color:#8A4317;background:#FCEBDC;margin-top:16px}.setrow.install .chev{margin-left:auto;font-weight:400}.setrow.install img{width:26px;height:26px;border-radius:7px;box-shadow:inset 0 0 0 1px #eee}
 .pref{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 2px;border-bottom:1px solid var(--g0)}.pref span{display:flex;flex-direction:column}
 .pref b{font-size:14.5px}.pref small{font-size:12px;color:var(--g2);margin-top:2px}.pref input[type=checkbox]{width:22px;height:22px;accent-color:#111;flex-shrink:0}
 .pref.col{flex-direction:column;align-items:stretch;border:0}
@@ -520,14 +515,16 @@ canvas.wcd.big{margin:14px auto}
 
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.vpanel{display:none;position:relative;height:150px;margin:0 -22px 8px;overflow:hidden}
+.chatfoot.voicing .vpanel{display:block}.chatfoot.voicing .inrow{display:none}
+.vpanel canvas{position:absolute;inset:0;width:100%;height:100%}
+.vtext{position:absolute;left:22px;right:76px;bottom:14px}
+.vpanel .vstate{text-align:left;font-size:12px;color:#666;margin:0}
+.vpanel .heard{text-align:left;font-size:17px;font-weight:600;line-height:1.45;margin-top:4px;min-height:25px;color:#111}
+.vstop{position:absolute;right:22px;bottom:14px;width:46px;height:46px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
 .actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
-.voiceorb{position:relative}
-.vpin{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--g2);margin:2px 0 2px}.vpin b{color:#111;font-size:14px;max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.vpin .pillbtn{margin:0}
-.scr-chat .vacts .askw.tc{padding-top:10px;padding-bottom:10px}.vmic{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.88);color:#111;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
-.vmic.on{background:#111;color:#fff}
-.vacts{margin-top:4px}.vacts>.chips,.vacts>.askw{justify-content:center;margin-left:auto;margin-right:auto}.vacts .chips{justify-content:center}
 .vmark{display:inline-flex;vertical-align:-4px;margin-right:4px;opacity:.55}.vmark svg{width:16px;height:16px}
 .vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
@@ -535,8 +532,6 @@ canvas.wcd.big{margin:14px auto}
 /* 키 작은 폰: 여백과 글자를 줄여 한 화면에 */
 @media (max-height:760px){
   .scr{padding-bottom:12px}.stepbar{height:38px;margin-bottom:4px}
-  .voiceorb{margin:4px auto 6px}.vbot{font-size:14.5px;line-height:1.5;margin-top:4px;min-height:0}.heard{margin-top:4px}
-  .scr-chat>.hint{display:none}.scr-chat .link{padding-top:6px;padding-bottom:6px}
   .rowlink{padding:12px 16px;margin-top:8px}
   .sheet{padding-bottom:14px}.sheet .sub{font-size:12px}.axisguide{margin:8px 0 6px}.sheet h3.sec{margin-top:8px!important}.stars{margin:2px 0}.stars button{font-size:22px}
   .sheet .addphoto{height:44px}.sheet .btn{height:48px}
@@ -741,6 +736,9 @@ function baseSeeds(){
     R('s5','herb','캐모마일','오설록',45,2,'잠들기 전에 마신 포근한 차',false,{x:.22,y:.44,i:.55},[['floral',.65],['soft',.55],['sweet',.35]],['포근한 꽃향','부드러움','하루 끝에 담요를 덮은 것처럼 차분해요'],['편안했지만 향은 조금 약했다.']),
     R('s6','dark','숙차 보이','운남 다원',60,1,'생각보다 묵직했던 보이차',false,{x:.28,y:.76,i:.65},[['earthy',.85],['nutty',.45],['astringent',.35],['sweet',.2]],['흙 향이 진했어요','조금 텁텁해요','비 온 뒤 지하 주차장 냄새','오래된 일기장을 다시 읽는 느낌'],['흙 향이 강해서 다음엔 더 짧게 우려볼 것.']),
     R('s7','green','자스민 녹차','티하우스',75,1,'향은 좋았는데 맛이 조금 썼던 날',false,{x:.7,y:.7,i:.5},[['floral',.8],['vegetal',.45],['astringent',.3],['fresh',.2]],['자스민 꽃향','끝맛이 써요'],['향은 정말 좋았다. 물 온도를 낮춰볼 것.']),
+    R('s9','oolong','동방미인','티하우스',130,3,'꿀 향이 오래 남은 차',false,{x:.9,y:.12,i:.8},[['sweet',.85],['fruity',.6],['floral',.4]],['꿀 같은 단맛','잘 익은 과일 향'],['식을수록 단맛이 올라왔다. 손님이 오면 내놓고 싶은 차.']),
+    R('s10','herb','페퍼민트','오설록',165,2,'점심 먹고 개운하게',false,{x:.56,y:.36,i:.55},[['fresh',.9],['soft',.3]],['시원하고 개운해요','입안이 맑아져요'],['향은 좋은데 맛이 조금 밋밋했다.']),
+    R('s11','green','우전','하동 다원',210,2,'여리고 부드러운 첫물차',false,{x:.46,y:.58,i:.5},[['vegetal',.7],['nutty',.45],['soft',.4]],['연한 풀 향','고소함이 살짝'],['기대보다 맛이 약했다. 물을 조금 더 식혀서 다시 우려볼 것.']),
     R('s8','black','아쌈','티하우스',100,2,'우유를 넣으면 더 좋았을 차',true,{x:.86,y:.62,i:.6},[['nutty',.55],['sweet',.5],['astringent',.45],['earthy',.25]],['진한 몰트 향','떫은맛'],['그냥 마시기엔 떫었다. 밀크티로 다시 도전.']),
   ];
 }
@@ -753,7 +751,10 @@ function baseSeeds(){
 const SAMPLE=(()=>{ try{ return new URLSearchParams(location.search).get('sample')==='many'?'many':''; }catch(e){ return ''; } })();
 const STORE_KEY=SAMPLE?'teacanvas.v5.many':'teacanvas.v5.records';
 function loadRecords(){
-  try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const r=JSON.parse(raw); if(Array.isArray(r)){ const sd=Object.fromEntries(seedRecords().map(x=>[x.id,x])); r.forEach(x=>{ if(x.seed&&sd[x.id]){ x.flavors=sd[x.id].flavors; x.exprs=sd[x.id].exprs; x.photo=sd[x.id].photo; } }); return r; } } }catch(e){}
+  try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const r=JSON.parse(raw); if(Array.isArray(r)){ const sd=Object.fromEntries(seedRecords().map(x=>[x.id,x])); r.forEach(x=>{ if(x.seed&&sd[x.id]){ x.flavors=sd[x.id].flavors; x.exprs=sd[x.id].exprs; x.photo=sd[x.id].photo; } });
+    // 예시 기록이 8개였을 때 저장된 기기에도 새 예시(9~11번)를 한 번만 더해준다
+    if(!SAMPLE&&!localStorage.getItem('teacanvas.v5.seed11')){ localStorage.setItem('teacanvas.v5.seed11','1'); ['s9','s10','s11'].forEach(id=>{ if(sd[id]&&!r.some(x=>x.id===id)) r.push(sd[id]); }); }
+    return r; } } }catch(e){}
   return seedRecords();
 }
 function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S.records)); }catch(e){ try{ toast('이 기기에 기록을 저장하지 못했어요. 화면을 닫으면 사라질 수 있어요'); }catch(_){} } }
@@ -965,6 +966,10 @@ function dropBitmap(drop,px){
   BMP.set(k,c); return c;
 }
 const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
+/* 기록 목록: 찻방울 색만 차례로 번져 나온다(글자는 그대로) */
+function spreadDrops(root){ if(!root) return; root.querySelectorAll('canvas.wcd:not([data-done])').forEach((cv,i)=>{ const drop=DROPS[cv.dataset.dk]; if(!drop) return;
+  const px=pxFor(+cv.dataset.sz); cv.width=cv.height=px; cv.dataset.done='1'; const x=cv.getContext('2d'), L=dropFlav(drop), sid=dropSid(drop), END=CV_SPREAD+1.4, t0=performance.now()+Math.min(i,12)*90;
+  (function f(now){ if(!cv.isConnected) return; const lt=(now-t0)/1000*2.2; if(lt>0){ x.clearRect(0,0,px,px); drawRec1(x,L,px/2,px/2,px*.33,sid,Math.min(END,lt),.95); } if(lt<END) requestAnimationFrame(f); })(t0); }); }
 function paintDrops(root=document){
   root.querySelectorAll('canvas.wcd:not([data-done])').forEach(cv=>{
     const drop=DROPS[cv.dataset.dk]; if(!drop) return;
@@ -1177,7 +1182,7 @@ function filtered(){
   const to=f.date==='range'&&f.to?new Date(f.to+'T23:59:59').getTime():Infinity;
   return sortRecs().filter(r=>{
     if((r.ts||0)<from||(r.ts||0)>to) return false;
-    if(f.fl.length&&!flScore(r)) return false;
+    if(f.fl.length&&!f.fl.every(k=>(r.flavors||[]).some(x=>x.k===k))) return false;   // 고른 풍미가 모두 담긴 기록만
     if(!q) return true;
     const hay=[r.name,r.brand,r.comment,TEAS[r.type].label,...(r.exprs||[]),...(r.tags||[]),...(r.flavors||[]).flatMap(x=>[FLAVORS[x.k].label,HOME_EN[x.k]])].join(' ').replace(/\s/g,'').toLowerCase();
     return hay.includes(q);
@@ -1219,7 +1224,7 @@ function calTap(k){ const c=S.cal; if(!c.a||c.b){ c.a=k; c.b=''; } else c.b=k; c
 function calMove(n){ const c=S.cal; c.m+=n; if(c.m<0){ c.m=11; c.y--; } if(c.m>11){ c.m=0; c.y++; } calPaint(); }
 function applyRange(){ const c=S.cal; if(!c.a) return toast('날짜를 골라주세요'); let a=c.a, b=c.b||c.a; if(a>b) [a,b]=[b,a];
   Object.assign(S.filter,{date:'range',from:a,to:b}); closeSheet(); rerender(); }
-function openFlSheet(){ openSheet(`<div class="grab"></div><h1 class="t">풍미</h1><p class="sub">고른 풍미가 담긴 기록을, 그 풍미가 진한 순서로 보여줘요.</p>
+function openFlSheet(){ openSheet(`<div class="grab"></div><h1 class="t">풍미</h1><p class="sub">고른 풍미가 모두 담긴 기록을 보여줘요.</p>
     <div id="flSheet" style="margin-top:16px">${flRow()}</div><div style="height:18px"></div><button class="btn" onclick="closeSheet()">보기</button>`); }
 function gridHTML(){
   const rs=filtered();
@@ -1242,36 +1247,24 @@ home(){
     <div class="home-drop" id="homeDrop"></div>
     ${(()=>{ const v=loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="dropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
     <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
-    <button class="bigbtn" style="margin-bottom:min(${HL.bb}px,3.5dvh)" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
+    <button class="bigbtn" style="margin-bottom:min(${HL.bb}px,3.5dvh)" onclick="startRecord()"><span>새로운 차 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
 },
 
 chat(){
   const d=S.draft;
   const g=d.type?(d.basic?BASIC:TEAS[d.type]):null;
-  const head = `${stepbar(3)}
-  <div class="seg" style="margin-top:0"><button class="${S.chatMode==='chat'?'on':''}" onclick="setMode('chat')">채팅</button>
-    <button class="${S.chatMode==='voice'?'on':''}" onclick="setMode('voice')">음성</button></div>`;
+  const head = stepbar(3);
   const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${orb('clear',56)}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${g.time}</span>
     ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:'';
-  if(S.chatMode==='voice'){   // 음성: 가운데 마이크를 누르면 대화하며 번지고, 아래엔 채팅과 같은 간편 선택지
-    const vpin=pin&&`<div class="vpin"><b>${esc(d.name)}</b>${d.drinkAt?`<span data-drink>${drinkText()}</span>`:S.timer?`<span data-timer>${timerText()}</span><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<span>${g.temp} · ${g.time}</span>`}</div>`;
-    return `${head}${vpin}
-    <p class="vbot" id="vBot"></p>
-    <button class="voiceorb" data-fit="230,110" onclick="toggleVoice()" aria-label="음성 대화"><canvas id="vwash"></canvas><span class="vmic" id="vMic"></span></button>
-    <p class="vstate" id="vState"></p>
-    <p class="heard" id="vHeard"></p>
-    <div class="vw-fl" id="vFl"></div>
-    <div id="vActs" class="vacts"></div>
-    <div class="spacer"></div>
-    <div id="chatEnd">${voiceEndHTML(d)}</div>`;
-  }
   return `${head}
   ${pin}
   <div id="msgs"></div>
-  <div class="chatfoot">
-    <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
-      <button class="send" onclick="sendInput()" aria-label="보내기">${I.up}</button></div>
+  <div class="chatfoot ${VOICE.on?'voicing':''}">
+    <div class="vpanel" id="vPanel"><canvas id="vwash"></canvas><div class="vtext"><p class="vstate" id="vState"></p><p class="heard" id="vHeard"></p></div>
+      <button class="vstop" onclick="stopVoice()" aria-label="음성 끝내기">${I.stop}</button></div>
+    <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" oninput="syncSend()" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
+      <button class="send" id="sendBtn" onclick="sendOrVoice()" aria-label="말로 하기">${I.mic}</button></div>
     <div id="chatEnd">${chatEndHTML(d)}</div>
   </div>`;
 },
@@ -1429,8 +1422,8 @@ my(){
   <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}
   <h3 class="sec" style="margin-top:min(30px,3dvh)">설정</h3>
-  ${matchMedia('(display-mode: standalone)').matches?'':`<button class="setrow install" onclick="installApp()"><img src="assets/icons/icon-192.png" alt="">앱으로 설치하기</button>`}
-  ${[['chat','대화 기록 설정'],['app','앱 설정'],['noti','알림 설정'],['account','계정']].map(([k,l])=>`<button class="setrow" onclick="openSettings('${k}')">${l}</button>`).join('')}`;
+  ${[['chat','대화 기록 설정'],['app','앱 설정'],['noti','알림 설정'],['account','계정']].map(([k,l])=>`<button class="setrow" onclick="openSettings('${k}')">${l}</button>`).join('')}
+  ${matchMedia('(display-mode: standalone)').matches?'':`<button class="setrow install" onclick="installApp()"><img src="assets/icons/icon-192.png" alt="">앱으로 설치하기<span class="chev">›</span></button>`}`;
 },
 
 noti(){
@@ -1458,10 +1451,11 @@ error(p){
 const AFTER = {
   my(){ const c=$('#avCv'); if(!c) return; const f=favDrop(); animFav1(c,f?f.all:[{k:'floral',c:FLAVORS.floral.color,w:.8},{k:'sweet',c:FLAVORS.sweet.color,w:.6},{k:'vegetal',c:FLAVORS.vegetal.color,w:.5}],f?f.drop.id:'avatar',.1,.3); },
   home(){ mountHomeDrop($('#homeDrop')); },
-  chat(){ seedChat(); if(S.chatMode==='chat') paintMsgs(); else { startVoiceWash($('#vwash')); paintVoice(); paintMsgs(); } },
+  chat(){ seedChat(); paintMsgs(); if(VOICE.on){ startVoiceWash($('#vwash')); paintVoice(); } },
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('analyzing',{},{replace:true}); },1600); },
   analyzing(){ runInfusion(); },
   canvas(p){
+    if(p.tab==='list') return spreadDrops($('#recGrid'));
     const cv=$('#bigCv'); if(!cv) return;
     const recs=recsAsc(), hl=p.hl&&recs.some(q=>q.id===p.hl)?p.hl:null, dur=animCanvas1(cv,recs,hl);
     { const f=favDrop(), el=$('#favCv'); if(f&&el){ animFav1(el,f.all,f.drop.id,hl?.4:Math.max(.4,dur-1.2),.27); aiRecommend(f); } }
@@ -1470,7 +1464,7 @@ const AFTER = {
       if(best && bd<R1(1)*1.3) openDetail(best.id); else toast('찻방울을 눌러 기록을 열어보세요'); };
   },
   detail(p){ const r=S.records.find(x=>x.id===p.id); if(!r) return;
-    const c=$('#detCv1'); if(c) animFav1(c,recFlav(r),r.id,.15,.28);
+    const c=$('#detCv1'); if(c){ animFav1(c,recFlav(r),r.id,.15,.28); c.onclick=()=>animFav1(c,recFlav(r),r.id,0,.28); }
     const cv=$('#detCv'); if(cv) paintCanvas1(cv,recsAsc(),r.id); },
   compare(){ aiCompare(); mountDrop3D($('#cmp3d'),draftDrop(S.draft),240); },
   done(){ const r=S.lastSaved||S.records[0]; if(r) mountDrop3D($('#done3d'),recDrop(r),250); },
@@ -1548,7 +1542,9 @@ setInterval(()=>{
 },1000);
 
 /* chat */
-function setMode(m){ if(m!=='voice'&&VOICE.on) stopVoice(); S.chatMode=m; S.listening=false; rerender(); }
+/* 입력창 오른쪽 버튼: 비어 있으면 마이크(말로 하기), 글을 쓰면 보내기 */
+function syncSend(){ const i=$('#chatIn'), b=$('#sendBtn'); if(!i||!b) return; const t=!!i.value.trim(); if(b.dataset.t===String(t)) return; b.dataset.t=t; b.innerHTML=t?I.up:I.mic; b.setAttribute('aria-label',t?'보내기':'말로 하기'); }
+function sendOrVoice(){ const i=$('#chatIn'); if(i&&i.value.trim()){ sendInput(); syncSend(); } else startVoice(); }
 /* 채팅 흐름: 우림(타이머) → 다 우려지면 색 → 첫 향 → 첫 맛을 차례로 묻고 → 그 뒤로는 마시면서 편하게 대화
    d.stage: wait(우리는 중) · color · aroma · taste · free */
 const ASK={
@@ -1714,7 +1710,7 @@ function askNext(){
   if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); talkNext(2200); return; } }
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
   else if(d.stage==='color'&&d.type&&TC_GUESS[d.type]){ S.ask.hd=[...TC_GUESS[d.type]]; const t=TEAS[d.type].label;
-    d.chat.push({who:'bot',text:S.chatMode==='voice'?`${d.direct?'':'찻물에 색이 우러나기 시작했어요.\n'}지금 찻물 색은 어떤가요? 보이는 색을 말로 알려주세요.`:`${d.direct?'먼저 찻물 색부터 볼까요?':'찻물에 색이 우러나기 시작했어요.'}\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
+    d.chat.push({who:'bot',text:VOICE.on?`${d.direct?'':'찻물에 색이 우러나기 시작했어요.\n'}지금 찻물 색은 어떤가요? 보이는 색을 말로 알려주세요.`:`${d.direct?'먼저 찻물 색부터 볼까요?':'찻물에 색이 우러나기 시작했어요.'}\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
   else { let q=ASK_VAR[d.stage]?pick(ASK_VAR[d.stage],(d.tid||1)+d.stage.length):ASK[d.stage]; if(d.direct) q=q.replace(/^(다 우려졌어요|차가 다 우려졌어요)\.\s*/,''); d.chat.push({who:'bot',text:q,ask:d.stage}); }
 }
 const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
@@ -1729,7 +1725,7 @@ function answerColor(t){ const d=S.draft, a=S.ask||{};
   if(!a.hd) return; const c=tcColor(a.hd[0],a.hd[1]); d.feel.colorHD=a.hd; d.feel.colorHex=c; answer('color',tcName(a.hd[0],a.hd[1]),{color:c}); }
 /* 자유롭게 말하는 게 기본. 모르겠을 때만 보기를 꺼내준다 */
 function showOpts(k){ const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:'잘 모르겠어요',ans:'skip'});
-  S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; S.ask={hd:null,sel:[]}; d.chat.push({who:'bot',text:S.chatMode==='voice'?`괜찮아요. 이 중에 가까운 게 있을까요?\n${FEEL[k].opts.slice(0,6).join(', ')}… 떠오르는 걸 말해주세요.`:`괜찮아요. 이 중에 가까운 ${k==='aroma'?'향':'맛'}이 있나요?\n여러 개 골라도 돼요.`,ask:k,opts:true}); paintMsgs(); },500); }
+  S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; S.ask={hd:null,sel:[]}; d.chat.push({who:'bot',text:VOICE.on?`괜찮아요. 이 중에 가까운 게 있을까요?\n${FEEL[k].opts.slice(0,6).join(', ')}… 떠오르는 걸 말해주세요.`:`괜찮아요. 이 중에 가까운 ${k==='aroma'?'향':'맛'}이 있나요?\n여러 개 골라도 돼요.`,ask:k,opts:true}); paintMsgs(); },500); }
 function answerMulti(k,o){ const a=S.ask||(S.ask={sel:[]});
   if(o==='잘 모르겠어요') return answer(k,o);
   if(o==='__send'){ if(a.sel.length) answer(k,a.sel.join(', ')); return; }
@@ -1761,7 +1757,7 @@ function bindAskColor(){
 }
 function paintMsgs(){
   const box=$('#msgs'), d=S.draft; if(!d) return;
-  if(!box){ const va=$('#vActs'); if(!va) return; va.innerHTML=actsHTML(d); bindAskColor(); const e=$('#chatEnd'); if(e) e.innerHTML=voiceEndHTML(d); fitIn($('#view'),false); return; }
+  if(!box) return;
   const msgs=d.chat;
   box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
@@ -1773,15 +1769,13 @@ function actsHTML(d){ const msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&ta
   return (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">📷 사진으로 찾기</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
-    + (S.typing&&S.chatMode!=='voice'?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
+    + (S.typing?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
     + (!S.typing&&last&&last.who==='bot'&&d.talkPending&&(last.talk===d.talkPending||tail.qa)?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">건너뛸게요</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button>`:''}</div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&last.wait&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button></div>`:'')
     + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
     + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${l}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">이제 정리할게요</button></div>`:'')
-    + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
-    + (S.chatMode==='voice'&&!S.typing&&d.stage==='free'?`<div class="chips"><button class="chip" onclick="freeEnough()">이제 충분해요</button></div>`:''); }
+    + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:''); }
 /* 채팅 아래 끝내기 버튼: 자유 대화에선 '이제 충분해요'(여운부터), 그 뒤엔 '기록 마치고 정리하기' */
-const voiceEndHTML=d=>chatEndHTML(d)||(['tea','teaOK','teaType','guide'].includes(d.stage)?'':'<button class="link" onclick="finishChat()">기록 마치고 정리하기</button>');
 const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">이제 충분해요</button>':['after','more','deep'].includes(d.stage)?'<button class="btn" onclick="finishChat()">기록 마치고 정리하기</button>':'';
 /* '…로 담았어요'를 누르면 풍미를 직접 고른다(여러 개, 없음도 가능) */
 function msgFl(m){ return Array.isArray(m.fl)?m.fl:matchFlavors(m.text); }
@@ -1881,11 +1875,11 @@ const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaTyp
   talk:{mood:'오늘은 조금 피곤했어요',scene:'집에서 혼자 쉬면서 마시고 있어요',why:'비 오는 날이라 따뜻한 차가 생각났어요'},
   free:['식으니까 단맛이 더 올라와요','목 넘김이 부드러워요','이제 충분해요']};
 function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
-document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#vActs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
+document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#msgs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
-  if(VOICE.demo) toast('이 기기에서는 마이크를 쓸 수 없어 시연용 목소리로 진행해요'); paintVoice(); voiceLoop(VOICE.tid); }
-function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} paintVoice(); }
-const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.chatMode==='voice'&&S.draft;
+  if(VOICE.demo) toast('이 기기에서는 마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
+function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} VOICE.interim=''; if(cur()==='chat') rerender(); }
+const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=m.text||''; if(m.guide){ const d=S.draft, g=m.basic?BASIC:TEAS[d.type]; t+=` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
   return t.replace(/[–-]/g,'에서 ').replace(/°C/g,'도').replace(/[·…]/g,', ').replace(/\n/g,' '); }
 function speak(text){ return new Promise(res=>{ let done=false; const fin=()=>{ if(!done){ done=true; res(); } }; if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
@@ -1918,7 +1912,7 @@ async function voiceLoop(id){
     const d=S.draft;
     if(S.typing){ await new Promise(r=>setTimeout(r,300)); continue; }
     if(VOICE.spoken<d.chat.length){ const m=d.chat[VOICE.spoken++]; if(m.who!=='bot') continue;
-      VOICE.phase='speaking'; S.listening=false; paintVoice(m.text); await speak(speakLine(m)); continue; }
+      VOICE.phase='speaking'; S.listening=false; paintVoice(); await speak(speakLine(m)); continue; }
     VOICE.phase='listening'; S.listening=true; VOICE.interim=''; paintVoice();
     const heard=await listenOnce(id); if(!vAlive(id)) break; S.listening=false;
     if(heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; sendMsg(heard); d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
@@ -1928,14 +1922,10 @@ async function voiceLoop(id){
   }
   if(VOICE.tid===id&&VOICE.on&&cur()!=='chat'){ VOICE.on=false; try{ speechSynthesis.cancel(); }catch(e){} }
 }
-function paintVoice(botText){ const d=S.draft; if(!d) return;
-  const st=$('#vState'), bt=$('#vBot'), hd=$('#vHeard');
-  const mic=$('#vMic'); if(mic){ mic.innerHTML=VOICE.on?I.stop:I.mic; mic.classList.toggle('on',VOICE.on); }
-  if(st) st.textContent=!VOICE.on?'가운데를 누르면 말로 대화해요':VOICE.phase==='speaking'?'말하는 중…':VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요. 편하게 말해주세요'):'생각하는 중…';
-  if(bt){ const lastBot=[...d.chat].reverse().find(m=>m.who==='bot'); bt.textContent=botText||(lastBot?lastBot.text:''); }
-  if(hd) hd.textContent=VOICE.interim?`“${VOICE.interim}”`:'';
-  const fl=$('#vFl'); if(fl){ const ks=vwFlavors(); fl.innerHTML=ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join(''); }
-  fitIn($('#view'),false); }   // 말이 길어져 넘치면 원만 줄인다(커졌다 작아졌다 하지 않게)
+function paintVoice(){ const d=S.draft; if(!d) return;
+  const st=$('#vState'), hd=$('#vHeard');
+  if(st) st.textContent=VOICE.phase==='speaking'?'말하는 중…':VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):'생각하는 중…';
+  if(hd) hd.textContent=VOICE.interim||''; }
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
 
@@ -2127,8 +2117,8 @@ function animCanvas1(cv,recs,hl){
   return hl?1.3+END/k:(recs.length-1)*step+END/k;
 }
 function animFav1(cv,L,id,delay,rk=.22){
-  const W=pxFor(cv.clientWidth), H=Math.round(W*(cv.clientHeight||cv.clientWidth/1.15)/cv.clientWidth); cv.width=W; cv.height=H; const x=cv.getContext('2d'), k=CV_SPREAD/1.5, END=CV_SPREAD+1.4, t0=performance.now();
-  (function loop(now){ if(!cv.isConnected) return; const lt=((now-t0)/1000-delay)*k; x.clearRect(0,0,W,H);
+  const tok=cv._tok=(cv._tok||0)+1; const W=pxFor(cv.clientWidth), H=Math.round(W*(cv.clientHeight||cv.clientWidth/1.15)/cv.clientWidth); cv.width=W; cv.height=H; const x=cv.getContext('2d'), k=CV_SPREAD/1.5, END=CV_SPREAD+1.4, t0=performance.now();
+  (function loop(now){ if(!cv.isConnected||cv._tok!==tok) return; const lt=((now-t0)/1000-delay)*k; x.clearRect(0,0,W,H);
     if(lt>0) drawRec1(x,L,W/2,H/2,W*rk,id,Math.min(END,lt),.96); if(lt<END) requestAnimationFrame(loop); })(t0);
 }
 /* 음성 탭: 처음엔 맑은 물빛만 번지다가, 말하거나 적은 표현에서 풍미가 잡히면 그 색이 다음 번짐으로 들어온다.
@@ -2141,20 +2131,18 @@ function vwKey(n){
     const pal=['clear',...ks]; VW.assign[n]=VW.queue.length?VW.queue.shift():pal[n%pal.length]; }
   return VW.assign[n]; }
 function startVoiceWash(cv){
-  if(!cv) return; const px=pxFor(240); cv.width=cv.height=px; const x=cv.getContext('2d'), N=170, STEP=1.15, LIFE=4.4, FADE=1.3, k=1.9;
-  let prev=performance.now(), drawn=false;
-  (function loop(now){ if(!cv.isConnected) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
-    if(!VOICE.on&&drawn){ cv.style.transform=''; return requestAnimationFrame(loop); }   // 대화 중이 아닐 땐 번짐이 그 자리에 멈춰 있다
-    if(VOICE.on) VW.T+=dt; drawn=true; const T=VW.T; x.clearRect(0,0,px,px);
-    const last=Math.floor(T/STEP); // 섞지 않고 새 색이 위로 번져 덮는다(탁해지지 않게)
+  if(!cv) return; const W=cv.clientWidth||340, H=cv.clientHeight||150, pw=pxFor(W), ph=Math.round(pw*H/W); cv.width=pw; cv.height=ph;
+  const x=cv.getContext('2d'), N=170, STEP=.55, LIFE=3.6;
+  let prev=performance.now();
+  (function loop(now){ if(!cv.isConnected||!VOICE.on) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
+    VW.T+=dt*(S.listening?1.25:VOICE.phase==='speaking'?1:.6); const T=VW.T; x.clearRect(0,0,pw,ph);
+    const last=Math.floor(T/STEP);
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
-      const key=vwKey(n), hex=key==='clear'?CLEAR:FLAVORS[key].color, r=WC.rng(n*7919+13), a=r()*6.283, d=px*(.04+.08*r());
-      const fade=age>LIFE-FADE?(LIFE-age)/FADE:1, D=px*(1.38+.12*r());
-      x.globalAlpha=Math.max(0,fade)*.78;
-      x.drawImage(cvWash(N,key,hex,(n%3)*977+WC.hash(key)%5000).frame(Math.min(CV_SPREAD,age*k)),px/2+Math.cos(a)*d-D/2,px/2+Math.sin(a)*d-D/2,D,D); }
-    x.globalAlpha=1;
-    const sc=S.listening?1.04+.06*Math.sin(T*4.2):1+.025*Math.sin(T*1.6); cv.style.transform=`scale(${sc.toFixed(4)})`;
-    requestAnimationFrame(loop); })(performance.now());
+      const key=vwKey(n), hex=key==='clear'?CLEAR:FLAVORS[key].color, r=WC.rng(n*7919+13), u=age/LIFE;
+      const D=ph*(.9+1.3*u)*(.85+.3*r()), cx=pw*(.12+.76*r()), cy=ph*(1.05-.75*u);   // 아래에서 생겨 위로 오르며 넓게 번진다
+      x.globalAlpha=Math.max(0,Math.min(1,age*3,(1-u)*2.2))*.7;
+      x.drawImage(cvWash(N,key,hex,(n%3)*977+WC.hash(key)%5000).frame(Math.min(CV_SPREAD,age*1.6)),cx-D/2,cy-D/2,D,D); }
+    x.globalAlpha=1; requestAnimationFrame(loop); })(prev);
 }
 
 /* @@D3_BEGIN (src/drop3d.js에서 빌드) */

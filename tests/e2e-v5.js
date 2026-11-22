@@ -85,11 +85,11 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   await p.click('.ficon[aria-label="기간"]'); await wait(400); await ev(()=>{ S.cal.y=2020; S.cal.m=0; calPaint(); }); await p.click('.cal-g button >> text=/^1$/'); await p.click('.cal-g button >> text=/^2$/'); await p.click('#calGo'); await wait(500);
   ok(await ev(()=>S.filter.date==='range'&&!filtered().length),'달력으로 기간 정하기'); await ev(()=>{ S.filter.date='all'; rerender(); }); await wait(300);
 
-  console.log('음성 탭 · 그만하기/이어하기');
+  console.log('음성 · 그만하기/이어하기');
   await ev(()=>{ startRecord(); }); await say('철관음'); await chip('맞아요'); await chip('바로 마실게요');
-  await ev(()=>setMode('voice')); await wait(1500); await snap('voice');
-  ok(await ev(()=>!!document.querySelector('#vwash')),'음성 탭 수채 번짐');
-  await ev(()=>setMode('chat')); await wait(300);
+  await p.click('#sendBtn'); await wait(1500); await snap('voice');
+  ok(await ev(()=>!!document.querySelector('.chatfoot.voicing #vwash')),'마이크 → 음성 패널 수채 번짐');
+  await p.click('.vstop'); await wait(400);
   await p.click('.stepbar .quit'); await wait(400); await p.click('text=저장하고 나가기'); await wait(800);
   ok(await ev(()=>cur()==='home'&&!!document.querySelector('.resume')),'저장하고 나가기 → 홈에 이어하기');
   await p.click('.resume>button:first-child'); await wait(800);

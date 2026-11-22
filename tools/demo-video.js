@@ -35,7 +35,7 @@ const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo-'+Date.now())
   await p.goto(APP); await ev(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await wait(800);
   await cap('홈','풍미 색이 하나씩 수채로 번지며\n이름이 흐림에서 또렷하게 나타나요.'); await wait(6500);
 
-  await cap('기록 시작','‘새로운 티 기록하기’를 누르면\n바로 채팅이 열려요.'); await tap('.bigbtn'); await wait(1800);
+  await cap('기록 시작','‘새로운 차 기록하기’를 누르면\n바로 채팅이 열려요.'); await tap('.bigbtn'); await wait(1800);
   await cap('처음 보는 차','사전에 없는 이름이면\n가까운 차 종류를 물어봐요.'); await type('할머니가 주신 차'); await wait(1200); await tap('#msgs .chip >> text=우롱차'); await wait(2200);
   await cap('우림 가이드','차에 맞는 온도 · 시간 · 양을 카드로 보여줘요.\n‘우림 시작’을 누르면 타이머가 위에 고정돼요.'); await wait(2500);
   await tap('#msgs .chip >> text=우림 시작'); await wait(1500);
@@ -71,8 +71,8 @@ const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo-'+Date.now())
   await cap('My · 설정','이름, 대화 저장, 음성 소리, 알림을\n직접 바꿀 수 있고 앱으로 설치할 수 있어요.'); await ev(()=>goTab('my')); await wait(1500); await tap('text=계정'); await wait(600); await p.fill('#prefName','차 좋아하는 사람'); await wait(600); await tap('#sheet .btn'); await wait(1800);
   await cap('기록이 부족할 때','아무 맛 · 향도 남기지 않고 정리하면\n‘아직 담을 맛과 향이 없어요’.'); await ev(()=>startRecord()); await wait(600); await type('철관음'); await tap('#msgs .chip >> text=맞아요'); await tap('#msgs .chip >> text=바로 마실게요'); await wait(800); await ev(()=>{ S.draft.stage='free'; S.draft.chat.push({who:'bot',text:FREE_INTRO}); rerender(); }); await wait(900); await tap('.chatfoot .btn >> text=이제 충분해요'); await wait(1500); await type('딱히 없어요'); await wait(600); await tap('#msgs .chip >> text=이제 정리할게요'); await wait(3200);
   await cap('그만하기 · 이어하기','중간에 그만둘 때 저장해두면\n홈에서 이어할 수 있어요.'); await tap('text=채팅으로 돌아가 남기기'); await wait(800); await tap('.stepbar .quit'); await wait(800); await tap('text=저장하고 나가기'); await wait(2200); await tap('.resume>button:first-child'); await wait(2200);
-  await cap('음성으로만','한 번 누르면 말로 계속 대화해요.\n(마이크가 없으면 시연용 목소리)'); await ev(()=>{ S.quitTo='home'; quitRecord(false); startRecord(); setMode('voice'); }); await wait(1500); await ev(()=>toggleVoice()); await wait(24000); await ev(()=>{ if(VOICE.on) toggleVoice(); }); await wait(800);
-  await cap('오류 화면','문제가 생기면 다시 시도 · 홈으로.'); await ev(()=>{ setMode('chat'); S.draft=null; go('detail',{id:'없는기록'}); }); await wait(3000);
+  await cap('말로 하기','입력창의 마이크를 누르면 말로 대화해요.\n(마이크가 없으면 시연용 목소리)'); await ev(()=>{ S.quitTo='home'; quitRecord(false); startRecord(); }); await wait(1500); await ev(()=>startVoice()); await wait(24000); await ev(()=>{ if(VOICE.on) toggleVoice(); }); await wait(800);
+  await cap('오류 화면','문제가 생기면 다시 시도 · 홈으로.'); await ev(()=>{ S.draft=null; go('detail',{id:'없는기록'}); }); await wait(3000);
   await cap('빈 캔버스 · 빈 알림','첫 기록 전에는 이렇게 보여요.'); await ev(()=>{ S.records=[]; goTab('canvas',true); }); await wait(3000); await ev(()=>go('noti')); await wait(2200);
   await cap('찻방울이 많을 때','48잔이 쌓인 캔버스.'); await p.goto(APP+'?sample=many'); await wait(700); await ev(()=>goTab('canvas')); await wait(4500); await ev(()=>document.querySelector('#view').scrollBy({top:640,behavior:'smooth'})); await wait(3500);
   await cap('끝','TEA CANVAS v5'); await ev(()=>goTab('home')); await wait(3500);

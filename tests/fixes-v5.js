@@ -47,7 +47,6 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await ev(()=>goTab('my')); await wait(400); ok(await ev(()=>/첫 기록 시작하기/.test(document.body.innerText)),'기록이 없으면 My에 첫 기록 시작하기');
   await ev(()=>go('detail',{id:'없음'})); await wait(400); ok(await ev(()=>/잠시 문제가 생겼어요/.test(document.body.innerText)),'없는 기록 → 오류 화면');
   await ev(()=>{ startRecord(); }); await say('철관음'); await p.click('#msgs .chip >> text=맞아요'); await wait(1200); await p.click('#msgs .chip >> text=바로 마실게요'); await wait(1200);
-  await ev(()=>setMode('voice')); await wait(400); ok(await ev(()=>!!document.querySelector('.scr-chat .link')),'음성 탭: 차 정보 뒤에는 정리 링크');
   await ev(()=>finishChat()); await wait(800); ok(await ev(()=>cur()==='thin'),'남긴 표현 없이 정리 → 기록 부족 화면');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

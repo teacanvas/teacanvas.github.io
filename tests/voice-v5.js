@@ -6,11 +6,11 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage({viewport:{width:430,height:900}}); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.addInitScript(()=>{ window.TC_VOICE_FAST=true; delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
   await p.goto(FILE); await p.waitForTimeout(700);
-  await p.evaluate(()=>{ startRecord(); setMode('voice'); }); await p.waitForTimeout(400);
-  ok(await p.evaluate(()=>!!document.querySelector('#vMic svg')&&!document.querySelector('#vBtn')),'음성 탭: 번짐 가운데 마이크 버튼');
-  const T0=await p.evaluate(()=>VW.T); await p.waitForTimeout(600); ok(await p.evaluate(T0=>VW.T===T0,T0),'대화 전엔 번짐이 멈춰 있음');
-  ok(await p.evaluate(()=>!!document.querySelector('#vActs .chip')),'음성 탭에도 간편 선택지(사진으로 찾기)');
-  await p.click('.voiceorb');
+  await p.evaluate(()=>{ startRecord(); }); await p.waitForTimeout(400);
+  ok(await p.evaluate(()=>!document.querySelector('.seg')&&/말로 하기/.test(document.querySelector('#sendBtn').getAttribute('aria-label'))),'채팅·음성 탭 없이, 입력창이 비면 마이크 버튼');
+  await p.fill('#chatIn','가'); await p.evaluate(()=>syncSend()); ok(await p.evaluate(()=>document.querySelector('#sendBtn').getAttribute('aria-label')==='보내기'),'글을 쓰면 보내기 버튼'); await p.fill('#chatIn',''); await p.evaluate(()=>syncSend());
+  await p.click('#sendBtn'); await p.waitForTimeout(300);
+  ok(await p.evaluate(()=>!!document.querySelector('.chatfoot.voicing #vwash')),'마이크 → 아래에서 번지는 음성 패널');
   const reach=async(cond,ms,msg)=>{ const r=await p.waitForFunction(cond,null,{timeout:ms}).then(()=>true).catch(()=>false); ok(r,msg); };
   await reach(()=>S.draft.name==='제주 세작',20000,'말로 차 이름 → 알아들음');
   await reach(()=>!!S.timer,20000,'"네 맞아요" → "우림 시작할게요" → 타이머');
@@ -22,6 +22,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   ok(await p.evaluate(()=>!VOICE.on),'화면을 떠나면 음성 대화가 멈춤');
   ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='me'&&m.voice)),'말로 한 대답에 음성 표시');
   ok(await p.evaluate(()=>VW.T>3),'대화 중엔 번짐이 움직임');
+  ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='bot'&&/^괜찮아요|어떤 맛|향은/.test(m.text))),'음성 중에도 채팅에 대화가 쌓임');
   const ex=await p.evaluate(()=>collectExprs(S.draft).map(e=>e.text+'>'+e.fl.join('/')).join(' | ')); console.log('  분석된 표현:',ex);
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
