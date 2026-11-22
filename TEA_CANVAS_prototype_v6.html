@@ -260,7 +260,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
   background:linear-gradient(135deg,#d9c3a1,#b98b56 40%,#e9dcc6 70%,#c7a77c);position:relative;overflow:hidden}
 .photo::after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#c98a3d 0 45%,#f4ead9 47% 60%,transparent 62%);left:38%;top:22%}
 .photo span{position:absolute;left:10px;bottom:6px;background:rgba(255,255,255,.75);padding:1px 7px;border-radius:8px;z-index:1}
-.setrow.install{display:flex;align-items:center;gap:10px;font-weight:700;color:#8A4317;background:#FCEBDC;margin-top:16px}.setrow.install .chev{margin-left:auto;font-weight:400}.setrow.install img{width:26px;height:26px;border-radius:7px;box-shadow:inset 0 0 0 1px #eee}
 .pref{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 2px;border-bottom:1px solid var(--g0)}.pref span{display:flex;flex-direction:column}
 .pref b{font-size:14.5px}.pref small{font-size:12px;color:var(--g2);margin-top:2px}.pref input[type=checkbox]{width:22px;height:22px;accent-color:#111;flex-shrink:0}
 .pref.col{flex-direction:column;align-items:stretch;border:0}
@@ -1165,24 +1164,27 @@ function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class
   return L.map(([o,m,w,go])=>`<button class="noti" onclick="${go}">${orb(o,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join(''); }
 /* Tea Tag 이미지로 저장하기: 찻방울 · 이름 · 날짜 · 풍미 · 한 줄을 한 장으로 */
 const recPhoto=r=>r.photoData||(!r.noPhoto&&typeof SEED_PHOTOS!=='undefined'&&SEED_PHOTOS[r.id]?SEED_PHOTOS[r.id].src:null);   // 내 사진, 없으면 예시 기록의 사진
-function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
+const loadImg=src=>new Promise(res=>{ if(!src) return res(null); const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
+/* 흑백 동그라미 사진: 색은 찻방울에만 */
+function grayCircle(x,im,cx,cy,R){ const k=Math.max(2*R/im.width,2*R/im.height), g=document.createElement('canvas'); g.width=g.height=2*R; const gx=g.getContext('2d');
+  gx.drawImage(im,R-im.width*k/2,R-im.height*k/2,im.width*k,im.height*k);
+  try{ const D=gx.getImageData(0,0,2*R,2*R), a=D.data; for(let i=0;i<a.length;i+=4){ a[i]=a[i+1]=a[i+2]=a[i]*.299+a[i+1]*.587+a[i+2]*.114; } gx.putImageData(D,0,0); }catch(e){}
+  x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(g,cx-R,cy-R); x.restore(); }
+async function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
+  const im=await loadImg(recPhoto(r));
   const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   x.fillStyle='#fff'; x.fillRect(0,0,W,H); drawRec1(x,recFlav(r),W/2,450,360,r.id,CV_SPREAD+1.4,.95);
-  if(recPhoto(r)&&!saveTagImage._ph){ const im=new Image(); im.onload=()=>{ saveTagImage._ph=im; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.onerror=()=>{ saveTagImage._ph={}; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.src=recPhoto(r); return; }
-  { const im=saveTagImage._ph, sub=dot(r.brand,r.date.replace(/\.$/,''));
-    if(im&&im.width){ const R=62, gap=34; x.font='700 64px Pretendard, sans-serif'; const w1=x.measureText(r.name).width; x.font='400 34px Pretendard, sans-serif'; const w2=x.measureText(sub).width;
-      const tw=2*R+gap+Math.max(w1,w2), x0=W/2-tw/2, cx=x0+R, cy=920, k=Math.max(2*R/im.width,2*R/im.height);
-      const g=document.createElement('canvas'); g.width=g.height=2*R; const gx=g.getContext('2d'); gx.drawImage(im,R-im.width*k/2,R-im.height*k/2,im.width*k,im.height*k);
-      try{ const D=gx.getImageData(0,0,2*R,2*R), a=D.data; for(let i=0;i<a.length;i+=4){ const v=a[i]*.299+a[i+1]*.587+a[i+2]*.114; a[i]=a[i+1]=a[i+2]=v; } gx.putImageData(D,0,0); }catch(e){}   // 흑백: 색은 찻방울에만
-      x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(g,cx-R,cy-R); x.restore();
-      const tc=x0+2*R+gap+Math.max(w1,w2)/2; x.textAlign='center'; x.fillStyle='#111'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,tc,910); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,tc,966); }
-    else { x.fillStyle='#111'; x.textAlign='center'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,W/2,900); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,W/2,960); } }
+  const sub=dot(r.brand,r.date.replace(/\.$/,'')), NAME='700 64px Pretendard, sans-serif', SUB='400 34px Pretendard, sans-serif';
+  let tc=W/2, y=900;
+  if(im){ const R=62, gap=34; x.font=NAME; const w1=x.measureText(r.name).width; x.font=SUB; const tw=Math.max(w1,x.measureText(sub).width), x0=W/2-(2*R+gap+tw)/2;
+    grayCircle(x,im,x0+R,920,R); tc=x0+2*R+gap+tw/2; y=910; }
+  x.textAlign='center'; x.fillStyle='#111'; x.font=NAME; x.fillText(r.name,tc,y); x.fillStyle='#888'; x.font=SUB; x.fillText(sub,tc,y+(im?56:60));
   const fl=(r.flavors||[]).map(f=>HOME_EN[f.k]); x.font='600 44px Pretendard, sans-serif'; let tx=W/2-fl.reduce((s,t)=>s+x.measureText(t).width+36,-36)/2; x.textAlign='left';
   (r.flavors||[]).forEach(f=>{ x.fillStyle=inkText(FLAVORS[f.k].color); x.fillText(HOME_EN[f.k],tx,1060); tx+=x.measureText(HOME_EN[f.k]).width+36; });
   if(r.comment){ x.textAlign='center'; x.fillStyle='#444'; x.font='400 36px Pretendard, sans-serif'; x.fillText(`“${r.comment}”`,W/2,1160); }
   x.textAlign='center'; x.fillStyle='#BBB'; x.font='800 28px Pretendard, sans-serif'; x.fillText('TEA CANVAS',W/2,1290);
   const fn=`teacanvas-tag-${String(r.date||'').replace(/\D/g,'')||Date.now()}.png`;   // 한글 파일 이름을 못 받는 브라우저가 있어 영문·숫자로
-  try{ c.toBlob(b=>{ if(!b){ toast('이미지를 만들지 못했어요'); return; } const u=URL.createObjectURL(b);   // 바로 받지 않고, 어떤 이미지가 저장되는지 먼저 보여준다
+  try{ c.toBlob(b=>{ if(!b){ toast('이미지를 만들지 못했어요'); return; } if(saveTagImage._u) URL.revokeObjectURL(saveTagImage._u); const u=saveTagImage._u=URL.createObjectURL(b);   // 바로 받지 않고, 어떤 이미지가 저장되는지 먼저 보여준다
     openSheet(`<div class="grab"></div><h1 class="t">이미지로 저장하기</h1><p class="sub">이런 이미지로 저장돼요.</p>
       <img class="tagprev" src="${u}" alt="저장될 Tea Tag 이미지">
       <button class="btn" id="tagDl">다운로드</button><button class="link" onclick="closeSheet()">취소</button>`);
@@ -1294,29 +1296,29 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse" data-fit="330,200,h"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,130" style="width:236px;height:236px"></div></div>
+  <div class="infuse" data-fit="330,140,h"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,100" style="width:236px;height:236px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>
-  <div class="spacer"></div>
+  <div class="spacer" style="min-height:56px"></div>
   <button class="link u" style="margin:0 auto -14px;padding:10px 16px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
 compare(){
-  const d=S.draft; if(!d) return SCREENS.error({}); const t=TEAS[d.type]||TEAS.green; ensureFlavors(d);
+  const d=S.draft; if(!d) return SCREENS.error({}); ensureFlavors(d); const X=expertOf(d), C=cmpFacts(d), c=C, FL=draftFl(d);
   return `${stepbar(4)}
   <h1 class="t">내 감각과 설명을 함께 볼까요?</h1>
   <p class="sub">같은 점과 다른 표현을 가볍게 살펴봐요.</p>
   <p class="ai-busy" id="cmpBusy" hidden>AI가 내 표현을 정리하고 있어요…</p>
   ${d3Box('cmp3d',240)}
-  ${draftFl(d).length?`<div class="center-chips">${flChips(draftFl(d).map(k=>({k})))}</div>`:''}
+  ${FL.length?`<div class="center-chips">${flChips(FL.map(k=>({k})))}</div>`:''}
   ${ownHTML(ownWords(d.exprs))}
-  <div class="cmp"><div class="lb">전문가 설명${EXPERT_BY_NAME.some(x=>x.re.test(d.name||""))?"":`<small class="muted" style="display:block;font-weight:400;font-size:11.5px;margin-top:2px">${esc(TEAS[d.type].label)} 일반</small>`}</div><div class="bd" id="cmpExpert">${expertOf(d).text}</div></div>
+  <div class="cmp"><div class="lb">전문가 설명${!X.generic?"":`<small class="muted" style="display:block;font-weight:400;font-size:11.5px;margin-top:2px">${esc(TEAS[d.type].label)} 일반</small>`}</div><div class="bd" id="cmpExpert">${X.text}</div></div>
   <div class="cmp"><div class="lb">나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
-  ${(()=>{ const c=cmpFacts(d); return `<div class="cmp"><div class="lb">공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
+  ${(()=>{ return `<div class="cmp"><div class="lb">공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
   <div class="cmp"><div class="lb">차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
-  <div class="cmp"><div class="lb">AI 해석</div><div class="bd" id="cmpAI">${cmpAIText(d)}</div></div>
+  <div class="cmp"><div class="lb">AI 해석</div><div class="bd" id="cmpAI">${cmpAIText(C)}</div></div>
   <div class="spacer" style="min-height:22px"></div>
   <button class="link u" onclick="backToChat()">채팅으로 돌아가 더 남기기</button>
   <div class="stickfoot"><button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button></div>`;
@@ -1349,14 +1351,14 @@ fullChat(p){
 },
 
 teaTag(){
-  const r=S.lastSaved || S.records[0];
+  const r=S.lastSaved || S.records[0], ph=recPhoto(r);
   const tags=(r.flavors&&r.flavors.length?r.flavors.map(f=>FLAVORS[f.k].label):r.tags&&r.tags.length?r.tags:TEAS[r.type].common).slice(0,5);
   return `${stepbar(4)}
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
     ${orb(r,210,'big')}
-    <div class="tagid${recPhoto(r)?' ph':''}">${recPhoto(r)?`<img class="tagph" src="${recPhoto(r)}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
+    <div class="tagid${ph?' ph':''}">${ph?`<img class="tagph" src="${ph}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
     <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div></div></div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
     <button class="line tagline" onclick="openCmtSheet('${r.id}')">${r.comment?`“${esc(r.comment)}”`:'<span class="muted">+ 한 줄 남기기</span>'} <span class="pen">${I.pen}</span></button>
@@ -1607,7 +1609,8 @@ const FREE_NUDGES=['한 모금 머금고 3초만 기다렸다가 넘겨보세요
 const FREE_NUDGE='천천히 마시고 있네요.\n식으면서 달라지는 맛이 있다면 편하게 들려주세요.';
 const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는 여운이 있었나요?';
 const HINT_EX=['비 온 뒤 숲길 같아요','구운 빵처럼 고소해요','끝에 꿀 같은 단맛이 남아요','혀가 살짝 조이는 느낌이에요','입안이 시원하게 맑아져요'];
-function useHint(t){ const i=$('#chatIn'); if(!i) return; i.value=t; try{ syncSend(); }catch(e){} i.focus(); const n=t.length; try{ i.setSelectionRange(n,n); }catch(e){} }
+function focusEnd(el){ if(!el) return; el.focus(); const n=el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
+function useHint(t){ const i=$('#chatIn'); if(!i) return; i.value=t; try{ syncSend(); }catch(e){} focusEnd(i); }
 function showExprHint(){ const d=S.draft; d.chat.push({who:'bot',hint:true,text:'이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.'}); paintMsgs(); }
 /* 맞장구: 들은 풍미를 살짝 되짚거나, 짧게 공감만. 같은 말이 이어지지 않게 돌려 쓴다 */
 const ACK=['음, 그렇군요.','아, 좋네요.','그 느낌 알 것 같아요.','네, 천천히 즐겨요.','음, 좋은 한 모금이네요.'];
@@ -2161,14 +2164,14 @@ const EXPERT_BY_NAME=[
   {re:/자스민|쟈스민|재스민|jasmine/i,fl:['floral','vegetal','sweet'],text:'자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.'},
   {re:/말차|matcha/i,fl:['vegetal','sweet','soft','astringent'],text:'곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.'},
   {re:/페퍼민트|peppermint/i,fl:['fresh','vegetal'],text:'입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.'}];
-const expertOf=d=>{ const m=EXPERT_BY_NAME.find(x=>x.re.test(d.name||'')); return m?{text:m.text,fl:m.fl}:{text:(TEAS[d.type]||TEAS.green).expert,fl:TYPE_FL[d.type]||[]}; };
-const draftFl=d=>[...new Set([...(d.flavors||[]).map(f=>f.k),...collectExprs(d).flatMap(e=>e.fl)])];   // 찻방울에 담긴 풍미 전체
-function cmpFacts(d){ const mine=draftFl(d), ex=expertOf(d).fl, lab=k=>isEN()?HOME_EN[k]:FLAVORS[k].label;
+const expertOf=d=>{ const m=EXPERT_BY_NAME.find(x=>x.re.test(d.name||'')); return m?{text:m.text,fl:m.fl,generic:false}:{text:(TEAS[d.type]||TEAS.green).expert,fl:TYPE_FL[d.type]||[],generic:true}; };
+const draftFl=(d,ex=collectExprs(d))=>[...new Set([...(d.flavors||[]).map(f=>f.k),...ex.flatMap(e=>e.fl)])];   // 찻방울에 담긴 풍미 전체
+function cmpFacts(d){ const exprs=collectExprs(d), mine=draftFl(d,exprs), ex=expertOf(d).fl, lab=k=>isEN()?HOME_EN[k]:FLAVORS[k].label;
   const common=mine.filter(k=>ex.includes(k)).map(lab), onlyMe=mine.filter(k=>!ex.includes(k)), onlyEx=ex.filter(k=>!mine.includes(k));
-  const said=k=>{ const e=collectExprs(d).find(e=>e.fl.includes(k)); if(!e) return lab(k); const t=e.text.replace(/(잘\s*)?모르겠어요|음+\.*|그냥|[.!?…]+$/g,' ').replace(/\s+/g,' ').trim(); return t.length>=2?(t.length>30?t.slice(0,29)+'…':t):lab(k); };
+  const said=k=>{ const e=exprs.find(e=>e.fl.includes(k)); if(!e) return lab(k); const t=e.text.replace(/(잘\s*)?모르겠어요|음+\.*|그냥|[.!?…]+$/g,' ').replace(/\s+/g,' ').trim(); return t.length>=2?(t.length>30?t.slice(0,29)+'…':t):lab(k); };
   const diff=[]; if(onlyMe.length) { const w=said(onlyMe[0]); diff.push(`나는 ‘${esc(w)}’${josa(w,'이라고','라고')} 표현했어요`); }; if(onlyEx.length) diff.push(`전문가는 ‘${lab(onlyEx[0])}’도 짚어요`); if(!diff.length) diff.push('느낀 풍미가 전문가 설명과 거의 같아요');
   return {common,diff,onlyMe:onlyMe.map(said)}; }
-function cmpAIText(d){ const c=cmpFacts(d), en=isEN();
+function cmpAIText(c){ const en=isEN();
   if(!c.common.length) return '내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.';
   const a=c.common.slice(0,2).join(en?' & ':'·'), b=c.onlyMe[0];
   return en? `Both notes share ${a}.`+(b?` On top of that, you added your own words — ‘${esc(b)}’.`:' Your senses and the description point the same way.')
@@ -2185,7 +2188,7 @@ function myExpression(d){
 function openCanvasSheet(){
   const d=S.draft; ensureFlavors(d);
   openSheet(`<div class="grab"></div>
-    <h1 class="t ht">캔버스에 찻방울 찍기<button class="help" onclick="const c=$('#cmt'); if(c) S.draft.comment=c.value; openCanvasHelp(true)" aria-label="캔버스 읽는 법">?</button></h1>
+    <h1 class="t ht">캔버스에 찻방울 찍기<button class="help" onclick="openCanvasHelp(true)" aria-label="캔버스 읽는 법">?</button></h1>
     <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})" aria-label="찻잎 ${i}개">${LEAF}</button>`).join('')}</div></div>
@@ -2258,7 +2261,7 @@ function openCmtSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return;
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">한 줄 남기기</h1><p class="sub">오늘의 차를 한 줄로 남겨보세요.</p>
     <div class="cmtrow" style="margin-top:18px"><div class="box"><input id="cmtEdit" maxlength="40" placeholder="예: 비 오는 날 딱 좋았던 차" value="${esc(r.comment||'')}"></div></div>
     <div style="height:18px"></div><button class="btn" onclick="const r=S.records.find(x=>x.id==='${id}'); r.comment=$('#cmtEdit').value.trim(); persist(); closeSheet(); rerender(); toast('한 줄을 고쳤어요')">저장</button><button class="link" onclick="closeSheet()">취소</button>`);
-  setTimeout(()=>{ const i=$('#cmtEdit'); if(i){ i.focus(); const n=i.value.length; try{ i.setSelectionRange(n,n); }catch(e){} } },300); }
+  setTimeout(()=>focusEnd($('#cmtEdit')),300); }
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
@@ -2268,11 +2271,9 @@ function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return;
 function setStars(n){ const d=S.draft; d.stars = d.stars===n ? n-1 : n; document.querySelectorAll('#starRow button').forEach((b,i)=>b.classList.toggle('on',i<d.stars)); }
 /* 사진: 휴대폰은 카메라, 컴퓨터는 사진 고르기. 가로 720px로 줄여 기록과 함께 저장 */
 /* 설정(이 기기에 저장) */
-/* 앱으로 설치(크롬) · 오프라인 저장 */
-let INSTALL=null; addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL=e; if(cur()==='my') rerender(); });
-addEventListener('appinstalled',()=>{ INSTALL=null; toast('TEA CANVAS를 앱으로 설치했어요'); });
+/* 오프라인 저장 */
+addEventListener('appinstalled',()=>toast('TEA CANVAS를 앱으로 설치했어요'));
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
-async function installApp(){ if(!INSTALL) return toast('브라우저 메뉴의 ‘앱 설치’ 또는 ‘홈 화면에 추가’로 설치할 수 있어요'); INSTALL.prompt(); try{ await INSTALL.userChoice; }catch(e){} INSTALL=null; rerender(); }
 const PREF_KEY='teacanvas.v6.prefs';
 const PREF=(()=>{ try{ return Object.assign({keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:'',voiceName:'',lang:'ko'},JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); }catch(e){ return {keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:''}; } })();
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
@@ -2303,7 +2304,7 @@ Object.assign(EN,{
  "상세 기록":"Entry","담긴 풍미":"Flavors","찻물 색":"Tea color","캔버스 속 위치":"Place on canvas","위치 옮기기":"Move","기록 삭제":"Delete entry","저장":"Save","그날의 이야기":"That day","기분":"Mood","상황":"Setting","고른 이유":"Why this tea","마신 시간":"Drinking time","산지·빈티지":"Origin · vintage","온도·시간":"Temp · time","남긴 메모가 없어요.":"No notes.","대화 기록 보기 ›":"View conversation ›",
  "느낌이 달라졌다면 새 자리를 눌러주세요.":"If it feels different now, tap a new spot.","이 자리로 옮기기":"Move here","그대로 두기":"Keep it","찻방울을 옮겼어요":"Drop moved",
  "삭제하면 캔버스에서도 찻방울이 사라지고,":"Deleting removes the drop from your canvas,","다시 되돌릴 수 없어요.":"and can't be undone.","삭제하기":"Delete","기록을 삭제했어요":"Entry deleted",
- "나의 아카이브":"My archive","모인 찻방울":"Drops","차 종류":"Tea types","최근 기록":"Latest","설정":"Settings","대화 기록 설정":"Conversation","앱 설정":"App","알림 설정":"Notifications","계정":"Account","앱으로 설치하기":"Install as app","프로필 사진 바꾸기":"Change profile photo","사용자":"Guest",
+ "나의 아카이브":"My archive","모인 찻방울":"Drops","차 종류":"Tea types","최근 기록":"Latest","설정":"Settings","대화 기록 설정":"Conversation","앱 설정":"App","알림 설정":"Notifications","계정":"Account","프로필 사진 바꾸기":"Change profile photo","사용자":"Guest",
  "대화 내용 함께 저장":"Save the conversation","끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요":"When off, only taste and aroma words are kept","확인":"OK","대화 언어":"Language","채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요":"The whole app, chat and voice use this language. Your entries stay.",
  "음성 대화에서 소리로 말하기":"Speak aloud in voice mode","끄면 챗봇의 말을 글로만 보여줘요":"When off, replies are shown as text only","목소리":"Voice","기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요":"We picked the most natural voice on this device","들어보기":"Listen",
  "우림이 끝나면 알려주기":"Notify when brewing ends","우림 타이머가 끝날 때 알림을 띄워요":"Show a notice when the timer ends","추천 알림 받기":"Get recommendations","나의 취향과 닮은 차를 알림으로 알려줘요":"Hear about teas like the ones you love",
@@ -2313,11 +2314,11 @@ Object.assign(EN,{
  "잠시 문제가 생겼어요":"Something went wrong","지금은 요청을 처리할 수 없어요.":"We can't handle that right now.","조금 후에 다시 시도해 주세요.":"Please try again shortly.","다시 시도하기":"Try again","잠시 문제가 생겼어요. 다시 시도해 주세요":"Something went wrong. Please try again",
  "아직 모인 찻방울이 없어요":"No drops yet","첫 차를 기록하면 이곳에 나만의 찻방울이 하나씩 물들어요.":"Record your first tea and your drops will color this canvas.","첫 기록 시작하기":"Record your first tea","아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?":"No entries yet. Record your first tea?",
  "지우기":"Delete","저장해둔 기록 지우기":"Delete saved draft","기록을 저장해뒀어요":"Draft saved","기록을 지웠어요":"Draft deleted","저장해둔 기록을 지웠어요":"Saved draft deleted","이어할 기록을 찾지 못했어요":"Couldn't find the draft",
- "마이크를 쓸 수 없어 시연용 목소리로 진행해요":"No microphone here, so a demo voice will answer","TEA CANVAS를 앱으로 설치했어요":"TEA CANVAS installed","브라우저 메뉴의 ‘앱 설치’ 또는 ‘홈 화면에 추가’로 설치할 수 있어요":"Use ‘Install app’ or ‘Add to Home screen’ in your browser menu",
+ "마이크를 쓸 수 없어 시연용 목소리로 진행해요":"No microphone here, so a demo voice will answer","TEA CANVAS를 앱으로 설치했어요":"TEA CANVAS installed",
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name","내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.":"Your notes picked up something different from the expert. The same tea feels different to each person — that's the fun part.","여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.":"You've already captured the finish.\nWant to add a bit more? Pick only what you like.","한 줄 고치기":"Edit note","이미지로 저장":"Save as image","자리":"Position","오른쪽일수록 마시기 전 향이, 위쪽일수록 마신 뒤 맛이 좋았던 차예요.":"Further right means a better aroma before sipping; higher means a better taste after.","색":"Color","내가 말한 맛과 향이 색이 돼요. 차 종류나 찻물 색과는 상관없어요.":"The tastes and aromas you describe become colors — not the tea type or the liquor color.","크기":"Size","‘엄청’처럼 크게 느낀 맛은 크게, ‘살짝’ 느낀 맛은 작게 번져요.":"Strong notes (‘very’) spread large; faint ones (‘slightly’) stay small.","찻방울 하나":"One drop","차 한 잔의 기록이에요. 누르면 그 기록이 열려요.":"One cup of tea. Tap it to open the entry.","한 줄 코멘트 |":"Note |","한 줄 남기기":"Leave a note","· 사진도 함께 남길 수 있어요":"· you can add a photo too","+ 한 줄 남기기":"+ Leave a note","오늘의 차를 한 줄로 남겨보세요.":"Sum up today's tea in one line.","예: 비 오는 날 딱 좋았던 차":"e.g. Perfect for a rainy day","한 줄을 고쳤어요":"Note updated","대화에서 남긴 말":"From the conversation","음, 그렇군요.":"Mm, I see.","아, 좋네요.":"Oh, nice.","그 느낌 알 것 같아요.":"I think I know that feeling.","네, 천천히 즐겨요.":"Yes, take your time.","음, 좋은 한 모금이네요.":"Mm, a good sip.","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요":"You could say things like:\n· Like a forest path after rain\n· Nutty like toasted bread\n· A honey-like sweetness at the end\n· My tongue tightens a little\n· It feels cool and clean","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","캔버스를 눌러 오늘의 찻방울 자리를 먼저 정해주세요":"Tap the canvas to place today's drop first","쓴·떫은맛":"Bitter·Astringent","이런 이미지로 저장돼요.":"This is the image you'll save.","다운로드":"Download","이미지를 만들지 못했어요":"Couldn't create the image","저장될 Tea Tag 이미지":"Tea Tag image preview","개완으로 우려요":"Brew gongfu-style","머그컵으로 우려요":"Brew in a mug","개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.":"Gongfu style: short, repeated infusions.\nTaste and note each one.","15 – 25초":"15 – 25 sec","찻잎 5 – 7g (개완 100ml)":"5 – 7 g leaves (100 ml gaiwan)","첫 물은 찻잎을 깨우듯 헹궈 버려주세요":"Rinse the leaves with the first pour","우릴 때마다 5 – 10초씩 늘려가요.":"Add 5 – 10 sec each infusion.","같은 잎으로 다섯 번 넘게 우려도 좋아요. 우림마다 달라지는 향을 비교해보세요.":"The same leaves can go five rounds or more. Compare how the aroma changes.","이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.":"You could say things like these.\nTap one to put it in the box, then tweak it to fit.","비 온 뒤 숲길 같아요":"Like a forest path after rain","구운 빵처럼 고소해요":"Nutty like toasted bread","끝에 꿀 같은 단맛이 남아요":"A honey-like sweetness at the end","혀가 살짝 조이는 느낌이에요":"My tongue tightens a little","입안이 시원하게 맑아져요":"It feels cool and clean","베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.":"Zesty bergamot citrus comes first, backed by black tea's mellow sweetness and a soft floral note.","청포도를 닮은 머스캣 향과 가벼운 꽃향이 산뜻하게 퍼지고, 맑고 가볍게 마무리되는 홍차예요.":"A muscat-grape aroma and light florals spread brightly, finishing clean and light.","몰트처럼 진하고 고소한 향에 묵직한 바디감, 기분 좋은 떫은맛이 이어지는 홍차예요.":"Rich, malty and nutty with a full body and a pleasant astringency.","난꽃을 닮은 맑은 꽃향에 크리미하고 매끄러운 질감, 삼킨 뒤 단맛이 길게 도는 우롱차예요.":"A clear orchid-like floral aroma, creamy smooth texture, and a long sweet finish.","꿀과 잘 익은 복숭아를 닮은 달콤한 향, 부드러운 과일 단맛이 오래 남는 우롱차예요.":"Sweet notes of honey and ripe peach, with a soft fruity sweetness that lingers.","볶은 현미의 구수함과 녹차의 산뜻한 풀향이 어우러진, 순하고 편안한 차예요.":"Toasty roasted rice meets fresh green-tea grassiness — mild and comforting.","사과를 닮은 달콤한 꽃향에 부드럽고 포근한 맛이 이어지는 허브차예요.":"A sweet, apple-like floral aroma with a soft, cozy taste.","입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.":"Cooling, crisp mint with a clean finish.","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.":"Your notes picked up something different from the expert. The same tea feels different to each person — that's the fun part.","여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.":"You've already captured the finish.\nWant to add a bit more? Pick only what you like.","한 줄 고치기":"Edit note","이미지로 저장":"Save as image","자리":"Position","오른쪽일수록 마시기 전 향이, 위쪽일수록 마신 뒤 맛이 좋았던 차예요.":"Further right means a better aroma before sipping; higher means a better taste after.","색":"Color","내가 말한 맛과 향이 색이 돼요. 차 종류나 찻물 색과는 상관없어요.":"The tastes and aromas you describe become colors — not the tea type or the liquor color.","크기":"Size","‘엄청’처럼 크게 느낀 맛은 크게, ‘살짝’ 느낀 맛은 작게 번져요.":"Strong notes (‘very’) spread large; faint ones (‘slightly’) stay small.","찻방울 하나":"One drop","차 한 잔의 기록이에요. 누르면 그 기록이 열려요.":"One cup of tea. Tap it to open the entry.","한 줄 코멘트 |":"Note |","한 줄 남기기":"Leave a note","· 사진도 함께 남길 수 있어요":"· you can add a photo too","+ 한 줄 남기기":"+ Leave a note","오늘의 차를 한 줄로 남겨보세요.":"Sum up today's tea in one line.","예: 비 오는 날 딱 좋았던 차":"e.g. Perfect for a rainy day","한 줄을 고쳤어요":"Note updated","대화에서 남긴 말":"From the conversation","음, 그렇군요.":"Mm, I see.","아, 좋네요.":"Oh, nice.","그 느낌 알 것 같아요.":"I think I know that feeling.","네, 천천히 즐겨요.":"Yes, take your time.","음, 좋은 한 모금이네요.":"Mm, a good sip.","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","숯불에 구운 듯한 고소한 로스팅 향과 바위에서 온 듯한 미네랄감, 묵직한 바디 뒤로 달큰한 여운이 남는 우롱차예요.":"A charcoal-roasted, nutty aroma with a rocky minerality and a full body, finishing long and sweet.","크랜베리를 닮은 새콤한 신맛과 붉은 베리 향이 또렷하고, 끝에 살짝 떫게 마무리되는 허브차예요.":"Bright cranberry-like tartness and red-berry aroma, finishing slightly dry.","볶은 보리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.":"Toasty roasted barley, mild and smooth, with a gentle sweetness.","꿀과 마른 나무를 닮은 달큰한 향에 부드럽고 순한 맛이 이어지는 허브차예요.":"Honey and dry wood on the nose, with a soft, mellow taste.","자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.":"Bright jasmine blossom first, backed by fresh green-tea grassiness and a soft sweetness.","곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.":"Finely ground leaves give a deep grassy, savory taste; after the soft foam, a pleasant bitterness and sweetness linger.","캔버스를 눌러 오늘의 찻방울 자리를 먼저 정해주세요":"Tap the canvas to place today's drop first","쓴·떫은맛":"Bitter·Astringent","이런 이미지로 저장돼요.":"This is the image you'll save.","다운로드":"Download","이미지를 만들지 못했어요":"Couldn't create the image","저장될 Tea Tag 이미지":"Tea Tag image preview","개완으로 우려요":"Brew gongfu-style","머그컵으로 우려요":"Brew in a mug","개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.":"Gongfu style: short, repeated infusions.\nTaste and note each one.","15 – 25초":"15 – 25 sec","찻잎 5 – 7g (개완 100ml)":"5 – 7 g leaves (100 ml gaiwan)","첫 물은 찻잎을 깨우듯 헹궈 버려주세요":"Rinse the leaves with the first pour","우릴 때마다 5 – 10초씩 늘려가요.":"Add 5 – 10 sec each infusion.","같은 잎으로 다섯 번 넘게 우려도 좋아요. 우림마다 달라지는 향을 비교해보세요.":"The same leaves can go five rounds or more. Compare how the aroma changes.","이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.":"You could say things like these.\nTap one to put it in the box, then tweak it to fit.","비 온 뒤 숲길 같아요":"Like a forest path after rain","구운 빵처럼 고소해요":"Nutty like toasted bread","끝에 꿀 같은 단맛이 남아요":"A honey-like sweetness at the end","혀가 살짝 조이는 느낌이에요":"My tongue tightens a little","입안이 시원하게 맑아져요":"It feels cool and clean","베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.":"Zesty bergamot citrus comes first, backed by black tea's mellow sweetness and a soft floral note.","청포도를 닮은 머스캣 향과 가벼운 꽃향이 산뜻하게 퍼지고, 맑고 가볍게 마무리되는 홍차예요.":"A muscat-grape aroma and light florals spread brightly, finishing clean and light.","몰트처럼 진하고 고소한 향에 묵직한 바디감, 기분 좋은 떫은맛이 이어지는 홍차예요.":"Rich, malty and nutty with a full body and a pleasant astringency.","난꽃을 닮은 맑은 꽃향에 크리미하고 매끄러운 질감, 삼킨 뒤 단맛이 길게 도는 우롱차예요.":"A clear orchid-like floral aroma, creamy smooth texture, and a long sweet finish.","꿀과 잘 익은 복숭아를 닮은 달콤한 향, 부드러운 과일 단맛이 오래 남는 우롱차예요.":"Sweet notes of honey and ripe peach, with a soft fruity sweetness that lingers.","볶은 현미의 구수함과 녹차의 산뜻한 풀향이 어우러진, 순하고 편안한 차예요.":"Toasty roasted rice meets fresh green-tea grassiness — mild and comforting.","사과를 닮은 달콤한 꽃향에 부드럽고 포근한 맛이 이어지는 허브차예요.":"A sweet, apple-like floral aroma with a soft, cozy taste.","입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.":"Cooling, crisp mint with a clean finish.","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon","불향이 묵직하게 남은 바위차":"A rock oolong with a deep roasty finish","머스캣 향이 산뜻했던 오후":"A bright afternoon of muscat notes","구운 듯 고소한 향":"Toasty aroma","묵직한 여운":"Heavy finish","청포도 같은 향":"Like green grapes","산뜻하고 가벼워요":"Bright and light","첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.":"Smoky at first; sweetness came through by the third cup.","우유 없이 마시는 게 더 좋았다. 향이 오래 남음.":"Better without milk. The aroma lingers.",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
@@ -2805,7 +2806,7 @@ setInterval(()=>{
 
 /* 팀원용 숨은 단축키: Ctrl+Alt+D 도구 패널 · Ctrl+Alt+Shift+0 기록 초기화 */
 addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ const m=document.querySelector('.actmenu'); if(m){ m.remove(); return; } if($('#sheetWrap').classList.contains('open')){ e.preventDefault(); closeSheet(); return; } }   // Esc로 시트 닫기
+  if(e.key==='Escape'&&dismissOverlay()){ e.preventDefault(); return; }   // Esc로 메뉴·시트 닫기
   if(!(e.ctrlKey&&e.altKey)) return;
   if(e.code==='KeyD' && !e.shiftKey){ e.preventDefault(); $('#dev').classList.toggle('show'); }
   if(e.code==='Digit0' && e.shiftKey){ e.preventDefault(); if(confirm('관람객 기록을 모두 지우고 예시 기록만 남길까요?')) resetAll(); }
@@ -2813,8 +2814,9 @@ addEventListener('keydown',e=>{
 
 /* boot */
 try{ history.scrollRestoration='manual'; scrollTo(0,0); history.replaceState({tc:0},''); }catch(e){}
+function dismissOverlay(){ const m=document.querySelector('.actmenu'); if(m){ m.remove(); return true; } if($('#sheetWrap').classList.contains('open')){ closeSheet(); return true; } return false; }
 addEventListener('popstate',()=>{
-  if($('#sheetWrap').classList.contains('open')||document.querySelector('.actmenu')){ const m=document.querySelector('.actmenu'); if(m) m.remove(); else closeSheet(); history.pushState({tc:S.stack.length},''); return; }
+  if(dismissOverlay()){ history.pushState({tc:S.stack.length},''); return; }
   if(cur()==='chat'&&recording()){ history.pushState({tc:S.stack.length},''); askQuit(); return; }
   NAV_DIR='back'; if(S.stack.length>1){ S.stack.pop(); render(); } else if(cur()!=='home') go('home',{},{reset:true}); });
 go('home',{},{reset:true});
