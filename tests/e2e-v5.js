@@ -79,8 +79,11 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   await ev(()=>openDetail(S.records[0].id)); await wait(1500); await snap('detail');
   ok(await ev(()=>/그날의 이야기/.test(document.body.innerText)&&/찻물 색/.test(document.body.innerText)&&/마신 시간/.test(document.body.innerText)),'상세: 그날의 이야기 · 찻물 색 · 마신 시간');
   await ev(()=>go('canvas',{tab:'list'},{reset:true})); await wait(600);
-  await p.click('.fchip.flc >> text=Floral'); await wait(500);
+  await p.click('.ficon[aria-label="풍미 필터"]'); await wait(400); await p.click('#flSheet .fchip.flc >> text=Floral'); await wait(300); await p.click('#sheet .btn'); await wait(500);
+  ok(await ev(()=>!!document.querySelector('.achip')),'고른 풍미가 검색창 아래 칩으로');
   ok(await ev(()=>filtered().every(r=>(r.flavors||[]).some(f=>f.k==='floral'))),'풍미 필터(Floral)');
+  await p.click('.ficon[aria-label="기간"]'); await wait(400); await p.fill('#dFrom','2020-01-01'); await p.fill('#dTo','2020-01-02'); await p.click('#sheet .btn'); await wait(500);
+  ok(await ev(()=>S.filter.date==='range'&&!filtered().length),'달력으로 기간 정하기'); await ev(()=>{ S.filter.date='all'; rerender(); }); await wait(300);
 
   console.log('음성 탭 · 그만하기/이어하기');
   await ev(()=>{ startRecord(); }); await say('철관음'); await chip('맞아요'); await chip('바로 마실게요');
