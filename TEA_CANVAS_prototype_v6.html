@@ -437,12 +437,13 @@ canvas.wcd.big{margin:14px auto}
 .dhead span{display:block}
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.tagline{display:block;width:100%;background:none;font:inherit;color:inherit;cursor:pointer}.tagline .pen{display:inline-flex;vertical-align:-3px;opacity:.45}.tagline .pen svg{width:15px;height:15px}
 .pinimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--g0);display:block;overflow:hidden}.pinimg svg{width:100%;height:100%;display:block}
 .leaves .off{color:#DADADA;display:inline-flex;gap:1px}
 .scr-chat .stepbar{box-shadow:0 -12px 0 #fff}.scr-chat .tearow.pin{margin-top:0;top:43px;box-shadow:0 -8px 0 #fff}
 .stepbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
 .flow{display:flex;align-items:center;gap:5px;font-size:11px;color:#BDBDBD;white-space:nowrap}.flow i{width:8px;height:1px;background:#DADADA}.flow .ok{color:#8A8A8A}.flow .on{color:#111;font-weight:700}
-.cvleg .help{width:18px;height:18px;border-radius:50%;border:1px solid #C9C9C9;color:#8A8A8A;font-size:11px;line-height:16px;text-align:center;font-weight:700;flex-shrink:0}
+.ht{display:flex;align-items:center;justify-content:center;gap:8px}.ht .help,.cvleg .help{width:18px;height:18px;border-radius:50%;border:1px solid #C9C9C9;color:#8A8A8A;font-size:11px;line-height:16px;text-align:center;font-weight:700;flex-shrink:0}
 .cvhelp .row{display:flex;gap:12px;align-items:flex-start;margin-top:14px;font-size:13.5px;line-height:1.55}.cvhelp .row b{display:block;font-size:14px}
 .cvhelp .sw{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px}.cvhelp .sw span{display:flex;align-items:center;gap:7px;font-size:12.5px}.cvhelp .sw i{width:12px;height:12px;border-radius:50%}
 .btn.off{opacity:.35}
@@ -462,7 +463,7 @@ canvas.wcd.big{margin:14px auto}
 .actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button.danger{color:#D6453D}.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
-.vmark{margin-right:5px;font-size:14px}
+.vmark{display:inline-flex;vertical-align:-3px;margin-right:4px;color:#111}.vmark svg{width:15px;height:15px}
 .vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
@@ -1044,8 +1045,8 @@ function timerBtnText(){
 /* 두 축 캔버스: 가로 = 마시기 전 코로 맡은 향, 세로 = 마신 뒤 입에 남은 맛 */
 /* 캔버스는 네모 한 장. 축 대신 아래에 한 줄로: 오른쪽일수록 향, 위일수록 맛이 좋아요 */
 const cvLegend=()=>(PREF.lang==='en'?`<div class="cvleg"><span><svg width="16" height="10" viewBox="0 0 16 10"><path d="M1 5h13M10 1.5L14 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>Further right: better <b>aroma</b></em></span><span><svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13V1.5M1.5 5L5 1.5 8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>Higher: better <b>taste</b></em></span></div>`:`<div class="cvleg"><span><svg width="16" height="10" viewBox="0 0 16 10"><path d="M1 5h13M10 1.5L14 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>오른쪽일수록 <b>향</b>이 좋아요</em></span><span><svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13V1.5M1.5 5L5 1.5 8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>위쪽일수록 <b>맛</b>이 좋아요</em></span></div>`).replace(/<\/div>$/,'<button class="help" onclick="openCanvasHelp()" aria-label="캔버스 읽는 법">?</button></div>');
-function canvasBox(id,{labels=true,cls=''}={}){
-  return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas></div>${labels?cvLegend():''}`;
+function canvasBox(id,{labels=true,cls='',help=false}={}){
+  return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas></div>${labels?(help?cvLegend():cvLegend().replace(/<button class="help"[^]*?<\/button>/,'')):''}`;
 }
 const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
 /* 가운데 가로·세로 기준선(글자 없이). 설명은 캔버스 아래 한 줄 */
@@ -1260,7 +1261,7 @@ analyzing(){
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>
-  <button class="link" style="margin-top:6px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
+  <button class="link" style="margin-top:64px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
 compare(){
@@ -1302,7 +1303,7 @@ fullChat(p){
   return `${stepbar(4)}
   <h1 class="t">전체 대화 보기</h1><p class="sub">차를 마시며 나눈 이야기를 다시 확인해요.</p>
   <div id="msgs" style="margin-top:16px">${
-    chat.length? chat.filter(m=>m.text||m.img).map(m=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.who==='me'&&(m.voice||voice.includes(m.text))?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`
+    chat.length? chat.filter(m=>m.text||m.img).map(m=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.who==='me'&&(m.voice||voice.includes(m.text))?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`
   }</div>
   <div class="spacer"></div>
   <button class="btn" onclick="back()">기록으로 돌아가기</button>`;
@@ -1319,7 +1320,7 @@ teaTag(){
     <div class="nm">${esc(r.name)}</div>
     <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
-    ${r.comment?`<div class="line">“${esc(r.comment)}”</div>`:''}
+    <button class="line tagline" onclick="openCmtSheet('${r.id}')">${r.comment?`“${esc(r.comment)}”`:'<span class="muted">+ 한 줄 남기기</span>'} <span class="pen">${I.pen}</span></button>
   </div>
   <p class="hint" style="margin-top:12px">Tea Tag는 내 표현에서 찾은 풍미로 만들어져요.</p>
   <div class="spacer"></div>
@@ -1349,7 +1350,7 @@ canvas(p){
   const fav=favDrop();
   return `${seg}
   <h2 class="cv-q">${S.records.length}잔의 찻방울이 물든<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
-  ${canvasBox('bigCv',{cls:'scrollable'})}
+  ${canvasBox('bigCv',{cls:'scrollable',help:true})}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
   ${fav?`<canvas id="favCv"></canvas><div class="fav-en">${fav.all.map(f=>`<span style="color:${inkText(f.c)}">${HOME_EN[f.k]}</span>`).join('')}</div><p class="fav-s">${fav.title}. ${fav.desc}</p><div id="recBox">${recHTML(recommendTeas(fav.all))}</div>`
       :`<p class="fav-s">향도 맛도 좋았던 차가 모이면,<br>그 풍미로 나의 취향 찻방울을 만들어요.</p>`}</section>
@@ -1382,7 +1383,7 @@ detail(p){
   <div class="sec-row"><h3 class="sec">캔버스 속 위치</h3><button class="pillbtn" onclick="openMoveSheet('${r.id}')">위치 옮기기</button></div>
   ${canvasBox('detCv',{cls:'sm scrollable'})}
   ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
-  <div class="memo"><h4>MEMO</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
+  <div class="memo"><h4>대화에서 남긴 말</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
     ${info.length?`<dl>${info.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div>
   ${r.chat&&r.chat.length?`<button class="link" onclick="go('fullChat',{id:'${r.id}'})">대화 기록 보기 ›</button>`:''}
   <div style="height:24px"></div>`;
@@ -1490,12 +1491,13 @@ function quitRecord(keep,quiet){
 }
 function resumeRecord(){
   const lv=loadLive(), v=lv||loadPaused(); if(!v){ rerender(); return toast('이어할 기록을 찾지 못했어요'); } if(lv) clearLive(); else savePaused(null);
+  S.ask={hd:v.draft.stage==='color'&&TC_GUESS[v.draft.type]?[...TC_GUESS[v.draft.type]]:null,sel:[]};
   if(v.timer&&v.timer.running!==false&&v.at) v.timer.left=Math.max(0,v.timer.left-Math.round((Date.now()-v.at)/1000));   // 나가 있던 동안에도 차는 계속 우러났다
   // 예전 버전에서 멈춘 기록(지금은 없는 화면)이면 채팅으로 이어간다
   const OLD=['teaInput','teaConfirm','searchError','brew','feel','depth','deepBrew','deepOrigin','deepTemp','deepMemo'];
   let stack=v.stack.filter(x=>x&&SCREENS[x.name]&&!OLD.includes(x.name)); if(!stack.length||!['chat','organizing','analyzing','compare'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
   if(['organizing','analyzing'].includes(stack[stack.length-1].name)) stack=[{name:'chat',params:{}}];
-  closeSheet(); stopTimer(); S.draft=v.draft; S.timer=v.timer&&v.timer.left>0?{...v.timer,running:v.timer.running!==false}:null; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; render(); if(S.draft.stage==='wait'||S.draft.stage==='wait2') talkNext(2500);
+  closeSheet(); stopTimer(); S.draft=v.draft; S.timer=v.timer&&v.timer.left>0?{...v.timer,running:v.timer.running!==false}:null; S.chatMode=v.chatMode||'chat'; S.listening=false; NAV_DIR='fade'; S.stack=stack; try{ history.pushState({tc:S.stack.length},''); }catch(e){} render(); if(S.draft.stage==='wait'||S.draft.stage==='wait2') talkNext(2500);
 }
 function askDropPaused(){ openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">작성 중인 기록을 지울까요?</h1><p class="sub">지우면 다시 이어할 수 없어요.</p><div style="height:22px"></div>
   <button class="btn" style="background:#D6453D" onclick="closeSheet();dropPaused()">지우기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`); }
@@ -1562,6 +1564,12 @@ const FREE_NUDGES=['한 모금 머금고 3초만 기다렸다가 넘겨보세요
 const FREE_NUDGE='천천히 마시고 있네요.\n식으면서 달라지는 맛이 있다면 편하게 들려주세요.';
 const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는 여운이 있었나요?';
 function showExprHint(){ const d=S.draft; d.chat.push({who:'bot',hint:true,text:'이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요'}); paintMsgs(); }
+/* 맞장구: 들은 풍미를 살짝 되짚거나, 짧게 공감만. 같은 말이 이어지지 않게 돌려 쓴다 */
+const ACK=['음, 그렇군요.','아, 좋네요.','그 느낌 알 것 같아요.','네, 천천히 즐겨요.','음, 좋은 한 모금이네요.'];
+const ACK_FL=[l=>`음, ${l}${josa(l,'이','가')} 느껴지는군요.`,l=>`아, ${l}. 좋네요.`,l=>`그 ${l}, 저도 좋아해요.`];
+function ackLine(d,text){ const n=d.ackN=(d.ackN||0)+1, fl=matchFlavors(text);
+  if(fl.length){ const l=FLAVORS[fl[0]].label; return ACK_FL[n%ACK_FL.length](l); }
+  return ACK[n%ACK.length]; }
 function freeEnough(){ const d=S.draft; if(S.typing) return; S.endAt=Date.now(); d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'}); d.stage='after';
   botSay({who:'bot',text:AFTER_ASK,after:true},500); }
 setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
@@ -1882,7 +1890,7 @@ function paintMsgs(keep){
   const box=$('#msgs'), d=S.draft; if(!d) return;
   if(!box) return;
   const msgs=d.chat;
-  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.who==='me'?(m.ans&&isEN()?String(m.text).split(', ').map(L).join(', '):m.text):L(m.text))}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
+  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.who==='me'?(m.ans&&isEN()?String(m.text).split(', ').map(L).join(', '):m.text):L(m.text))}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'); if(inp) inp.placeholder=L(d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요');
   const v=$('#view'); if(!keep) v.scrollTop=v.scrollHeight;
@@ -1894,7 +1902,7 @@ function actsHTML(d){ const msgs=d.chat.filter(m=>m.who!=='sys'), tail=msgs[msgs
     + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(L(c))}</button>`).join('')}</div>`:'')
     + (S.typing?'<div class="msg bot typing">'+L('생각하는 중이에요.')+'</div>':'')
     + (!S.typing&&last&&last.who==='bot'&&d.talkPending&&(last.talk===d.talkPending||tail.qa)?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">${L('건너뛸게요')}</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">${L('벌써 다 우렸어요')}</button>`:''}</div>`:'')
-    + (!S.typing&&last&&last.who==='bot'&&last.wait&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">${L('벌써 다 우렸어요')}</button></div>`:'')
+    + (!S.typing&&last&&last.who!=='me'&&!d.talkPending&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">${L('벌써 다 우렸어요')}</button></div>`:'')
     + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
     + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${L(l)}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">${L('이제 정리할게요')}</button></div>`:'')
     + (!S.typing&&d.stage==='free'&&!(d.chat.some(m=>m.hint))?`<div class="chips"><button class="chip" onclick="showExprHint()">${L('표현이 막히면?')}</button></div>`:'')
@@ -1919,7 +1927,7 @@ function textIntent(d,text){
     if(W&&d.talkPending&&/^(skip|pass|next)/.test(e)) return ()=>talkAnswer('',true);
     if(W&&S.timer&&S.timer.left>0&&/(already brewed|it's ready|its ready|done brewing|it's done|finished brewing)/.test(e)) return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); };
     if((d.stage==='aroma'||d.stage==='taste')&&/^(i'm not sure|im not sure|not sure|i don't know|i dont know|no idea)/.test(e)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
-    if(d.stage==='free'&&/^(that's enough|thats enough|enough|i'm done|im done|done|finished|that's it)/.test(e)) return ()=>freeEnough();
+    if(d.stage==='free'&&/(that's enough|thats enough|^enough|i'm done|im done|^done|finished|that's it|all done|i drank it all|no more)/.test(e)) return ()=>freeEnough();
     if(d.stage==='more'&&/(wrap up|finish|done|that's all|nothing|no more|let's wrap)/.test(e)) return ()=>morePick('done');
   }
   if(d.stage==='teaOK'){ if(/^(네|예|응|웅|그래|맞아|맞아요|맞습니다|맞네|좋아요|ㅇㅇ)[.!~요]*$/.test(t)||/^(네|예|응),?맞/.test(t)) return ()=>teaChip('맞아요'); if(start(/^(아니|아뇨|다시|틀렸)/)) return ()=>teaChip('다시 적을게요'); }
@@ -1929,7 +1937,7 @@ function textIntent(d,text){
   if(W&&d.talkPending&&start(/^(건너뛸|건너뛰|패스|넘어가|다음으로|다음질문)/)) return ()=>talkAnswer('',true);
   if(W&&S.timer&&S.timer.left>0&&start(/^(벌써)?다우렸|^다됐|^다우러졌|^벌써다/)){ return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); }; }
   if((d.stage==='aroma'||d.stage==='taste')&&start(/^(잘)?모르겠/)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
-  if(d.stage==='free'&&start(/^(이제)?(충분해|충분히마셨|그만할|다마셨|끝낼게|마칠게)/)) return ()=>freeEnough();
+  if(d.stage==='free'&&t.length<=22&&/(충분|다마셨|다먹었|그만마실|그만할|끝낼게|마칠게|이제됐|다비웠|잘마셨)/.test(t)&&!matchFlavors(t).length) return ()=>freeEnough();
   if(d.stage==='more'){ if(start(/^(이제)?(정리할|정리해|끝낼|끝내|그만할|마칠|없어요|없어|됐어요|됐어)/)) return ()=>morePick('done'); const m=MORE.find(([k,l])=>t.startsWith(l.split(' ')[0])); if(m) return ()=>morePick(m[0]); }
   return null; }
 /* 말로 한 색: '연한 연두색이에요' → 색 점도 함께 */
@@ -1949,7 +1957,7 @@ function sendMsg(text,isChip){
   if(d.stage==='free'||((d.stage==='wait'||d.stage==='wait2')&&!d.talkPending)){
     const fix=/(아니라|아니고|말고)/.exec(text), prev=[...d.chat].reverse().find(m=>m.who==='me'&&m.kept&&!m.fix);
     if(fix&&prev){ const after=matchFlavors(text.slice(fix.index+fix[0].length)); if(after.length){ prev.fl=after; d.chat.push({who:'me',text,kept:true,fix:true}); d.lastMeAt=Date.now(); return paintMsgs(); } }
-    d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); return paintMsgs(); }  // 끼어들지 않고 담기만
+    d.chat.push({who:'me',text,kept:true}); d.lastMeAt=Date.now(); if(VOICE.on&&d.stage==='free') return botSay({who:'bot',text:ackLine(d,text),ack:true},450); return paintMsgs(); }  // 끼어들지 않고 담기만
   if(d.stage==='after'){ const none=/^(딱히)?없|^모르겠|^글쎄/.test(text.replace(/\s/g,''))||/^(no|nothing|not really|nope|i don't know)/i.test(text.trim()); d.chat.push({who:'me',text,ans:none?'nav':undefined}); d.stage='more'; return botSay(moreMsg(none?'좋아요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.':'그 여운도 함께 담아둘게요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),600); }
   d.chat.push({who:'me',text}); if(isChip && text!=='잘 모르겠어요') d.picked.push(text);
   S.typing=true; paintMsgs();
@@ -2095,10 +2103,11 @@ function myExpression(d){
 function openCanvasSheet(){
   const d=S.draft; ensureFlavors(d);
   openSheet(`<div class="grab"></div>
-    <h1 class="t">캔버스에 찻방울 찍기</h1>
+    <h1 class="t ht">캔버스에 찻방울 찍기<button class="help" onclick="openCanvasHelp()" aria-label="캔버스 읽는 법">?</button></h1>
     <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})" aria-label="찻잎 ${i}개">${LEAF}</button>`).join('')}</div></div>
+    <h3 class="sec" style="margin:14px 0 0">한 줄 남기기 <small class="muted" style="font-weight:400">· 사진도 함께 남길 수 있어요</small></h3>
     <div class="cmtrow"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}"></div><button class="addphoto sq" id="photoBtn" onclick="togglePhoto()" aria-label="사진 찍기 · 고르기">${photoBtnHTML(d)}</button></div>
     <div style="height:16px"></div>
     <button class="btn ${d.canvas?'':'off'}" id="saveBtn" onclick="saveRecord()">저장하고 완료하기</button>
@@ -2163,6 +2172,11 @@ function openCanvasHelp(){ openSheet(`<div class="grab"></div><h1 class="t">캔�
   <div class="row"><div><b>크기</b>‘엄청’처럼 크게 느낀 맛은 크게, ‘살짝’ 느낀 맛은 작게 번져요.</div></div>
   <div class="row"><div><b>찻방울 하나</b>차 한 잔의 기록이에요. 누르면 그 기록이 열려요.</div></div></div>
   <div style="height:16px"></div><button class="btn" onclick="closeSheet()">알겠어요</button>`); }
+function openCmtSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return;
+  openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">한 줄 남기기</h1><p class="sub">오늘의 차를 한 줄로 남겨보세요.</p>
+    <div class="cmtrow" style="margin-top:18px"><div class="box"><input id="cmtEdit" maxlength="40" placeholder="예: 비 오는 날 딱 좋았던 차" value="${esc(r.comment||'')}"></div></div>
+    <div style="height:18px"></div><button class="btn" onclick="const r=S.records.find(x=>x.id==='${id}'); r.comment=$('#cmtEdit').value.trim(); persist(); closeSheet(); rerender(); toast('한 줄을 고쳤어요')">저장</button><button class="link" onclick="closeSheet()">취소</button>`);
+  setTimeout(()=>{ const i=$('#cmtEdit'); if(i) i.focus(); },300); }
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
@@ -2221,7 +2235,7 @@ Object.assign(EN,{
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요":"You could say things like:\n· Like a forest path after rain\n· Nutty like toasted bread\n· A honey-like sweetness at the end\n· My tongue tightens a little\n· It feels cool and clean","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","한 줄 남기기":"Leave a note","· 사진도 함께 남길 수 있어요":"· you can add a photo too","+ 한 줄 남기기":"+ Leave a note","오늘의 차를 한 줄로 남겨보세요.":"Sum up today's tea in one line.","예: 비 오는 날 딱 좋았던 차":"e.g. Perfect for a rainy day","한 줄을 고쳤어요":"Note updated","대화에서 남긴 말":"From the conversation","음, 그렇군요.":"Mm, I see.","아, 좋네요.":"Oh, nice.","그 느낌 알 것 같아요.":"I think I know that feeling.","네, 천천히 즐겨요.":"Yes, take your time.","음, 좋은 한 모금이네요.":"Mm, a good sip.","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요":"You could say things like:\n· Like a forest path after rain\n· Nutty like toasted bread\n· A honey-like sweetness at the end\n· My tongue tightens a little\n· It feels cool and clean","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon","불향이 묵직하게 남은 바위차":"A rock oolong with a deep roasty finish","머스캣 향이 산뜻했던 오후":"A bright afternoon of muscat notes","구운 듯 고소한 향":"Toasty aroma","묵직한 여운":"Heavy finish","청포도 같은 향":"Like green grapes","산뜻하고 가벼워요":"Bright and light","첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.":"Smoky at first; sweetness came through by the third cup.","우유 없이 마시는 게 더 좋았다. 향이 오래 남음.":"Better without milk. The aroma lingers.",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
@@ -2236,6 +2250,7 @@ Object.assign(EN,{
  "꽃, 자스민, 장미 같은 향":"like flowers, jasmine, rose","사과, 복숭아처럼 상큼한":"crisp like apple and peach","레몬, 유자처럼 산뜻한":"bright like lemon and yuja","갓 벤 풀처럼 싱그러운":"fresh like cut grass","민트처럼 시원하고 깔끔한":"cool and clean like mint","볶은 곡물처럼 고소한":"nutty like toasted grain","꿀, 캐러멜처럼 달큰한":"sweet like honey and caramel","흙, 나무처럼 묵직한":"deep like earth and wood","계피, 생강처럼 알싸한":"warm like cinnamon and ginger","둥글고 포근한":"round and cozy","쌉쌀하고 떫은":"bitter and astringent",
 });
 EN_RE.push(
+ [/^음, (.+?)(?:이|가) 느껴지는군요\.$/,(m,a)=>`Mm, you're getting ${(EN[a]||a).toLowerCase()}.`],[/^아, (.+)\. 좋네요\.$/,(m,a)=>`Oh, ${(EN[a]||a).toLowerCase()}. Nice.`],[/^그 (.+), 저도 좋아해요\.$/,(m,a)=>`I love that ${(EN[a]||a).toLowerCase()} too.`],
  [/^‘(.+)’을 이어서 할까요\?$/,(m,a)=>`Continue ‘${EN[a]||a}’?`],[/^새로 시작하면 작성 중인 기록은 지워져요\.$/,()=>'Starting new deletes the draft.'],
  [/^찻방울에는 가장 진한 (\d+)가지 색이 담겨요$/,(m,a)=>`The drop shows the ${a} strongest colors`],
  [/^나는 ‘(.+)’라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
@@ -2380,7 +2395,8 @@ function animCanvas1(cv,recs,hl){
     const order=hl?[...recs.filter(r=>r.id!==hl),...recs.filter(r=>r.id===hl)]:recs;
     order.forEach((r,i)=>{ const lt=(T-start(r,recs.indexOf(r)))*k; if(lt<=0){ busy=true; return; } if(lt<END) busy=true;
       drawRec1(x,recFlav(r),r.canvas.x*px,r.canvas.y*px,R1(px),r.id,Math.min(END,lt),.88); });
-    if(busy) requestAnimationFrame(loop); })(t0);
+    if(hl&&T>.8){ const r=recs.find(q=>q.id===hl); if(r){ x.save(); x.strokeStyle='rgba(0,0,0,.45)'; x.setLineDash([px/160,px/160]); x.lineWidth=Math.max(1,px/300); x.beginPath(); x.arc(r.canvas.x*px,r.canvas.y*px,R1(px)*1.25,0,7); x.stroke(); x.restore(); } }
+    if(busy||(hl&&T<1.2)) requestAnimationFrame(loop); })(t0);
   return hl?1.3+END/k:(recs.length-1)*step+END/k;
 }
 function animFav1(cv,L,id,delay,rk=.22){
