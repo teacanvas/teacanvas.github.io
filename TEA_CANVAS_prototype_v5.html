@@ -509,6 +509,20 @@ canvas.wcd.big{margin:14px auto}
 .dhead span{display:block}
 
 /* analysis infusion */
+.pickfit{max-width:100%;margin:0 auto}
+.rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
+/* 키 작은 폰: 여백과 글자를 줄여 한 화면에 */
+@media (max-height:760px){
+  .scr{padding-bottom:12px}.stepbar{height:38px;margin-bottom:4px}
+  .voiceorb{margin:4px auto 6px}.vbot{font-size:14.5px;line-height:1.5;margin-top:4px;min-height:0}.heard{margin-top:4px}
+  .scr-chat>.hint{display:none}.scr-chat .link{padding-top:6px;padding-bottom:6px}
+  .rowlink{padding:12px 16px;margin-top:8px}
+  .sheet{padding-bottom:14px}.sheet .sub{font-size:12px}.axisguide{margin:8px 0 6px}.sheet h3.sec{margin-top:8px!important}.stars{margin:2px 0}.stars button{font-size:22px}
+  .sheet .addphoto{height:44px}.sheet .btn{height:48px}
+  .profile{margin:12px 0 4px}.setrow{margin-top:7px}.statrow>div{padding-top:10px;padding-bottom:10px}
+  .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
+}
+.stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
 .infuse{position:relative;height:330px;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
 .infuse #inf3d{margin-bottom:6px}
 .floatzone{position:absolute;left:0;right:0;top:0;height:150px;pointer-events:none}
@@ -996,7 +1010,9 @@ function render(keepScroll){
     view.scrollTop = keepScroll ? top : 0;
     const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
     document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+    fitIn(view);
     (AFTER[cur.name]||(()=>{}))(cur.params||{});
+    fitIn(view,false);
     paintDrops(view);
   }catch(e){ console.warn('화면 오류',e); view.innerHTML=`<div class="scr scr-error in-fade">${SCREENS.error({})}</div>`; }
 }
@@ -1181,7 +1197,7 @@ chat(){
     return `${head}
     <p class="vstate" id="vState"></p>
     <p class="vbot" id="vBot"></p>
-    <button class="voiceorb" onclick="toggleVoice()" aria-label="음성 대화"><canvas id="vwash"></canvas></button>
+    <button class="voiceorb" data-fit="240,110" onclick="toggleVoice()" aria-label="음성 대화"><canvas id="vwash"></canvas></button>
     <p class="heard" id="vHeard"></p>
     <div class="vw-fl" id="vFl"></div>
     <button class="btn dark" id="vBtn" style="width:80%;margin:6px auto 0" onclick="toggleVoice()">눌러서 대화 시작</button>
@@ -1209,7 +1225,7 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse"><div class="floatzone" id="floatzone"></div><div id="inf3d" style="width:236px;height:236px"></div></div>
+  <div class="infuse" data-fit="330,200,h"><div class="floatzone" id="floatzone"></div><div id="inf3d" data-fit="236,130" style="width:236px;height:236px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
@@ -1231,8 +1247,8 @@ compare(){
   <div class="cmp"><div class="lb">${I.swap}차이점</div><div class="bd" id="cmpDiff"><ul>${t.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
   <div class="cmp"><div class="lb">${I.spark}AI 해석</div><div class="bd" id="cmpAI">두 기록 모두 ${t.common[0]}과 ${t.common[1]}의 인상을 담고 있어요. 전문 설명은 향의 종류를 구체적으로, 내 기록은 경험과 분위기를 중심으로 표현했어요.</div></div>
   <div class="spacer" style="min-height:22px"></div>
-  <button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button>
-  <button class="link u" onclick="back()">채팅으로 돌아가 더 남기기</button>`;
+  <button class="link u" onclick="back()">채팅으로 돌아가 더 남기기</button>
+  <div class="stickfoot"><button class="btn" onclick="openCanvasSheet()">캔버스에 찻방울 찍기</button></div>`;
 },
 
 done(){
@@ -1355,10 +1371,10 @@ my(){
   const last=n? S.records[0].date.slice(2).replace(/\.$/,'') : '-';
   return `
   <div class="profile"><div class="pimg">프로필<br>이미지</div><div><b>${esc(PREF.name||'사용자')} 님</b><p>@teacanvas-sprout<br>${n>=10?'잎새 이용자':'새싹 이용자'}</p></div></div>
-  <h3 class="sec" style="margin-top:28px">나의 아카이브</h3>
+  <h3 class="sec" style="margin-top:min(28px,3dvh)">나의 아카이브</h3>
   <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}
-  <h3 class="sec" style="margin-top:30px">설정</h3>
+  <h3 class="sec" style="margin-top:min(30px,3dvh)">설정</h3>
   ${matchMedia('(display-mode: standalone)').matches?'':`<button class="setrow install" onclick="installApp()"><img src="assets/icons/icon-192.png" alt="">앱으로 설치하기</button>`}
   ${[['chat','대화 기록 설정'],['app','앱 설정'],['noti','알림 설정'],['account','계정']].map(([k,l])=>`<button class="setrow" onclick="openSettings('${k}')">${l}</button>`).join('')}`;
 },
@@ -1845,7 +1861,8 @@ function paintVoice(botText){ const d=S.draft; if(!d) return;
   if(bt){ const lastBot=[...d.chat].reverse().find(m=>m.who==='bot'); bt.textContent=botText||(lastBot?lastBot.text:''); }
   if(hd) hd.textContent=VOICE.interim?`“${VOICE.interim}”`:'';
   if(bn) bn.textContent=VOICE.on?'대화 멈추기':'눌러서 대화 시작';
-  const fl=$('#vFl'); if(fl){ const ks=vwFlavors(); fl.innerHTML=ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join(''); } }
+  const fl=$('#vFl'); if(fl){ const ks=vwFlavors(); fl.innerHTML=ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join(''); }
+  fitIn($('#view'),false); }   // 말이 길어져 넘치면 원만 줄인다(커졌다 작아졌다 하지 않게)
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
 
@@ -1865,11 +1882,10 @@ function openCanvasSheet(){
     <h1 class="t">캔버스에 찻방울 찍기</h1>
     <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요. 다시 누르면 옮겨져요.</p>
     <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
-    ${canvasBox('pickCv')}
+    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
     <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 찻방울은 지난 기록이에요.'}</p>
-    <h3 class="sec" style="margin-top:18px">별점</h3>
-    <div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div>
-    <h3 class="sec" style="margin-top:12px">한 줄 코멘트</h3>
+    <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div></div>
+    <h3 class="sec cmt-h" style="margin-top:12px">한 줄 코멘트</h3>
     <div class="field" style="margin-top:0"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}"></div></div>
     <div style="height:12px"></div>
     <button class="addphoto" id="photoBtn" onclick="togglePhoto()">${photoBtnHTML(d)}</button>
@@ -2239,13 +2255,13 @@ function startHome3D(el){
 /* 기록 3D 방울: 드래그로 돌려보고, WebGL이 없으면 수채화 방울로 대신한다 */
 function mountDrop3D(el,drop,size){
   if(!el) return null;
-  const cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height=size+'px'; cv.className='wc-big';
+  const cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; cv.className='wc-big';
   el.innerHTML=''; el.appendChild(cv); const x=cv.getContext('2d'), t0=performance.now();
   const L=dropFlav(drop), sid=dropSid(drop), END=CV_SPREAD+1.4;
   (function f(now){ if(!cv.isConnected) return; const lt=(now-t0)/1000*1.9; x.clearRect(0,0,px,px); drawRec1(x,L,px/2,px/2,px*.36,sid,Math.min(END,lt),.95); if(lt<END) requestAnimationFrame(f); })(t0);
   return {};
 }
-const d3Box=(id,size,hint=false)=>`<div class="d3wrap"><div id="${id}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
+const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 3D를 못 쓰는 환경이면 수채화 방울로 대신한다 */
 function mountHomeDrop(el){
   if(!el) return;
@@ -2255,7 +2271,14 @@ function mountHomeDrop(el){
 }
 
 /* sheet */
-function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.add('open'); paintDrops($('#sheet')); }
+function openSheet(html){ $('#sheet').innerHTML=html; $('#sheetWrap').classList.add('open'); fitIn($('#sheet')); paintDrops($('#sheet')); }
+/* 폰 높이에 맞추기: 화면이 넘치면 data-fit="최대,최소,모양" 요소(찻방울·캔버스)를 넘친 만큼 줄여 스크롤 없이 한 화면에 */
+function fitIn(box,grow=true){ if(!box) return; const els=[...box.querySelectorAll('[data-fit]')]; if(!els.length) return;
+  const set=(e,v)=>{ const [,,m='sq']=e.dataset.fit.split(','); if(m!=='h') e.style.width=v+'px'; if(m!=='w') e.style.height=v+'px'; };
+  if(grow) els.forEach(e=>set(e,+e.dataset.fit.split(',')[0]));
+  els.forEach(e=>{ const over=box.scrollHeight-box.clientHeight; if(over<=0) return; const [,mn]=e.dataset.fit.split(',').map(Number), now=e.dataset.fit.endsWith(',h')?e.offsetHeight:e.offsetWidth; set(e,Math.max(mn,Math.floor(now-over)));  }); }
+function fitScreen(){ fitIn($('#view')); if($('#sheetWrap').classList.contains('open')) fitIn($('#sheet')); }
+addEventListener('resize',()=>{ clearTimeout(fitScreen.t); fitScreen.t=setTimeout(fitScreen,120); });
 function closeSheet(){ $('#sheetWrap').classList.remove('open'); }
 
 /* error */
