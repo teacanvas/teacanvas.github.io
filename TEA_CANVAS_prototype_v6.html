@@ -611,7 +611,7 @@ const FLAVORS = {
   earthy:    {label:'흙·나무향', color:'#6B5643', kw:['흙','나무','묵직','스모키','훈연','낙엽','가죽','깊은맛','깊은향','깊은풍미','깊고']},
   spicy:     {label:'스파이시', color:'#B8513A', kw:['계피','시나몬','생강','후추','스파이시','알싸','매콤']},
   soft:      {label:'부드러움', color:'#E3D3BF', kw:['부드러','둥글','둥근','따뜻','포근','편안','순하','매끄','은은']},
-  astringent:{label:'떫은맛',   color:'#8E8A4C', kw:['쓴','쓰다','떫','텁텁','씁쓸','쌉쌀']},
+  astringent:{label:'떫은맛',   color:'#8E8A4C', kw:['쓴','쓰다','떫','텁텁','씁쓸','쌉쌀','쌉싸름','쌉싸래']},
 };
 /* 감각 비유 낱말: '비 온 뒤 지하 주차장', '신발 주머니 꾸린내' 같은 나만의 표현도 가까운 풍미로 잇는다(띄어쓰기 없이 비교) */
 const KW_MORE={
@@ -631,7 +631,8 @@ Object.entries({sweet:['스윗','스위트'],soft:['소프트','스무스','부�
   fresh:['프레시','프레쉬'],nutty:['너티','넛티'],earthy:['얼씨','어씨','스모키'],spicy:['스파이시'],astringent:['떫','아스트린'] }).forEach(([k,a])=>(KW_MORE[k]=KW_MORE[k]||[]).push(...a));
 Object.entries(KW_MORE).forEach(([k,a])=>a.forEach(w=>{ if(!FLAVORS[k].kw.includes(w)) FLAVORS[k].kw.push(w); }));
 /* 나만의 표현: 풍미로 잇지 못한 말은 그대로 남긴다 */
-function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'').trim(); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
+let _CW; const chipWords=()=>_CW||(_CW=new Set(['더 부드러워졌어요','단맛이 늘었어요','향이 옅어졌어요','더 진해졌어요','비슷해요',...FEEL.aroma.opts,...FEEL.taste.opts]));   // 버튼 문구
+function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'').trim(); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)||chipWords().has(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
 const recOwn=r=>r.own||ownWords(r.exprs);
 const FKEYS = Object.keys(FLAVORS);
 const BASIC = {temp:'80 – 95°C', time:'2 – 5분', secs:180, amount:'찻잎 2g 또는 티백 1개', how:['처음엔 짧게, 점점 길게','맛을 보며 시간을 늘려보세요.'], tip:'잎차는 우릴수록 맛이 달라져요. 처음엔 짧게 시작해보세요.'};
@@ -1072,7 +1073,8 @@ const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font
 
 /* 표현 → 풍미 계열 */
 function matchFlavors(text){ const raw=String(text||''), t=raw.replace(/\s/g,''), lo=' '+raw.toLowerCase().replace(/[^a-z]+/g,' ')+' ';
-  return FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.includes(w))||(typeof FL_EN!=='undefined'&&FL_EN[k].some(w=>lo.includes(' '+w)))); }
+  const has=w=>{ let i=t.indexOf(w); while(i>=0){ if(!/(없|않|아니|별로|안나|안느)/.test(t.slice(i+w.length,i+w.length+7))) return true; i=t.indexOf(w,i+1); } return false; };   // 뒤에 '없/않/아니'가 붙으면 그 풍미는 빼기
+  return FKEYS.filter(k=>FLAVORS[k].kw.some(has)||(typeof FL_EN!=='undefined'&&FL_EN[k].some(w=>lo.includes(' '+w)&&!new RegExp('(no|not|without|hardly|barely)\\s+(any\\s+)?'+w).test(lo)))); }
 function collectExprs(d){
   const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
   ['aroma','taste'].forEach(k=>String((d.feel&&d.feel[k])||'').split(', ').forEach(add)); // 찻물 색은 찻방울 색에 넣지 않는다
@@ -1931,7 +1933,7 @@ function keptLabel(m,i){ if(m.fix) return `<span class="kept">${isEN()?'Changed 
   if(S.editMsg!==i) return `<button class="kept kept-btn" onclick="S.editMsg=${i};paintMsgs(true)">${lab} <u>${L('바꾸기')}</u></button>`;
   return `<div class="fl-edit"><p>${L('이 표현에 담긴 맛과 향을 골라주세요')}</p><div class="chips">${FKEYS.map(k=>`<button class="chip ${ks.includes(k)?'sel':''}" onclick="toggleMsgFl(${i},'${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]}</button>`).join('')}</div><button class="feelnext" onclick="S.editMsg=null;paintMsgs(true)">${L('다 골랐어요')}</button></div>`; }
 function toggleMsgFl(i,k){ const m=S.draft.chat[i]; const cur=msgFl(m).slice(); const j=cur.indexOf(k); j<0?cur.push(k):cur.splice(j,1); m.fl=cur; paintMsgs(true); }
-function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; sendMsg(t); }
+function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; syncSend(); sendMsg(t); }
 /* 말(또는 글)로 버튼을 대신하기: '네', '우림 시작할게요', '건너뛸게요', '이제 충분해요', '정리할게요'… */
 function textIntent(d,text){
   const raw=String(text).trim(), t=raw.replace(/\s/g,''), start=re=>re.test(t), W=d.stage==='wait'||d.stage==='wait2', e=raw.toLowerCase().replace(/[.!?,]/g,'').trim();
@@ -1997,8 +1999,8 @@ const DEEPQ={
     {q:()=>'다음에 우릴 때 바꿔보고 싶은 점이 있나요?',chips:()=>['더 짧게','더 길게','온도를 낮게','그대로가 좋아요'],
      set:t=>{ const b=S.draft.deep.brews, n=S.draft.dqN; b[n]={...(b[n]||{}),next:t}; }}],
   origin:[
-    {q:()=>'이 차의 산지를 알고 있다면 알려주세요.',chips:()=>['중국 운남','대만','제주','다르질링','잘 몰라요'],set:t=>{ S.draft.deep.origin=skip(t)?'':t; }},
-    {q:()=>'만든 해(빈티지)는요?',chips:()=>[String(new Date().getFullYear())+'년',String(new Date().getFullYear()-1)+'년','잘 몰라요'],set:t=>{ S.draft.deep.vintage=skip(t)?'':num(t); }}],
+    {q:()=>'이 차의 산지를 알고 있다면 알려주세요.',chips:()=>['중국 운남','대만','제주','다르질링','잘 몰라요'],set:t=>{ S.draft.deep.origin=skip(t)?'':t; const y=String(t).match(/(19|20)\d{2}/); if(y){ S.draft.deep.vintage=y[0]; S.draft.dq.i++; } }},
+    {q:()=>'만든 해(빈티지)는요?',chips:()=>{ const y=new Date().getFullYear(); return [0,1,2,3,5,10].map(n=>(y-n)+'년').concat('잘 몰라요'); },set:t=>{ S.draft.deep.vintage=skip(t)?'':num(t); }}],
   temp:[
     {q:()=>'물 온도는 몇 도였나요?',chips:()=>['70°C','80°C','90°C','100°C','잘 몰라요'],set:t=>{ S.draft.deep.temp=skip(t)?'':num(t); }},
     {q:()=>'얼마나 우렸나요?',chips:()=>{ const s=S.timer?S.timer.total:0; return [...new Set([s?`${Math.floor(s/60)}분${s%60?' '+s%60+'초':''}`:null,'1분','2분','3분','5분'].filter(Boolean))].concat('잘 몰라요'); },
