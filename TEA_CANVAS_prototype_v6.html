@@ -1909,6 +1909,8 @@ const EN={
  "찻잎 2g 또는 티백 1개":"2 g leaves or 1 tea bag","처음엔 짧게, 점점 길게":"Short at first, then longer","맛을 보며 시간을 늘려보세요.":"Taste and extend the time.","잎차는 우릴수록 맛이 달라져요. 처음엔 짧게 시작해보세요.":"Loose leaf changes with each brew. Start short.",
 };
 const EN_COLOR={'빨강':'red','주황':'orange','노랑':'yellow','초록':'green','파랑':'blue','남색':'indigo','보라':'purple','적갈색':'reddish brown','갈색':'brown','호박색':'amber','맑은 분홍빛':'pale pink','분홍빛':'pink','황금빛':'golden'};
+/* '바로 마실게요'로 앞머리('다 우려졌어요.')를 뗀 질문도 영어로 */
+Object.keys(EN).forEach(k=>{ const m=k.match(/^(?:차가 )?다 우려졌어요\.\s*([^]*)$/); if(m&&!EN[m[1]]) EN[m[1]]=String(EN[k]).replace(/^(It's ready|Your tea is ready)\.\s*/,''); });
 const EN_RE=[
  [/^‘(.+?)’(?: \((.+?)\))?, (.+?)(?:이|가) 맞나요\?$/,(m,a,b,c)=>`‘${a}’${b?` (${b})`:''} — is it ${(EN_TYPE_LABEL[c]||c).toLowerCase()}?`],
  [/^‘(.+?)’(?:은|는) 처음 보는 차예요\.\n어떤 종류에 가까운가요\?$/,(m,a)=>`I don't know ‘${a}’ yet.\nWhich type is it closest to?`],
