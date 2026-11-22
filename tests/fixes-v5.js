@@ -10,7 +10,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.goto(FILE); await ev(()=>localStorage.clear()); await p.reload(); await wait(600);
   console.log('사진');
   await ev(()=>startRecord()); await wait(500);
-  const fc1=p.waitForEvent('filechooser'); await p.click('#msgs .chip >> text=사진으로 찾기'); await (await fc1).setFiles(IMG); await wait(1500);
+  const fc1=p.waitForEvent('filechooser'); await p.click('#msgs .chip >> text=사진으로 찾기'); await p.click('.actmenu >> text=앨범에서 고르기'); await (await fc1).setFiles(IMG); await wait(1500);
   ok(await ev(()=>!!S.draft.photoData&&!!document.querySelector('.msg-img')),'차 이름 단계: 사진을 찍어 보내면 채팅에 보이고 기록 사진으로 담김');
   await say('철관음'); await p.click('#msgs .chip >> text=맞아요'); await wait(1200);
   console.log('말 알아듣기');

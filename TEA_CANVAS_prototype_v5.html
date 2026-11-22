@@ -340,7 +340,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .rec .chev{margin-left:auto}
 .aic{font-size:13.5px;line-height:1.8}
 .profile{display:flex;align-items:center;gap:20px;margin:22px 0 6px}
-.pimg{width:64px;height:64px;border-radius:50%;background:var(--g0);display:grid;place-items:center;font-size:11px;text-align:center;line-height:1.3;flex-shrink:0}
+.pimg{position:relative;width:64px;height:64px;border-radius:50%;background:#F6F4F1;display:grid;place-items:center;flex-shrink:0}.pimg>img,.pimg>canvas{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.pcam{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#fff;border:1px solid #E2E2E2;display:grid;place-items:center}.pcam svg{width:13px;height:13px}
 .profile b{font-size:18px}
 .profile p{font-size:13px;line-height:1.5}
 .statrow{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:6px}
@@ -454,7 +455,7 @@ canvas.wcd.big{margin:14px auto}
 /* 2-axis canvas */
 .cvbox{position:relative;width:100%;aspect-ratio:1/1;border:0;border-radius:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
-.cvbox.scrollable{touch-action:pan-y}.cvbox.scrollable canvas{cursor:pointer}   /* 보기용 캔버스: 위아래 스크롤은 되고, 톡 누르면 기록 열기 */
+.cvbox.scrollable,.cvbox.tapcv{touch-action:pan-y}.cvbox.scrollable canvas{cursor:pointer}   /* 보기용 캔버스: 위아래 스크롤은 되고, 톡 누르면 기록 열기 */
 .cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(255,255,255,.85);padding:0 4px;border-radius:4px}
 .cvbox .lbl.t{top:6px;left:50%;transform:translateX(-50%)}
 .cvbox .lbl.b{bottom:6px;left:50%;transform:translateX(-50%)}
@@ -491,8 +492,12 @@ canvas.wcd.big{margin:14px auto}
 .achip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 11px;border-radius:14px;background:#111;color:#fff;font-size:12.5px}
 .achip i{width:8px;height:8px;border-radius:50%}
 .dpre{display:flex;gap:8px;justify-content:center;margin-top:16px}.dpre .fchip{height:36px;padding:0 16px;font-size:14px;border-radius:18px}
-.drange{display:flex;align-items:flex-end;gap:8px}.drange label{flex:1;font-size:12px;color:var(--g2);display:flex;flex-direction:column;gap:6px}
-.drange input{height:44px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:14px;color:#111;width:100%}.drange span{padding-bottom:12px;color:#999}
+.cal{margin:14px 0 14px}.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.cal-h b{font-size:15px}.cal-h button{width:36px;height:36px;font-size:22px;color:#555}
+.cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}.cal-w span{font-size:11.5px;color:#999;padding:4px 0}
+.cal-g button{position:relative;height:40px;font-size:14px;border-radius:20px;color:#222}.cal-g button:disabled{color:#CFCFCF}
+.cal-g button.today{font-weight:800}.cal-g button.has::after,.cal-tip i{content:'';position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#B9A27E}
+.cal-g button.mid{background:var(--g0);border-radius:0}.cal-g button.pick{background:#111;color:#fff}.cal-g button.pick::after{background:#fff}
+.cal-tip{font-size:11.5px;color:#999;text-align:center;margin-top:8px}.cal-tip i{position:relative;display:inline-block;left:auto;bottom:auto;margin:0 2px 1px 0;vertical-align:middle}
 .fchip{height:29px;padding:0 12px;border-radius:15px;font-size:12.5px;border:1px solid #DCDCDC;color:#444;transition:background .15s,color .15s}
 .fchip.on{background:#111;border-color:#111;color:#fff}
 .flchips{display:flex;flex-wrap:wrap;gap:6px}
@@ -515,6 +520,15 @@ canvas.wcd.big{margin:14px auto}
 
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
+.actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
+.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
+.voiceorb{position:relative}
+.vpin{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--g2);margin:2px 0 2px}.vpin b{color:#111;font-size:14px;max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.vpin .pillbtn{margin:0}
+.scr-chat .vacts .askw.tc{padding-top:10px;padding-bottom:10px}.vmic{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.88);color:#111;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+.vmic.on{background:#111;color:#fff}
+.vacts{margin-top:4px}.vacts>.chips,.vacts>.askw{justify-content:center;margin-left:auto;margin-right:auto}.vacts .chips{justify-content:center}
+.vmark{display:inline-flex;vertical-align:-4px;margin-right:4px;opacity:.55}.vmark svg{width:16px;height:16px}
 .vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
@@ -983,6 +997,8 @@ const I = {
   pen:'<svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 19l1-4.5L15 3.5a2 2 0 0 1 3 0l.5.5a2 2 0 0 1 0 3L7.5 18zM13 6l3 3" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   down:'<svg width="16" height="18" viewBox="0 0 16 18"><path d="M8 1v11M3 7.5 8 12.5l5-5M1.5 16.5h13" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   arrow:'<svg width="22" height="16" viewBox="0 0 22 16"><path d="M1 8h19M13.5 1.5 20 8l-6.5 6.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mic:'<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="8" y="3" width="6" height="11" rx="3"/><path d="M4.8 10.5a6.2 6.2 0 0 0 12.4 0M11 16.8V19.5"/></svg>',
+  stop:'<svg width="20" height="20" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" rx="2.2" fill="currentColor"/></svg>',
   cal:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.8v3.4M13 2.8v3.4" stroke-linecap="round"/></svg>',
   filter:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M5.5 10.5h9M8 15h4"/></svg>',
   search:'<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5.2" fill="none" stroke="#737373" stroke-width="1.5"/><path d="M11 11l3.6 3.6" stroke="#737373" stroke-width="1.5" stroke-linecap="round"/></svg>',
@@ -1174,18 +1190,34 @@ function flRow(){ const a=S.filter.fl; return `<div class="flchips"><button clas
 /* 기록 목록: 달력 · 필터 아이콘 → 시트에서 고르기. 고른 조건은 검색창 아래 칩으로 보이고 ×로 지움 */
 const DATE_LB={all:'전체','1m':'1개월','3m':'3개월','1y':'올해'};
 const fmtD=v=>v?v.slice(2).replace(/-/g,'.'):'';
-function dateLabel(){ const f=S.filter; return f.date==='range'?`${fmtD(f.from)||'처음'} ~ ${fmtD(f.to)||'오늘'}`:DATE_LB[f.date]; }
+function dateLabel(){ const f=S.filter; return f.date==='range'?(f.from===f.to?fmtD(f.from):`${fmtD(f.from)} ~ ${fmtD(f.to)}`):DATE_LB[f.date]; }
 function activeChips(){ const f=S.filter, out=[];
   if(f.date!=='all') out.push(`<button class="achip" onclick="S.filter.date='all';rerender()">${dateLabel()} ✕</button>`);
   f.fl.forEach(k=>out.push(`<button class="achip" onclick="toggleFl('${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]} ✕</button>`));
   return out.length?`<div class="achips">${out.join('')}</div>`:''; }
-function openDateSheet(){ const f=S.filter, today=new Date().toISOString().slice(0,10);
+/* 기간: 1개월·3개월 같은 빠른 선택 + 달력에서 하루(한 번 누르기) 또는 며칠부터 며칠까지(두 번 누르기). 기록한 날엔 점 */
+const ymd=t=>{ const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+function openDateSheet(){ const f=S.filter, base=f.date==='range'&&f.from?new Date(f.from+'T00:00'):new Date();
+  S.cal={y:base.getFullYear(),m:base.getMonth(),a:f.date==='range'?f.from:'',b:f.date==='range'?f.to:''};
   openSheet(`<div class="grab"></div><h1 class="t">기간</h1>
     <div class="dpre">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${f.date===v?'on':''}" onclick="S.filter.date='${v}';closeSheet();rerender()">${t}</button>`).join('')}</div>
-    <h3 class="sec" style="margin-top:20px">직접 정하기</h3>
-    <div class="drange"><label>언제부터<input type="date" id="dFrom" max="${today}" value="${f.date==='range'?f.from||'':''}"></label><span>~</span><label>언제까지<input type="date" id="dTo" max="${today}" value="${f.date==='range'?f.to||'':''}"></label></div>
-    <div style="height:18px"></div><button class="btn" onclick="applyRange()">이 기간으로 보기</button>`); }
-function applyRange(){ let a=$('#dFrom').value, b=$('#dTo').value; if(!a&&!b) return toast('날짜를 골라주세요'); if(a&&b&&a>b) [a,b]=[b,a];
+    <div id="calBox">${calHTML()}</div>
+    <button class="btn" id="calGo" onclick="applyRange()">${calBtn()}</button>`); }
+function calHTML(){ const c=S.cal, first=new Date(c.y,c.m,1), days=new Date(c.y,c.m+1,0).getDate(), lead=first.getDay(), today=ymd(Date.now());
+  const has=new Set(S.records.map(r=>ymd(r.ts||0))), lo=c.a&&c.b?(c.a<c.b?c.a:c.b):c.a, hi=c.a&&c.b?(c.a<c.b?c.b:c.a):c.a;
+  let cells=''; for(let i=0;i<lead;i++) cells+='<span></span>';
+  for(let d=1;d<=days;d++){ const k=`${c.y}-${String(c.m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`, fut=k>today;
+    const cls=[k===lo||k===hi?'pick':'',lo&&hi&&k>lo&&k<hi?'mid':'',k===today?'today':'',has.has(k)?'has':''].join(' ');
+    cells+=`<button class="${cls}" ${fut?'disabled':''} onclick="calTap('${k}')">${d}</button>`; }
+  return `<div class="cal"><div class="cal-h"><button onclick="calMove(-1)" aria-label="이전 달">‹</button><b>${c.y}년 ${c.m+1}월</b><button onclick="calMove(1)" aria-label="다음 달">›</button></div>
+    <div class="cal-w">${'일월화수목금토'.split('').map(x=>`<span>${x}</span>`).join('')}</div><div class="cal-g">${cells}</div>
+    <p class="cal-tip">${!c.a?'하루를 누르거나, 시작 날과 끝 날을 차례로 눌러주세요':!c.b?'끝 날을 누르면 기간이 돼요':'다시 누르면 새로 골라요'} · <i></i> 기록한 날</p></div>`; }
+function calBtn(){ const c=S.cal; if(!c.a) return '날짜를 골라주세요'; const lo=c.b&&c.b<c.a?c.b:c.a, hi=c.b?(c.b<c.a?c.a:c.b):c.a;
+  const n=S.records.filter(r=>{ const k=ymd(r.ts||0); return k>=lo&&k<=hi; }).length; return `${fmtD(lo)}${hi!==lo?' ~ '+fmtD(hi):''} 기록 ${n}개 보기`; }
+function calPaint(){ $('#calBox').innerHTML=calHTML(); $('#calGo').textContent=calBtn(); }
+function calTap(k){ const c=S.cal; if(!c.a||c.b){ c.a=k; c.b=''; } else c.b=k; calPaint(); }
+function calMove(n){ const c=S.cal; c.m+=n; if(c.m<0){ c.m=11; c.y--; } if(c.m>11){ c.m=0; c.y++; } calPaint(); }
+function applyRange(){ const c=S.cal; if(!c.a) return toast('날짜를 골라주세요'); let a=c.a, b=c.b||c.a; if(a>b) [a,b]=[b,a];
   Object.assign(S.filter,{date:'range',from:a,to:b}); closeSheet(); rerender(); }
 function openFlSheet(){ openSheet(`<div class="grab"></div><h1 class="t">풍미</h1><p class="sub">고른 풍미가 담긴 기록을, 그 풍미가 진한 순서로 보여줘요.</p>
     <div id="flSheet" style="margin-top:16px">${flRow()}</div><div style="height:18px"></div><button class="btn" onclick="closeSheet()">보기</button>`); }
@@ -1220,21 +1252,22 @@ chat(){
   const head = `${stepbar(3)}
   <div class="seg" style="margin-top:0"><button class="${S.chatMode==='chat'?'on':''}" onclick="setMode('chat')">채팅</button>
     <button class="${S.chatMode==='voice'?'on':''}" onclick="setMode('voice')">음성</button></div>`;
-  if(S.chatMode==='voice'){
-    return `${head}
-    <p class="vstate" id="vState"></p>
+  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${orb('clear',56)}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${g.time}</span>
+    ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:'';
+  if(S.chatMode==='voice'){   // 음성: 가운데 마이크를 누르면 대화하며 번지고, 아래엔 채팅과 같은 간편 선택지
+    const vpin=pin&&`<div class="vpin"><b>${esc(d.name)}</b>${d.drinkAt?`<span data-drink>${drinkText()}</span>`:S.timer?`<span data-timer>${timerText()}</span><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<span>${g.temp} · ${g.time}</span>`}</div>`;
+    return `${head}${vpin}
     <p class="vbot" id="vBot"></p>
-    <button class="voiceorb" data-fit="240,110" onclick="toggleVoice()" aria-label="음성 대화"><canvas id="vwash"></canvas></button>
+    <button class="voiceorb" data-fit="230,110" onclick="toggleVoice()" aria-label="음성 대화"><canvas id="vwash"></canvas><span class="vmic" id="vMic"></span></button>
+    <p class="vstate" id="vState"></p>
     <p class="heard" id="vHeard"></p>
     <div class="vw-fl" id="vFl"></div>
-    <button class="btn dark" id="vBtn" style="width:80%;margin:6px auto 0" onclick="toggleVoice()">눌러서 대화 시작</button>
-    <p class="hint">말한 맛과 향이 색이 되어 번지고, 대화는 채팅 탭에도 함께 남아요.</p>
+    <div id="vActs" class="vacts"></div>
     <div class="spacer"></div>
-    ${['tea','teaOK','teaType','guide'].includes(d.stage)?'':'<button class="link" onclick="finishChat()">기록 마치고 정리하기</button>'}`;
+    <div id="chatEnd">${voiceEndHTML(d)}</div>`;
   }
   return `${head}
-  ${d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${orb('clear',56)}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${g.time}</span>
-    ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:''}
+  ${pin}
   <div id="msgs"></div>
   <div class="chatfoot">
     <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
@@ -1295,15 +1328,10 @@ done(){
 fullChat(p){
   const rec = p.id ? S.records.find(r=>r.id===p.id) : S.lastSaved;
   const chat = (rec&&rec.chat)||[], voice=(rec&&rec.voice)||[];
-  const mode = p.mode||'chat';
   return `${stepbar(4)}
   <h1 class="t">전체 대화 보기</h1><p class="sub">차를 마시며 나눈 이야기를 다시 확인해요.</p>
-  <div class="seg wide" style="margin-top:20px"><button class="${mode==='chat'?'on':''}" onclick="S.stack[S.stack.length-1].params.mode='chat';rerender()">채팅</button>
-    <button class="${mode==='voice'?'on':''}" onclick="S.stack[S.stack.length-1].params.mode='voice';rerender()">음성</button></div>
-  <div id="msgs" style="margin-top:4px">${
-    mode==='chat'
-    ? (chat.length? chat.map(m=>`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`)
-    : (voice.length? voice.map((v,i)=>`<div class="opt" style="margin-top:0"><span class="ic">▶</span><div class="tx"><b style="font-size:13.5px">음성 기록 ${i+1}</b><p>“${esc(v)}”</p></div></div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">음성으로 남긴 기록이 없어요.</p>`)
+  <div id="msgs" style="margin-top:16px">${
+    chat.length? chat.filter(m=>m.text||m.img).map(m=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.who==='me'&&(m.voice||voice.includes(m.text))?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`
   }</div>
   <div class="spacer"></div>
   <button class="btn" onclick="back()">기록으로 돌아가기</button>`;
@@ -1396,7 +1424,7 @@ my(){
   const n=S.records.length, kinds=new Set(S.records.map(r=>r.type)).size;
   const last=n? S.records[0].date.slice(2).replace(/\.$/,'') : '-';
   return `
-  <div class="profile"><div class="pimg">프로필<br>이미지</div><div><b>${esc(PREF.name||'사용자')} 님</b><p>@teacanvas-sprout<br>${n>=10?'잎새 이용자':'새싹 이용자'}</p></div></div>
+  <div class="profile"><button class="pimg" onclick="pickPhoto(u=>{ PREF.avatar=u; savePref(); rerender(); })" aria-label="프로필 사진 바꾸기">${PREF.avatar?`<img src="${PREF.avatar}" alt="">`:'<canvas id="avCv"></canvas>'}<span class="pcam">${I.cam}</span></button><div><b>${esc(PREF.name||'사용자')} 님</b><p>@teacanvas-sprout<br>${n>=10?'잎새 이용자':'새싹 이용자'}</p></div></div>
   <h3 class="sec" style="margin-top:min(28px,3dvh)">나의 아카이브</h3>
   <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}
@@ -1428,8 +1456,9 @@ error(p){
 
 /* after-render hooks */
 const AFTER = {
+  my(){ const c=$('#avCv'); if(!c) return; const f=favDrop(); animFav1(c,f?f.all:[{k:'floral',c:FLAVORS.floral.color,w:.8},{k:'sweet',c:FLAVORS.sweet.color,w:.6},{k:'vegetal',c:FLAVORS.vegetal.color,w:.5}],f?f.drop.id:'avatar',.1,.3); },
   home(){ mountHomeDrop($('#homeDrop')); },
-  chat(){ seedChat(); if(S.chatMode==='chat') paintMsgs(); else { startVoiceWash($('#vwash')); paintVoice(); } },
+  chat(){ seedChat(); if(S.chatMode==='chat') paintMsgs(); else { startVoiceWash($('#vwash')); paintVoice(); paintMsgs(); } },
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('analyzing',{},{replace:true}); },1600); },
   analyzing(){ runInfusion(); },
   canvas(p){
@@ -1462,6 +1491,7 @@ function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAU
 function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
 function askQuit(to){ const other=loadPaused();
   S.quitTo=typeof to==='string'?to:'home';
+  if(!S.draft||!S.draft.chat.some(m=>m.who==='me')) return quitRecord(false,true);   // 아직 아무것도 안 남겼으면 묻지 않고 바로 나간다
   openSheet(`<div class="grab"></div>
     <h1 class="t" style="margin-top:14px">기록을 그만할까요?</h1>
     <p class="sub">저장해두면 홈에서 이어서 기록할 수 있어요.${other&&other.draft.tid!==(S.draft&&S.draft.tid)?`<br>앞서 저장해둔 ‘${esc(other.draft.name||'새 기록')}’ 기록은 이 기록으로 바뀌어요.`:''}</p>
@@ -1470,11 +1500,11 @@ function askQuit(to){ const other=loadPaused();
     <button class="btn line" onclick="quitRecord(false)">저장하지 않고 나가기</button>
     <button class="link" onclick="closeSheet()">계속 기록하기</button>`);
 }
-function quitRecord(keep){
+function quitRecord(keep,quiet){
   if(VOICE.on) stopVoice();
   if(keep&&S.draft) savePaused({draft:S.draft,stack:S.stack.map(x=>({name:x.name,params:x.params||{}})).filter(x=>REC_SCREENS.includes(x.name)),chatMode:S.chatMode,timer:S.timer?{...S.timer}:null,at:Date.now()});
   closeSheet(); stopTimer(); S.draft=null; S.listening=false; goTab(S.quitTo||'home',true); S.quitTo=null;
-  toast(keep?'기록을 저장해뒀어요':'기록을 지웠어요');
+  if(!quiet) toast(keep?'기록을 저장해뒀어요':'기록을 지웠어요');
 }
 function resumeRecord(){
   const v=loadPaused(); if(!v){ rerender(); return toast('이어할 기록을 찾지 못했어요'); } savePaused(null);
@@ -1730,24 +1760,28 @@ function bindAskColor(){
     tr.addEventListener('pointerup',()=>{ tr.onpointermove=null; }); });
 }
 function paintMsgs(){
-  const box=$('#msgs'); if(!box) return;
-  const d=S.draft, msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
-  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('')
-
-    + (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
-    + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">📷 사진으로 찾기</button></div>`:'')
-    + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
-    + (S.typing?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
-    + (!S.typing&&last&&last.who==='bot'&&d.talkPending&&(last.talk===d.talkPending||tail.qa)?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">건너뛸게요</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button>`:''}</div>`:'')
-    + (!S.typing&&last&&last.who==='bot'&&last.wait&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button></div>`:'')
-    + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
-    + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${l}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">이제 정리할게요</button></div>`:'')
-    + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'');
+  const box=$('#msgs'), d=S.draft; if(!d) return;
+  if(!box){ const va=$('#vActs'); if(!va) return; va.innerHTML=actsHTML(d); bindAskColor(); const e=$('#chatEnd'); if(e) e.innerHTML=voiceEndHTML(d); fitIn($('#view'),false); return; }
+  const msgs=d.chat;
+  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
   const v=$('#view'); v.scrollTop=v.scrollHeight;
 }
+/* 지금 단계에서 누를 수 있는 간편 선택지(채팅·음성 공통) */
+function actsHTML(d){ const msgs=d.chat, tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
+  return (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">딱히 없어요</button></div>`:'')
+    + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">📷 사진으로 찾기</button></div>`:'')
+    + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
+    + (S.typing&&S.chatMode!=='voice'?'<div class="msg bot typing">생각하는 중이에요.</div>':'')
+    + (!S.typing&&last&&last.who==='bot'&&d.talkPending&&(last.talk===d.talkPending||tail.qa)?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">건너뛸게요</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button>`:''}</div>`:'')
+    + (!S.typing&&last&&last.who==='bot'&&last.wait&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">벌써 다 우렸어요</button></div>`:'')
+    + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
+    + (!S.typing&&d.stage==='more'&&last&&last.menu?`<div class="chips more">${MORE.map(([k,l])=>`<button class="chip ${d.moreDone&&d.moreDone[k]?'done':''}" onclick="morePick('${k}')">${d.moreDone&&d.moreDone[k]?'✓ ':''}${l}</button>`).join('')}<button class="chip dark" onclick="morePick('done')">이제 정리할게요</button></div>`:'')
+    + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(c)}</button>`).join('')}</div>`:'')
+    + (S.chatMode==='voice'&&!S.typing&&d.stage==='free'?`<div class="chips"><button class="chip" onclick="freeEnough()">이제 충분해요</button></div>`:''); }
 /* 채팅 아래 끝내기 버튼: 자유 대화에선 '이제 충분해요'(여운부터), 그 뒤엔 '기록 마치고 정리하기' */
+const voiceEndHTML=d=>chatEndHTML(d)||(['tea','teaOK','teaType','guide'].includes(d.stage)?'':'<button class="link" onclick="finishChat()">기록 마치고 정리하기</button>');
 const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">이제 충분해요</button>':['after','more','deep'].includes(d.stage)?'<button class="btn" onclick="finishChat()">기록 마치고 정리하기</button>':'';
 /* '…로 담았어요'를 누르면 풍미를 직접 고른다(여러 개, 없음도 가능) */
 function msgFl(m){ return Array.isArray(m.fl)?m.fl:matchFlavors(m.text); }
@@ -1847,6 +1881,7 @@ const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaTyp
   talk:{mood:'오늘은 조금 피곤했어요',scene:'집에서 혼자 쉬면서 마시고 있어요',why:'비 오는 날이라 따뜻한 차가 생각났어요'},
   free:['식으니까 단맛이 더 올라와요','목 넘김이 부드러워요','이제 충분해요']};
 function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
+document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#vActs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('이 기기에서는 마이크를 쓸 수 없어 시연용 목소리로 진행해요'); paintVoice(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} paintVoice(); }
@@ -1886,7 +1921,7 @@ async function voiceLoop(id){
       VOICE.phase='speaking'; S.listening=false; paintVoice(m.text); await speak(speakLine(m)); continue; }
     VOICE.phase='listening'; S.listening=true; VOICE.interim=''; paintVoice();
     const heard=await listenOnce(id); if(!vAlive(id)) break; S.listening=false;
-    if(heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); sendMsg(heard);
+    if(heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; sendMsg(heard); d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
       VOICE.spoken=Math.min(VOICE.spoken,d.chat.length); await new Promise(r=>setTimeout(r,500)); }
     else await new Promise(r=>setTimeout(r,VOICE.demo?1500:300));
     if(['organizing','analyzing'].includes(cur())) break;
@@ -1894,11 +1929,11 @@ async function voiceLoop(id){
   if(VOICE.tid===id&&VOICE.on&&cur()!=='chat'){ VOICE.on=false; try{ speechSynthesis.cancel(); }catch(e){} }
 }
 function paintVoice(botText){ const d=S.draft; if(!d) return;
-  const st=$('#vState'), bt=$('#vBot'), hd=$('#vHeard'), bn=$('#vBtn');
-  if(st) st.textContent=!VOICE.on?'한 번 누르면 말로 계속 대화해요':VOICE.phase==='speaking'?'말하는 중…':VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요. 편하게 말해주세요'):'생각하는 중…';
+  const st=$('#vState'), bt=$('#vBot'), hd=$('#vHeard');
+  const mic=$('#vMic'); if(mic){ mic.innerHTML=VOICE.on?I.stop:I.mic; mic.classList.toggle('on',VOICE.on); }
+  if(st) st.textContent=!VOICE.on?'가운데를 누르면 말로 대화해요':VOICE.phase==='speaking'?'말하는 중…':VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요. 편하게 말해주세요'):'생각하는 중…';
   if(bt){ const lastBot=[...d.chat].reverse().find(m=>m.who==='bot'); bt.textContent=botText||(lastBot?lastBot.text:''); }
   if(hd) hd.textContent=VOICE.interim?`“${VOICE.interim}”`:'';
-  if(bn) bn.textContent=VOICE.on?'대화 멈추기':'눌러서 대화 시작';
   const fl=$('#vFl'); if(fl){ const ks=vwFlavors(); fl.innerHTML=ks.map(k=>`<span style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</span>`).join(''); }
   fitIn($('#view'),false); }   // 말이 길어져 넘치면 원만 줄인다(커졌다 작아졌다 하지 않게)
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
@@ -1920,7 +1955,7 @@ function openCanvasSheet(){
     <h1 class="t">캔버스에 찻방울 찍기</h1>
     <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요. 다시 누르면 옮겨져요.</p>
     <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
-    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div>
+    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 찻방울은 지난 기록이에요.'}</p>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div></div>
     <h3 class="sec cmt-h" style="margin-top:12px">한 줄 코멘트</h3>
@@ -1947,16 +1982,17 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
   };
   const pos=e=>{ const r=cv.getBoundingClientRect(); return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)}; };
   frame();
-  cv.onpointerdown=e=>{ e.preventDefault(); cv.setPointerCapture(e.pointerId); d.canvas={...pos(e),i:.6}; holding=true; t0=last=performance.now(); prog=0; if(!raf) raf=requestAnimationFrame(loop); };
-  cv.onpointermove=e=>{ if(holding) Object.assign(d.canvas,pos(e)); };
-  const stop=()=>{ if(!holding) return; holding=false; const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); };
-  cv.onpointerup=stop; cv.onpointercancel=stop;
+  // 톡 누르면 그 자리에 찍힌다(다시 누르면 새 자리로). 끌면 화면이 스크롤될 뿐 방울이 따라오지 않는다
+  let down=null; cv.onpointerdown=e=>{ down={x:e.clientX,y:e.clientY}; };
+  cv.onpointerup=e=>{ if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>10){ down=null; return; } down=null;
+    d.canvas={...pos(e),i:.6}; t0=last=performance.now(); prog=0; if(!raf) raf=requestAnimationFrame(loop); const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); };
+  cv.onpointercancel=()=>{ down=null; };
 }
 /* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">마셔보니 느낌이 달라졌다면, 새 자리를 눌러주세요.</p>
     <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
-    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
+    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
     <div style="height:14px"></div><button class="btn" id="moveSave">이 자리로 옮기기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`);
   bindPick($('#pickCv'),tmp,recDrop(r),r.id);
   $('#moveSave').onclick=()=>{ r.canvas={x:+tmp.canvas.x.toFixed(3),y:+tmp.canvas.y.toFixed(3),i:r.canvas.i??.6}; persist(); closeSheet(); rerender(); toast('찻방울을 옮겼어요'); }; }
@@ -1977,10 +2013,14 @@ function openSettings(k){
     app:['앱 설정',row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+(koVoices().length?`<label class="pref col"><b>목소리</b><small>기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요</small>
       <span class="vpick"><select id="prefVoice" onchange="PREF.voiceName=this.value;savePref()">${koVoices().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option ${v===koVoice()?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="pillbtn" type="button" onclick="previewVoice()">들어보기</button></span></label>`:'')+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
-    account:['계정',`<label class="pref col"><b>부를 이름</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
+    account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
     <div style="height:18px"></div><button class="btn" onclick="${k==='account'?"PREF.name=$('#prefName').value.trim();savePref();":''}closeSheet();rerender();toast('설정을 저장했어요')">확인</button>`); }
-function pickPhoto(cb){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.setAttribute('capture','environment'); i.style.display='none';
+function pickPhoto(cb){ actMenu([['사진 찍기',()=>pickFile(cb,true)],['앨범에서 고르기',()=>pickFile(cb,false)]]); }
+/* 작은 선택 창(시트 위에 한 겹 더) */
+function actMenu(items){ const w=document.createElement('div'); w.className='actmenu'; w.innerHTML=`<div class="am">${items.map((x,i)=>`<button data-i="${i}">${x[0]}</button>`).join('')}</div><button class="am-x">취소</button>`;
+  w.onclick=e=>{ const b=e.target.closest('button'); if(e.target===w||b){ w.remove(); if(b&&b.dataset.i) items[+b.dataset.i][1](); } }; $('#sheetWrap').parentNode.appendChild(w); }
+function pickFile(cb,camera){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; if(camera) i.setAttribute('capture','environment'); i.style.display='none';
   i.onchange=()=>{ const f=i.files&&i.files[0]; i.remove(); if(!f) return; const rd=new FileReader();
     rd.onload=()=>{ const im=new Image(); im.onload=()=>{ const k=Math.min(1,720/im.width), c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
       c.getContext('2d').drawImage(im,0,0,c.width,c.height); try{ cb(c.toDataURL('image/jpeg',.82)); }catch(e){ toast('사진을 불러오지 못했어요'); } };
@@ -2093,7 +2133,7 @@ function animFav1(cv,L,id,delay,rk=.22){
 }
 /* 음성 탭: 처음엔 맑은 물빛만 번지다가, 말하거나 적은 표현에서 풍미가 잡히면 그 색이 다음 번짐으로 들어온다.
    먼저 번진 색부터 사라지고, 전체는 숨 쉬듯 커졌다 작아진다(말하는 중엔 더 크게) */
-const VW={t0:performance.now(),assign:{},seen:new Set(),queue:[],tid:null};
+const VW={T:2.4,t0:performance.now(),assign:{},seen:new Set(),queue:[],tid:null};
 function vwFlavors(){ const d=S.draft; if(!d) return []; const out=[]; collectExprs(d).forEach(e=>e.fl.forEach(k=>{ if(!out.includes(k)) out.push(k); })); return out; }
 function vwKey(n){
   const d=S.draft; if(d&&VW.tid!==d.tid){ VW.tid=d.tid; VW.assign={}; VW.seen=new Set(); VW.queue=[]; }
@@ -2102,7 +2142,10 @@ function vwKey(n){
   return VW.assign[n]; }
 function startVoiceWash(cv){
   if(!cv) return; const px=pxFor(240); cv.width=cv.height=px; const x=cv.getContext('2d'), N=170, STEP=1.15, LIFE=4.4, FADE=1.3, k=1.9;
-  (function loop(now){ if(!cv.isConnected) return; const T=(now-VW.t0)/1000; x.clearRect(0,0,px,px);
+  let prev=performance.now(), drawn=false;
+  (function loop(now){ if(!cv.isConnected) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
+    if(!VOICE.on&&drawn){ cv.style.transform=''; return requestAnimationFrame(loop); }   // 대화 중이 아닐 땐 번짐이 그 자리에 멈춰 있다
+    if(VOICE.on) VW.T+=dt; drawn=true; const T=VW.T; x.clearRect(0,0,px,px);
     const last=Math.floor(T/STEP); // 섞지 않고 새 색이 위로 번져 덮는다(탁해지지 않게)
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
       const key=vwKey(n), hex=key==='clear'?CLEAR:FLAVORS[key].color, r=WC.rng(n*7919+13), a=r()*6.283, d=px*(.04+.08*r());
