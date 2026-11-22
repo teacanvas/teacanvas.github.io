@@ -1,0 +1,87 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캔버스 배경 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px 16px 220px;word-break:keep-all}
+.wrap{max-width:1500px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#666;font-size:14px;margin-top:6px;max-width:900px;line-height:1.6}
+.lead a{color:#444}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px;margin-top:22px;align-items:start}
+.item{position:relative}
+.item h2{font-size:14.5px;padding-right:28px}
+.item p.d{font-size:12px;color:#777;margin-top:3px;min-height:36px;line-height:1.5}
+.star{position:absolute;right:0;top:-4px;font-size:22px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.card{background:#fff;border-radius:18px;padding:12px;margin-top:6px}
+canvas{display:block;width:100%;aspect-ratio:1;border-radius:6px}
+.leg{font-size:10.5px;color:#999;text-align:center;margin-top:6px}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}.pickbox textarea{width:100%;height:80px}
+</style></head><body><div class="wrap">
+<h1>캔버스 배경 시안 30가지</h1>
+<p class="lead">찻방울이 3개뿐일 때도 캔버스가 허전해 보이지 않게 하는 방법들이에요. 모든 시안에 같은 찻방울 3개를 같은 자리에 올렸어요. 배경은 찻방울보다 눈에 띄지 않게 아주 옅게 만들었어요.<br>
+참고한 것: 데이터 시각화의 배경 격자(점이 떠 보이지 않게 자리를 잡아줌), <a href="https://f0nzie.github.io/dataviz-rsuite/balance-data-context.html" target="_blank">옅은 바탕색으로 한 덩어리처럼 보이게 하기</a>, <a href="https://www.moma.org/collection/works/79468" target="_blank">아그네스 마틴의 손으로 그은 연필 격자</a>, <a href="https://sca.coffee/sca-news/how-to-use-the-flavor-wheel-in-eight-steps" target="_blank">커피 테이스터 플레이버 휠</a>, 그래프 종이, 도트 노트, 원고지, 바둑판, 녹차밭 이랑, 지형도 등고선, 한지. 마음에 드는 시안의 ☆을 눌러주세요.</p>
+<div class="grid" id="g"></div></div>
+<script>
+const S=300, BG='#FAF8F4', LINE='rgba(0,0,0,.08)', LINE2='rgba(0,0,0,.05)';
+const DROPS=[{src:'drop1.png',x:.74,y:.26,s:.36},{src:'drop2.png',x:.3,y:.38,s:.32},{src:'drop3.png',x:.58,y:.72,s:.3}];
+const rng=seed=>()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+const cross=(x,c=LINE)=>{ x.strokeStyle=c; x.lineWidth=1; x.beginPath(); x.moveTo(S/2,0); x.lineTo(S/2,S); x.moveTo(0,S/2); x.lineTo(S,S/2); x.stroke(); };
+const lines=(x,n,c=LINE2,w=1)=>{ x.strokeStyle=c; x.lineWidth=w; x.beginPath(); for(let i=1;i<n;i++){ const p=S*i/n; x.moveTo(p,0); x.lineTo(p,S); x.moveTo(0,p); x.lineTo(S,p); } x.stroke(); };
+const dots=(x,n,r,c)=>{ x.fillStyle=c; for(let i=1;i<n;i++) for(let j=1;j<n;j++){ x.beginPath(); x.arc(S*i/n,S*j/n,r,0,7); x.fill(); } };
+function noise2(seed){ const r=rng(seed), G=[...Array(64)].map(()=>r()*6.283); const g=(i,j)=>G[(i*7+j*13)&63];
+  const f=t=>t*t*(3-2*t); return (px,py)=>{ const i=Math.floor(px), j=Math.floor(py), u=f(px-i), v=f(py-j);
+    const d=(a,b)=>{ const an=g(i+a,j+b); return Math.cos(an)*(px-i-a)+Math.sin(an)*(py-j-b); };
+    return (d(0,0)*(1-u)+d(1,0)*u)*(1-v)+(d(0,1)*(1-u)+d(1,1)*u)*v; }; }
+const V=[
+ {n:'지금처럼 · 가운데 축선',d:'가운데 가로·세로선 하나씩. 기준은 분명하지만 나머지는 비어 보여요.',f:x=>cross(x)},
+ {n:'옅은 4×4 격자',d:'칸을 나눠 빈 곳도 "칸"으로 보이게. 가운데 축만 조금 진하게.',f:x=>{ lines(x,4); cross(x); }},
+ {n:'그래프 종이(모눈)',d:'촘촘한 모눈 위에 굵은 축. 기록장 느낌이 강해요.',f:x=>{ lines(x,20,'rgba(0,0,0,.035)'); lines(x,4,'rgba(0,0,0,.06)'); cross(x); }},
+ {n:'도트 그리드',d:'도트 노트처럼 작은 점만 고르게. 가장 가볍게 빈 곳을 채워요.',f:x=>dots(x,12,1.1,'rgba(0,0,0,.18)')},
+ {n:'큰 점 · 넓은 간격',d:'점을 크고 드물게. 점이 "자리"처럼 보여 찻방울을 놓고 싶어져요.',f:x=>dots(x,6,1.8,'rgba(0,0,0,.12)')},
+ {n:'＋ 표시 격자',d:'교차점마다 작은 + 표시. 설계 도면처럼 정돈된 느낌.',f:x=>{ x.strokeStyle='rgba(0,0,0,.16)'; x.lineWidth=1; for(let i=1;i<8;i++) for(let j=1;j<8;j++){ const a=S*i/8,b=S*j/8; x.beginPath(); x.moveTo(a-3,b); x.lineTo(a+3,b); x.moveTo(a,b-3); x.lineTo(a,b+3); x.stroke(); } }},
+ {n:'손으로 그은 연필선',d:'아그네스 마틴처럼 살짝 떨리는 연필 가로선. 손맛과 고요함.',f:x=>{ const r=rng(7); x.strokeStyle='rgba(60,50,40,.12)'; x.lineWidth=.8; for(let i=1;i<14;i++){ const y=S*i/14; x.beginPath(); x.moveTo(6,y); for(let t=6;t<=S-6;t+=12) x.lineTo(t,y+(r()-.5)*1.2); x.stroke(); } }},
+ {n:'노트 줄',d:'가로줄만. 일기장에 적은 듯한 느낌.',f:x=>{ x.strokeStyle='rgba(0,0,0,.06)'; x.beginPath(); for(let i=1;i<12;i++){ const y=S*i/12; x.moveTo(0,y); x.lineTo(S,y); } x.stroke(); x.strokeStyle='rgba(214,120,110,.18)'; x.beginPath(); x.moveTo(S*.1,0); x.lineTo(S*.1,S); x.stroke(); }},
+ {n:'녹차밭 이랑',d:'보성 녹차밭처럼 완만한 곡선 줄. 차와 바로 연결돼요.',f:x=>{ x.strokeStyle='rgba(110,127,74,.13)'; x.lineWidth=1.2; for(let i=-4;i<16;i++){ x.beginPath(); for(let t=0;t<=S;t+=6){ const y=i*S/12+Math.sin(t/S*3.2+i*.3)*14+t*.25; t?x.lineTo(t,y):x.moveTo(t,y); } x.stroke(); } }},
+ {n:'가운데 동심원',d:'과녁처럼 가운데서 퍼지는 원. 찻방울이 물결 위에 떨어진 느낌.',f:x=>{ x.strokeStyle=LINE2; for(let r=30;r<S*.75;r+=30){ x.beginPath(); x.arc(S/2,S/2,r,0,7); x.stroke(); } cross(x,'rgba(0,0,0,.05)'); }},
+ {n:'"좋아요" 쪽 동심원',d:'오른쪽 위(향·맛 모두 좋음)를 중심으로 퍼지는 원. 가까울수록 좋았던 차.',f:x=>{ x.strokeStyle=LINE2; for(let r=36;r<S*1.5;r+=36){ x.beginPath(); x.arc(S,0,r,0,7); x.stroke(); } }},
+ {n:'풍미 휠 방사선',d:'플레이버 휠처럼 가운데서 뻗는 11갈래 선 + 원 두 개.',f:x=>{ x.strokeStyle=LINE2; for(let i=0;i<11;i++){ const a=i/11*6.283; x.beginPath(); x.moveTo(S/2,S/2); x.lineTo(S/2+Math.cos(a)*S,S/2+Math.sin(a)*S); x.stroke(); } [S*.22,S*.42].forEach(r=>{ x.beginPath(); x.arc(S/2,S/2,r,0,7); x.stroke(); }); }},
+ {n:'등고선(지형도)',d:'지도의 등고선처럼 흐르는 선. 차의 산지·땅을 떠올리게 해요.',f:x=>{ const nz=noise2(11); x.strokeStyle='rgba(120,100,80,.12)'; x.lineWidth=.9; const N=60, img=[]; for(let j=0;j<=N;j++){ img[j]=[]; for(let i=0;i<=N;i++) img[j][i]=nz(i/N*3,j/N*3)+nz(i/N*6,j/N*6)*.4; }
+   for(let lv=-.6;lv<.6;lv+=.09){ x.beginPath(); for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const a=img[j][i]-lv,b=img[j][i+1]-lv,c=img[j+1][i]-lv; const cx=S*i/N, cy=S*j/N, s=S/N; if(a*b<0){ const t=a/(a-b); x.moveTo(cx+t*s,cy); x.lineTo(cx+t*s+.6,cy+.6); } if(a*c<0){ const t=a/(a-c); x.moveTo(cx,cy+t*s); x.lineTo(cx+.6,cy+t*s+.6); } } x.stroke(); } }},
+ {n:'물결 파문',d:'찻물에 떨어진 물방울처럼 몇 군데에서 퍼지는 옅은 파문.',f:x=>{ x.strokeStyle='rgba(0,0,0,.05)'; [[.2,.2],[.82,.55],[.4,.86]].forEach(([a,b])=>{ for(let r=10;r<90;r+=13){ x.beginPath(); x.arc(a*S,b*S,r,0,7); x.stroke(); } }); }},
+ {n:'수채 종이 결',d:'선 없이 수채 종이의 오톨도톨한 결만. 그림처럼 보여요.',f:x=>{ const r=rng(3); for(let i=0;i<5200;i++){ x.fillStyle=`rgba(0,0,0,${r()*.045})`; x.fillRect(r()*S,r()*S,1+r()*1.4,1+r()*1.4); } }},
+ {n:'한지 섬유',d:'한지처럼 가는 섬유가 흩어진 결. 차의 동양적인 느낌.',f:x=>{ const r=rng(5); x.lineWidth=.7; for(let i=0;i<160;i++){ x.strokeStyle=`rgba(110,90,60,${.04+r()*.07})`; const a=r()*S,b=r()*S,an=r()*6.28,l=8+r()*26; x.beginPath(); x.moveTo(a,b); x.quadraticCurveTo(a+Math.cos(an)*l*.5+(r()-.5)*8,b+Math.sin(an)*l*.5+(r()-.5)*8,a+Math.cos(an)*l,b+Math.sin(an)*l); x.stroke(); } }},
+ {n:'네 칸 옅은 바탕색',d:'네 구역에 아주 옅은 다른 바탕. 오른쪽 위가 가장 따뜻해요.',f:x=>{ [['#F6EFE4',1,0],['#F3F1EC',0,0],['#F2F1EE',0,1],['#F4F1EA',1,1]].forEach(([c,i,j])=>{ x.fillStyle=c; x.fillRect(i*S/2,j*S/2,S/2,S/2); }); }},
+ {n:'대각선 그러데이션',d:'왼쪽 아래(아쉬움)에서 오른쪽 위(좋음)로 아주 옅게 따뜻해져요.',f:x=>{ const g=x.createLinearGradient(0,S,S,0); g.addColorStop(0,'#F1F1EF'); g.addColorStop(1,'#F8EDDD'); x.fillStyle=g; x.fillRect(0,0,S,S); }},
+ {n:'가장자리 비네트',d:'가운데는 밝고 가장자리만 살짝 어둡게. 액자 속 그림 같아요.',f:x=>{ const g=x.createRadialGradient(S/2,S/2,S*.2,S/2,S/2,S*.75); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(90,70,50,.09)'); x.fillStyle=g; x.fillRect(0,0,S,S); }},
+ {n:'모서리 꺾쇠',d:'인쇄 재단선처럼 네 모서리와 가운데에만 작은 표시. 아주 간결해요.',f:x=>{ x.strokeStyle='rgba(0,0,0,.25)'; x.lineWidth=1; const m=10,l=14; [[m,m,1,1],[S-m,m,-1,1],[m,S-m,1,-1],[S-m,S-m,-1,-1]].forEach(([a,b,sx,sy])=>{ x.beginPath(); x.moveTo(a,b+sy*l); x.lineTo(a,b); x.lineTo(a+sx*l,b); x.stroke(); }); x.beginPath(); x.moveTo(S/2-6,S/2); x.lineTo(S/2+6,S/2); x.moveTo(S/2,S/2-6); x.lineTo(S/2,S/2+6); x.stroke(); }},
+ {n:'가장자리 눈금',d:'자처럼 테두리에만 눈금. 가운데는 비우고 기준은 남겨요.',f:x=>{ x.strokeStyle='rgba(0,0,0,.16)'; for(let i=0;i<=20;i++){ const p=S*i/20, l=i%5?4:9; x.beginPath(); x.moveTo(p,S); x.lineTo(p,S-l); x.moveTo(0,p); x.lineTo(l,p); x.moveTo(p,0); x.lineTo(p,l); x.moveTo(S,p); x.lineTo(S-l,p); x.stroke(); } }},
+ {n:'별자리 점',d:'아주 작은 점을 흩뿌려 밤하늘처럼. 찻방울이 별 사이에 놓여요.',f:x=>{ const r=rng(9); for(let i=0;i<110;i++){ x.fillStyle=`rgba(0,0,0,${.08+r()*.14})`; x.beginPath(); x.arc(r()*S,r()*S,.5+r()*1.1,0,7); x.fill(); } }},
+ {n:'빈 찻잔 자리',d:'아직 안 찍힌 자리에 점선 원 몇 개. "여기도 채워보세요"라는 초대.',f:x=>{ x.strokeStyle='rgba(0,0,0,.12)'; x.setLineDash([2,4]); [[.18,.75],[.85,.82],[.15,.12],[.5,.5],[.88,.48]].forEach(([a,b])=>{ x.beginPath(); x.arc(a*S,b*S,20,0,7); x.stroke(); }); x.setLineDash([]); }},
+ {n:'찻잔 자국',d:'찻잔을 내려놓은 듯한 옅은 링 자국 몇 개. 찻상 위 느낌.',f:x=>{ const r=rng(21); [[.2,.8,34],[.86,.14,26],[.12,.18,22]].forEach(([a,b,R])=>{ for(let k=0;k<3;k++){ x.strokeStyle=`rgba(150,110,70,${.05+r()*.05})`; x.lineWidth=1.5+r()*2; x.beginPath(); x.arc(a*S+(r()-.5)*3,b*S+(r()-.5)*3,R+k,r()*6,r()*6+5.6); x.stroke(); } }); }},
+ {n:'나뭇결 찻상',d:'나무 찻상 결을 아주 옅게. 따뜻하고 차 마시는 자리 같아요.',f:x=>{ const nz=noise2(4); x.strokeStyle='rgba(140,100,60,.08)'; for(let i=0;i<34;i++){ x.beginPath(); for(let t=0;t<=S;t+=5){ const y=i*S/32+nz(t/80,i*.3)*16; t?x.lineTo(t,y):x.moveTo(t,y); } x.stroke(); } }},
+ {n:'잎맥 무늬',d:'캔버스 전체가 커다란 찻잎 한 장처럼, 가운데 잎맥과 갈래.',f:x=>{ x.strokeStyle='rgba(110,127,74,.12)'; x.lineWidth=1.2; x.beginPath(); x.moveTo(0,S); x.quadraticCurveTo(S*.45,S*.55,S,0); x.stroke(); x.lineWidth=.9; for(let i=1;i<9;i++){ const t=i/9, px=S*t, py=S*(1-t)+Math.sin(t*3.14)*-8; x.beginPath(); x.moveTo(px,py); x.quadraticCurveTo(px+30,py+10,px+50,py+50); x.moveTo(px,py); x.quadraticCurveTo(px-10,py-30,px-50,py-50); x.stroke(); } }},
+ {n:'사선 해칭',d:'얇은 사선을 아주 옅게. 판화나 드로잉 노트 같은 결.',f:x=>{ x.strokeStyle='rgba(0,0,0,.045)'; x.beginPath(); for(let i=-S;i<S;i+=9){ x.moveTo(i,S); x.lineTo(i+S,0); } x.stroke(); }},
+ {n:'육각 격자',d:'벌집처럼 촘촘한 육각형. 칸이 둥글어 찻방울과 잘 어울려요.',f:x=>{ x.strokeStyle='rgba(0,0,0,.06)'; const r=16, h=r*Math.sqrt(3); for(let j=-1;j<S/h+1;j++) for(let i=-1;i<S/(r*1.5)+1;i++){ const cx=i*r*1.5, cy=j*h+(i%2?h/2:0); x.beginPath(); for(let k=0;k<6;k++){ const a=k*Math.PI/3; x.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a)); } x.closePath(); x.stroke(); } }},
+ {n:'바둑판',d:'바둑판 선과 화점. 찻방울이 바둑돌처럼 놓인 느낌.',f:x=>{ x.fillStyle='#F6F0E2'; x.fillRect(0,0,S,S); lines(x,10,'rgba(80,60,30,.13)'); [[3,3],[3,7],[7,3],[7,7],[5,5]].forEach(([i,j])=>{ x.fillStyle='rgba(80,60,30,.3)'; x.beginPath(); x.arc(S*i/10,S*j/10,2.2,0,7); x.fill(); }); }},
+ {n:'원고지',d:'원고지 칸처럼. 내 말로 쓴 기록장이라는 느낌이 나요.',f:x=>{ x.strokeStyle='rgba(200,90,70,.15)'; const n=10, c=S/n; for(let j=0;j<n;j++){ x.strokeRect(4,j*c+5,S-8,c-10); for(let i=1;i<n;i++){ x.beginPath(); x.moveTo(4+(S-8)*i/n,j*c+5); x.lineTo(4+(S-8)*i/n,j*c+c-5); x.stroke(); } } }},
+];
+const imgs=DROPS.map(d=>{ const im=new Image(); im.src=d.src; return im; });
+const g=document.getElementById('g');
+g.innerHTML=V.map((v,i)=>`<section class="item"><button class="star" data-i="${i}">☆</button><h2>${i+1}. ${v.n}</h2><p class="d">${v.d}</p><div class="card"><canvas id="c${i}" width="${S*2}" height="${S*2}"></canvas><p class="leg">→ 오른쪽일수록 향이 좋아요 · ↑ 위쪽일수록 맛이 좋아요</p></div></section>`).join('');
+function draw(){ V.forEach((v,i)=>{ const c=document.getElementById('c'+i), x=c.getContext('2d'); x.setTransform(2,0,0,2,0,0); x.fillStyle=BG; x.fillRect(0,0,S,S); x.save(); v.f(x); x.restore();
+  x.globalCompositeOperation='multiply'; DROPS.forEach((d,k)=>{ const w=S*d.s*1.55; x.drawImage(imgs[k],d.x*S-w/2,d.y*S-w/2,w,w); }); x.globalCompositeOperation='source-over'; }); window.READY=true; }
+Promise.all(imgs.map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } }))).then(draw);
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.canvasbg.fav')||'[]')); }catch(e){}
+const names=()=>V.map((v,i)=>FAV.has(i)?`${i+1}. ${v.n}`:null).filter(Boolean);
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length;
+  document.querySelectorAll('.star').forEach(b=>{ const on=FAV.has(+b.dataset.i); b.classList.toggle('on',on); b.textContent=on?'★':'☆'; }); }
+document.getElementById('cp').onclick=async()=>{ const t='캔버스 배경 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+document.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.canvasbg.fav',JSON.stringify([...FAV])); }catch(e){} up(); });
+up();
+</script></body></html>
