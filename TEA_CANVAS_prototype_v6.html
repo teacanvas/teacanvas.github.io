@@ -2788,6 +2788,9 @@ setInterval(()=>{
   if(Date.now()-lastInput<IDLE_MS) return;
   lastInput=Date.now();
   const atHome=cur()==='home' && !$('#sheetWrap').classList.contains('open');
+  if(!document.documentElement.classList.contains('mob')){   // 전시 화면(큰 모니터): 관람객이 떠나면 쓰던 기록은 버리고 깨끗한 첫 화면으로
+    if(atHome && !S.draft && !loadPaused() && !loadLive()) return;
+    try{ if(VOICE.on) stopVoice(); }catch(e){} closeSheet(); stopTimer(); S.draft=null; S.timer=null; S.listening=false; clearLive(); savePaused(null); NAV_DIR='back'; goTab('home',true); return; }
   if(atHome && !S.draft) return;
   if(S.draft&&(VOICE.on||(S.timer&&S.timer.left>0&&S.timer.running))) return;   // 우리는 중 · 음성 대화 중에는 그대로
   if(recording()){ S.quitTo='home'; const said=S.draft&&S.draft.chat.some(m=>m.who==='me'); quitRecord(said,!said); return; }             // 작성 중인 기록은 이어하기로 남긴다
