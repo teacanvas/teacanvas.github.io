@@ -234,6 +234,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;filter:grayscale(1)}   /* 색은 찻방울에만 */
 .tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid var(--line)}
 .cmtrow .box{position:relative}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
+.btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
 .tagcard .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:16px}
@@ -2799,6 +2800,7 @@ setInterval(()=>{
 
 /* 팀원용 숨은 단축키: Ctrl+Alt+D 도구 패널 · Ctrl+Alt+Shift+0 기록 초기화 */
 addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ const m=document.querySelector('.actmenu'); if(m){ m.remove(); return; } if($('#sheetWrap').classList.contains('open')){ e.preventDefault(); closeSheet(); return; } }   // Esc로 시트 닫기
   if(!(e.ctrlKey&&e.altKey)) return;
   if(e.code==='KeyD' && !e.shiftKey){ e.preventDefault(); $('#dev').classList.toggle('show'); }
   if(e.code==='Digit0' && e.shiftKey){ e.preventDefault(); if(confirm('관람객 기록을 모두 지우고 예시 기록만 남길까요?')) resetAll(); }
