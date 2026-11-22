@@ -2229,7 +2229,7 @@ function runInfusion(){
   (function loop(now){
     if(cur()!=='analyzing'||S.stack.length!==at||!cv.isConnected) return;
     const t=now-t0;
-    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; show(e.k); starts[e.k]=e.t+LEAD; }
+    while(t>=T0&&ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; show(e.k); starts[e.k]=e.t+LEAD; }   // '표현 읽는 중'(처음 T0)에는 단어도 색도 없이 맑은 물만
     { const curE=ev[ei-1]; if(lab&&curE&&lab.classList.contains('on')&&t>curE.t+STEP-750) lab.classList.remove('on'); }
     x.clearRect(0,0,px,px);
     { const D=px*1.05, wt=Math.min(CV_SPREAD,t/1000*1.9), fade=fk.length?Math.max(.25,1-Object.keys(starts).filter(k=>t>=starts[k]).length*.2):1; x.globalAlpha=.85*fade;
