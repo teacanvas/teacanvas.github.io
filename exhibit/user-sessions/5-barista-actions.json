@@ -1,0 +1,218 @@
+{
+ "persona": "도윤 · 31살 바리스타",
+ "steps": [
+  {
+   "do": "tap",
+   "target": "button:has-text(\"새로운 차 기록하기\")",
+   "say": "오늘은 다즐링 퍼스트 플러시.\n커핑하듯 꼼꼼히 남겨볼까."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"오설록\"]",
+   "text": "다즐링 퍼스트 플러시",
+   "enter": true,
+   "say": "브랜드는 몰라도 이름만 넣어보자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"맞아요\")",
+   "say": "홍차 맞지. 바로 알아듣네."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"우림 시작\")",
+   "say": "95–100°C? 첫물차엔 좀 뜨거운데…\n우유 팁도 퍼스트 플러시엔 안 어울리고."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"벌써 다 우렸어요\")",
+   "say": "이미 우려놨으니 타이머는 넘기자."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"색을 말로\"]",
+   "text": "맑은 연노랑 금빛, 살짝 호박색",
+   "enter": true,
+   "say": "기본값이 적갈색? 첫물차는 연한 금빛이라\n말로 적어줘야겠다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "갓 딴 청포도 껍질, 은은한 머스캣, 흰 꽃(라일락) 같은 플로럴, 덜 익은 살구, 끝에 아몬드 같은 고소함",
+   "enter": true,
+   "say": "향은 머스캣이랑 라일락, 끝에 아몬드.\n최대한 구체적으로."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "산뜻한 산미에 잘 익은 살구, 흰 복숭아 과즙, 꿀 같은 단맛. 중간에 생 아몬드, 끝에 살짝 떫은 탄닌이 혀를 조이고 시나몬 같은 스파이스가 남아요",
+   "enter": true,
+   "say": "맛은 살구·복숭아, 꿀 단맛,\n끝에 탄닌이랑 시나몬."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"느낀 그대로\"]",
+   "text": "식으니까 머스캣이 더 또렷해지고 바디는 가볍고 실키해요. 여운에 흑설탕 살짝",
+   "enter": true,
+   "say": "식으면서 변화도 남겨야지.\n바디감, 여운까지."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"바꾸기\")",
+   "say": "'과일향·단맛'으로 담았다고?\n실키한 바디가 빠졌네. 바꾸기."
+  },
+  {
+   "do": "scroll",
+   "dy": 400,
+   "say": "고를 칸이 아래 입력창에 가려져 있네.\n좀 올려야 Smooth가 보인다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Smooth\")",
+   "say": "방금은 한글 라벨이었는데 여긴 영어네.\nSmooth가 부드러움이겠지."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"다 골랐어요\")",
+   "say": "과일·단맛·부드러움. 이제 맞다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 충분해요\")",
+   "say": "충분히 마셨다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 정리할게요\")",
+   "say": "산지·빈티지도 끌리지만 오늘은 정리."
+  },
+  {
+   "do": "wait",
+   "ms": 9000,
+   "say": "내 표현이 한 줄씩 찻방울로 스며드네.\n연출은 예쁘다."
+  },
+  {
+   "do": "scroll",
+   "dy": 450,
+   "say": "풍미 분석: 과일·고소·떫은·단맛.\n라일락 꽃향, 시나몬은 어디 갔지?"
+  },
+  {
+   "do": "scroll",
+   "dy": 500,
+   "say": "방금 고친 '부드러움'도 안 보이네.\n전문가 설명엔 머스카텔 얘기가 없고."
+  },
+  {
+   "do": "scroll",
+   "dy": 500,
+   "say": "AI 해석이 '내 기록은 분위기 중심'?\n난 꽤 구체적으로 적었는데…"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에 찻방울 찍기\")",
+   "say": "그래도 일단 캔버스에 찍어보자."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"캔버스 읽는 법\"]",
+   "say": "'향이 좋아요/맛이 좋아요'가 축?\n물음표부터 열어보자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"알겠어요\")",
+   "say": "자리는 '얼마나 좋았나', 색은 풍미.\n아, 축은 평가구나. 이해됐다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에 찻방울 찍기\")",
+   "say": "어? 닫았더니 찍던 화면까지 사라졌네.\n다시 열어야 하네."
+  },
+  {
+   "do": "tapRel",
+   "target": "#sheetWrap.open canvas",
+   "rx": 0.82,
+   "ry": 0.22,
+   "say": "향은 최고, 맛도 꽤 좋음.\n오른쪽 위로."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"찻잎 3개\"]",
+   "say": "별점은 찻잎 세 장. 만점."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"집에서\"]",
+   "text": "머스캣 터지는 첫물 다즐링, 다음엔 90도로",
+   "say": "다음 추출 메모까지 한 줄로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"저장하고 완료하기\")",
+   "say": "저장."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에서 보기\")",
+   "say": "캔버스에서 어떻게 보이나."
+  },
+  {
+   "do": "scroll",
+   "dy": 300,
+   "say": "내 방울이 옆 방울이랑 겹쳐서\n어느 게 오늘 건지 모르겠네."
+  },
+  {
+   "do": "scroll",
+   "dy": 800,
+   "say": "나의 취향 찻방울: Fruity·Sweet·Floral·Nutty.\n오, 이건 내 입맛 맞다."
+  },
+  {
+   "do": "scroll",
+   "dy": 500,
+   "say": "추천은 봉황단총, 백호은침, 호지차.\n단총은 납득. 근데 왜 추천인지 근거는 없네."
+  },
+  {
+   "do": "scroll",
+   "dy": -3000,
+   "say": "이제 기록 목록으로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"기록\")",
+   "say": "기록 탭."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"풍미 필터\"]",
+   "say": "풍미로 거를 수 있나? 필터 아이콘."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"과일향\")",
+   "say": "과일향에"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"부드러움\")",
+   "say": "아까 직접 넣은 부드러움까지."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"보기\")",
+   "say": "둘 다 담긴 기록만."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"다즐링 퍼스트 플러시\")",
+   "say": "오늘 다즐링이 걸렸다. 부드러움은 저장됐구나.\n열어보자."
+  },
+  {
+   "do": "scroll",
+   "dy": 450,
+   "say": "여긴 꽃향·스파이시까지 8개가 다 있네?\n비교 화면엔 4개뿐이었는데."
+  },
+  {
+   "do": "scroll",
+   "dy": 700,
+   "say": "캔버스 위치는 점선 원으로 짚어주네.\n이건 좋다."
+  }
+ ]
+}

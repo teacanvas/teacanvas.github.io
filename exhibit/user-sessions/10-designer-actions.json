@@ -1,0 +1,290 @@
+{
+ "persona": "준호 · 29살 UX 디자이너",
+ "steps": [
+  {
+   "do": "tap",
+   "target": "button:has-text(\"새로운 차 기록하기\")",
+   "say": "첫 화면이 깔끔하네. CTA가 하나뿐이라 고민할 게 없다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"오설록\"]",
+   "text": "동방미인",
+   "enter": true,
+   "after": 1600,
+   "say": "오늘은 동방미인. 브랜드는 모르니 이름만."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"맞아요\")",
+   "after": 1600,
+   "say": "우롱차로 알아서 분류해주네. 확인 한 번이면 끝."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"바로 마실게요\")",
+   "after": 1600,
+   "say": "우림 가이드는 잘 정리됐지만 이미 우려놨어. 바로 마실게요."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이 색으로 보내기\")",
+   "after": 1600,
+   "say": "찻물 색을 슬라이더로 고르는 거 재밌다. 근데 헤더 아래로 말풍선이 잘려 보이네."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "꿀 향이랑 잘 익은 복숭아 향",
+   "enter": true,
+   "after": 1800,
+   "say": "향은 내 말로 편하게. 정답을 강요 안 해서 좋다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "달큰하고 부드러워요, 떫지 않아요",
+   "enter": true,
+   "after": 1800,
+   "say": "맛도 한 줄. 채팅형 기록이라 부담이 적다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 충분해요\")",
+   "after": 1800,
+   "say": "'이제 충분해요' 버튼이 큼직해서 끝내는 시점이 분명하다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"기록 마치고 정리하기\")",
+   "after": 1800,
+   "say": "마지막 여운 질문은 건너뛰고 정리하기로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"건너뛰기\")",
+   "after": 1800,
+   "say": "분석 연출이 꽤 길다… 15초쯤? 처음엔 보기 좋은데 매번이면 지칠 듯. 건너뛰기."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에 찻방울 찍기\")",
+   "after": 1800,
+   "say": "전문가 설명과 내 기록을 나란히 보여주는 건 좋은 장치다."
+  },
+  {
+   "do": "tapRel",
+   "target": "#sheetWrap.open canvas",
+   "rx": 0.82,
+   "ry": 0.22,
+   "after": 1400,
+   "say": "오른쪽 위 = 향도 맛도 좋음. 축 설명이 캔버스 아래에 있어서 먼저 읽고 와야 하네."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"찻잎 3개\"]",
+   "say": "'별점'이라 써놓고 아이콘은 찻잎. 귀엽지만 라벨이랑 안 맞는다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"집에서\"]",
+   "text": "복숭아 꿀향, 오늘의 원픽",
+   "say": "한 줄 남기기. 사진도 붙일 수 있게 옆에 카메라."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"저장하고 완료하기\")",
+   "after": 2200,
+   "say": "저장 버튼이 찍기 전엔 회색이었지. 비활성 이유를 안 알려주는 게 아쉽다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에서 보기\")",
+   "after": 2000,
+   "say": "완료 화면 깔끔. 바로 캔버스로 가보자."
+  },
+  {
+   "do": "scroll",
+   "dy": 600,
+   "say": "14잔 캔버스… 근데 방금 찍은 내 찻방울이 어느 건지 강조가 없다."
+  },
+  {
+   "do": "tap",
+   "target": "text=봉황단총",
+   "after": 1600,
+   "say": "취향 찻방울 아래 추천 차. 봉황단총 눌러볼까? …반응이 없네. 카드처럼 생겼는데."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"기록\")",
+   "after": 1600,
+   "say": "상단 '캔버스/기록' 세그먼트로 목록 보기."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"차 이름\"]",
+   "text": "복숭아",
+   "after": 1400,
+   "say": "표현으로도 찾아진다길래 '복숭아'로 검색. 내 기록만 딱 나온다, 좋다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"기간\"]",
+   "after": 1400,
+   "say": "달력 아이콘. 기록한 날에 점이 찍혀 있는 게 친절하다."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"1개월\")",
+   "after": 1400,
+   "say": "'1개월' 누르니 바로 닫히고 칩으로 남네. 근데 검색어는 칩이 없고 지우는 X도 없다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"풍미 필터\"]",
+   "after": 1400,
+   "say": "풍미 필터. 색 점 + 영문 + 한글 라벨, 정보가 좀 빽빽하다."
+  },
+  {
+   "do": "tap",
+   "target": "#sheetWrap.open button:has-text(\"Fruity\")",
+   "after": 900,
+   "say": "Fruity 선택하니 버튼이 '기록 1개 보기'로 바뀐다. 실시간 개수 피드백 좋음."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"개 보기\")",
+   "after": 1600,
+   "say": "결과 확인. 필터 칩이 쌓이는 패턴은 익숙해서 편하다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"동방미인\")",
+   "after": 1800,
+   "say": "내 동방미인 상세로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"위치 옮기기\")",
+   "after": 1600,
+   "say": "상세에서 캔버스 속 위치까지 보여주네. '위치 옮기기' 해보자."
+  },
+  {
+   "do": "drag",
+   "target": "#sheetWrap.open canvas",
+   "from": [
+    0.82,
+    0.2
+   ],
+   "to": [
+    0.9,
+    0.08
+   ],
+   "after": 1200,
+   "say": "안내는 '눌러주세요'인데 끌어도 되나? 드래그로 살짝 위로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이 자리로 옮기기\")",
+   "after": 1800,
+   "say": "옮겼어요 토스트. 근데 강조 원이 캔버스 밖으로 잘린다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"기록 수정\"]",
+   "after": 1800,
+   "say": "연필 아이콘으로 기록 고치기."
+  },
+  {
+   "do": "tap",
+   "target": "#sheetWrap.open button:has-text(\"Floral\")",
+   "after": 1000,
+   "say": "꽃향도 있었던 것 같아 Floral 추가. 여기 칩은 필터 칩이랑 스타일이 달라 일관성이 깨진다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"고친 내용 저장\")",
+   "after": 2000,
+   "say": "폼이 길다. 저장 버튼 찾으려면 끝까지 내려야 하네."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"기록 삭제\"]",
+   "after": 1500,
+   "say": "빨간 휴지통. 삭제는 어떻게 막아주나 보자."
+  },
+  {
+   "do": "tap",
+   "target": "#sheetWrap.open button:text-is(\"취소\")",
+   "after": 1400,
+   "say": "'되돌릴 수 없어요' 경고 명확. 지우진 않고 취소."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"My\")",
+   "after": 1600,
+   "say": "My 탭. '사용자 님'… 닉네임부터 바꾸고 싶다."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"계정\")",
+   "after": 1500,
+   "say": "이름을 눌러도 반응이 없어서 한참 찾았다. 닉네임이 '계정' 안에 숨어 있네."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"차 좋아하는\"]",
+   "text": "준호",
+   "say": "닉네임 입력."
+  },
+  {
+   "do": "tap",
+   "target": "#sheetWrap.open button:text-is(\"확인\")",
+   "after": 1500,
+   "say": "'준호 님'. 바로 반영되는 건 좋다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"프로필 사진 바꾸기\"]",
+   "after": 1400,
+   "say": "프로필의 카메라 배지로 사진 바꾸기."
+  },
+  {
+   "do": "upload",
+   "menu": "앨범에서 고르기",
+   "file": "assets/photos/s1.jpg",
+   "after": 2200,
+   "say": "앨범에서 찻잔 사진. 자르기 단계 없이 바로 들어가네."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"알림\"]",
+   "after": 1600,
+   "say": "종 아이콘 알림. 방금 쓴 기록을 '지난번'이라고 부르네? 시점이 어색하다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"뒤로\"]",
+   "after": 1400,
+   "say": "알림의 추천 차도 눌러지진 않는다. 뒤로."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"알림 설정\")",
+   "after": 1500,
+   "say": "알림 설정은 체크박스 하나. 모바일이면 토글 스위치가 더 자연스러울 텐데."
+  },
+  {
+   "do": "tap",
+   "target": "#sheetWrap.open button:text-is(\"확인\")",
+   "after": 1200,
+   "say": "확인."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"앱 설정\")",
+   "after": 2400,
+   "say": "앱 설정. 언어 드롭다운만 기본 브라우저 스타일이라 튄다. 그래도 전체 흐름은 차분하고 예쁘다."
+  }
+ ]
+}

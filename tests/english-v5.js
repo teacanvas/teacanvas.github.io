@@ -16,6 +16,6 @@ await say('a hint of honey');await say("that's enough");await wait(800);await sa
 await p.waitForFunction(()=>cur()==='compare',null,{timeout:25000}).catch(()=>{});
 console.log('cur',await ev(()=>cur()),'flavors',await ev(()=>JSON.stringify((S.draft.flavors||[]).map(f=>f.k+':'+f.w))));
 const bots=await ev(()=>S.draft.chat.filter(m=>m.who!=='me').map(m=>L(m.text)));const kor=bots.filter(t=>/[가-힣]/.test(t));console.log('bot lines',bots.length,'still korean:',kor);
-await ev(()=>{S.draft=null;S.stack=[{name:'home'}];startRecord();});await wait(400);await p.click('#sendBtn');await p.waitForFunction(()=>S.draft.stage==='free'||cur()!=='chat',null,{timeout:60000}).catch(()=>{});
+await ev(()=>{clearLive();S.draft=null;S.stack=[{name:'home'}];startRecord();});await wait(400);await p.click('#sendBtn');await p.waitForFunction(()=>S.draft.stage==='free'||cur()!=='chat',null,{timeout:60000}).catch(()=>{});
 console.log('voice demo stage',await ev(()=>[S.draft&&S.draft.stage,S.draft&&S.draft.name,S.draft&&S.draft.type]));
 console.log('errs',errs);await b.close();})();

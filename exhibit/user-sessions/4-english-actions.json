@@ -1,0 +1,233 @@
+{
+ "persona": "Emily · 26살 미국인 교환학생(영어로 사용)",
+ "steps": [
+  {
+   "do": "wait",
+   "ms": 800,
+   "say": "친구가 준 제주 녹차! 근데… 앱이 전부 한국어네. 하나도 못 읽겠다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"My\")",
+   "say": "설정은 보통 내 프로필 쪽에 있겠지? 'My'만 영어라 일단 눌러본다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"앱 설정\")",
+   "after": 1600,
+   "say": "설정 메뉴가 4개인데 다 한국어… 톱니 아이콘도 없어서 감으로 두 번째 걸 눌러본다."
+  },
+  {
+   "do": "tap",
+   "target": "select",
+   "after": 800,
+   "say": "'한국어'라고 적힌 드롭다운! 이게 언어 같아."
+  },
+  {
+   "do": "type",
+   "target": "select",
+   "text": "English",
+   "enter": true,
+   "after": 3500,
+   "say": "English로 바꿨다. 화면이 한 번 깜빡이더니 영어로 바뀌었어!"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"OK\")",
+   "after": 1500,
+   "say": "다행이다, 이제 읽을 수 있어. OK."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"Home\")",
+   "after": 1500,
+   "say": "홈으로 돌아가서 기록 시작하자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Record a new tea\")",
+   "after": 2000,
+   "say": "'Record a new tea' — 바로 이거."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"Earl Grey\"]",
+   "text": "Jeju green tea",
+   "enter": true,
+   "after": 2500,
+   "say": "차 이름을 물어보네. 브랜드는 몰라서 그냥 Jeju green tea."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Yes\")",
+   "after": 2500,
+   "say": "녹차 맞냐고? Yes!"
+  },
+  {
+   "do": "scroll",
+   "dy": 500,
+   "after": 1200,
+   "say": "70–80도, 2–3분. 끓인 물을 좀 식히라는 팁 좋다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Start brewing\")",
+   "after": 2500,
+   "say": "Start brewing. 타이머가 돈다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"already brewed\")",
+   "after": 3000,
+   "say": "3분 다 기다리긴 길다… 'It's already brewed'로 넘어가자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Send this color\")",
+   "after": 3000,
+   "say": "찻물 색을 고르라네. 막대를 끌어 보려 했는데 잘 안 움직여서… 비슷하니까 그냥 Send this color."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"your way\"]",
+   "text": "Fresh grass, a little seaweed",
+   "enter": true,
+   "after": 3500,
+   "say": "향은… 막 깎은 풀 냄새, 그리고 살짝 김 냄새?"
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"your way\"]",
+   "text": "Soft and sweet, a bit bitter at the end",
+   "enter": true,
+   "after": 3500,
+   "say": "첫 모금은 부드럽고 달아. 끝에 살짝 씁쓸."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"what you feel\"]",
+   "text": "It gets nuttier as it cools",
+   "enter": true,
+   "after": 3000,
+   "say": "식으니까 고소해지네. 이것도 적어두자."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"what you feel\"]",
+   "text": "Feels calm, like a rainy morning",
+   "enter": true,
+   "after": 3000,
+   "say": "기분도 남기고 싶어. 비 오는 아침 같은 느낌."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"That's enough\")",
+   "after": 3000,
+   "say": "'Not saved as a flavor'? 기분은 맛이 아니라 그런가 보다. 이제 That's enough."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"what you feel\"]",
+   "text": "A sweet aftertaste lingers",
+   "enter": true,
+   "after": 3000,
+   "say": "식으면서 변했냐고? 방금 고소해진다고 말했는데… 그럼 끝맛을 적자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Wrap up now\")",
+   "after": 15000,
+   "say": "더 적을 건 없어. Wrap up now."
+  },
+  {
+   "do": "scroll",
+   "dy": 900,
+   "after": 2000,
+   "say": "내 말이랑 전문가 설명 비교! 근데 'AI reading'만 한국어로 나와… 그리고 Nutty는 내가 말한 건데?"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Place your drop\")",
+   "after": 2500,
+   "say": "찻방울을 캔버스에 놓으러 가자."
+  },
+  {
+   "do": "tapRel",
+   "target": "#sheetWrap.open canvas",
+   "rx": 0.72,
+   "ry": 0.3,
+   "after": 1500,
+   "say": "오른쪽은 향, 위는 맛. 둘 다 좋았으니 오른쪽 위로."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"3 leaves\"]",
+   "after": 1000,
+   "say": "별점이 잎사귀 3개구나. 귀엽다. 만점!"
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"My first green tea\"]",
+   "text": "A gift from my friend, tastes like Jeju rain",
+   "after": 1000,
+   "say": "한 줄 메모: 친구 선물, 제주 비 같은 맛."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Save and finish\")",
+   "after": 2500,
+   "say": "Save and finish!"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Go home\")",
+   "after": 1500,
+   "say": "저장됐다. 홈으로 갔다가 캔버스에서 다시 찾아보자."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"Canvas\"):visible",
+   "after": 2500,
+   "say": "아래 Canvas 탭. 14개 방울… 새로 넣은 건 표시가 없어서 위치로 기억해야 하네."
+  },
+  {
+   "do": "tapRel",
+   "target": "#view canvas",
+   "rx": 0.72,
+   "ry": 0.28,
+   "after": 2500,
+   "say": "아까 놓은 오른쪽 위 초록 방울. 다른 방울이랑 겹쳐 있어서 불안하다."
+  },
+  {
+   "do": "scroll",
+   "dy": 600,
+   "after": 1500,
+   "say": "맞다, Jeju green tea! 잎 3개, 메모도 있다. 근데 메모 끝이 잘렸네."
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"Entry\")",
+   "after": 1500,
+   "say": "뒤로."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Entries\")",
+   "after": 2000,
+   "say": "목록으로도 보자. Entries — 맨 위에 오늘 기록이 있다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"Search by name\"]",
+   "text": "seaweed",
+   "after": 2000,
+   "say": "내가 쓴 단어 'seaweed'로 검색해도 나올까?"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"Jeju green tea\")",
+   "after": 2500,
+   "say": "나온다! 내 말로 찾을 수 있다니 좋네."
+  }
+ ]
+}

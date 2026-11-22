@@ -1,0 +1,254 @@
+{
+ "persona": "순자 · 66살, 휴대폰이 서툴러요",
+ "steps": [
+  {
+   "do": "tap",
+   "target": "[aria-label=\"알림\"]",
+   "say": "이 종 모양은 뭐여.\n뭐가 왔나 눌러보자.",
+   "after": 2500
+  },
+  {
+   "do": "back",
+   "say": "알림이네. 난 아직 쓴 것도 없는디.\n뒤로 가야겠다.",
+   "after": 2500
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"새로운 차 기록하기\")",
+   "say": "이 까만 거 크게 써 있네.\n'새로운 차 기록하기'.",
+   "after": 2500
+  },
+  {
+   "do": "back",
+   "say": "아이고, 손이 미끄러져서\n뒤로가기를 또 눌렀네.",
+   "after": 2500
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"새로운 차 기록하기\")",
+   "say": "다시 누르자.\n천천히, 천천히.",
+   "after": 2500
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"오설록\"]",
+   "text": "동서 현미녹차",
+   "enter": true,
+   "say": "브랜드도 쓰라네.\n'동서 현미녹차'라고 써야지.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"맞아요\")",
+   "say": "녹차 맞지. 현미 들어간 녹차.\n'맞아요'.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"우림 시작\")",
+   "say": "온도니 시간이니 복잡하네.\n티백 담갔으니 '우림 시작'.",
+   "after": 3000
+  },
+  {
+   "do": "back",
+   "say": "어머, 또 뒤로가기 눌렀네.\n그만할 거냐고 묻네?",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"계속 기록하기\")",
+   "say": "아니 아니, 계속할 거여.\n근데 이 글씨는 왜 이렇게 흐려.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"벌써 다 우렸어요\")",
+   "say": "3분을 어떻게 기다려.\n색 나왔으니 됐다.",
+   "after": 3000
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"색을 말로\"]",
+   "text": "누리끼리해",
+   "enter": true,
+   "say": "초록색이 아닌디?\n누리끼리하구먼. 그렇게 써야지.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"잘 모르겠어요\")",
+   "say": "향이 어떠냐고?\n그냥 차 냄새지 뭐… 모르겠다.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"고소한 향\")",
+   "say": "아, 이 중에 고르면 되는구나.\n고소한 거, 이거네.",
+   "after": 2500
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"보내기\")",
+   "say": "하나 골랐으니\n보내기.",
+   "after": 3000
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"편하게\"]",
+   "text": "구수하네 쓰지는 않아",
+   "enter": true,
+   "say": "한 모금 마셔보니…\n구수하네. 쓰지는 않아.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"표현이 막히면\")",
+   "say": "더 말하라는데 뭐라 하나.\n'막히면?' 이거 눌러볼까.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "text=구운 빵처럼 고소해요",
+   "say": "'구운 빵처럼 고소해요'\n이거 누르면 되나? …안 되네.",
+   "after": 3000
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"느낀 그대로\"]",
+   "text": "누룽지 같어",
+   "enter": true,
+   "say": "빵은 무슨. 누룽지지.\n내 말로 쓰자.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 충분해요\")",
+   "say": "다 마셨어.\n이제 충분해요.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"딱히 없어요\")",
+   "say": "여운? 그런 거 없어.\n딱히 없어요.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"산지 · 빈티지\")",
+   "say": "빈티지는 또 뭐여.\n손주가 입는 옷 말하는 건가?",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"잘 몰라요\")",
+   "say": "어디서 났는지 내가 어찌 알아.\n마트에서 샀지.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"잘 몰라요\")",
+   "say": "만든 해? 몰라 몰라.\n또 '잘 몰라요'.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 정리할게요\")",
+   "say": "이제 됐다. 정리해 줘.\n…뭘 이렇게 한참 돌려.",
+   "after": 14000
+  },
+  {
+   "do": "scroll",
+   "dy": 350,
+   "say": "전문가는 풀 향이 난다네?\n난 고소하기만 하던디.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에 찻방울 찍기\")",
+   "say": "찻방울을 찍으라고?\n도장 찍듯이 하는 건가.",
+   "after": 3000
+  },
+  {
+   "do": "tapRel",
+   "target": "#sheetWrap.open canvas",
+   "rx": 0.6,
+   "ry": 0.35,
+   "say": "향도 맛도 괜찮았으니\n오른쪽 위쯤 콕.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"찻잎 3개\"]",
+   "say": "별점이라더니 이파리네.\n세 개 다 줘야지.",
+   "after": 2500
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"집에서 혼자\"]",
+   "text": "손주가 깔아준 앱으로 처음 마신 현미녹차",
+   "say": "한 줄 남기라니\n손주 얘기 써야지.",
+   "after": 2500
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"저장하고 완료하기\")",
+   "say": "저장, 꼭 해야지.\n안 그럼 다 날아가.",
+   "after": 4000
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"홈으로 가기\")",
+   "say": "다 했다!\n처음으로 가자.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"My\")",
+   "say": "근데 아까 쓴 거 어디 갔나?\n'My'… 내 거라는 뜻이겠지.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "text=최근 기록",
+   "say": "'최근 기록' 26.11.22, 오늘이네.\n눌러보자… 아무것도 안 나오네?",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"Canvas\")",
+   "say": "그럼 이 'Canvas'인가.\n영어는 읽기가 영…",
+   "after": 3000
+  },
+  {
+   "do": "tapRel",
+   "target": "#view canvas",
+   "rx": 0.52,
+   "ry": 0.37,
+   "say": "동그라미가 잔뜩이네.\n내 건 갈색이었는디… 이건가?",
+   "after": 3500
+  },
+  {
+   "do": "back",
+   "say": "페퍼민트? 이건 내 거 아니여.\n뒤로.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "button:text-is(\"기록\")",
+   "say": "위에 '기록'이라고 써 있네.\n이거였구먼.",
+   "after": 3000
+  },
+  {
+   "do": "tap",
+   "target": "text=동서 현미녹차",
+   "say": "옳지, 맨 앞에 있다!\n동서 현미녹차.",
+   "after": 3500
+  },
+  {
+   "do": "scroll",
+   "dy": 500,
+   "say": "누룽지 같다고 쓴 것도 있네.\n손주한테 보여줘야지.",
+   "after": 3500
+  }
+ ]
+}

@@ -1,0 +1,258 @@
+{
+ "persona": "민경 · 44살 차 수업 강사",
+ "steps": [
+  {
+   "do": "tap",
+   "target": "button:has-text(\"새로운 차 기록하기\")",
+   "say": "다음 주 수업에 쓸 철관음부터 남겨볼까.\n수강생한테 권할 만한지 꼼꼼히 봐야지."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"오설록\"]",
+   "text": "안계 철관음",
+   "enter": true,
+   "say": "산지까지 붙여서 이름을 적어본다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"맞아요\")",
+   "say": "우롱차 맞아요. 바로 알아보네."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"우림 시작\")",
+   "say": "가이드가 3~5분? 개완으로는 20초면 되는데…\n일단 타이머를 눌러보자."
+  },
+  {
+   "do": "wait",
+   "ms": 2500,
+   "say": "4분짜리 타이머가 돈다. 초 단위로는 못 바꾸나?"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"벌써 다 우렸어요\")",
+   "say": "개완은 벌써 따랐어요. 이 버튼이 있어서 다행."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"색을 말로\"]",
+   "text": "연한 황록빛",
+   "enter": true,
+   "say": "찻물 색은 슬라이더 대신 말로 적는 게 편하다."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "난꽃 향이 은은하게 올라와요",
+   "enter": true,
+   "say": "철관음은 역시 난향(蘭香)이지."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"내 말로\"]",
+   "text": "달큰하고 목 넘김 뒤에 고소한 여운",
+   "enter": true,
+   "say": "맛은 단맛 뒤에 고소한 여운."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"느낀 그대로\"]",
+   "text": "입안이 매끄럽고 살짝 크리미해요",
+   "enter": true,
+   "say": "질감도 남겨두자. 수업에서 자주 묻는 부분."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"느낀 그대로\"]",
+   "text": "식으니까 풋풋한 풀향이 살아나요",
+   "enter": true,
+   "say": "'풀향으로 담았어요' 표시가 바로 붙네. 좋다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 충분해요\")",
+   "say": "첫 잔은 이 정도. 이제 우림별로 남기고 싶은데."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"우림 변화\")",
+   "say": "'조금 더 남겨볼까요?' 바로 이거 찾던 거!"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"2차\")",
+   "say": "2차부터 남기자."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "난향이 확 피고 단맛이 늘었어요",
+   "enter": true,
+   "say": "2차에서 향이 제일 화려했지."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"그대로가 좋아요\")",
+   "say": "2차 조건은 그대로가 좋았다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"우림 변화\")",
+   "say": "3차는 어디서 넣지? 한 번에 하나씩이구나.\n다시 눌러본다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"3차\")",
+   "say": "2차에 체크 표시가 남아 있어 헷갈리진 않네."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "향은 옅어지고 단맛과 고소함이 남아요",
+   "enter": true,
+   "say": "3차는 향이 빠지고 몸통이 남는 단계."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"더 길게\")",
+   "say": "다음엔 3차를 좀 더 길게 우려보자."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"산지\")",
+   "say": "이제 산지."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "중국 복건성 안계",
+   "enter": true,
+   "say": "보기에 운남·대만은 있는데 복건(안계)이 없네.\n직접 적는다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"2026년\")",
+   "say": "올해 가을차."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"온도 · 시간\")",
+   "say": "온도·시간은 수업에서 제일 중요한 부분."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "95도",
+   "enter": true,
+   "say": "70/80/90/100만 있어서 95도는 직접."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "개완 1차 20초, 2차 15초, 3차 30초",
+   "enter": true,
+   "say": "시간도 분 단위 보기뿐이라 우림별로 직접 적는다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"추가 메모\")",
+   "say": "마지막으로 수업 메모."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"직접 적어\"]",
+   "text": "수업용: 3차에서 향과 단맛이 갈리는 지점 비교시키기",
+   "enter": true,
+   "say": "수강생에게 줄 포인트를 남겨둔다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"이제 정리할게요\")",
+   "after": 14000,
+   "say": "네 가지 다 체크됐다. 정리해보자."
+  },
+  {
+   "do": "scroll",
+   "dy": 700,
+   "say": "전문가 설명이랑 나란히 보여주네.\n난꽃 향을 '꽃향'과 다르다고 본 건 아쉽다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에 찻방울 찍기\")",
+   "say": "이제 캔버스에 찍어볼까."
+  },
+  {
+   "do": "tapRel",
+   "target": "#sheetWrap.open canvas",
+   "rx": 0.78,
+   "ry": 0.22,
+   "say": "향도 맛도 좋았으니 오른쪽 위로."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"찻잎 3개\"]",
+   "say": "찻잎 세 개."
+  },
+  {
+   "do": "type",
+   "target": "input[placeholder*=\"첫 우롱차\"]",
+   "text": "11월 수업용 안계 철관음, 3차까지 비교",
+   "say": "한 줄 남기기."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"저장하고 완료하기\")",
+   "after": 2000,
+   "say": "저장!"
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"캔버스에서 보기\")",
+   "after": 1800,
+   "say": "내 방울은 어디 있지? 예시들 사이라 잘 안 보이네."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"기록\")",
+   "say": "목록으로 찾는 게 빠르겠다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"안계 철관음\")",
+   "after": 1600,
+   "say": "맨 위에 오늘 기록이 있다."
+  },
+  {
+   "do": "scroll",
+   "dy": 1000,
+   "say": "2차·3차 우림, 산지, 온도가 표처럼 정리돼 있네. 좋다.\n그런데 시간이 '0분 20초'뿐… 2·3차 시간이 사라졌다."
+  },
+  {
+   "do": "tap",
+   "target": "[aria-label=\"기록 수정\"]",
+   "say": "고쳐보자. 연필 버튼."
+  },
+  {
+   "do": "scroll",
+   "dy": 1000,
+   "say": "산지·온도·우림 칸은 수정 화면에 없네.\n'상황' 칸에라도 시간을 적어둬야겠다."
+  },
+  {
+   "do": "type",
+   "target": "text=상황 >> xpath=following::input[1]",
+   "text": "토요 수업 시음 준비, 시간 1차20초·2차15초·3차30초",
+   "say": "우림별 시간을 여기에 다시 적는다."
+  },
+  {
+   "do": "tap",
+   "target": "button:has-text(\"고친 내용 저장\")",
+   "after": 1600,
+   "say": "저장."
+  },
+  {
+   "do": "scroll",
+   "dy": 1500,
+   "say": "'그날의 이야기'에 들어갔다.\n수강생에게 권하려면 개완용 초 단위 기록이 꼭 필요하겠다."
+  }
+ ]
+}
