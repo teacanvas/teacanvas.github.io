@@ -284,7 +284,6 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .canvas.bare .ax{background:#555}
 .canvas .ax.h{left:0;right:0;top:50%;height:1px}
 .canvas .ax.v{top:0;bottom:0;left:50%;width:1px}
-.canvas .lbl{position:absolute;font-size:11.5px;color:#9A9A9A;pointer-events:none}
 .drop{position:absolute;border-radius:50%;transform:translate(-50%,-50%);filter:blur(1.5px);pointer-events:none;transition:width .05s,height .05s}
 .cap{font-size:13px;color:var(--g2);text-align:center;margin-top:10px}
 .photo.real{display:block;height:auto;background:none;position:relative;margin:0}
@@ -448,17 +447,11 @@ canvas.wcd.big{margin:14px auto}
 .cambtn:active .ring{background:var(--g1)}
 
 /* 2-axis canvas */
-.cvbox{position:relative;width:100%;aspect-ratio:1/1;border:0;border-radius:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.cvbox{position:relative;width:100%;aspect-ratio:1/1;border:0;border-radius:6px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
 .cvbox.scrollable,.cvbox.tapcv{touch-action:pan-y}.cvbox.scrollable canvas{cursor:pointer}   /* 보기용 캔버스: 위아래 스크롤은 되고, 톡 누르면 기록 열기 */
-.cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(255,255,255,.85);padding:0 4px;border-radius:4px}
-.cvbox .lbl.t{top:6px;left:50%;transform:translateX(-50%)}
-.cvbox .lbl.b{bottom:6px;left:50%;transform:translateX(-50%)}
-.cvbox .lbl.l{left:6px;top:50%;transform:translateY(-50%)}
-.cvbox .lbl.r{right:6px;top:50%;transform:translateY(-50%)}
-.cvbox.sm .lbl{font-size:10px}
-.axisguide{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#555;margin:14px 0 8px}
-.axisguide b{font-weight:700;color:#111;margin-right:6px}
+.cvleg{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-size:12px;color:#8A8A8A;margin-top:9px}.cvleg span{display:inline-flex;align-items:center;gap:5px}.cvleg em{font-style:normal}.cvleg b{color:#333;font-weight:700}
+.sheet .pickfit{margin-top:14px}
 .cv-head{font-size:14px;text-align:center;margin:2px 0 12px;color:#444}
 .cv-q{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1.35;text-align:center;margin:20px 16px 12px}
 .cv-q small{display:block;font-size:13px;font-weight:500;color:#A6A6A6;margin-top:6px;letter-spacing:0}
@@ -525,7 +518,7 @@ canvas.wcd.big{margin:14px auto}
 .actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
-.vmark{display:inline-flex;vertical-align:-4px;margin-right:4px;opacity:.55}.vmark svg{width:16px;height:16px}
+.vmark{margin-right:5px;font-size:14px}
 .vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
@@ -533,7 +526,7 @@ canvas.wcd.big{margin:14px auto}
 @media (max-height:760px){
   .scr{padding-bottom:12px}.stepbar{height:38px;margin-bottom:4px}
   .rowlink{padding:12px 16px;margin-top:8px}
-  .sheet{padding-bottom:14px}.sheet .sub{font-size:12px}.axisguide{margin:8px 0 6px}.sheet h3.sec{margin-top:8px!important}.stars{margin:2px 0}.stars button{font-size:22px}
+  .sheet{padding-bottom:14px}.sheet .sub{font-size:12px}.sheet h3.sec{margin-top:8px!important}.stars{margin:2px 0}.stars button{font-size:22px}
   .sheet .addphoto{height:44px}.sheet .btn{height:48px}
   .profile{margin:12px 0 4px}.setrow{margin-top:7px}.statrow>div{padding-top:10px;padding-bottom:10px}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
@@ -931,7 +924,7 @@ const WC = (()=>{
    한 잔 = 찻물 색(비중 .5) + 풍미 색(대화에서 나온 강도). 원 안에 아주 고운 점을 고르게 깔고,
    점마다 그 자리의 색 비중대로 색을 고른다: 강한 색은 가운데, 약한 색은 가장자리. 흐림 없음.
    ========================================================= */
-const CANVAS_BG='#FFFFFF';
+const CANVAS_BG='#FAF8F4';
 /* 물처럼 투명하게: 색을 밝게 들어 올리고, 점은 반투명, 아래에 아주 옅은 물빛을 깐다 */
 
 /* 기록 → 찻방울 데이터 */
@@ -1002,7 +995,7 @@ const I = {
   pen:'<svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 19l1-4.5L15 3.5a2 2 0 0 1 3 0l.5.5a2 2 0 0 1 0 3L7.5 18zM13 6l3 3" fill="none" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   down:'<svg width="16" height="18" viewBox="0 0 16 18"><path d="M8 1v11M3 7.5 8 12.5l5-5M1.5 16.5h13" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   arrow:'<svg width="22" height="16" viewBox="0 0 22 16"><path d="M1 8h19M13.5 1.5 20 8l-6.5 6.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  mic:'<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="8" y="3" width="6" height="11" rx="3"/><path d="M4.8 10.5a6.2 6.2 0 0 0 12.4 0M11 16.8V19.5"/></svg>',
+  mic:'<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7.5" y="2.5" width="7" height="10" rx="3.5"/><path d="M7.5 6.2h2.4M7.5 8.8h2.4M12.1 6.2h2.4M12.1 8.8h2.4" stroke-width="1.2"/><path d="M5 10.2a6 6 0 0 0 12 0M11 16.2V19M7.8 19.5h6.4"/></svg>',
   stop:'<svg width="20" height="20" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" rx="2.2" fill="currentColor"/></svg>',
   cal:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.8v3.4M13 2.8v3.4" stroke-linecap="round"/></svg>',
   filter:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M5.5 10.5h9M8 15h4"/></svg>',
@@ -1072,13 +1065,14 @@ function timerBtnText(){
   return t.running ? '눌러서 정지' : '눌러서 다시 시작';
 }
 /* 두 축 캔버스: 가로 = 마시기 전 코로 맡은 향, 세로 = 마신 뒤 입에 남은 맛 */
-const AX={top:'맛이 좋아요',bottom:'맛이 아쉬워요',left:'향이 아쉬워요',right:'향이 좋아요'};
+/* 캔버스는 네모 한 장. 축 대신 아래에 한 줄로: 오른쪽일수록 향, 위일수록 맛이 좋아요 */
+const CV_LEGEND=`<div class="cvleg"><span><svg width="16" height="10" viewBox="0 0 16 10"><path d="M1 5h13M10 1.5L14 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>오른쪽일수록 <b>향</b>이 좋아요</em></span><span><svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13V1.5M1.5 5L5 1.5 8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>위일수록 <b>맛</b>이 좋아요</em></span></div>`;
 function canvasBox(id,{labels=true,cls=''}={}){
-  return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas>${labels?`<span class="lbl t">${AX.top}</span><span class="lbl b">${AX.bottom}</span><span class="lbl l">${AX.left}</span><span class="lbl r">${AX.right}</span>`:''}</div>`;
+  return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas></div>${labels?CV_LEGEND:''}`;
 }
 const dropR=(W,i,k=1)=>W*.16*Math.pow(10/Math.max(10,S.records.length),.3)*(.65+.5*(i??.5))*k;
 const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
-function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.09)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke(); x.restore(); }
+function axes(){ }   /* 십자선 없이 네모 캔버스만 */
 
 const posText=c=>c?`마시기 전 향은 ${c.x>=.5?'좋았고':'아쉬웠고'}, 마신 뒤 맛은 ${c.y<.5?'좋았어요':'아쉬웠어요'}.`:'';
 const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><i style="background:${FLAVORS[f.k].color}"></i>${FLAVORS[f.k].label}</span>`).join('')}</div>`;
@@ -1324,7 +1318,7 @@ fullChat(p){
   return `${stepbar(4)}
   <h1 class="t">전체 대화 보기</h1><p class="sub">차를 마시며 나눈 이야기를 다시 확인해요.</p>
   <div id="msgs" style="margin-top:16px">${
-    chat.length? chat.filter(m=>m.text||m.img).map(m=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.who==='me'&&(m.voice||voice.includes(m.text))?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`
+    chat.length? chat.filter(m=>m.text||m.img).map(m=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.who==='me'&&(m.voice||voice.includes(m.text))?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>`).join('') : `<p class="muted center" style="font-size:13px;margin-top:20px">남긴 대화가 없어요.</p>`
   }</div>
   <div class="spacer"></div>
   <button class="btn" onclick="back()">기록으로 돌아가기</button>`;
@@ -1759,7 +1753,7 @@ function paintMsgs(){
   const box=$('#msgs'), d=S.draft; if(!d) return;
   if(!box) return;
   const msgs=d.chat;
-  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
+  box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.text)}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'); if(inp) inp.placeholder=d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요';
   const v=$('#view'); v.scrollTop=v.scrollHeight;
@@ -1944,7 +1938,6 @@ function openCanvasSheet(){
   openSheet(`<div class="grab"></div>
     <h1 class="t">캔버스에 찻방울 찍기</h1>
     <p class="sub">오늘의 차는 어디쯤일까요?<br>눌러서 찍고, 다시 누르면 옮겨져요.</p>
-    <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <p class="cap" id="pickCap">${d.canvas?posText(d.canvas):'옅게 깔린 찻방울은 지난 기록이에요.'}</p>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div></div>
@@ -1957,7 +1950,7 @@ function openCanvasSheet(){
     <button class="link" onclick="closeSheet()">돌아가기</button>`);
   bindPick($('#pickCv'));
 }
-function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
+function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null,drag=false){
   const others=recsAsc().filter(r=>r.id!==skip), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
   const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
   const b=bg.getContext('2d'); b.fillStyle=CANVAS_BG; b.fillRect(0,0,px,px); axes(b,px);
@@ -1973,6 +1966,10 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
   const pos=e=>{ const r=cv.getBoundingClientRect(); return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)}; };
   frame();
   // 톡 누르면 그 자리에 찍힌다(다시 누르면 새 자리로). 끌면 화면이 스크롤될 뿐 방울이 따라오지 않는다
+  if(drag){   // 위치 옮기기: 누른 채 끌면 방울이 따라온다
+    cv.onpointerdown=e=>{ e.preventDefault(); cv.setPointerCapture(e.pointerId); holding=true; d.canvas={...pos(e),i:d.canvas?d.canvas.i:.6}; if(!raf) raf=requestAnimationFrame(loop); };
+    cv.onpointermove=e=>{ if(holding){ Object.assign(d.canvas,pos(e)); } };
+    const up=()=>{ if(!holding) return; holding=false; const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); }; cv.onpointerup=up; cv.onpointercancel=up; return; }
   let down=null; cv.onpointerdown=e=>{ down={x:e.clientX,y:e.clientY}; };
   cv.onpointerup=e=>{ if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>10){ down=null; return; } down=null;
     d.canvas={...pos(e),i:.6}; t0=last=performance.now(); prog=0; if(!raf) raf=requestAnimationFrame(loop); const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); };
@@ -1981,10 +1978,9 @@ function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
 /* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
 function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
   openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">느낌이 달라졌다면 새 자리를 눌러주세요.</p>
-    <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
     <div style="height:14px"></div><button class="btn" id="moveSave">이 자리로 옮기기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`);
-  bindPick($('#pickCv'),tmp,recDrop(r),r.id);
+  bindPick($('#pickCv'),tmp,recDrop(r),r.id,true);
   $('#moveSave').onclick=()=>{ r.canvas={x:+tmp.canvas.x.toFixed(3),y:+tmp.canvas.y.toFixed(3),i:r.canvas.i??.6}; persist(); closeSheet(); rerender(); toast('찻방울을 옮겼어요'); }; }
 function setStars(n){ const d=S.draft; d.stars = d.stars===n ? n-1 : n; document.querySelectorAll('#starRow button').forEach((b,i)=>b.classList.toggle('on',i<d.stars)); }
 /* 사진: 휴대폰은 카메라, 컴퓨터는 사진 고르기. 가로 720px로 줄여 기록과 함께 저장 */
@@ -2426,7 +2422,7 @@ function fitPhone(){
 addEventListener('resize',fitPhone); fitPhone();
 
 /* 1분 30초 동안 입력이 없으면 기록은 그대로 두고 홈으로만 돌아간다 */
-const IDLE_MS=90000;   // 기록 중에는 90초 뒤 '이어하기'로 저장해두고 홈으로 let lastInput=Date.now();
+const IDLE_MS=90000; let lastInput=Date.now();   /* 기록 중에는 90초 뒤 '이어하기'로 저장해두고 홈으로 */
 ['pointerdown','pointermove','keydown','wheel','input'].forEach(ev=>addEventListener(ev,()=>{ lastInput=Date.now(); },{passive:true,capture:true}));
 setInterval(()=>{
   if(Date.now()-lastInput<IDLE_MS) return;
