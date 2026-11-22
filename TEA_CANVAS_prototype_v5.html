@@ -515,6 +515,8 @@ canvas.wcd.big{margin:14px auto}
 
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
+.sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
 /* 키 작은 폰: 여백과 글자를 줄여 한 화면에 */
 @media (max-height:760px){
@@ -1378,7 +1380,7 @@ detail(p){
   </div>
   ${r.flavors&&r.flavors.length?`<h3 class="sec">담긴 풍미</h3>${flChips(r.flavors)}`:''}
   ${r.teaColor?`<h3 class="sec">찻물 색</h3><div class="tcrow">${r.teaColor.hex?`<i style="background:${r.teaColor.hex}"></i>`:''}${esc(r.teaColor.name)}</div>`:''}
-  <h3 class="sec">캔버스 속 위치</h3>
+  <div class="sec-row"><h3 class="sec">캔버스 속 위치</h3><button class="pillbtn" onclick="openMoveSheet('${r.id}')">위치 옮기기</button></div>
   ${canvasBox('detCv',{cls:'sm scrollable'})}
   <p class="cap">${posText(r.canvas)}</p>
   ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
@@ -1852,8 +1854,20 @@ const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.chatMode==='voice'&
 function speakLine(m){ let t=m.text||''; if(m.guide){ const d=S.draft, g=m.basic?BASIC:TEAS[d.type]; t+=` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
   return t.replace(/[–-]/g,'에서 ').replace(/°C/g,'도').replace(/[·…]/g,', ').replace(/\n/g,' '); }
 function speak(text){ return new Promise(res=>{ let done=false; const fin=()=>{ if(!done){ done=true; res(); } }; if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
-  try{ if(!window.speechSynthesis) throw 0; const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=1.02; const v=speechSynthesis.getVoices().find(v=>/ko/i.test(v.lang)); if(v) u.voice=v;
-    u.onend=fin; u.onerror=fin; speechSynthesis.speak(u); setTimeout(fin,Math.min(15000,800+text.length*110)); }catch(e){ setTimeout(fin,Math.min(6000,700+text.length*55)); } }); }
+  try{ if(!window.speechSynthesis) throw 0; speechSynthesis.cancel(); const parts=sayParts(text), v=koVoice(); let i=0;
+    const next=()=>{ if(done) return; if(i>=parts.length) return fin(); const u=new SpeechSynthesisUtterance(parts[i]); u.lang='ko-KR'; if(v) u.voice=v;
+      const q=/[?？]$/.test(parts[i]); u.rate=VOICE_RATE(v)*(q?.97:1); u.pitch=q?1.08:1.02;   // 묻는 말은 끝을 살짝 올리고 천천히
+      u.onend=()=>{ i++; setTimeout(next,i<parts.length?(/[,，]$/.test(parts[i-1])?90:220):0); }; u.onerror=fin; speechSynthesis.speak(u); };
+    next(); setTimeout(fin,Math.min(30000,1200+text.length*130)); }catch(e){ setTimeout(fin,Math.min(6000,700+text.length*55)); } }); }
+/* 더 자연스럽게: 기기에 있는 한국어 목소리 중 사람 같은 것(Natural·Neural·Premium·Google)을 고르고, 문장마다 짧게 쉬어 말한다 */
+function koVoices(){ try{ return speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang)); }catch(e){ return []; } }
+function voiceScore(v){ const n=v.name; return (/Natural|Neural|Online/i.test(n)?50:0)+(/Premium|Enhanced|향상/i.test(n)?40:0)+(/Google/i.test(n)?30:0)+(/SunHi|InJoon|Yuna|Sora|Minsang/i.test(n)?10:0)-(/compact|eloquence/i.test(n)?40:0)+(v.localService?0:5); }
+function koVoice(){ const vs=koVoices(); if(!vs.length) return null; return vs.find(v=>v.name===PREF.voiceName)||[...vs].sort((a,b)=>voiceScore(b)-voiceScore(a))[0]; }
+const VOICE_RATE=v=>v&&/Google/i.test(v.name)?1.05:v&&/Natural|Neural/i.test(v.name)?1.02:.96;
+function sayParts(t){ t=String(t).replace(/[‘’“”"'「」]/g,'').replace(/\([^)]*\)/g,'').replace(/[~→]/g,' ').replace(/\s+/g,' ').trim();
+  return (t.match(/[^.!?？。]+[.!?？。]*/g)||[t]).map(x=>x.trim()).filter(Boolean).flatMap(x=>x.length>42?x.split(/(?<=[,，])\s*/).filter(Boolean):[x]); }
+try{ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }catch(e){}
+function previewVoice(){ PREF.voiceName=$('#prefVoice').value; savePref(); const was=PREF.voiceSound; PREF.voiceSound=true; speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?').then(()=>PREF.voiceSound=was); }
 function demoLine(d){ if(d.stage==='wait'||d.stage==='wait2'){ if(d.talkPending) return DEMO_SAY.talk[d.talkPending]; if((d.talkI||0)<TALK.length) return null; return S.timer&&S.timer.left>0?'벌써 다 우렸어요':null; }
   if(d.stage==='free'){ const i=d.demoFree=(d.demoFree||0); d.demoFree=i+1; return DEMO_SAY.free[Math.min(i,DEMO_SAY.free.length-1)]; }
   return DEMO_SAY[d.stage]||null; }
@@ -1918,8 +1932,8 @@ function openCanvasSheet(){
     <button class="link" onclick="closeSheet()">돌아가기</button>`);
   bindPick($('#pickCv'));
 }
-function bindPick(cv){
-  const d=S.draft, drop=draftDrop(d), others=recsAsc(), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
+function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null){
+  const others=recsAsc().filter(r=>r.id!==skip), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
   const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
   const b=bg.getContext('2d'); b.fillStyle=CANVAS_BG; b.fillRect(0,0,px,px); axes(b,px);
   others.forEach(r=>drawRec1(b,recFlav(r),r.canvas.x*px,r.canvas.y*px,R1(px),r.id,CV_SPREAD,.25));
@@ -1938,6 +1952,14 @@ function bindPick(cv){
   const stop=()=>{ if(!holding) return; holding=false; const c=$('#pickCap'); if(c) c.textContent=posText(d.canvas); };
   cv.onpointerup=stop; cv.onpointercancel=stop;
 }
+/* 저장한 찻방울 위치 옮기기: 다시 눌러 찍고 저장 */
+function openMoveSheet(id){ const r=S.records.find(x=>x.id===id); if(!r) return; const tmp={canvas:{...r.canvas}};
+  openSheet(`<div class="grab"></div><h1 class="t">위치 옮기기</h1><p class="sub">마셔보니 느낌이 달라졌다면, 새 자리를 눌러주세요.</p>
+    <div class="axisguide"><span><b>가로</b>마시기 전, 코로 맡은 향</span><span><b>세로</b>마신 뒤, 입에 남은 맛</span></div>
+    <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv')}</div><p class="cap" id="pickCap">${posText(r.canvas)}</p>
+    <div style="height:14px"></div><button class="btn" id="moveSave">이 자리로 옮기기</button><button class="link" onclick="closeSheet()">그대로 두기</button>`);
+  bindPick($('#pickCv'),tmp,recDrop(r),r.id);
+  $('#moveSave').onclick=()=>{ r.canvas={x:+tmp.canvas.x.toFixed(3),y:+tmp.canvas.y.toFixed(3),i:r.canvas.i??.6}; persist(); closeSheet(); rerender(); toast('찻방울을 옮겼어요'); }; }
 function setStars(n){ const d=S.draft; d.stars = d.stars===n ? n-1 : n; document.querySelectorAll('#starRow button').forEach((b,i)=>b.classList.toggle('on',i<d.stars)); }
 /* 사진: 휴대폰은 카메라, 컴퓨터는 사진 고르기. 가로 720px로 줄여 기록과 함께 저장 */
 /* 설정(이 기기에 저장) */
@@ -1947,12 +1969,13 @@ addEventListener('appinstalled',()=>{ INSTALL=null; toast('TEA CANVAS를 앱으�
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 async function installApp(){ if(!INSTALL) return toast('브라우저 메뉴의 ‘앱 설치’ 또는 ‘홈 화면에 추가’로 설치할 수 있어요'); INSTALL.prompt(); try{ await INSTALL.userChoice; }catch(e){} INSTALL=null; rerender(); }
 const PREF_KEY='teacanvas.v5.prefs';
-const PREF=(()=>{ try{ return Object.assign({keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:''},JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); }catch(e){ return {keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:''}; } })();
+const PREF=(()=>{ try{ return Object.assign({keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:'',voiceName:''},JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); }catch(e){ return {keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:''}; } })();
 function savePref(){ try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }
 function openSettings(k){
   const row=(key,label,desc)=>`<label class="pref"><span><b>${label}</b><small>${desc}</small></span><input type="checkbox" ${PREF[key]?'checked':''} onchange="PREF.${key}=this.checked;savePref()"></label>`;
   const body={chat:['대화 기록 설정',row('keepChat','대화 내용 함께 저장','끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요')],
-    app:['앱 설정',row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
+    app:['앱 설정',row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+(koVoices().length?`<label class="pref col"><b>목소리</b><small>기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요</small>
+      <span class="vpick"><select id="prefVoice" onchange="PREF.voiceName=this.value;savePref()">${koVoices().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option ${v===koVoice()?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="pillbtn" type="button" onclick="previewVoice()">들어보기</button></span></label>`:'')+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
     account:['계정',`<label class="pref col"><b>부를 이름</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
