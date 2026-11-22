@@ -520,8 +520,17 @@ canvas.wcd.big{margin:14px auto}
   html.mob .nav{height:calc(60px + env(safe-area-inset-bottom));padding-bottom:calc(4px + env(safe-area-inset-bottom))}
   html.mob .sheet{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
   html.mob .actmenu{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
-  html.mob input,html.mob textarea,html.mob select{font-size:16px!important}   /* 아이폰에서 입력칸을 누를 때 화면이 확대되지 않게 */
+  html.mob input,html.mob textarea,html.mob select{font-size:16px!important}
+  html.mob.kb .nav,html.mob.kb #chatEnd .btn,html.mob.kb .stickfoot{display:none!important}   /* 아이폰에서 입력칸을 누를 때 화면이 확대되지 않게 */
 </style>
+<script>/* 폰에서 글을 쓰는 동안(키보드가 올라온 동안)에는 하단 탭·큰 버튼을 숨겨 키보드 위로 따라 올라오지 않게 */
+(function(){ const R=document.documentElement, typing=e=>e&&e.matches&&e.matches('input:not([type=range]):not([type=file]):not([type=checkbox]),textarea,[contenteditable]');
+  const vh=()=>(window.visualViewport?visualViewport.height:innerHeight); let full=vh();
+  const upd=()=>{ const h=vh(), f=typing(document.activeElement); if(!f) full=Math.max(full,h);   // 입력 중이 아닐 때의 화면 높이를 기억해 두고
+    R.classList.toggle('kb', f&&(R._kbFocusOnly||h<full*.82)); };   // 입력 중 + 화면이 키보드만큼 줄었을 때만 숨긴다(뒤로가기로 키보드만 내려도 다시 보이게)
+  addEventListener('focusin',e=>{ if(typing(e.target)){ R._kbFocusOnly=true; R.classList.add('kb'); setTimeout(()=>{ R._kbFocusOnly=false; upd(); },700); } });   // 키보드가 올라오는 동안엔 우선 숨기고, 다 올라온 뒤엔 높이로 판단
+  addEventListener('focusout',()=>setTimeout(()=>{ if(!typing(document.activeElement)) R.classList.remove('kb'); },60));
+  (window.visualViewport||window).addEventListener('resize',upd); })();</script>
 <script>(function(){ const R=document.documentElement, f=()=>{ const coarse=matchMedia('(pointer:coarse)').matches; R.classList.toggle('mob', innerWidth<=700 || (coarse && Math.min(screen.width,screen.height)<=520)); }; f(); addEventListener('resize',f); })();</script>
 </head>
 <body>
@@ -2516,16 +2525,17 @@ function vwKey(n){
   return VW.assign[n]; }
 function startVoiceWash(cv){
   if(!cv) return; const W=cv.clientWidth||340, H=cv.clientHeight||150, pw=pxFor(W), ph=Math.round(pw*H/W); cv.width=pw; cv.height=ph;
-  const x=cv.getContext('2d'), N=170, STEP=1.6, LIFE=7.5, GREY='#BDB9B3';   // 색 없이(맛 판단에 영향 주지 않게), 큰 번짐이 하나씩 천천히
+  /* 수채화처럼: 물감 번짐을 몇 개만 또렷하게 피우고, 겹치는 곳은 물감이 포개지듯 진해진다. 자리를 돌려가며 좌우 끝까지 채운다 */
+  const x=cv.getContext('2d'), N=170, STEP=1.4, LIFE=10, TONES=['#C4BFB8','#B3ADA5','#CFCAC3'], SPOTS=[.1,.62,.36,.88,.22,.5,.76];
   let prev=performance.now(); VW.T=Math.max(VW.T,LIFE);   // 처음부터 이미 번져 있는 상태로
   (function loop(now){ if(!cv.isConnected||!VOICE.on) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
-    VW.T+=dt*(S.listening?1:.7); const T=VW.T; x.clearRect(0,0,pw,ph);
-    const last=Math.floor(T/STEP), LANES=[.12,.5,.88];   // 번짐이 좌우 세 줄기로 겹쳐 피어 빈틈 없이 아래를 채운다
+    VW.T+=dt*(S.listening?1:.7); const T=VW.T; x.clearRect(0,0,pw,ph); x.globalCompositeOperation='multiply';
+    const last=Math.floor(T/STEP);
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
-      for(let l=0;l<LANES.length;l++){ const r=WC.rng(n*7919+l*131+13), u=age/LIFE, D=pw*(.72+.22*r())*(.85+.4*Math.min(1,u*1.6)), cx=pw*(LANES[l]+(r()-.5)*.16), cy=ph*(.9-.12*u);
-        x.globalAlpha=Math.max(0,Math.min(1,age*.9,(1-u)*2.5))*.58;
-        x.drawImage(cvWash(N,'grey',GREY,((n+l)%4)*977+311).frame(Math.min(CV_SPREAD,age*.9)),cx-D/2,cy-D/2,D,D); } }
-    x.globalAlpha=1; requestAnimationFrame(loop); })(prev);
+      const r=WC.rng(n*7919+13), u=age/LIFE, D=pw*(.62+.16*r())*(.85+.35*Math.min(1,u*1.8)), cx=pw*(SPOTS[n%SPOTS.length]+(r()-.5)*.08), cy=ph*(.84-.1*u);
+      x.globalAlpha=Math.max(0,Math.min(1,age*1.1,(1-u)*3))*.9;
+      x.drawImage(cvWash(N,'grey'+(n%3),TONES[n%3],(n%5)*977+311).frame(Math.min(CV_SPREAD,age*.8)),cx-D/2,cy-D/2,D,D); }
+    x.globalAlpha=1; x.globalCompositeOperation='source-over'; requestAnimationFrame(loop); })(prev);
 }
 
 /* @@D3_BEGIN (src/drop3d.js에서 빌드) */
