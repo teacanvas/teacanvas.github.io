@@ -334,7 +334,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .rec .chev{margin-left:auto}
 .aic{font-size:13.5px;line-height:1.8}
 .profile{display:flex;align-items:center;gap:20px;margin:22px 0 6px}
-.pimg{position:relative;width:64px;height:64px;border-radius:50%;background:#F6F4F1;display:grid;place-items:center;flex-shrink:0}.pimg>img,.pimg>canvas{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.pimg{position:relative;width:64px;height:64px;min-width:64px;aspect-ratio:1;padding:0;border-radius:50%;background:#F6F4F1;display:grid;place-items:center;flex-shrink:0}.pimg>img,.pimg>canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 .pcam{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#fff;border:1px solid #E2E2E2;display:grid;place-items:center}.pcam svg{width:13px;height:13px}
 .profile b{font-size:18px}
 .profile p{font-size:13px;line-height:1.5}
@@ -517,7 +517,7 @@ canvas.wcd.big{margin:14px auto}
 .vstop{position:absolute;right:22px;bottom:14px;width:46px;height:46px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
 .actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
-.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
+.actmenu .am button.danger{color:#D6453D}.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
 .vmark{margin-right:5px;font-size:14px}
 .vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
@@ -1066,7 +1066,7 @@ function timerBtnText(){
 }
 /* 두 축 캔버스: 가로 = 마시기 전 코로 맡은 향, 세로 = 마신 뒤 입에 남은 맛 */
 /* 캔버스는 네모 한 장. 축 대신 아래에 한 줄로: 오른쪽일수록 향, 위일수록 맛이 좋아요 */
-const CV_LEGEND=`<div class="cvleg"><span><svg width="16" height="10" viewBox="0 0 16 10"><path d="M1 5h13M10 1.5L14 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>오른쪽일수록 <b>향</b>이 좋아요</em></span><span><svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13V1.5M1.5 5L5 1.5 8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>위일수록 <b>맛</b>이 좋아요</em></span></div>`;
+const CV_LEGEND=`<div class="cvleg"><span><svg width="16" height="10" viewBox="0 0 16 10"><path d="M1 5h13M10 1.5L14 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>오른쪽일수록 <b>향</b>이 좋아요</em></span><span><svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13V1.5M1.5 5L5 1.5 8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><em>위쪽일수록 <b>맛</b>이 좋아요</em></span></div>`;
 function canvasBox(id,{labels=true,cls=''}={}){
   return `<div class="cvbox ${cls}"><canvas id="${id}"></canvas></div>${labels?CV_LEGEND:''}`;
 }
@@ -1411,7 +1411,7 @@ my(){
   const n=S.records.length, kinds=new Set(S.records.map(r=>r.type)).size;
   const last=n? S.records[0].date.slice(2).replace(/\.$/,'') : '-';
   return `
-  <div class="profile"><button class="pimg" onclick="pickPhoto(u=>{ PREF.avatar=u; savePref(); rerender(); })" aria-label="프로필 사진 바꾸기">${PREF.avatar?`<img src="${PREF.avatar}" alt="">`:'<canvas id="avCv"></canvas>'}<span class="pcam">${I.cam}</span></button><div><b>${esc(PREF.name||'사용자')} 님</b></div></div>
+  <div class="profile"><button class="pimg" onclick="pickAvatar()" aria-label="프로필 사진 바꾸기">${PREF.avatar?`<img src="${PREF.avatar}" alt="">`:'<canvas id="avCv"></canvas>'}<span class="pcam">${I.cam}</span></button><div><b>${esc(PREF.name||'사용자')} 님</b></div></div>
   <h3 class="sec" style="margin-top:min(28px,3dvh)">나의 아카이브</h3>
   <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}
@@ -2002,10 +2002,12 @@ function openSettings(k){
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
     <div style="height:18px"></div><button class="btn" onclick="${k==='account'?"PREF.name=$('#prefName').value.trim();savePref();":''}closeSheet();rerender();toast('설정을 저장했어요')">확인</button>`); }
-function pickPhoto(cb){ actMenu([['사진 찍기',()=>pickFile(cb,true)],['앨범에서 고르기',()=>pickFile(cb,false)]]); }
+function pickPhoto(cb,extra=[]){ actMenu([['사진 찍기',()=>pickFile(cb,true)],['앨범에서 고르기',()=>pickFile(cb,false)],...extra]); }
 /* 작은 선택 창(시트 위에 한 겹 더) */
-function actMenu(items){ const w=document.createElement('div'); w.className='actmenu'; w.innerHTML=`<div class="am">${items.map((x,i)=>`<button data-i="${i}">${x[0]}</button>`).join('')}</div><button class="am-x">취소</button>`;
+function actMenu(items){ const w=document.createElement('div'); w.className='actmenu'; w.innerHTML=`<div class="am">${items.map((x,i)=>`<button data-i="${i}" class="${x[2]||''}">${x[0]}</button>`).join('')}</div><button class="am-x">취소</button>`;
   w.onclick=e=>{ const b=e.target.closest('button'); if(e.target===w||b){ w.remove(); if(b&&b.dataset.i) items[+b.dataset.i][1](); } }; $('#sheetWrap').parentNode.appendChild(w); }
+/* 프로필 사진: 기본은 나의 취향 찻방울. 내 사진을 올렸다면 지우고 기본으로 되돌릴 수 있다 */
+function pickAvatar(){ pickPhoto(u=>{ PREF.avatar=u; savePref(); rerender(); },PREF.avatar?[['사진 지우기',()=>{ PREF.avatar=''; savePref(); rerender(); toast('기본 프로필로 되돌렸어요'); },'danger']]:[]); }
 function pickFile(cb,camera){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; if(camera) i.setAttribute('capture','environment'); i.style.display='none';
   i.onchange=()=>{ const f=i.files&&i.files[0]; i.remove(); if(!f) return; const rd=new FileReader();
     rd.onload=()=>{ const im=new Image(); im.onload=()=>{ const k=Math.min(1,720/im.width), c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
