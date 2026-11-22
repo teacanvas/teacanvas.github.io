@@ -1,9 +1,9 @@
 // 썸네일: 가운데 'TEA CANVAS' + 대각선으로 흐르는 큼직한 찻방울. 풍미 색 11가지를 모두 넣고, 흰 곳이 남지 않게 채운다
 // node tools/make-thumb-all.js → previews/thumb-all/01.jpg … 12.jpg
 const {chromium}=require('playwright'); const fs=require('fs'), path=require('path');
-const ROOT=path.join(__dirname,'..'), ONLY=process.env.ONLY?{n:+process.env.ONLY,sz:(process.env.SZ||'2.6').split(',').map(Number)}:null, OUT=path.join(ROOT,ONLY?'previews/thumb-all/v'+ONLY.n:'previews/thumb-all');   // ONLY=11 SZ=2.6,2.2 → 11번만 크기 바꿔서
+const ROOT=path.join(__dirname,'..'), ONLY=process.env.ONLY?{n:+process.env.ONLY,sz:(process.env.SZ||'2.6').split(',').map(Number)}:null, OUT=path.join(ROOT,ONLY?'previews/thumb-all/v'+ONLY.n:process.env.WC?'previews/thumb-all/wc'+process.env.WC:'previews/thumb-all');   // ONLY=11 SZ=2.6,2.2 → 11번만 크기 바꿔서
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage({viewport:{width:800,height:600}});
-  if(ONLY) await p.addInitScript(o=>{ window.__ONLY=o; },ONLY); await p.goto('file://'+path.join(ROOT,'submission/B.html')); await p.waitForTimeout(800); await p.evaluate(()=>document.fonts.ready);
+  if(ONLY) await p.addInitScript(o=>{ window.__ONLY=o; },ONLY); if(process.env.WC) await p.addInitScript(o=>{ window.__WC=o; },{n:+process.env.WC,levels:[[1.2,.07,'약하게'],[2.2,.1,'보통'],[3.4,.13,'진하게']]}); await p.goto('file://'+path.join(ROOT,'submission/B.html')); await p.waitForTimeout(800); await p.evaluate(()=>document.fonts.ready);
   const res=await p.evaluate(async()=>{
     const W=1600,H=900,out=[];
     const rng=s=>{ let a=s>>>0||1; return ()=>((a=Math.imul(a^a>>>15,a|1)^a+Math.imul(a^a>>>7,a|61)), ((a^a>>>14)>>>0)/4294967296); };
@@ -24,6 +24,18 @@ const ROOT=path.join(__dirname,'..'), ONLY=process.env.ONLY?{n:+process.env.ONLY
       for(let k=0;k<10;k++){ const d=x.getImageData(0,0,W,H).data; let best=null,bv=0; const G=140;   // 크게 빈 곳(모서리 등)만 메우고, 작은 틈은 19번처럼 남긴다
         for(let gy=0;gy<H;gy+=G) for(let gx=0;gx<W;gx+=G){ let s=0; let m=0; for(let yy=gy;yy<Math.min(H,gy+G);yy+=10) for(let xx=gx;xx<Math.min(W,gx+G);xx+=10){ const q=(yy*W+xx)*4; s+=d[q]+d[q+1]+d[q+2]; m++; } s/=m*3; if(s>bv){ bv=s; best=[gx+G/2,gy+G/2]; } }
         if(bv<228) break; drop(LIGHT[(k+seedN)%LIGHT.length],best[0]/W,best[1]/H,.075*o.sz,'f'+seedN+'_'+k); }
+      if(window.__WC&&n===window.__WC.n){   // 수채화 질감 더하기: 물자국 가장자리(국소 대비) + 종이 결·물감 알갱이
+        const base=x.getImageData(0,0,W,H);
+        for(const [k,g,lb] of window.__WC.levels){
+          const b=document.createElement('canvas'); b.width=W; b.height=H; const bx=b.getContext('2d'); bx.drawImage(c,0,0); bx.filter='blur(22px)'; bx.drawImage(c,0,0); /* 바깥이 빈 칸으로 섞이지 않게 원본을 먼저 깔고 흐리기 */ const B=bx.getImageData(0,0,W,H).data;
+          const I=new ImageData(new Uint8ClampedArray(base.data),W,H), d=I.data, rr=rng(4242);
+          const FW=(W+7)>>3, fib=new Float32Array(FW*((H+7)>>3)); for(let i=0;i<fib.length;i++) fib[i]=rr();
+          for(let y=0;y<H;y++) for(let xx=0;xx<W;xx++){ const q=(y*W+xx)*4; const grain=1-g*(rr()*.35+fib[(y>>3)*FW+(xx>>3)]*.65); /* 잔 알갱이보다 종이 결을 더 */
+            for(let ch=0;ch<3;ch++){ const v=d[q+ch], bl=B[q+ch]; let o=v+k*(v-bl); if(v<bl) o-=k*.35*(bl-v); d[q+ch]=Math.max(0,Math.min(255,o*grain+ (1-grain)*0)); } }
+          const c2=document.createElement('canvas'); c2.width=W; c2.height=H; const x2=c2.getContext('2d'); x2.putImageData(I,0,0);
+          x2.fillStyle='#111'; x2.textAlign='center'; x2.textBaseline='middle'; x2.font='800 150px Pretendard'; try{ x2.letterSpacing='4px'; }catch(e){} x2.fillText('TEA CANVAS',W/2,H/2+6);
+          out.push({n:'wc-'+lb,label:'4번 수채화 '+lb,url:c2.toDataURL('image/jpeg',.93)}); }
+        return out; }
       x.fillStyle='#111'; x.textAlign='center'; x.textBaseline='middle'; x.font='800 150px Pretendard'; try{ x.letterSpacing='4px'; }catch(e){}
       x.fillText('TEA CANVAS',W/2,H/2+6);
       out.push({n,label:o.seed?`${o.seed}번 · 크기 ${o.sz}`:`${o.on}${o.sh?' (섞음 '+o.sh+')':''} · ${o.sz===2.2?'보통':'크게'}`,url:c.toDataURL('image/jpeg',.92)}); await new Promise(r=>setTimeout(r,0)); }
