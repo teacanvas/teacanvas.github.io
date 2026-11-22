@@ -231,7 +231,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .rowlink .ric{width:20px;display:grid;place-items:center;flex-shrink:0}
 .rowlink .chev{margin-left:auto;font-weight:400}
 .tagcard{border:1px solid #000;border-radius:18px;padding:22px 20px;text-align:center;margin-top:8px}
-.tagorb{position:relative;display:inline-block}.tagph{position:absolute;right:-4px;bottom:4px;width:78px;height:78px;border-radius:50%;object-fit:cover;border:3px solid #fff;background:#fff}
+.tagid.ph{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}.tagid.ph>div{text-align:left}.tagid.ph .nm{margin-top:0}
+.tagph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
 .tagcard .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:16px}
@@ -1163,15 +1164,17 @@ function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class
 function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
   const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   x.fillStyle='#fff'; x.fillRect(0,0,W,H); drawRec1(x,recFlav(r),W/2,470,240,r.id,CV_SPREAD+1.4,.95);
-  x.fillStyle='#111'; x.textAlign='center'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,W/2,900);
-  x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(dot(r.brand,r.date.replace(/\.$/,'')),W/2,960);
+  if(r.photoData&&!saveTagImage._ph){ const im=new Image(); im.onload=()=>{ saveTagImage._ph=im; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.onerror=()=>{ saveTagImage._ph={}; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.src=r.photoData; return; }
+  { const im=saveTagImage._ph, sub=dot(r.brand,r.date.replace(/\.$/,''));
+    if(im&&im.width){ const R=62, gap=34; x.font='700 64px Pretendard, sans-serif'; const w1=x.measureText(r.name).width; x.font='400 34px Pretendard, sans-serif'; const w2=x.measureText(sub).width;
+      const tw=2*R+gap+Math.max(w1,w2), x0=W/2-tw/2, cx=x0+R, cy=920, k=Math.max(2*R/im.width,2*R/im.height);
+      x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k); x.restore();
+      x.textAlign='left'; x.fillStyle='#111'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,x0+2*R+gap,910); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,x0+2*R+gap,966); }
+    else { x.fillStyle='#111'; x.textAlign='center'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,W/2,900); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,W/2,960); } }
   const fl=(r.flavors||[]).map(f=>HOME_EN[f.k]); x.font='600 48px "Cormorant Garamond", Georgia, serif'; let tx=W/2-fl.reduce((s,t)=>s+x.measureText(t).width+36,-36)/2; x.textAlign='left';
   (r.flavors||[]).forEach(f=>{ x.fillStyle=inkText(FLAVORS[f.k].color); x.fillText(HOME_EN[f.k],tx,1060); tx+=x.measureText(HOME_EN[f.k]).width+36; });
   if(r.comment){ x.textAlign='center'; x.fillStyle='#444'; x.font='400 36px Pretendard, sans-serif'; x.fillText(`“${r.comment}”`,W/2,1160); }
   x.textAlign='center'; x.fillStyle='#BBB'; x.font='800 28px Pretendard, sans-serif'; x.fillText('TEA CANVAS',W/2,1290);
-  if(r.photoData&&!saveTagImage._ph){ const im=new Image(); im.onload=()=>{ saveTagImage._ph=im; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.onerror=()=>{ saveTagImage._ph={}; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.src=r.photoData; return; }
-  { const im=saveTagImage._ph; if(im&&im.width){ const cx=W/2+200, cy=640, R=105, k=Math.max(2*R/im.width,2*R/im.height);
-      x.save(); x.beginPath(); x.arc(cx,cy,R+8,0,Math.PI*2); x.fillStyle='#fff'; x.fill(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(im,cx-im.width*k/2,cy-im.height*k/2,im.width*k,im.height*k); x.restore(); } }
   const fn=`teacanvas-tag-${String(r.date||'').replace(/\D/g,'')||Date.now()}.png`;   // 한글 파일 이름을 못 받는 브라우저가 있어 영문·숫자로
   try{ c.toBlob(b=>{ try{ const u=URL.createObjectURL(b), a=document.createElement('a'); a.download=fn; a.href=u; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); toast('이미지로 저장했어요'); }catch(e){ toast('이미지를 저장하지 못했어요'); } },'image/png'); }catch(e){ toast('이미지를 저장하지 못했어요'); } }
 function resetFilter(){ S.filter={q:'',date:'all',fl:[],from:'',to:''}; rerender(); }
@@ -1341,9 +1344,9 @@ teaTag(){
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
-    <div class="tagorb">${orb(r,210,'big')}${r.photoData?`<img class="tagph" src="${r.photoData}" alt="내가 넣은 사진">`:''}</div>
-    <div class="nm">${esc(r.name)}</div>
-    <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div>
+    ${orb(r,210,'big')}
+    <div class="tagid${r.photoData?' ph':''}">${r.photoData?`<img class="tagph" src="${r.photoData}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
+    <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div></div></div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
     <button class="line tagline" onclick="openCmtSheet('${r.id}')">${r.comment?`“${esc(r.comment)}”`:'<span class="muted">+ 한 줄 남기기</span>'} <span class="pen">${I.pen}</span></button>
   </div>
