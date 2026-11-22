@@ -464,7 +464,7 @@ canvas.wcd.big{margin:14px auto}
 .ephoto{display:flex;align-items:center;gap:8px}.ephoto img{width:52px;height:52px;border-radius:10px;object-fit:cover}.ephoto .pillbtn{margin:0;padding:6px 12px}
 #eFl .chip small{color:#999;font-size:11px}
 .vpanel{display:none;position:relative;height:150px;margin:0 -22px 8px;overflow:hidden}
-.chatfoot.voicing .vpanel{display:block}.chatfoot.voicing .inrow{display:none}
+.chatfoot.voicing .vpanel{display:block}.scr-chat:has(.chatfoot.voicing){padding-bottom:0}.chatfoot.voicing{padding-bottom:0}.chatfoot.voicing .vpanel{margin-bottom:0}   /* 음성 영역이 하단 탭까지 이어지게 */.chatfoot.voicing .inrow{display:none}
 .vpanel canvas{position:absolute;inset:0;width:100%;height:100%}
 .vtext{position:absolute;left:76px;right:76px;bottom:14px;text-align:center}   /* 정지 버튼만큼 양쪽을 비우고 가운데 정렬 */
 .vpanel .vstate{text-align:center;font-size:12.5px;color:#666;margin:0}
@@ -2520,6 +2520,8 @@ function startVoiceWash(cv){
   let prev=performance.now();
   (function loop(now){ if(!cv.isConnected||!VOICE.on) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
     VW.T+=dt*(S.listening?1:.7); const T=VW.T; x.clearRect(0,0,pw,ph);
+    { const b=.5+.5*Math.sin(T*1.3), g=x.createLinearGradient(0,0,0,ph);   // 바탕을 빈틈없이 채우고 밝기만 천천히 오르내린다(흰 곳이 없게)
+      g.addColorStop(0,`rgba(189,185,179,${.16+.08*b})`); g.addColorStop(1,`rgba(189,185,179,${.34+.12*b})`); x.fillStyle=g; x.fillRect(0,0,pw,ph); }
     const last=Math.floor(T/STEP);
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
       const r=WC.rng(n*7919+13), u=age/LIFE, D=pw*(.55+.25*r())*(.75+.45*Math.min(1,u*1.6)), cx=pw*(.2+.6*r()), cy=ph*(.95-.12*u);
