@@ -3,7 +3,7 @@
   "short_name": "TEA CANVAS",
   "description": "마시면서 내 말로 남긴 맛과 향이 색이 되어 번지는 차 기록",
   "lang": "ko",
-  "start_url": "./TEA_CANVAS_prototype_v5.html",
+  "start_url": "./TEA_CANVAS_prototype_v6.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

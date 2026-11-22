@@ -1,7 +1,7 @@
 // TEA CANVAS v5 데모 영상 만들기: 처음부터 끝까지 쓰는 모습 + 사용자가 만날 수 있는 여러 화면을 자막과 함께 녹화
 // 사용법: node tools/demo-video.js  → exhibit/demo-v5.mp4
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs'); const {execFileSync}=require('child_process');
-const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'TEA_CANVAS_prototype_v5.html'), OUT=path.join(ROOT,'exhibit');
+const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'TEA_CANVAS_prototype_v6.html'), OUT=path.join(ROOT,'exhibit');
 const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo-'+Date.now()); fs.mkdirSync(TMP,{recursive:true});
 
 (async()=>{

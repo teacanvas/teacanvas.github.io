@@ -3,7 +3,7 @@
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs');
 const ROOT=path.join(__dirname,'..'), OUT=path.join(ROOT,'assets','icons'); fs.mkdirSync(OUT,{recursive:true});
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage();
-  await p.goto('file://'+path.join(ROOT,'TEA_CANVAS_prototype_v5.html')); await p.waitForTimeout(700);
+  await p.goto('file://'+path.join(ROOT,'TEA_CANVAS_prototype_v6.html')); await p.waitForTimeout(700);
   const make=async(size,pad,name)=>{ const url=await p.evaluate(([size,pad])=>{
       const c=document.createElement('canvas'); c.width=c.height=size; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,size,size);
       const L=[['floral',.9],['citrus',.75],['vegetal',.7],['fruity',.6]].map(([k,w])=>({k,c:FLAVORS[k].color,w}));

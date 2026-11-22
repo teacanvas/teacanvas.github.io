@@ -1,7 +1,7 @@
 // 음성 대화 확인: 한 번 누르면 처음(차 이름)부터 정리까지 말로만 이어지는지 (마이크가 없는 환경 → 시연용 목소리)
 // 사용법: node tests/voice-v5.js
 const {chromium}=require('playwright'); const path=require('path');
-const FILE='file://'+path.join(__dirname,'..',process.env.TC_FILE||'TEA_CANVAS_prototype_v5.html');
+const FILE='file://'+path.join(__dirname,'..',process.env.TC_FILE||'TEA_CANVAS_prototype_v6.html');
 let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fails++; };
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage({viewport:{width:430,height:900}}); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.addInitScript(()=>{ window.TC_VOICE_FAST=true; delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });

@@ -6,7 +6,7 @@
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff">
 <link rel="icon" type="image/png" href="assets/icons/icon-192.png"><link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TEA CANVAS">
-<title>TEA CANVAS v6 (실험)</title>
+<title>TEA CANVAS</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Gowun+Batang:wght@700&display=swap">
 <style>
@@ -437,8 +437,9 @@ canvas.wcd.big{margin:14px auto}
 .dhead span{display:block}
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
+.pinimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--g0)}
 .leaves .off{color:#DADADA;display:inline-flex;gap:1px}
-.scr-chat .stepbar{box-shadow:0 -12px 0 #fff}.scr-chat .tearow.pin{margin-top:0}
+.scr-chat .stepbar{box-shadow:0 -12px 0 #fff}.scr-chat .tearow.pin{margin-top:0;top:43px;box-shadow:0 -8px 0 #fff}
 .stepbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
 .flow{display:flex;align-items:center;gap:5px;font-size:11px;color:#BDBDBD;white-space:nowrap}.flow i{width:8px;height:1px;background:#DADADA}.flow .ok{color:#8A8A8A}.flow .on{color:#111;font-weight:700}
 .cvleg .help{width:18px;height:18px;border-radius:50%;border:1px solid #C9C9C9;color:#8A8A8A;font-size:11px;line-height:16px;text-align:center;font-weight:700;flex-shrink:0}
@@ -592,7 +593,7 @@ const FLAVORS = {
   fresh:     {label:'상쾌함',   color:'#79C3BC', kw:['민트','상쾌','시원','청량','깔끔','맑은맛','맑은향','맑고','맑아','가벼','개운']},
   nutty:     {label:'고소함',   color:'#A87A4E', kw:['고소','곡물','구수','볶은','견과','누룽지','보리','현미','토스트']},
   sweet:     {label:'단맛',     color:'#E5B04F', kw:['단맛','달콤','달달','달큰','달아','달았','달고','달다','달게','꿀','캐러멜','설탕','바닐라']},
-  earthy:    {label:'흙·나무향', color:'#6B5643', kw:['흙','나무','묵직','스모키','훈연','낙엽','가죽','숲','깊은맛','깊은향','깊은풍미','깊고']},
+  earthy:    {label:'흙·나무향', color:'#6B5643', kw:['흙','나무','묵직','스모키','훈연','낙엽','가죽','깊은맛','깊은향','깊은풍미','깊고']},
   spicy:     {label:'스파이시', color:'#B8513A', kw:['계피','시나몬','생강','후추','스파이시','알싸','매콤']},
   soft:      {label:'부드러움', color:'#E3D3BF', kw:['부드러','둥글','둥근','따뜻','포근','편안','순하','매끄','은은']},
   astringent:{label:'떫은맛',   color:'#8E8A4C', kw:['쓴','쓰다','떫','텁텁','씁쓸','쌉쌀']},
@@ -933,7 +934,8 @@ function findType(text){
   return null;
 }
 let toastT;
-function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);}
+function toast(msg){ if(S&&S.draft&&cur()==='chat'&&$('#msgs')){ const d=S.draft, last=d.chat[d.chat.length-1]; if(!(last&&last.who==='sys'&&last.text===msg)){ d.chat.push({who:'sys',text:msg}); paintMsgs(); } return; }   // 기록 중엔 채팅으로 알린다
+  const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);}
 
 const I = {
   back:'<svg width="10" height="14" viewBox="0 0 10 14"><path d="M7.5 1.5 2 7l5.5 5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1010,6 +1012,7 @@ const recording=()=>!!S.draft&&S.stack.length&&REC_SCREENS.includes(S.stack[S.st
 const FLOW=[['차','tea teaOK teaType guide'],['우림','wait color wait2'],['향·맛','aroma taste'],['마시기','free after'],['정리','more deep']];
 function flowBar(d){ const i=Math.max(0,FLOW.findIndex(f=>f[1].split(' ').includes(d.stage)));
   return `<div class="flow" aria-label="기록 단계 ${i+1}/${FLOW.length}">${FLOW.map(([l],k)=>`<span class="${k<i?'ok':k===i?'on':''}">${l}</span>`).join('<i></i>')}</div>`; }
+const TYPE_IMG={green:'assets/photos/s1.jpg',white:'assets/photos/s4.jpg',oolong:'assets/photos/s2.jpg',black:'assets/photos/s8.jpg',dark:'assets/photos/t-dark.jpg',herb:'assets/photos/t-herb.jpg'};   // 차 종류 대표 사진(찍은 사진이 없을 때)
 function stepbar(n){
   const rec=recording(), atChat=S.stack.length&&S.stack[S.stack.length-1].name==='chat';
   return `<div class="stepbar"><button class="back" onclick="${atChat?'askQuit()':'back()'}" aria-label="뒤로">${I.back}</button>
@@ -1138,6 +1141,7 @@ function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSav
   x.textAlign='center'; x.fillStyle='#BBB'; x.font='800 28px Pretendard, sans-serif'; x.fillText('TEA CANVAS',W/2,1290);
   try{ const a=document.createElement('a'); a.download=`teacanvas-${r.name}.png`; a.href=c.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('이미지로 저장했어요'); }catch(e){ toast('이미지를 저장하지 못했어요'); } }
 function resetFilter(){ S.filter={q:'',date:'all',fl:[],from:'',to:''}; rerender(); }
+const near=(a,b)=>{ if(Math.abs(a.length-b.length)>1) return a.includes(b.slice(0,-1))&&b.length>3; let i=0,j=0,e=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++e>1) return false; if(a.length>b.length) i++; else if(b.length>a.length) j++; else {i++;j++;} } return e+(a.length-i)+(b.length-j)<=1; };   // 오타 한 글자
 function filtered(){
   const f=S.filter, q=f.q.trim().replace(/\s/g,'').toLowerCase(), now=new Date();
   const from=f.date==='range'?(f.from?new Date(f.from+'T00:00').getTime():0):{all:0,'1m':now.getTime()-31*864e5,'3m':now.getTime()-92*864e5,'1y':new Date(now.getFullYear(),0,1).getTime()}[f.date];
@@ -1147,7 +1151,7 @@ function filtered(){
     if(f.fl.length&&!f.fl.every(k=>flAll(r).includes(k))) return false;   // 고른 풍미가 모두 담긴 기록만
     if(!q) return true;
     const hay=[r.name,r.brand,r.comment,TEAS[r.type].label,...(r.exprs||[]),...(r.tags||[]),...(r.flavors||[]).flatMap(x=>[FLAVORS[x.k].label,HOME_EN[x.k]])].join(' ').replace(/\s/g,'').toLowerCase();
-    return hay.includes(q);
+    return hay.includes(q)||(q.length>=3&&near(String(r.name).replace(/\s/g,'').toLowerCase(),q));
   });
 }
 /* 풍미 필터: 고른 풍미 중 하나라도 담긴 기록을, 그 풍미가 진한 순서로 */
@@ -1218,7 +1222,7 @@ chat(){
   const d=S.draft;
   const g=d.type?(d.basic?BASIC:TEAS[d.type]):null;
   const head = stepbar(3);
-  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${orb('clear',56)}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
+  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin"><img class="pinimg" src="${d.photoData||TYPE_IMG[d.type]}" alt="${esc(d.name)}"><div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
     ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:'';
   return `${head}
   ${pin}
@@ -1420,7 +1424,7 @@ const AFTER = {
   canvas(p){
     if(p.tab==='list') return spreadDrops($('#recGrid'));
     const cv=$('#bigCv'); if(!cv) return;
-    const recs=recsAsc(), hl=p.hl&&recs.some(q=>q.id===p.hl)?p.hl:null, dur=animCanvas1(cv,recs,hl);
+    const recs=recsAsc(), mine=recs.filter(r=>!r.seed&&Date.now()-(r.ts||0)<864e5).pop(), hl=p.hl&&recs.some(q=>q.id===p.hl)?p.hl:(mine?mine.id:null), dur=animCanvas1(cv,recs,hl);
     { const f=favDrop(), el=$('#favCv'); if(f&&el){ animFav1(el,f.all,f.drop.id,hl?.4:Math.max(.4,dur-1.2),.27); aiRecommend(f); } }
     cv.onclick=e=>{ const b=cv.getBoundingClientRect(), x=(e.clientX-b.left)/b.width, y=(e.clientY-b.top)/b.height;
       let best=null, bd=1e9; recs.forEach(r=>{ const d=Math.hypot(r.canvas.x-x,r.canvas.y-y); if(d<bd){bd=d;best=r;} });
@@ -1437,7 +1441,10 @@ const cur=()=>S.stack[S.stack.length-1].name;
 /* =========================================================
    ACTIONS
    ========================================================= */
-function startRecord(){ closeSheet(); stopTimer(); S.draft=newDraft(); S.chatMode='chat'; go('chat',{}, {reset:true}); }
+function startRecord(force){ const v=!force&&(loadLive()||loadPaused());
+  if(v) return openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">작성 중인 기록이 있어요</h1><p class="sub">‘${esc(v.draft.name||'새 기록')}’을 이어서 할까요?<br>새로 시작하면 작성 중인 기록은 지워져요.</p><div style="height:22px"></div>
+    <button class="btn" onclick="closeSheet();resumeRecord()">이어서 하기</button><button class="btn line" onclick="closeSheet();clearLive();savePaused(null);startRecord(true)">새로 시작하기</button><button class="link" onclick="closeSheet()">취소</button>`);
+  closeSheet(); stopTimer(); S.draft=newDraft(); S.chatMode='chat'; go('chat',{}, {reset:true}); }
 function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur()==='noti') S.stack=[{name:'canvas',params:{tab:'list'}}]; go('detail',{id}); }
 
 /* 기록 삭제: 확인 후 지운다 */
@@ -1448,7 +1455,7 @@ function loadPaused(){ let v=PAUSED_MEM; try{ const raw=localStorage.getItem(PAU
 const LIVE_KEY=PAUSE_KEY+'.live';
 function snapDraft(){ return {draft:S.draft,stack:S.stack.map(x=>({name:x.name,params:x.params||{}})).filter(x=>REC_SCREENS.includes(x.name)),chatMode:S.chatMode,timer:S.timer?{...S.timer}:null,at:Date.now()}; }
 function loadLive(){ try{ const v=JSON.parse(localStorage.getItem(LIVE_KEY)||'null'); return v&&v.draft&&Array.isArray(v.stack)&&v.stack.length?v:null; }catch(e){ return null; } }
-function saveLive(){ try{ if(S.draft&&recording()&&S.draft.chat.some(m=>m.who==='me')) localStorage.setItem(LIVE_KEY,JSON.stringify(snapDraft())); }catch(e){} }
+function saveLive(){ try{ if(!S.typing&&S.draft&&recording()&&S.draft.chat.some(m=>m.who==='me')) localStorage.setItem(LIVE_KEY,JSON.stringify(snapDraft())); }catch(e){} }
 function clearLive(){ try{ localStorage.removeItem(LIVE_KEY); }catch(e){} }
 setInterval(saveLive,3000); addEventListener('pagehide',saveLive); document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveLive(); });
 function savePaused(v){ PAUSED_MEM=v||null; try{ v?localStorage.setItem(PAUSE_KEY,JSON.stringify(v)):localStorage.removeItem(PAUSE_KEY); }catch(e){} }
@@ -1511,7 +1518,7 @@ setInterval(()=>{
   const t=S.timer; if(!t||!t.running||t.left<=0) return;
   t.left--; paintTimer();
   if(t.left>0&&cur()==='chat'&&S.draft&&chatTick()&&S.chatMode==='chat') paintMsgs();
-  if(t.left===0){ t.running=false; startDrink(); paintTimer(); if(PREF.timerToast) toast('우림이 끝났어요. 찻잔을 천천히 들어볼까요?');
+  if(t.left===0){ t.running=false; startDrink(); paintTimer(); if(PREF.timerToast&&cur()!=='chat') toast('우림이 끝났어요. 찻잔을 천천히 들어볼까요?');   // 채팅에는 '— 우림이 끝났어요 —'로 이미 남는다
     if(cur()==='chat' && S.draft){ S.draft.chat.push({who:'sys',text:'— 우림이 끝났어요 —'}); chatTick(); if(S.chatMode==='chat') rerender(); } }
 },1000);
 
@@ -1883,7 +1890,7 @@ function actsHTML(d){ const msgs=d.chat.filter(m=>m.who!=='sys'), tail=msgs[msgs
     + (!S.typing&&d.stage==='free'&&!(d.chat.some(m=>m.hint))?`<div class="chips"><button class="chip" onclick="showExprHint()">${L('표현이 막히면?')}</button></div>`:'')
     + (!S.typing&&d.stage==='deep'&&last&&last.deep&&last.chips.length?`<div class="chips">${last.chips.map(c=>`<button class="chip" onclick="deepAnswer('${esc(c)}')">${esc(L(c))}</button>`).join('')}</div>`:''); }
 /* 채팅 아래 끝내기 버튼: 자유 대화에선 '이제 충분해요'(여운부터), 그 뒤엔 '기록 마치고 정리하기' */
-const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">'+L('이제 충분해요')+'</button>':['after','more','deep'].includes(d.stage)?'<button class="btn" onclick="if(Date.now()-(S.endAt||0)>900)finishChat()">'+L('기록 마치고 정리하기')+'</button>':'';
+const chatEndHTML=d=>d.stage==='free'?'<button class="btn" onclick="freeEnough()">'+L('이제 충분해요')+'</button>':['after','deep'].includes(d.stage)?'<button class="btn" onclick="if(Date.now()-(S.endAt||0)>900)finishChat()">'+L('기록 마치고 정리하기')+'</button>':'';
 /* '…로 담았어요'를 누르면 풍미를 직접 고른다(여러 개, 없음도 가능) */
 function msgFl(m){ return Array.isArray(m.fl)?m.fl:matchFlavors(m.text); }
 function keptLabel(m,i){ if(m.fix) return `<span class="kept">${isEN()?'Changed the previous phrase to ':'앞의 표현을 '}${(()=>{ const p=[...S.draft.chat.slice(0,i)].reverse().find(x=>x.who==='me'&&x.kept&&!x.fix); return p?msgFl(p).map(k=>`<em style="color:${inkText(FLAVORS[k].color)}">${HOME_EN[k]}</em>`).join(' · '):''; })()}${isEN()?'':'로 고쳤어요'}</span>`;
@@ -1997,7 +2004,7 @@ function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.target.closest('#msgs button,#chatEnd button')) return;
   hush(); if(S.draft) VOICE.spoken=S.draft.chat.length;   // 아직 안 읽은 말은 건너뛰고, 누른 뒤에 나오는 말부터
   try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
-function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
+function startVoice(){ const d=S.draft; if(!d) return; VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
@@ -2027,7 +2034,7 @@ function demoLine(d){ if(isEN()){ const D=DEMO_EN; if(d.stage==='wait'||d.stage=
   if(d.stage==='free'){ const i=d.demoFree=(d.demoFree||0); d.demoFree=i+1; return DEMO_SAY.free[Math.min(i,DEMO_SAY.free.length-1)]; }
   return DEMO_SAY[d.stage]||null; }
 function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
-  if(VOICE.demo){ setTimeout(()=>res(vAlive(id)?demoLine(d):null),window.TC_VOICE_FAST?250:2200); return; }
+  if(VOICE.demo){ if(VOICE.demoUsed&&!window.TC_VOICE_FAST){ stopVoice(); toast('시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요'); return res(null); } setTimeout(()=>{ VOICE.demoUsed=true; res(vAlive(id)?demoLine(d):null); },window.TC_VOICE_FAST?250:2200); return; }
   let got='', r; try{ r=new SR(); }catch(e){ VOICE.demo=true; return res(null); }
   VOICE.rec=r; r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
   r.onresult=e=>{ let fin='', mid=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(mid+=x[0].transcript)); } VOICE.interim=fin||mid; if(fin) got=fin; paintVoice(); };
@@ -2204,7 +2211,7 @@ Object.assign(EN,{
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요":"You could say things like:\n· Like a forest path after rain\n· Nutty like toasted bread\n· A honey-like sweetness at the end\n· My tongue tightens a little\n· It feels cool and clean","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","이런 식으로 말해도 좋아요.\n· 비 온 뒤 숲길 같아요\n· 구운 빵처럼 고소해요\n· 끝에 꿀 같은 단맛이 남아요\n· 혀가 살짝 조이는 느낌이에요\n· 입안이 시원하게 맑아져요":"You could say things like:\n· Like a forest path after rain\n· Nutty like toasted bread\n· A honey-like sweetness at the end\n· My tongue tightens a little\n· It feels cool and clean","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon","불향이 묵직하게 남은 바위차":"A rock oolong with a deep roasty finish","머스캣 향이 산뜻했던 오후":"A bright afternoon of muscat notes","구운 듯 고소한 향":"Toasty aroma","묵직한 여운":"Heavy finish","청포도 같은 향":"Like green grapes","산뜻하고 가벼워요":"Bright and light","첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.":"Smoky at first; sweetness came through by the third cup.","우유 없이 마시는 게 더 좋았다. 향이 오래 남음.":"Better without milk. The aroma lingers.",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
@@ -2219,6 +2226,7 @@ Object.assign(EN,{
  "꽃, 자스민, 장미 같은 향":"like flowers, jasmine, rose","사과, 복숭아처럼 상큼한":"crisp like apple and peach","레몬, 유자처럼 산뜻한":"bright like lemon and yuja","갓 벤 풀처럼 싱그러운":"fresh like cut grass","민트처럼 시원하고 깔끔한":"cool and clean like mint","볶은 곡물처럼 고소한":"nutty like toasted grain","꿀, 캐러멜처럼 달큰한":"sweet like honey and caramel","흙, 나무처럼 묵직한":"deep like earth and wood","계피, 생강처럼 알싸한":"warm like cinnamon and ginger","둥글고 포근한":"round and cozy","쌉쌀하고 떫은":"bitter and astringent",
 });
 EN_RE.push(
+ [/^‘(.+)’을 이어서 할까요\?$/,(m,a)=>`Continue ‘${EN[a]||a}’?`],[/^새로 시작하면 작성 중인 기록은 지워져요\.$/,()=>'Starting new deletes the draft.'],
  [/^찻방울에는 가장 진한 (\d+)가지 색이 담겨요$/,(m,a)=>`The drop shows the ${a} strongest colors`],
  [/^나는 ‘(.+)’라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
  [/^(\d+)잔의 찻방울이 물든$/,(m,a)=>`${a} drops have colored`],

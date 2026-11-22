@@ -1,7 +1,7 @@
 // TEA CANVAS 1분 데모 영상: 핵심 기능만 (기록 → 말로 하기 → 찻방울 → 캔버스)
 // 사용법: node tools/demo-1min.js  → exhibit/demo-1min.mp4 (자막 + 폰 화면만 820×1080으로 잘라 저장)
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs'); const {execFileSync}=require('child_process');
-const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'TEA_CANVAS_prototype_v5.html'), OUT=path.join(ROOT,'exhibit');
+const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'TEA_CANVAS_prototype_v6.html'), OUT=path.join(ROOT,'exhibit');
 const W=1200,H=1080, TMP=path.join(require('os').tmpdir(),'tc-demo1-'+Date.now()); fs.mkdirSync(TMP,{recursive:true});
 const SPEED=1.45;   // 영상 전체를 살짝 빠르게
 

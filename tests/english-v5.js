@@ -1,9 +1,9 @@
 // 대화 언어 English 확인: 영어로 차 이름 · 대답 · 질문 · 풍미 → 비교까지, 챗봇 말에 한국어가 남지 않는지
 // 사용법: node tests/english-v5.js
-const {chromium}=require('playwright');const F='file://'+require('path').join(__dirname,'..','TEA_CANVAS_prototype_v5.html');
+const {chromium}=require('playwright');const F='file://'+require('path').join(__dirname,'..','TEA_CANVAS_prototype_v6.html');
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:393,height:852}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.addInitScript(()=>{ window.TC_VOICE_FAST=true; delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
-await p.goto(F);await p.evaluate(()=>{localStorage.clear();localStorage.setItem('teacanvas.v5.prefs',JSON.stringify({lang:'en'}))});await p.reload();await p.waitForTimeout(600);
+await p.goto(F);await p.evaluate(()=>{localStorage.clear();localStorage.setItem('teacanvas.v6.fresh13','1');localStorage.setItem('teacanvas.v6.prefs',JSON.stringify({lang:'en'}))});await p.reload();await p.waitForTimeout(600);
 const ev=(f,a)=>p.evaluate(f,a), wait=ms=>p.waitForTimeout(ms), say=async t=>{await p.fill('#chatIn',t);await ev(()=>sendInput());await wait(1400);};
 console.log('lang',await ev(()=>PREF.lang));
 await ev(()=>startRecord());await wait(500);
