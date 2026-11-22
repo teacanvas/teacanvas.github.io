@@ -1937,7 +1937,7 @@ function textIntent(d,text){
   if(W&&d.talkPending&&start(/^(건너뛸|건너뛰|패스|넘어가|다음으로|다음질문)/)) return ()=>talkAnswer('',true);
   if(W&&S.timer&&S.timer.left>0&&start(/^(벌써)?다우렸|^다됐|^다우러졌|^벌써다/)){ return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); }; }
   if((d.stage==='aroma'||d.stage==='taste')&&start(/^(잘)?모르겠/)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
-  if(d.stage==='free'&&t.length<=22&&/(충분|다마셨|다먹었|그만마실|그만할|끝낼게|마칠게|이제됐|다비웠|잘마셨)/.test(t)&&!matchFlavors(t).length) return ()=>freeEnough();
+  if(d.stage==='free'&&t.length<=22&&/(충분해|충분하|충분히마셨|충분히다마셨|충분히먹었|다마셨|다먹었|그만마실|그만할|끝낼게|마칠게|이제됐|다비웠|잘마셨)/.test(t)&&!matchFlavors(t).length) return ()=>freeEnough();
   if(d.stage==='more'){ if(start(/^(이제)?(정리할|정리해|끝낼|끝내|그만할|마칠|없어요|없어|됐어요|됐어)/)) return ()=>morePick('done'); const m=MORE.find(([k,l])=>t.startsWith(l.split(' ')[0])); if(m) return ()=>morePick(m[0]); }
   return null; }
 /* 말로 한 색: '연한 연두색이에요' → 색 점도 함께 */
