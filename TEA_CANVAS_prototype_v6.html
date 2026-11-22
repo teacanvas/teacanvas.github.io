@@ -1398,7 +1398,7 @@ canvas(p){
   }
   if(tab==='list'){
     return `${seg}
-    <div class="srow"><div class="search">${I.search}<input id="q" placeholder="차 이름, 브랜드, 표현으로 찾기" value="${esc(S.filter.q)}" oninput="S.filter.q=this.value;paintList()"></div>
+    <div class="srow"><div class="search">${I.search}<input id="q" placeholder="차 이름, 브랜드, 표현" value="${esc(S.filter.q)}" oninput="S.filter.q=this.value;paintList()"></div>
       <button class="ficon ${S.filter.date!=='all'?'on':''}" onclick="openDateSheet()" aria-label="기간">${I.cal}</button>
       <button class="ficon ${S.filter.fl.length||S.filter.type?'on':''}" onclick="openFlSheet()" aria-label="풍미 필터">${I.filter}</button></div>
     ${activeChips()}
@@ -2313,7 +2313,7 @@ Object.assign(EN,{
  "오늘의 Tea Tag":"Today's Tea Tag","오늘 남긴 감각을 한 장에 담았어요.":"Today's senses on one card.","Tea Tag는 내 표현에서 찾은 풍미로 만들어져요.":"Tea Tags are made from the flavors found in your words.","이미지로 저장하기":"Save as image","기록 완료로 돌아가기":"Back",
  "캔버스":"Canvas","기록":"Entries","나의 TEA CANVAS":"my TEA CANVAS","찻방울을 누르면 그 기록을 볼 수 있어요":"Tap a drop to open its entry","나의 취향 찻방울":"My taste drop","이런 차도 좋아할 것 같아요":"You might also like",
  "향도 맛도 좋았던 차가 모이면,":"Once you collect teas you loved,","그 풍미로 나의 취향 찻방울을 만들어요.":"we'll make your taste drop from their flavors.",
- "차 이름, 브랜드, 표현으로 찾기":"Search by name, brand, or words","기간":"Period","풍미 필터":"Flavor filter","전체":"All","1개월":"1 month","3개월":"3 months","올해":"This year",
+ "차 이름, 브랜드, 표현":"Name, brand, words","기간":"Period","풍미 필터":"Flavor filter","전체":"All","1개월":"1 month","3개월":"3 months","올해":"This year",
  "일":"S","월":"M","화":"T","수":"W","목":"T","금":"F","토":"S","기록한 날":"days with entries","날짜를 골라주세요":"Pick a date","이전 달":"Previous month","다음 달":"Next month",
  "하루를 누르거나, 시작 날과 끝 날을 차례로 눌러주세요 ·":"Tap one day, or a start and an end day ·","끝 날을 누르면 기간이 돼요 ·":"Tap an end day for a range ·","다시 누르면 새로 골라요 ·":"Tap again to start over ·",
  "풍미":"Flavors","고른 풍미가 모두 담긴 기록을 보여줘요.":"Shows entries that have all the chosen flavors.","보기":"Show","조건에 맞는 기록이 없어요.":"No entries match.","조건 지우기":"Clear filters",
