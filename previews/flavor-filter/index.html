@@ -1,0 +1,111 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>풍미 필터 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:#ECECEA;color:#111;padding:32px 16px 220px}
+.wrap{max-width:1500px;margin:0 auto}
+h1{font-size:24px;font-weight:800}
+.lead{color:#737373;font-size:14px;margin-top:6px;max-width:860px;line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px;margin-top:22px;align-items:start}
+.item{position:relative}
+.item h2{font-size:15.5px;padding-right:30px}
+.item p.d{font-size:12.5px;color:#737373;margin-top:3px;min-height:38px;line-height:1.5}
+.star{position:absolute;right:0;top:-3px;font-size:24px;color:#BBB;background:none;border:0;cursor:pointer;line-height:1}
+.star.on{color:#111}
+.phone{background:#fff;border-radius:22px;padding:16px 16px 18px;margin-top:8px;max-width:360px}
+.srow{display:flex;align-items:center;gap:6px}.search{flex:1;height:40px;border-radius:20px;background:#F2F2F2;color:#999;font-size:13px;display:flex;align-items:center;padding:0 14px}
+.ic{width:34px;height:40px;display:grid;place-items:center}
+.res{font-size:12px;color:#888;margin-top:12px}.res b{color:#111}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.grid3 i{width:52px;height:52px;margin:10px auto;display:block;border-radius:50%;filter:blur(5px);opacity:.75}
+.zone{margin-top:12px}
+button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
+/* A 색 바 */
+.bar{display:flex;height:30px;border-radius:15px;overflow:hidden;gap:2px}
+.bar button{flex:1;opacity:.28;transition:opacity .15s,flex .2s}.bar button.on{opacity:1;flex:1.6}
+.bar.none button{opacity:.9}
+.cap{font-size:12px;color:#555;margin-top:7px;min-height:17px}
+/* B 색 점 */
+.dots{display:flex;justify-content:space-between}
+.dots button{width:24px;height:24px;border-radius:50%;position:relative;transition:transform .15s}
+.dots button.on{transform:scale(1.15);box-shadow:0 0 0 2px #fff,0 0 0 3.5px #111}
+.dots.none button{opacity:1}.dots.some button:not(.on){opacity:.35}
+/* C 가로 스크롤 */
+.hs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}.hs::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border-radius:15px;border:1px solid #DCDCDC;font-size:12.5px;color:#444;white-space:nowrap}
+.chip i{width:9px;height:9px;border-radius:50%}.chip.on{background:#111;border-color:#111;color:#fff}
+/* D 작은 2줄 */
+.wrap2{display:flex;flex-wrap:wrap;gap:5px}.wrap2 .chip{height:26px;font-size:11.5px;padding:0 9px 0 7px}
+/* E 묶음 */
+.groups{display:flex;gap:6px}.groups>button{flex:1;height:34px;border-radius:17px;background:#F2F2F2;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px}
+.groups>button.open{background:#111;color:#fff}.groups em{font-style:normal;font-size:11px;opacity:.7}
+.gsub{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* F 휠 */
+.wheelrow{display:flex;align-items:center;gap:14px}.wheel{width:120px;height:120px;flex-shrink:0}.wheel path{cursor:pointer;transition:opacity .15s}
+.wl{font-size:12px;color:#555;line-height:1.6}
+/* G 수채 방울 */
+.wc{display:flex;justify-content:space-between;align-items:center;height:40px}
+.wc button{width:26px;height:26px;border-radius:50%;position:relative;transition:transform .2s,opacity .2s}
+.wc button::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:inherit;filter:blur(4px);opacity:.8}
+.wc.some button:not(.on){opacity:.3;transform:scale(.8)}.wc button.on{transform:scale(1.3)}
+/* H 상위 + 더보기 */
+.more{font-size:12.5px;color:#555;text-decoration:underline;height:30px;padding:0 6px;flex-shrink:0}
+.pickbox{position:fixed;right:16px;bottom:16px;z-index:20;background:#111;color:#fff;border-radius:14px;padding:12px 14px;max-width:min(420px,calc(100vw - 32px));font-size:13px;display:flex;flex-direction:column;gap:8px}
+.pickbox .pl{white-space:pre-wrap;color:#ddd}
+.pickbox button{font-weight:700;border-radius:10px;padding:8px 12px;background:#fff;color:#111}
+.pickbox button:disabled{opacity:.5}.pickbox textarea{width:100%;height:80px}
+</style></head><body><div class="wrap">
+<h1>기록 탭 · 풍미 필터 시안</h1>
+<p class="lead">지금은 풍미 11가지 칩이 여섯 줄을 차지해요. 한두 줄로 줄이는 방법 8가지예요. 직접 눌러보세요. 누르면 켜지고 다시 누르면 꺼지며, 여러 개를 고를 수 있어요. 시안 A·B·C·G는 짧아서 시트 없이 검색창 바로 아래에 둘 수도 있어요. 마음에 드는 시안의 ☆을 눌러주세요.</p>
+<div class="grid" id="g"></div></div>
+<script>
+const F=[['floral','Floral','꽃향','#E9A9C6'],['fruity','Fruity','과일향','#F2946A'],['citrus','Citrus','시트러스','#E8D45A'],['vegetal','Grassy','풀향','#96C46A'],['fresh','Fresh','상쾌함','#79C3BC'],['nutty','Nutty','고소함','#A87A4E'],['sweet','Sweet','단맛','#E5B04F'],['earthy','Earthy','흙·나무향','#6B5643'],['spicy','Spicy','스파이시','#B8513A'],['soft','Smooth','부드러움','#E3D3BF'],['astringent','Astringent','떫은맛','#8E8A4C']];
+const GROUPS=[['향',['floral','fruity','citrus','vegetal','earthy','spicy']],['맛',['sweet','nutty','astringent']],['느낌',['fresh','soft']]];
+const TOP=['floral','sweet','nutty','vegetal','fruity'];
+const by=k=>F.find(f=>f[0]===k);
+const CAL='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.8v3.4M13 2.8v3.4" stroke-linecap="round"/></svg>';
+const FIL='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M5.5 10.5h9M8 15h4"/></svg>';
+const capTxt=s=>s.size?[...s].map(k=>`<b style="color:#111">${by(k)[1]}</b> ${by(k)[2]}`).join(' · '):'전체 풍미 · 눌러서 고르기';
+const chip=(k,s)=>{ const f=by(k); return `<button class="chip ${s.has(k)?'on':''}" data-k="${k}"><i style="background:${f[3]}"></i>${f[1]}</button>`; };
+function wheel(s){ const n=F.length, R=58, r=26, c=60; let out=''; F.forEach((f,i)=>{ const a0=i/n*Math.PI*2-Math.PI/2, a1=(i+1)/n*Math.PI*2-Math.PI/2, g=.03;
+  const P=(rr,a)=>`${(c+rr*Math.cos(a)).toFixed(1)},${(c+rr*Math.sin(a)).toFixed(1)}`;
+  out+=`<path data-k="${f[0]}" d="M${P(r,a0+g)} L${P(R,a0+g)} A${R},${R} 0 0 1 ${P(R,a1-g)} L${P(r,a1-g)} A${r},${r} 0 0 0 ${P(r,a0+g)}Z" fill="${f[3]}" opacity="${!s.size||s.has(f[0])?1:.25}"/>`; });
+  return `<svg class="wheel" viewBox="0 0 120 120">${out}<text x="60" y="64" text-anchor="middle" font-size="11" fill="#555">${s.size?s.size+'개':'전체'}</text></svg>`; }
+const V=[
+ {k:'A',name:'한 줄 색 바',desc:'11가지 색을 이은 막대 한 줄이에요. 누른 색은 진하고 넓어지고, 고른 이름은 아래에 적혀요. 가장 짧아요.',
+  r:s=>`<div class="bar ${s.size?'':'none'}">${F.map(f=>`<button data-k="${f[0]}" class="${s.has(f[0])?'on':''}" style="background:${f[3]}" aria-label="${f[2]}"></button>`).join('')}</div><p class="cap">${capTxt(s)}</p>`},
+ {k:'B',name:'한 줄 색 점',desc:'동그란 색 점 11개를 한 줄에 놓았어요. 고른 점에는 테두리가 생기고, 안 고른 점은 옅어져요.',
+  r:s=>`<div class="dots ${s.size?'some':'none'}">${F.map(f=>`<button data-k="${f[0]}" class="${s.has(f[0])?'on':''}" style="background:${f[3]}" aria-label="${f[2]}"></button>`).join('')}</div><p class="cap">${capTxt(s)}</p>`},
+ {k:'C',name:'옆으로 넘기는 칩 한 줄',desc:'지금과 같은 칩을 한 줄에 놓고 옆으로 밀어서 봐요. 이름이 보여 알아보기 쉬워요. 고른 칩은 앞으로 와요.',
+  r:s=>`<div class="hs">${[...F.filter(f=>s.has(f[0])),...F.filter(f=>!s.has(f[0]))].map(f=>chip(f[0],s)).join('')}</div>`},
+ {k:'D',name:'작은 칩 두 줄',desc:'칩을 작게 만들고 영어 이름만 남겨 두 줄에 담았어요. 한눈에 다 보여요.',
+  r:s=>`<div class="wrap2">${F.map(f=>chip(f[0],s)).join('')}</div>`},
+ {k:'E',name:'향 · 맛 · 느낌으로 묶기',desc:'먼저 향·맛·느낌 중 하나를 누르면 그 안의 풍미만 펼쳐져요. 평소엔 한 줄이에요.',
+  r:(s,st)=>`<div class="groups">${GROUPS.map(([g,ks],i)=>`<button data-g="${i}" class="${st.g===i?'open':''}">${g}${ks.filter(k=>s.has(k)).length?`<em>${ks.filter(k=>s.has(k)).length}</em>`:''}</button>`).join('')}</div>${st.g!=null?`<div class="gsub">${GROUPS[st.g][1].map(k=>chip(k,s)).join('')}</div>`:''}`},
+ {k:'F',name:'풍미 휠',desc:'차 풍미 휠처럼 둥글게 놓았어요. 조각을 누르면 골라지고, 고른 이름은 옆에 적혀요. 차 느낌이 나요.',
+  r:s=>`<div class="wheelrow">${wheel(s)}<p class="wl">${s.size?[...s].map(k=>`<b>${by(k)[1]}</b> ${by(k)[2]}`).join('<br>'):'조각을 눌러<br>풍미를 골라요'}</p></div>`},
+ {k:'G',name:'수채 방울 한 줄',desc:'B와 같지만 점이 물감처럼 번져 있어요. 고른 방울은 커지고 나머지는 작고 옅어져요. 앱의 수채 느낌과 맞아요.',
+  r:s=>`<div class="wc ${s.size?'some':''}">${F.map(f=>`<button data-k="${f[0]}" class="${s.has(f[0])?'on':''}" style="background:${f[3]}" aria-label="${f[2]}"></button>`).join('')}</div><p class="cap">${capTxt(s)}</p>`},
+ {k:'H',name:'내가 자주 쓴 풍미 + 더보기',desc:'내 기록에 많이 담긴 풍미 5개만 한 줄로 보여주고, 나머지는 ‘더보기’로 펼쳐요.',
+  r:(s,st)=>`<div class="wrap2" style="gap:6px">${(st.all?F.map(f=>f[0]):TOP).map(k=>chip(k,s)).join('')}<button class="more" data-more>${st.all?'접기':'더보기 +6'}</button></div>`},
+];
+const g=document.getElementById('g');
+g.innerHTML=V.map((v,i)=>`<section class="item"><button class="star" data-i="${i}">☆</button><h2>${v.k}. ${v.name}</h2><p class="d">${v.desc}</p>
+  <div class="phone"><div class="srow"><div class="search">차 이름, 브랜드, 표현으로 찾기</div><span class="ic">${CAL}</span><span class="ic">${FIL}</span></div>
+  <div class="zone" id="z${i}"></div><p class="res" id="r${i}"></p><div class="grid3">${['#E9A9C6','#96C46A','#E5B04F','#A87A4E','#F2946A','#79C3BC'].map(c=>`<i style="background:${c}"></i>`).join('')}</div></div></section>`).join('');
+const ST=V.map(()=>({s:new Set(),g:null,all:false}));
+function paint(i){ const st=ST[i], z=document.getElementById('z'+i); z.innerHTML=V[i].r(st.s,st);
+  document.getElementById('r'+i).innerHTML=st.s.size?`고른 풍미가 담긴 기록 <b>${Math.max(1,9-st.s.size*2)}개</b>`:'기록 <b>9개</b>';
+  z.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ const k=b.dataset.k; st.s.has(k)?st.s.delete(k):st.s.add(k); paint(i); });
+  z.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ st.g=st.g===+b.dataset.g?null:+b.dataset.g; paint(i); });
+  const m=z.querySelector('[data-more]'); if(m) m.onclick=()=>{ st.all=!st.all; paint(i); }; }
+V.forEach((_,i)=>paint(i));
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.flfilter.fav')||'[]')); }catch(e){}
+const names=()=>V.filter((v,i)=>FAV.has(i)).map(v=>v.k+'. '+v.name);
+const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
+function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length;
+  document.querySelectorAll('.star').forEach(b=>{ const on=FAV.has(+b.dataset.i); b.classList.toggle('on',on); b.textContent=on?'★':'☆'; }); }
+document.getElementById('cp').onclick=async()=>{ const t='풍미 필터 - 내가 고른 시안\n'+names().join('\n'), ta=document.getElementById('ta'), b=document.getElementById('cp'); try{ await navigator.clipboard.writeText(t); b.textContent='복사했어요'; setTimeout(()=>b.textContent='선택한 시안 복사하기',2000); }catch(e){ ta.hidden=false; ta.value=t; ta.select(); } };
+document.querySelectorAll('.star').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; FAV.has(i)?FAV.delete(i):FAV.add(i); try{ localStorage.setItem('tc.flfilter.fav',JSON.stringify([...FAV])); }catch(e){} up(); });
+up(); window.READY=true;
+</script></body></html>
