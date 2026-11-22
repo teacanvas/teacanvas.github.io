@@ -1429,7 +1429,7 @@ my(){
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}
   <h3 class="sec" style="margin-top:min(30px,3dvh)">설정</h3>
   ${[['chat','대화 기록 설정'],['app','앱 설정'],['noti','알림 설정'],['account','계정']].map(([k,l])=>`<button class="setrow" onclick="openSettings('${k}')">${l}</button>`).join('')}
-  ${matchMedia('(display-mode: standalone)').matches?'':`<button class="setrow install" onclick="installApp()"><img src="assets/icons/icon-192.png" alt="">앱으로 설치하기<span class="chev">›</span></button>`}`;
+  `;
 },
 
 noti(){
