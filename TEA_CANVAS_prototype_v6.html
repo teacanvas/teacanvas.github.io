@@ -1628,7 +1628,13 @@ function seedChat(){
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
 const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronnefeldt','TWG','Teavana','Dilmah','Yogi','Taylors','Osulloc','Tazo','Bigelow','오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원'];
-function parseTea(text){ const t=String(text).trim().replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(t.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+/* 차 이름 칸에 문장을 써도 이름만 뽑는다: 'ㅋㅋ·이모지' 빼고, 마디로 나눠 차 이름이 든 마디만, 앞뒤 군말 빼기 */
+function cleanTeaName(text){ let t=String(text||'').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
+  const parts=t.split(/[,.!?~]|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
+  let c=parts.find(x=>findType(x))||parts[0]||t;
+  for(let k=0;k<3;k++) c=c.replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
+  return c||t; }
+function parseTea(text){ const t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(t.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
@@ -1637,6 +1643,7 @@ function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=
   botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},700); }); }
 function teaInput(text){
   const d=S.draft, r=parseTea(text); d.chat.push({who:'me',text,ans:'tea'}); d.name=r.name; d.brand=r.brand;
+  if(/[?？]/.test(text)&&/(카페인|몇\s*번|온도|효능|다이어트|차이|어떻게|왜|좋아요|있어요|되나요|돼요)/.test(text)){ if(r.type) d.type=r.type; d.chat.push({who:'bot',text:faqAnswer(text)}); }   // 이름과 함께 물어본 건 먼저 답한다
   if(r.type){ d.type=r.type; d.stage='teaOK'; botSay({who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
   else { d.stage='teaType'; botSay({who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true}); }
 }
@@ -1708,7 +1715,7 @@ async function aiCompare(){
   if(Array.isArray(j.diff)) set('cmpDiff',`<ul>${j.diff.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`);
   if(typeof j.ai==='string') set('cmpAI',esc(j.ai)); }
 function answerQuestion(text){
-  const d=S.draft; d.chat.push({who:'me',text,ans:'q'}); S.typing=true; paintMsgs();
+  const d=S.draft; d.chat.push(matchFlavors(text).length&&!['tea','teaOK','teaType','guide'].includes(d.stage)?{who:'me',text,kept:true}:{who:'me',text,ans:'q'}); S.typing=true; paintMsgs();   // 맛 표현과 질문이 섞이면 표현도 담는다
   const t0=Date.now();
   askAI(text).then(a=>{ const reply=a||faqAnswer(text); setTimeout(()=>{ S.typing=false; d.chat.push({who:'bot',text:reply,ai:!!a,qa:true}); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },Math.max(0,700-(Date.now()-t0))); });
 }
