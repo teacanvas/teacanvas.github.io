@@ -517,8 +517,9 @@ canvas.wcd.big{margin:14px auto}
 }
 /* 휴대폰을 가로로 돌렸을 때: 세로로 돌려달라고 안내 */
 .rotate{display:none}
-@media (pointer:coarse) and (orientation:landscape) and (max-height:520px){
-  .rotate{display:flex;position:fixed;inset:0;z-index:999;background:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;font-size:15px;color:#555;text-align:center}
+html.land .rotate{display:flex}
+@media (pointer:coarse){
+  .rotate{position:fixed;inset:0;z-index:999;background:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;font-size:15px;color:#555;text-align:center}
   .rotate b{font-size:17px;color:#111}
 }
 </style>
@@ -2757,6 +2758,12 @@ addEventListener('popstate',()=>{
 go('home',{},{reset:true});
 { let re=null; try{ re=sessionStorage.getItem('tc.reopen'); sessionStorage.removeItem('tc.reopen'); }catch(e){} if(re==='app'){ goTab('my',true); openSettings('app'); } }   // 언어를 바꾼 뒤 설정 창으로 돌아오기
 </script>
-<div class="rotate"><b>휴대폰을 세로로 돌려주세요</b>TEA CANVAS는 세로 화면에 맞춰져 있어요</div>
+<div class="rotate"><b>휴대폰을 세로로 돌려주세요</b>TEA CANVAS는 세로 화면에 맞춰져 있어요</div><script>/* 가로 안내: 키보드로 화면 높이가 줄어도 오해하지 않게, 화면 크기가 아니라 휴대폰의 실제 방향을 본다 */
+(function(){ const R=document.documentElement;
+  function chk(){ const coarse=matchMedia('(pointer:coarse)').matches; const o=screen.orientation&&screen.orientation.type;
+    const land=o? o.startsWith('landscape') : (typeof window.orientation==='number'? Math.abs(window.orientation)===90 : screen.width>screen.height);
+    R.classList.toggle('land', coarse&&land&&Math.min(screen.width,screen.height)<=520); }
+  chk(); if(screen.orientation&&screen.orientation.addEventListener) screen.orientation.addEventListener('change',chk); addEventListener('orientationchange',()=>setTimeout(chk,150));
+})();</script>
 </body>
 </html>
