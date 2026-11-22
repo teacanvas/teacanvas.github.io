@@ -1411,7 +1411,7 @@ my(){
   const n=S.records.length, kinds=new Set(S.records.map(r=>r.type)).size;
   const last=n? S.records[0].date.slice(2).replace(/\.$/,'') : '-';
   return `
-  <div class="profile"><button class="pimg" onclick="pickPhoto(u=>{ PREF.avatar=u; savePref(); rerender(); })" aria-label="프로필 사진 바꾸기">${PREF.avatar?`<img src="${PREF.avatar}" alt="">`:'<canvas id="avCv"></canvas>'}<span class="pcam">${I.cam}</span></button><div><b>${esc(PREF.name||'사용자')} 님</b><p>@teacanvas-sprout<br>${n>=10?'잎새 이용자':'새싹 이용자'}</p></div></div>
+  <div class="profile"><button class="pimg" onclick="pickPhoto(u=>{ PREF.avatar=u; savePref(); rerender(); })" aria-label="프로필 사진 바꾸기">${PREF.avatar?`<img src="${PREF.avatar}" alt="">`:'<canvas id="avCv"></canvas>'}<span class="pcam">${I.cam}</span></button><div><b>${esc(PREF.name||'사용자')} 님</b></div></div>
   <h3 class="sec" style="margin-top:min(28px,3dvh)">나의 아카이브</h3>
   <div class="statrow"><div><b>${n}</b><span>모인 찻방울</span></div><div><b>${kinds}</b><span>차 종류</span></div><div><b>${last}</b><span>최근 기록</span></div></div>
   ${n?'':'<p class="cap" style="margin-top:14px">아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?</p><button class="btn" style="margin-top:12px" onclick="startRecord()">첫 기록 시작하기</button>'}

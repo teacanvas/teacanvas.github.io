@@ -22,7 +22,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   ok(await p.evaluate(()=>!VOICE.on),'화면을 떠나면 음성 대화가 멈춤');
   ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='me'&&m.voice)),'말로 한 대답에 음성 표시');
   ok(await p.evaluate(()=>VW.T>3),'대화 중엔 번짐이 움직임');
-  ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='bot'&&/^괜찮아요|어떤 맛|향은/.test(m.text))),'음성 중에도 채팅에 대화가 쌓임');
+  ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='bot'&&/맛은 어떤가요|어떤 향인지|향은/.test(m.text))),'음성 중에도 채팅에 대화가 쌓임');
   const ex=await p.evaluate(()=>collectExprs(S.draft).map(e=>e.text+'>'+e.fl.join('/')).join(' | ')); console.log('  분석된 표현:',ex);
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
