@@ -437,7 +437,7 @@ canvas.wcd.big{margin:14px auto}
 .dhead span{display:block}
 /* analysis infusion */
 .pickfit{max-width:100%;margin:0 auto}
-.pinimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--g0)}
+.pinimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--g0);display:block;overflow:hidden}.pinimg svg{width:100%;height:100%;display:block}
 .leaves .off{color:#DADADA;display:inline-flex;gap:1px}
 .scr-chat .stepbar{box-shadow:0 -12px 0 #fff}.scr-chat .tearow.pin{margin-top:0;top:43px;box-shadow:0 -8px 0 #fff}
 .stepbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
@@ -1009,14 +1009,24 @@ function render(keepScroll){
 /* 기록 중인 화면(여기서 나가면 작성 중인 기록을 잃을 수 있다) */
 const REC_SCREENS=['chat','organizing','analyzing','compare','thin'];
 const recording=()=>!!S.draft&&S.stack.length&&REC_SCREENS.includes(S.stack[S.stack.length-1].name);
-const FLOW=[['차','tea teaOK teaType guide'],['우림','wait color wait2'],['향·맛','aroma taste'],['마시기','free after'],['정리','more deep']];
-function flowBar(d){ const i=Math.max(0,FLOW.findIndex(f=>f[1].split(' ').includes(d.stage)));
-  return `<div class="flow" aria-label="기록 단계 ${i+1}/${FLOW.length}">${FLOW.map(([l],k)=>`<span class="${k<i?'ok':k===i?'on':''}">${l}</span>`).join('<i></i>')}</div>`; }
-const TYPE_IMG={green:'assets/photos/s1.jpg',white:'assets/photos/s4.jpg',oolong:'assets/photos/s2.jpg',black:'assets/photos/s8.jpg',dark:'assets/photos/t-dark.jpg',herb:'assets/photos/t-herb.jpg'};   // 차 종류 대표 사진(찍은 사진이 없을 때)
+/* 차 종류 대표 이미지: 같은 티백 모양에 차 종류의 색만 다르게(찍은 사진이 있으면 사진) */
+function teabag(type){ const c=(TEAS[type]||TEAS.green).color, dk=tcMix(c,'#2A1A12',.4), lt=tcMix(c,'#FFFFFF',.55), id='tb'+type;
+  const dots=[[21,33,1],[25,30.5,.9],[29.5,32,1.1],[34,30.8,.9],[22.5,38,1.1],[27,36.5,.8],[31.5,37.5,1],[35.5,35.5,.9],[20.5,43,.9],[25,41.5,1.1],[29.5,43.5,.9],[34,41,1],[37,45,.8],[27.5,46,.8],[23,46.5,.7]];
+  return `<svg viewBox="0 0 56 56" aria-hidden="true"><rect width="56" height="56" rx="12" fill="#F6F3EE"/>
+  <defs><clipPath id="${id}"><path d="M17.5 20 h21 l1.6 25.5 q.2 3.5 -3.3 3.5 h-17.6 q-3.5 0 -3.3 -3.5z"/></clipPath></defs>
+  <path d="M28 19 C28 12 33 9.5 37.5 10" fill="none" stroke="#BFB4A3" stroke-width=".9"/>
+  <g transform="rotate(8 42 9)"><rect x="36.5" y="4" width="11" height="10" rx="1.6" fill="#fff" stroke="#D5CBBB" stroke-width=".8"/><circle cx="38.8" cy="9" r=".8" fill="#D5CBBB"/><rect x="40.6" y="7" width="5" height="1.1" rx=".55" fill="${c}"/><rect x="40.6" y="9.6" width="3.4" height="1" rx=".5" fill="#D5CBBB"/></g>
+  <path d="M17.5 20 h21 l1.6 25.5 q.2 3.5 -3.3 3.5 h-17.6 q-3.5 0 -3.3 -3.5z" fill="#FBF8F2"/>
+  <g clip-path="url(#${id})"><path d="M14 30 q2 -2.4 4 0 q2 -2.4 4 0 q2 -2.4 4 0 q2 -2.4 4 0 q2 -2.4 4 0 q2 -2.4 4 0 q2 -2.4 4 0 V52 H14z" fill="${lt}"/>
+    <g fill="${c}">${dots.map(([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r*1.5}" ry="${r}" transform="rotate(${(x*37)%60-30} ${x} ${y})"/>`).join('')}</g>
+    <g fill="${dk}" opacity=".5">${dots.filter((_,k)=>k%3===0).map(([x,y,r])=>`<circle cx="${x+1.6}" cy="${y+1}" r="${r*.5}"/>`).join('')}</g></g>
+  <path d="M17.5 20 h21 l1.6 25.5 q.2 3.5 -3.3 3.5 h-17.6 q-3.5 0 -3.3 -3.5z" fill="none" stroke="#D5CBBB" stroke-width=".9"/>
+  <path d="M19 46.8 h18" stroke="#D5CBBB" stroke-width=".7" stroke-dasharray="1.2 1.2"/>
+  <rect x="17" y="17.5" width="22" height="4.5" rx="1.2" fill="#EEE7DB" stroke="#D5CBBB" stroke-width=".8"/><rect x="26.4" y="18.9" width="3.2" height="1.7" rx=".4" fill="#BFB4A3"/></svg>`; }
 function stepbar(n){
   const rec=recording(), atChat=S.stack.length&&S.stack[S.stack.length-1].name==='chat';
   return `<div class="stepbar"><button class="back" onclick="${atChat?'askQuit()':'back()'}" aria-label="뒤로">${I.back}</button>
-    <div class="mid">${atChat&&S.draft?flowBar(S.draft):''}</div>
+    <div class="mid"></div>
     ${rec?'<button class="quit" onclick="askQuit()">그만하기</button>':'<span></span>'}</div>`;
 }
 function startDrink(){ const d=S.draft; if(d&&!d.drinkAt) d.drinkAt=Date.now(); }
@@ -1222,7 +1232,7 @@ chat(){
   const d=S.draft;
   const g=d.type?(d.basic?BASIC:TEAS[d.type]):null;
   const head = stepbar(3);
-  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin"><img class="pinimg" src="${d.photoData||TYPE_IMG[d.type]}" alt="${esc(d.name)}"><div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
+  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${d.photoData?`<img class="pinimg" src="${d.photoData}" alt="${esc(d.name)}">`:`<span class="pinimg">${teabag(d.type)}</span>`}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
     ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:'';
   return `${head}
   ${pin}
@@ -1873,7 +1883,7 @@ function paintMsgs(keep){
   if(!box) return;
   const msgs=d.chat;
   box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?'<span class="vmark">🎙️</span>':''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.who==='me'?(m.ans&&isEN()?String(m.text).split(', ').map(L).join(', '):m.text):L(m.text))}</div>${m.kept?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d);
-  bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); } { const m=document.querySelector('.stepbar .mid'); if(m) m.innerHTML=flowBar(d); }
+  bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'); if(inp) inp.placeholder=L(d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요');
   const v=$('#view'); if(!keep) v.scrollTop=v.scrollHeight;
 }
