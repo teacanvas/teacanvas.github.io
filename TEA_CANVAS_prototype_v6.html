@@ -432,7 +432,7 @@ canvas.wcd.big{margin:14px auto}
 .fchip.flc i{width:9px;height:9px;border-radius:50%;display:block}
 .fchip.flc small{font-size:11px;color:#999}.fchip.flc.on small{color:#bbb}
 .rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 8px;margin-top:18px}
-.ritem{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;padding:4px 0;border-radius:12px;transition:background .15s}
+.ritem{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;padding:4px 0;border-radius:12px;transition:background .15s}
 .ritem:hover{background:var(--g0)}
 .ritem b{font-weight:600;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
 .ritem span{color:var(--g2);font-size:11.5px}.ritem em.ex,.dn+em.ex{font-style:normal;font-size:10.5px;color:#8A6D3B;background:#F6EEDF;border-radius:6px;padding:1px 5px}
@@ -604,7 +604,7 @@ const TEAS = {
 const FLAVORS = {
   floral:    {label:'꽃향',     color:'#E9A9C6', kw:['꽃','난꽃','난초','플로럴','자스민','재스민','장미','라벤더','국화','향긋']},
   fruity:    {label:'과일향',   color:'#F2946A', kw:['과일','사과','복숭아','베리','포도','머스캣','건포도','상큼','열대']},
-  citrus:    {label:'시트러스', color:'#E8D45A', kw:['레몬','시트러스','귤','오렌지','유자','베르가못','산뜻','새콤']},
+  citrus:    {label:'시트러스', color:'#E8D45A', kw:['레몬','시트러스','귤','오렌지','유자','베르가못','산뜻','새콤','시큼','새큼','신맛','식초','산미','상큼']},
   vegetal:   {label:'풀향',     color:'#96C46A', kw:['풀','채소','해조','싱그','초록','잎','신선','풋']},
   fresh:     {label:'상쾌함',   color:'#79C3BC', kw:['민트','상쾌','시원','청량','깔끔','맑은맛','맑은향','맑고','맑아','가벼','가볍','개운']},
   nutty:     {label:'고소함',   color:'#A87A4E', kw:['고소','곡물','구수','볶은','견과','누룽지','보리','현미','토스트']},
@@ -624,7 +624,7 @@ const KW_MORE={
   floral:['꽃집','향수','비누','정원','꽃밭','라일락','벚꽃','아카시아','봄'],
   sweet:['솜사탕','케이크','과자','쿠키','우유','연유','초콜릿','시럽','설탕','조청'],
   soft:['이불','담요','햇살','엄마','구름','실크','벨벳','포옥','안기','고양이'],
-  nutty:['군고구마','고구마','누룽지','시리얼','땅콩','아몬드','호두','참기름','빵'],
+  nutty:['로스팅','로스트','구운','그을린','군고구마','고구마','누룽지','시리얼','땅콩','아몬드','호두','참기름','빵'],
   spicy:['따끔','화끈','얼얼','정향','팔각','카레'],
   vegetal:['풀밭','잔디','깻잎','오이','시금치','해초','미역','완두','나물','허브']};
 /* 외래어로 말한 풍미(스윗, 소프트, 플로럴…) */
@@ -1402,7 +1402,7 @@ detail(p){
   const dp=r.deep||{};
   const info=[];
   if(dp.origin||dp.vintage) info.push(['산지·빈티지',[dp.origin,dp.vintage&&dp.vintage+'년'].filter(Boolean).join(' · ')]);
-  if(dp.temp||dp.min||dp.sec) info.push(['온도·시간',[dp.temp&&dp.temp+'°C',dp.timeRaw||((dp.min||dp.sec)&&`${dp.min||0}분 ${dp.sec||0}초`)].filter(Boolean).join(' · ')]);
+  if(dp.temp||dp.min||dp.sec) info.push(['온도·시간',[dp.temp&&(/^\d+$/.test(dp.temp)?dp.temp+'°C':dp.temp),dp.timeRaw||((dp.min||dp.sec)&&`${dp.min||0}분 ${dp.sec||0}초`)].filter(Boolean).join(' · ')]);
   Object.entries(dp.brews||{}).forEach(([n,b])=>{ if(b.feel||b.next) info.push([n+'차 우림',[b.feel,b.next].filter(Boolean).join(' / ')]); });
   if(r.drinkMin) info.unshift(['마신 시간',`${r.drinkMin}분`]);
   const tk=r.talk||{}, talk=[['기분',tk.mood],['상황',tk.scene],['고른 이유',tk.why]].filter(x=>x[1]);
@@ -1632,11 +1632,11 @@ function seedChat(){
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
 const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronnefeldt','TWG','Teavana','Dilmah','Yogi','Taylors','Osulloc','Tazo','Bigelow','오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원'];
 /* 차 이름 칸에 문장을 써도 이름만 뽑는다: 'ㅋㅋ·이모지' 빼고, 마디로 나눠 차 이름이 든 마디만, 앞뒤 군말 빼기 */
-function cleanTeaName(text){ let t=String(text||'').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
+function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*\]?/g,' ').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
   const parts=t.split(/[,.!?~]|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
   let c=parts.find(x=>findType(x))||parts[0]||t;
   for(let k=0;k<3;k++) c=c.replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
-  return c||t; }
+  c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
 function parseTea(text){ const t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(t.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
@@ -2042,9 +2042,9 @@ const DEEPQ={
     {q:()=>'이 차의 산지를 알고 있다면 알려주세요.',chips:()=>['중국 운남','중국 복건','대만','제주','다르질링','잘 몰라요'],set:t=>{ S.draft.deep.origin=skip(t)?'':t; const y=String(t).match(/(19|20)\d{2}/); if(y){ S.draft.deep.vintage=y[0]; S.draft.dq.i++; } }},
     {q:()=>'만든 해(빈티지)는요?',chips:()=>{ const y=new Date().getFullYear(); return [0,1,2,3,5,10].map(n=>(y-n)+'년').concat('잘 몰라요'); },set:t=>{ S.draft.deep.vintage=skip(t)?'':num(t); }}],
   temp:[
-    {q:()=>'물 온도는 몇 도였나요?',chips:()=>['70°C','80°C','90°C','95°C','100°C','잘 몰라요'],set:t=>{ S.draft.deep.temp=skip(t)?'':num(t); }},
+    {q:()=>'물 온도는 몇 도였나요?',chips:()=>['70°C','80°C','90°C','95°C','100°C','잘 몰라요'],set:t=>{ S.draft.deep.temp=skip(t)?'':(/\d/.test(t)&&!/(찬물|냉|상온)/.test(t)?num(t):String(t).trim()); }},
     {q:()=>'얼마나 우렸나요?',chips:()=>{ const s=S.timer?S.timer.total:0; return [...new Set([s?`${Math.floor(s/60)}분${s%60?' '+s%60+'초':''}`:null,'1분','2분','3분','5분'].filter(Boolean))].concat('잘 몰라요'); },
-     set:t=>{ const dp=S.draft.deep; dp.timeRaw=''; if(skip(t)){ dp.min=dp.sec=''; return; } if((String(t).match(/\d+/g)||[]).length>2) dp.timeRaw=String(t).trim(); const m=String(t).match(/(\d+)\s*(분|min)/i), c=String(t).match(/(\d+)\s*(초|s\b|sec)/i); dp.min=m?m[1]:(c?'0':num(t)); dp.sec=c?c[1]:''; }}],
+     set:t=>{ const dp=S.draft.deep; dp.timeRaw=''; if(skip(t)){ dp.min=dp.sec=''; return; } if((String(t).match(/\d+/g)||[]).length>2||/(시간|밤새|하룻밤|hour)/i.test(t)||!/\d/.test(t)) dp.timeRaw=String(t).trim(); const m=String(t).match(/(\d+)\s*(분|min)/i), c=String(t).match(/(\d+)\s*(초|s\b|sec)/i); dp.min=m?m[1]:(c?'0':num(t)); dp.sec=c?c[1]:''; }}],
   memo:[
     {q:()=>'기억하고 싶은 점을 자유롭게 남겨주세요.\n함께 마신 사람, 장소, 그날의 기분도 좋아요.',chips:()=>[],set:t=>{ const dp=S.draft.deep; dp.memo=dp.memo?dp.memo+'\n'+t:t; }}],
 };
@@ -2142,7 +2142,7 @@ function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTim
 
 /* compare helpers */
 /* 비교 카드: 이 차 종류의 대표 풍미(전문가)와 내가 말한 풍미를 비교 */
-const TYPE_FL={green:['vegetal','fresh','sweet','nutty'],white:['sweet','floral','soft'],oolong:['floral','fruity','nutty','sweet'],black:['fruity','sweet','astringent','citrus'],dark:['earthy','nutty','sweet','soft'],herb:['floral','fresh','soft']};
+const TYPE_FL={green:['vegetal','sweet','fresh'],white:['sweet','floral','soft'],oolong:['nutty','floral','sweet'],black:['fruity','sweet','astringent'],dark:['earthy','soft','sweet'],herb:['floral','nutty','soft']};
 /* 이름으로 알 수 있는 차는 그 차만의 설명으로(얼그레이=베르가못, 다즐링=머스캣 …) */
 const EXPERT_BY_NAME=[
   {re:/얼그레이|earl\s*grey/i,fl:['citrus','floral','sweet'],text:'베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.'},
@@ -2152,13 +2152,19 @@ const EXPERT_BY_NAME=[
   {re:/동방미인|oriental\s*beauty/i,fl:['sweet','fruity','floral'],text:'꿀과 잘 익은 복숭아를 닮은 달콤한 향, 부드러운 과일 단맛이 오래 남는 우롱차예요.'},
   {re:/현미녹차/,fl:['nutty','vegetal','soft'],text:'볶은 현미의 구수함과 녹차의 산뜻한 풀향이 어우러진, 순하고 편안한 차예요.'},
   {re:/캐모마일|카모마일|chamomile/i,fl:['floral','fruity','soft','sweet'],text:'사과를 닮은 달콤한 꽃향에 부드럽고 포근한 맛이 이어지는 허브차예요.'},
+  {re:/대홍포|da\s*hong\s*pao/i,fl:['nutty','earthy','sweet'],text:'숯불에 구운 듯한 고소한 로스팅 향과 바위에서 온 듯한 미네랄감, 묵직한 바디 뒤로 달큰한 여운이 남는 우롱차예요.'},
+  {re:/히비스커스|hibiscus/i,fl:['citrus','fruity','floral'],text:'크랜베리를 닮은 새콤한 신맛과 붉은 베리 향이 또렷하고, 끝에 살짝 떫게 마무리되는 허브차예요.'},
+  {re:/보리차|barley/i,fl:['nutty','soft','sweet'],text:'볶은 보리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.'},
+  {re:/루이보스|rooibos/i,fl:['sweet','earthy','soft'],text:'꿀과 마른 나무를 닮은 달큰한 향에 부드럽고 순한 맛이 이어지는 허브차예요.'},
+  {re:/자스민|쟈스민|재스민|jasmine/i,fl:['floral','vegetal','sweet'],text:'자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.'},
+  {re:/말차|matcha/i,fl:['vegetal','sweet','soft','astringent'],text:'곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.'},
   {re:/페퍼민트|peppermint/i,fl:['fresh','vegetal'],text:'입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.'}];
 const expertOf=d=>{ const m=EXPERT_BY_NAME.find(x=>x.re.test(d.name||'')); return m?{text:m.text,fl:m.fl}:{text:(TEAS[d.type]||TEAS.green).expert,fl:TYPE_FL[d.type]||[]}; };
 const draftFl=d=>[...new Set([...(d.flavors||[]).map(f=>f.k),...collectExprs(d).flatMap(e=>e.fl)])];   // 찻방울에 담긴 풍미 전체
 function cmpFacts(d){ const mine=draftFl(d), ex=expertOf(d).fl, lab=k=>isEN()?HOME_EN[k]:FLAVORS[k].label;
   const common=mine.filter(k=>ex.includes(k)).map(lab), onlyMe=mine.filter(k=>!ex.includes(k)), onlyEx=ex.filter(k=>!mine.includes(k));
   const said=k=>{ const e=collectExprs(d).find(e=>e.fl.includes(k)); if(!e) return lab(k); const t=e.text.replace(/(잘\s*)?모르겠어요|음+\.*|그냥|[.!?…]+$/g,' ').replace(/\s+/g,' ').trim(); return t.length>=2?(t.length>30?t.slice(0,29)+'…':t):lab(k); };
-  const diff=[]; if(onlyMe.length) diff.push(`나는 ‘${esc(said(onlyMe[0]))}’라고 표현했어요`); if(onlyEx.length) diff.push(`전문가는 ‘${lab(onlyEx[0])}’도 짚어요`); if(!diff.length) diff.push('느낀 풍미가 전문가 설명과 거의 같아요');
+  const diff=[]; if(onlyMe.length) { const w=said(onlyMe[0]); diff.push(`나는 ‘${esc(w)}’${josa(w,'이라고','라고')} 표현했어요`); }; if(onlyEx.length) diff.push(`전문가는 ‘${lab(onlyEx[0])}’도 짚어요`); if(!diff.length) diff.push('느낀 풍미가 전문가 설명과 거의 같아요');
   return {common,diff,onlyMe:onlyMe.map(said)}; }
 function cmpAIText(d){ const c=cmpFacts(d), en=isEN();
   if(!c.common.length) return '내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.';
@@ -2329,7 +2335,7 @@ EN_RE.push(
  [/^음, (.+?)(?:이|가) 느껴지는군요\.$/,(m,a)=>`Mm, you're getting ${(EN[a]||a).toLowerCase()}.`],[/^아, (.+)\. 좋네요\.$/,(m,a)=>`Oh, ${(EN[a]||a).toLowerCase()}. Nice.`],[/^그 (.+), 저도 좋아해요\.$/,(m,a)=>`I love that ${(EN[a]||a).toLowerCase()} too.`],
  [/^‘(.+)’을 이어서 할까요\?$/,(m,a)=>`Continue ‘${EN[a]||a}’?`],[/^새로 시작하면 작성 중인 기록은 지워져요\.$/,()=>'Starting new deletes the draft.'],
  [/^찻방울에는 가장 진한 (\d+)가지 색이 담겨요$/,(m,a)=>`The drop shows the ${a} strongest colors`],
- [/^나는 ‘(.+)’라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
+ [/^나는 ‘(.+)’(?:이)?라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
  [/^(\d+)잔의 찻방울이 물든$/,(m,a)=>`${a} drops have colored`],
  [/^향도 맛도 좋았던 (\d+)잔을 모았어요\. (.+?) 풍미가 가장 진하게 담겼어요\. 좋은 기억은 주로 (.+?)에서 남았어요\.$/,(m,a,b,c)=>`${a} teas you loved, gathered. ${b.split(', ').map(x=>EN[x]||x).join(', ')} come through the most. Your best memories came mostly from ${(EN[c]||c).toLowerCase()}.`],
  [/^향도 맛도 좋았던 (\d+)잔을 모았어요\.(.*)$/,(m,a)=>`${a} teas you loved, gathered.`],
