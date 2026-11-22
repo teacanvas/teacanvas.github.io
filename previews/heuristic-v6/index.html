@@ -1,0 +1,67 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>휴리스틱 평가 v6</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--ink:#111;--g:#6b6b6b;--line:#e4e4e4;--bg:#fff;--soft:#f6f6f4;--ok:#e7f5ee;--okt:#1c7a4c;--fix:#eef3fd;--fixt:#2a5bd7;--keep:#f3f1ec;--keept:#7a6a4c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#eee;--g:#a3a3a3;--line:#333;--bg:#141414;--soft:#1d1d1d;--ok:#16301f;--okt:#7fd6a6;--fix:#17223a;--fixt:#8fb0ff;--keep:#2a271f;--keept:#d8c79c}}
+:root[data-theme="dark"]{--ink:#eee;--g:#a3a3a3;--line:#333;--bg:#141414;--soft:#1d1d1d;--ok:#16301f;--okt:#7fd6a6;--fix:#17223a;--fixt:#8fb0ff;--keep:#2a271f;--keept:#d8c79c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:32px 16px 80px;word-break:keep-all;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto}
+.k{font-size:13px;color:var(--g)}h1{font-size:26px;margin:6px 0 4px}h2{font-size:18px;margin:34px 0 10px;display:flex;align-items:center;gap:8px}
+h2 b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:13px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 20px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px}.meta span{display:block;font-size:12px;color:var(--g)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}.tbl th{font-size:12px;color:var(--g);font-weight:600;background:var(--soft)}
+.scroll{overflow-x:auto}.tbl td:nth-child(5){min-width:260px}
+.st{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}.ok{background:var(--ok);color:var(--okt)}.fix{background:var(--fix);color:var(--fixt)}.keep{background:var(--keep);color:var(--keept)}
+.sev{font-weight:800;font-size:15px}
+.sum{background:var(--soft);border-radius:12px;padding:14px 16px;font-size:14px;margin-top:12px}
+.top{display:grid;gap:10px}.top div{display:grid;grid-template-columns:28px 1fr 1fr;gap:12px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:12px}.top em{font-style:normal;font-size:20px;font-weight:800}.top p{font-size:13.5px}.top small{display:block;color:var(--g);font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.two>div{border:1px solid var(--line);border-radius:12px;padding:14px}.two h3{font-size:14px;margin-bottom:6px}.two li{font-size:13.5px;margin:4px 0 4px 18px}
+@media(max-width:640px){.two,.top div{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<p class="k">사용자경험과인터페이스디자인 · W12 형식 · 프로토타입 v6 점검</p>
+<h1>휴리스틱 평가 보고서</h1>
+<div class="meta"><div><span>서비스</span>TEA CANVAS v6</div><div><span>평가일</span>2026.11.22</div><div><span>기기 · 해상도</span>모바일 393 × 852</div><div><span>평가</span>Claude(1인) + 처음 보는 사용자 에이전트 2회 결과 참고</div><div><span>심각도</span>0 문제 아님 · 1 겉모습 · 2 작음 · 3 큼 · 4 치명적</div></div>
+
+<h2><b>②</b>찾은 것</h2>
+<div class="scroll"><table class="tbl"><thead><tr><th>No</th><th>구분</th><th>원칙</th><th>화면</th><th>무엇이 / 그래서 무슨 일이</th><th>심각도</th><th>상태</th></tr></thead><tbody>
+<tr><td>1</td><td>○ 잘한 것</td><td>1 시스템 상태의 가시성</td><td>채팅 · 찻방울 완성</td><td>우림 타이머·마신 시간이 위에 고정되고, '생각하는 중이에요'와 완성 3단계(표현 읽는 중 → 색 스며드는 중 → 정리 중)가 보임</td><td>—</td><td><span class="st ok">잘한 것</span></td></tr>
+<tr><td>2</td><td>⚠ 위반</td><td>1 시스템 상태의 가시성</td><td>채팅(기록 전반)</td><td>기록이 지금 어느 단계인지, 얼마나 남았는지 알 수 없음 → 끝이 안 보여 지루하고 불안함</td><td class="sev">3</td><td><span class="st fix">고침</span> 위에 '차 · 우림 · 향·맛 · 마시기 · 정리' 단계 표시</td></tr>
+<tr><td>3</td><td>⚠ 위반</td><td>10 도움말과 문서</td><td>캔버스 · 찍기</td><td>찻방울의 색·크기·자리가 무슨 뜻인지 설명이 없음 → 처음 보는 사람은 캔버스를 읽을 수 없음</td><td class="sev">3</td><td><span class="st fix">고침</span> 설명 옆 '?' → 캔버스 읽는 법(자리·색 11가지·크기·한 잔)</td></tr>
+<tr><td>4</td><td>⚠ 위반</td><td>3 사용자 통제와 자유</td><td>모든 화면</td><td>휴대폰 뒤로가기를 누르면 이전 화면이 아니라 앱 밖(빈 화면)으로 나감 (사용자 테스트 2회차)</td><td class="sev">3</td><td><span class="st fix">고침</span> 뒤로가기는 앱 안에서: 시트 닫기 → 이전 화면, 기록 중이면 먼저 묻기</td></tr>
+<tr><td>5</td><td>⚠ 위반</td><td>3 사용자 통제와 자유</td><td>상세 기록</td><td>저장한 뒤엔 한 줄 코멘트·별점·사진·풍미·메모를 고칠 수 없음</td><td class="sev">3</td><td><span class="st fix">고침</span> 연필 버튼 → 기록 고치기, 코멘트를 눌러도 바로 열림</td></tr>
+<tr><td>6</td><td>⚠ 위반</td><td>2 시스템과 현실의 일치</td><td>정리 · 상세 · 필터</td><td>찻방울엔 가장 진한 4색만 담겨, 말한 풍미가 빠진 것처럼 보이고 필터 결과와 어긋남 (사용자 테스트 1·2회차)</td><td class="sev">2</td><td><span class="st fix">고침</span> '담긴 풍미'는 말한 풍미 전부, "찻방울에는 가장 진한 4가지" 안내</td></tr>
+<tr><td>7</td><td>⚠ 위반</td><td>6 회상보다 인식</td><td>채팅 · 마시기 단계</td><td>표현이 떠오르지 않을 때 기댈 단서가 없음(향·맛 첫 질문에만 보기가 있음)</td><td class="sev">2</td><td><span class="st fix">고침</span> '표현이 막히면?' → 예시 표현 5가지</td></tr>
+<tr><td>8</td><td>⚠ 위반</td><td>4 일관성과 표준</td><td>상세 · MEMO</td><td>검은 테두리 상자와 회색 면 카드가 섞여 있음(W12 4번과 같은 결)</td><td class="sev">2</td><td><span class="st fix">고침</span> 모두 회색 면 카드로</td></tr>
+<tr><td>9</td><td>⚠ 위반</td><td>8 심미적이고 최소한의 디자인</td><td>비교</td><td>카드마다 아이콘이 붙어 정보보다 장식이 먼저 보임</td><td class="sev">2</td><td><span class="st fix">고침</span> 아이콘 빼기</td></tr>
+<tr><td>10</td><td>⚠ 위반</td><td>7 유연성과 효율성</td><td>음성 대화</td><td>챗봇이 말하는 중에 선택지를 눌러도 말을 끝까지 다 들어야 넘어감</td><td class="sev">2</td><td><span class="st fix">고침</span> 누르면 말 끊고 바로 다음으로</td></tr>
+<tr><td>11</td><td>⚠ 위반</td><td>5 오류 예방</td><td>캔버스에 찍기</td><td>자리를 찍기 전에도 저장 버튼이 똑같이 진해 누르게 됨</td><td class="sev">1</td><td><span class="st fix">고침</span> 찍기 전엔 흐리게</td></tr>
+<tr><td>12</td><td>⚠ 위반</td><td>4 일관성과 표준</td><td>My 설정</td><td>설정 줄 모서리(8px)가 다른 카드(14px)와 다름</td><td class="sev">1</td><td><span class="st fix">고침</span></td></tr>
+<tr><td>13</td><td>⚠ 위반</td><td>3 사용자 통제와 자유</td><td>채팅</td><td>이미 보낸 대답(색·향)을 그 자리에서 고칠 수 없음 — '바꾸기'와 'A가 아니라 B'로만</td><td class="sev">2</td><td><span class="st keep">그대로</span></td></tr>
+<tr><td>14</td><td>⚠ 위반</td><td>2 시스템과 현실의 일치</td><td>여러 화면</td><td>풍미 이름이 영어(Floral)와 한글(꽃향)로 함께 나옴</td><td class="sev">1</td><td><span class="st keep">그대로</span></td></tr>
+<tr><td>15</td><td>⚠ 위반</td><td>4 일관성과 표준</td><td>채팅 · 상세 · 알림</td><td>뒤로 버튼 모양이 화면마다 다름(검은 원 / ← 글자)</td><td class="sev">1</td><td><span class="st keep">다음에</span></td></tr>
+<tr><td>16</td><td>○ 잘한 것</td><td>5 오류 예방</td><td>기록 중 이동 · 삭제</td><td>기록 중 탭·알림·뒤로가기 → 먼저 묻기, 삭제·작성 중 기록 지우기 → 확인</td><td>—</td><td><span class="st ok">잘한 것</span></td></tr>
+<tr><td>17</td><td>○ 잘한 것</td><td>3 사용자 통제와 자유</td><td>홈 · 채팅</td><td>그만하기 → 저장해두고 홈에서 이어하기, 앱이 닫혀도 자동 저장</td><td>—</td><td><span class="st ok">잘한 것</span></td></tr>
+<tr><td>18</td><td>○ 잘한 것</td><td>9 오류 인식 · 진단 · 복구</td><td>오류 · 기록 부족</td><td>오류 화면에 다시 시도 / 홈으로, 맛·향을 안 남기면 '아직 담을 맛과 향이 없어요'와 돌아갈 길</td><td>—</td><td><span class="st ok">잘한 것</span></td></tr>
+</tbody></table></div>
+<div class="sum">심각도 2 이상 <b>11개</b> — 큼(3) 4 · 작음(2) 7 &nbsp;|&nbsp; ○ 잘한 것 4개 &nbsp;|&nbsp; 고침 12 · 그대로 2 · 다음에 1</div>
+
+<h2><b>③</b>가장 급한 셋</h2>
+<div class="top">
+<div><em>1</em><p><b>1 시스템 상태의 가시성 · 채팅 — 심각도 3</b><small>기록이 어느 단계인지, 얼마나 남았는지 보이지 않음</small></p><p>기록이 일처럼 느껴지지 않으려면 끝이 보여야 함. 처음 써본 사용자도 "얼마나 남았는지 몰라 오래 걸리는 느낌"을 말함.</p></div>
+<div><em>2</em><p><b>10 도움말과 문서 · 캔버스 — 심각도 3</b><small>찻방울의 색·크기·자리의 뜻을 알려주는 곳이 없음</small></p><p>캔버스는 서비스의 핵심 결과물. 읽는 법을 모르면 쌓인 기록이 그냥 예쁜 그림으로 끝남.</p></div>
+<div><em>3</em><p><b>3 사용자 통제와 자유 · 전체 — 심각도 3</b><small>휴대폰 뒤로가기 = 앱 밖으로</small></p><p>안드로이드 사용자는 뒤로가기를 가장 먼저 씀. 기록 중에 누르면 흐름이 끊기고 기록을 잃었다고 느낌.</p></div>
+</div>
+
+<h2><b>④</b>정한 것</h2>
+<div class="two">
+<div><h3>고칠 것 — 고쳤어요(v6)</h3><ul>
+<li>채팅 위에 기록 단계 표시</li><li>캔버스 읽는 법(?) — 자리·색·크기·한 잔</li><li>휴대폰 뒤로가기는 앱 안에서</li><li>저장한 기록 고치기</li><li>담긴 풍미 = 말한 풍미 전부, 찻방울은 가장 진한 4가지</li><li>표현이 막히면? 예시</li><li>검은 테두리 → 회색 카드, 비교 카드 아이콘 빼기, 설정 모서리</li><li>음성: 말하는 중 누르면 바로 다음으로</li><li>자리 찍기 전 저장 버튼 흐리게</li></ul></div>
+<div><h3>그대로 둘 것 — 왜 지키는가</h3><ul>
+<li>보낸 대답을 그 자리에서 고치기(13): 채팅은 단순하게 두고, 풍미는 '바꾸기'로, 나머지는 저장 뒤 '기록 고치기'로 고칠 수 있음</li>
+<li>영어·한글 풍미 이름(14): 영어는 장식, 한글은 설명 — 팀 결정</li>
+<li>뒤로 버튼 모양(15): 다음 정리 때 한 가지로 맞춤</li>
+<li>비교의 'AI 해석' 칸: AI 연결 뒤 실제 해석으로 바뀜</li></ul></div>
+</div>
+</div></body></html>
