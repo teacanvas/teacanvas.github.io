@@ -101,6 +101,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .cam{display:block;margin:14px auto 0;padding:6px}
 .hint{font-size:12px;color:#9A9A9A;text-align:center;margin-top:4px}
 .field{margin-top:18px}
+.cmtrow{display:flex;gap:8px;margin-top:10px}.cmtrow .box{flex:1;min-width:0;display:flex;align-items:center;background:var(--g0);border-radius:12px;padding:0 16px;height:50px}.cmtrow input{flex:1;min-width:0;font-size:15px}
+.addphoto.sq{width:50px;height:50px;flex-shrink:0;padding:0;border-radius:12px}.addphoto.sq svg{width:22px;height:22px}.addphoto.sq img{width:100%;height:100%;border-radius:11px;object-fit:cover}
 .field label{display:block;font-size:14px;font-weight:700;margin-bottom:8px}
 .field .box{display:flex;align-items:center;background:var(--g0);border-radius:12px;padding:0 16px;height:50px}
 .field .box input{flex:1;min-width:0;font-size:15px}
@@ -243,8 +245,9 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .photo.real img{display:block;width:100%;height:150px;object-fit:cover;border-radius:2px}
 .photo.real figcaption{font-size:10px;color:#9A9A9A;margin-top:3px;text-align:right}
 .stars{display:flex;gap:6px;justify-content:center;margin:6px 0}
-.stars button{font-size:26px;color:#D5D5D5;line-height:1}
-.stars button.on{color:#000}
+.stars button{color:#DADADA;line-height:0;padding:2px}.stars button .leaf{width:28px;height:28px}
+.stars button.on{color:#6E7F4A}
+.leaves{display:inline-flex;gap:1px;color:#6E7F4A;vertical-align:-3px}.leaves .leaf{width:14px;height:14px}
 .photo{display:flex;align-items:center;justify-content:center;height:120px;border-radius:2px;font-size:12.5px;color:#6b5a3a;
   background:linear-gradient(135deg,#d9c3a1,#b98b56 40%,#e9dcc6 70%,#c7a77c);position:relative;overflow:hidden}
 .photo::after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#c98a3d 0 45%,#f4ead9 47% 60%,transparent 62%);left:38%;top:22%}
@@ -298,7 +301,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .sheetWrap{position:absolute;inset:0;background:rgba(0,0,0,.07);display:none;z-index:40;align-items:flex-end}
 .sheetWrap.open{display:flex}
-.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:12px 22px 24px;max-height:90%;overflow-y:auto;animation:up .3s ease}
+.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:12px 22px 24px;max-height:94%;overflow-y:auto;animation:up .3s ease}
 .grab{width:52px;height:5px;border-radius:3px;background:#000;margin:0 auto 18px}
 @keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
 /* ---------- v2 components ---------- */
@@ -452,14 +455,16 @@ canvas.wcd.big{margin:14px auto}
   .scr{padding-bottom:12px}.stepbar{height:38px;margin-bottom:4px}
   .rowlink{padding:12px 16px;margin-top:8px}
   .sheet{padding-bottom:14px}.sheet .sub{font-size:12px}.sheet h3.sec{margin-top:8px!important}.stars{margin:2px 0}.stars button{font-size:22px}
-  .sheet .addphoto{height:44px}.sheet .btn{height:48px}
+  .sheet .addphoto:not(.sq){height:44px}.sheet .btn{height:48px}
   .profile{margin:12px 0 4px}.setrow{margin-top:7px}.statrow>div{padding-top:10px;padding-bottom:10px}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
 }
 .stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
 .infuse{position:relative;height:330px;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
 .infuse #inf3d{margin-bottom:6px}
-.floatzone{position:absolute;left:0;right:0;top:0;height:150px;pointer-events:none}
+.infuse{flex-direction:column;align-items:center;justify-content:flex-end}
+.inflabel{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
+.inflabel.on{opacity:1;filter:none}.inflabel b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:30px;line-height:1.1}.inflabel span{font-size:12.5px;color:#8A8A8A;margin-top:4px;max-width:260px}
 .ffloat{position:absolute;top:8px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px;background:#fff;border:1px solid #DDD;border-radius:16px;padding:5px 12px;
   animation:floatIn 1.45s cubic-bezier(.3,.6,.3,1) forwards}
 .ffloat i{width:8px;height:8px;border-radius:50%}
@@ -701,7 +706,8 @@ const today=()=>{const d=new Date();return `${d.getFullYear()}.${pad(d.getMonth(
 const mmss=s=>`${Math.floor(s/60)}:${pad(s%60)}`;
 const clamp=v=>Math.max(.04,Math.min(.96,v));
 const sortRecs=()=>S.records.sort((a,b)=>(b.ts||0)-(a.ts||0));
-const stars=n=>'✦'.repeat(n||0);
+const LEAF='<svg class="leaf" width="22" height="22" viewBox="0 0 22 22"><path d="M4.5 17.5C3.6 10.8 8.4 4.6 17.8 3.6c.6 9.3-5.2 14.6-12.4 14.2z" fill="currentColor"/><path d="M4.5 17.5C8 13.4 11 10.4 14.6 7.2" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".75"/></svg>';
+const stars=n=>n?`<span class="leaves">${LEAF.repeat(n)}</span>`:'';
 const dot=(...a)=>a.filter(Boolean).join(' · ');
 /* =========================================================
    찻방울 수채화 렌더러
@@ -1196,7 +1202,7 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse" data-fit="330,200,h"><div class="floatzone" id="floatzone"></div><div id="inf3d" data-fit="236,130" style="width:236px;height:236px"></div></div>
+  <div class="infuse" data-fit="330,200,h"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,130" style="width:236px;height:236px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
@@ -1862,14 +1868,11 @@ function openCanvasSheet(){
   const d=S.draft; ensureFlavors(d);
   openSheet(`<div class="grab"></div>
     <h1 class="t">캔버스에 찻방울 찍기</h1>
-    <p class="sub">오늘의 차는 어디쯤일까요?<br>눌러서 찍고, 다시 누르면 옮겨져요.</p>
+    <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.</p>
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
-    <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})">✦</button>`).join('')}</div></div>
-    <h3 class="sec cmt-h" style="margin-top:12px">한 줄 코멘트</h3>
-    <div class="field" style="margin-top:0"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}"></div></div>
-    <div style="height:12px"></div>
-    <button class="addphoto" id="photoBtn" onclick="togglePhoto()">${photoBtnHTML(d)}</button>
-    <div style="height:18px"></div>
+    <div class="rate"><h3 class="sec">찻잎 점수</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})" aria-label="찻잎 ${i}개">${LEAF}</button>`).join('')}</div></div>
+    <div class="cmtrow"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}"></div><button class="addphoto sq" id="photoBtn" onclick="togglePhoto()" aria-label="사진 찍기 · 고르기">${photoBtnHTML(d)}</button></div>
+    <div style="height:16px"></div>
     <button class="btn" onclick="saveRecord()">저장하고 완료하기</button>
     <button class="link" onclick="closeSheet()">돌아가기</button>`);
   bindPick($('#pickCv'));
@@ -1939,7 +1942,7 @@ function pickFile(cb,camera){ const i=document.createElement('input'); i.type='f
       im.onerror=()=>toast('사진을 불러오지 못했어요'); im.src=rd.result; }; rd.onerror=()=>toast('사진을 불러오지 못했어요'); rd.readAsDataURL(f); };
   document.body.appendChild(i); i.click(); }
 function togglePhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=true; const b=$('#photoBtn'); if(b) b.innerHTML=photoBtnHTML(d); }); }
-const photoBtnHTML=d=>d.photoData?`<img src="${d.photoData}" alt="">사진을 담았어요 · 다시 찍기`:'＋ 사진 찍기 · 고르기 (선택)';
+const photoBtnHTML=d=>d.photoData?`<img src="${d.photoData}" alt="담은 사진">`:I.cam;
 function saveRecord(){
   const d=S.draft; const c=$('#cmt'); if(c) d.comment=c.value.trim();
   if(!d.canvas){ toast('캔버스에 오늘의 찻방울을 먼저 찍어주세요'); return; }
@@ -1960,38 +1963,31 @@ function saveRecord(){
 }
 
 /* 분석 로딩: 표현이 하나씩 떠올라 방울에 가라앉고, 그 풍미 색이 잉크처럼 스며든다 */
-function floatChip(e){
-  const z=$('#floatzone'); if(!z) return;
-  const el=document.createElement('span'); el.className='ffloat';
-  const t=e.text.length>18?e.text.slice(0,17)+'…':e.text;
-  el.innerHTML=`${e.fl.slice(0,2).map(k=>`<i style="background:${FLAVORS[k].color}"></i>`).join('')}${esc(t)}`;
-  el.style.left=(12+Math.random()*30)+'%';
-  z.appendChild(el); setTimeout(()=>el.remove(),1500);
-}
 function runInfusion(){
   const d=S.draft, at=S.stack.length, box=$('#inf3d'); if(!box) return;
   const exprs=collectExprs(d); d.flavors=scoreFlavors(exprs); d.exprs=exprs.map(e=>e.text);
-  const matched=exprs.filter(e=>e.fl.length), show=(matched.length?matched:exprs).slice(0,5);
   const fin=draftDrop(d), fk=d.flavors.map(f=>f.k);
-  const STEP=1300, T0=500, total=T0+show.length*STEP+(fk.length?1100:1600), ev=[], seen=new Set();
-  show.forEach((e,i)=>{ const t=T0+i*STEP; ev.push({t,chip:e}); e.fl.forEach(k=>{ if(fk.includes(k)&&!seen.has(k)){ seen.add(k); ev.push({t:t+800,k}); } }); });
-  fk.filter(k=>!seen.has(k)).forEach(k=>ev.push({t:T0+show.length*STEP,k}));
-  ev.sort((a,b)=>a.t-b.t);
-  // 수채: 찻물 색이 먼저 옅게 번지고, 표현이 가라앉을 때마다 그 풍미 색 꽃잎이 하나씩 번져 들어온다
-  const size=236, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height=size+'px'; box.innerHTML=''; box.appendChild(cv);
-  const x=cv.getContext('2d'), teaC={key:'water',c:CLEAR,w:.6}; // 맑은 물에서 시작해, 풍미 색이 하나씩 번져 들어온다
+  // 풍미 하나씩 차례로: 이름(+내가 한 말)이 희미하게 나타나고 → 그 색이 번지고 → 이름이 옅어지면 다음 풍미
+  const LEAD=600, STEP=2300, T0=400, total=T0+Math.max(1,fk.length)*STEP+600;
+  const said=k=>{ const e=exprs.find(e=>e.fl.includes(k)); return e?`“${e.text.length>22?e.text.slice(0,21)+'…':e.text}”`:HOME_EX[k]; };
+  const ev=fk.map((k,i)=>({t:T0+i*STEP,k}));
+  const lab=$('#infLabel'), lb=lab&&lab.querySelector('b'), ls=lab&&lab.querySelector('span');
+  const show=k=>{ if(!lab) return; lb.textContent=HOME_EN[k]; lb.style.color=inkText(FLAVORS[k].color); ls.textContent=said(k); void lab.offsetWidth; lab.classList.add('on'); };
+  const size=236, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; box.innerHTML=''; box.appendChild(cv);
+  const x=cv.getContext('2d');
   const sid='n'+d.tid, IL=fk.map(k=>({k,c:FLAVORS[k].color,w:(d.flavors.find(f=>f.k===k)||{w:.5}).w})), IP=IL.length?parts1(IL,px*.27,WC.hash(sid)%1000/1000*6.28):[];
   const io=document.createElement('canvas'); io.width=io.height=px; const ioc=io.getContext('2d');
   const starts={}; let ei=0, done=false; const t0=performance.now();
   (function loop(now){
     if(cur()!=='analyzing'||S.stack.length!==at||!cv.isConnected) return;
     const t=now-t0;
-    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; if(e.chip) floatChip(e.chip); else starts[e.k]=e.t; }
+    while(ei<ev.length&&ev[ei].t<=t){ const e=ev[ei++]; show(e.k); starts[e.k]=e.t+LEAD; }
+    { const curE=ev[ei-1]; if(lab&&curE&&lab.classList.contains('on')&&t>curE.t+STEP-750) lab.classList.remove('on'); }
     x.clearRect(0,0,px,px);
-    { const D=px*1.05, wt=Math.min(CV_SPREAD,t/1000*1.9), fade=fk.length?Math.max(.25,1-Object.keys(starts).length*.2):1; x.globalAlpha=.85*fade;
+    { const D=px*1.05, wt=Math.min(CV_SPREAD,t/1000*1.9), fade=fk.length?Math.max(.25,1-Object.keys(starts).filter(k=>t>=starts[k]).length*.2):1; x.globalAlpha=.85*fade;
       x.drawImage(cvWash(150,'clear',CLEAR,77).frame(wt),px/2-D/2,px/2-D/2,D,D); x.globalAlpha=1; }
     if(IP.length){ ioc.clearRect(0,0,px,px); ioc.globalCompositeOperation='multiply';
-      IP.forEach(p=>{ if(starts[p.k]==null) return; const lt=Math.min(CV_SPREAD+1.4,(t-starts[p.k])/1000*1.9), D=p.r*3.6;
+      IP.forEach(p=>{ if(starts[p.k]==null||t<starts[p.k]) return; const lt=Math.min(CV_SPREAD+1.4,(t-starts[p.k])/1000*1.6), D=p.r*3.6;
         ioc.globalAlpha=p.a; ioc.drawImage(cvWash(Math.max(80,Math.min(240,Math.round(D*.85))),p.k,p.c,WC.hash(sid+p.k)%100000).frame(Math.min(CV_SPREAD,lt)),px/2+p.dx-D/2,px/2+p.dy-D/2,D,D); });
       x.globalAlpha=.95; x.drawImage(io,0,0); x.globalAlpha=1; }
     const ph=t<total*.3?0:t<total*.82?1:2; document.querySelectorAll('#phases .ph').forEach((el,k)=>el.classList.toggle('on',k===ph));
@@ -2054,16 +2050,15 @@ function vwKey(n){
   return VW.assign[n]; }
 function startVoiceWash(cv){
   if(!cv) return; const W=cv.clientWidth||340, H=cv.clientHeight||150, pw=pxFor(W), ph=Math.round(pw*H/W); cv.width=pw; cv.height=ph;
-  const x=cv.getContext('2d'), N=170, STEP=.55, LIFE=3.6;
+  const x=cv.getContext('2d'), N=170, STEP=2.2, LIFE=7.5, GREY='#BDB9B3';   // 색 없이(맛 판단에 영향 주지 않게), 큰 번짐이 하나씩 천천히
   let prev=performance.now();
   (function loop(now){ if(!cv.isConnected||!VOICE.on) return; const dt=Math.min(.1,(now-prev)/1000); prev=now;
-    VW.T+=dt*(S.listening?1.25:VOICE.phase==='speaking'?1:.6); const T=VW.T; x.clearRect(0,0,pw,ph);
+    VW.T+=dt*(S.listening?1:.7); const T=VW.T; x.clearRect(0,0,pw,ph);
     const last=Math.floor(T/STEP);
     for(let n=Math.max(0,last-Math.ceil(LIFE/STEP));n<=last;n++){ const age=T-n*STEP; if(age<0||age>LIFE) continue;
-      const key=vwKey(n), hex=key==='clear'?CLEAR:FLAVORS[key].color, r=WC.rng(n*7919+13), u=age/LIFE;
-      const D=ph*(.9+1.3*u)*(.85+.3*r()), cx=pw*(.12+.76*r()), cy=ph*(1.05-.75*u);   // 아래에서 생겨 위로 오르며 넓게 번진다
-      x.globalAlpha=Math.max(0,Math.min(1,age*3,(1-u)*2.2))*.7;
-      x.drawImage(cvWash(N,key,hex,(n%3)*977+WC.hash(key)%5000).frame(Math.min(CV_SPREAD,age*1.6)),cx-D/2,cy-D/2,D,D); }
+      const r=WC.rng(n*7919+13), u=age/LIFE, D=pw*(.55+.25*r())*(.75+.45*Math.min(1,u*1.6)), cx=pw*(.2+.6*r()), cy=ph*(.95-.12*u);
+      x.globalAlpha=Math.max(0,Math.min(1,age*.9,(1-u)*2.5))*.55;
+      x.drawImage(cvWash(N,'grey',GREY,(n%4)*977+311).frame(Math.min(CV_SPREAD,age*.9)),cx-D/2,cy-D/2,D,D); }
     x.globalAlpha=1; requestAnimationFrame(loop); })(prev);
 }
 
@@ -2232,7 +2227,7 @@ function startHome3D(el){
   // 번짐 캔버스 위아래의 빈 여백만큼 이름을 번짐 쪽으로 당겨 붙인다
   const pull=/[?&]w=/.test(location.search)?Math.round(size*.2):14; if(HC.pos==='top') label.style.marginBottom=(-pull)+'px'; if(HC.pos==='bottom') label.style.marginTop=(-pull)+'px';
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
-  const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'];
+  const ORDER_F=['floral','fruity','citrus','vegetal','fresh','nutty','sweet','earthy','spicy','soft','astringent'].map(k=>[Math.random(),k]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);   // 들어올 때마다 다른 순서로
   // 번짐(2.9초) → 다 만들어진 모습 그대로 잠시 유지(1.4초) → 옅어짐(0.9초)
   const LEAD=.6, SPREAD=2.9, HOLD=1.4, FADE=.9, STEPT=LEAD+SPREAD+HOLD+FADE, LOOP=STEPT*ORDER_F.length;
   const N=Math.min(260,Math.round(px*.55)); const cache={};
