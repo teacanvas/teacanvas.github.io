@@ -232,7 +232,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagcard{border:1px solid #000;border-radius:18px;padding:22px 20px;text-align:center;margin-top:8px}
 .tagid.ph{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}.tagid.ph>div{text-align:center}.tagid.ph .nm{margin-top:0}
 .tagph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;filter:grayscale(1)}   /* 색은 찻방울에만 */
-.tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid var(--line)}
+.tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid #E5E5E5}
 .cmtrow .box{position:relative}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
 .btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
 .typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
@@ -1078,10 +1078,12 @@ const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><
 const loaderHTML=t=>`<div class="loader"><div class="pulse"></div><b style="font-size:14px">${t}</b></div>`;
 
 /* 표현 → 풍미 계열 */
+let _AKW; const allKw=()=>_AKW||(_AKW=[...new Set(FKEYS.flatMap(k=>FLAVORS[k].kw))]);
 function matchFlavors(text){ const raw=String(text||''), t=raw.replace(/\s/g,''), lo=' '+raw.toLowerCase().replace(/[^a-z]+/g,' ')+' ';
-  const neg=i=>{ let seg=t.slice(i,i+16); const c=seg.search(/(고(?!소)|며|지만|는데|그리고|[,.!?~])/); if(c>=0) seg=seg.slice(0,c);   // 같은 마디 안에서만 본다(‘꽃향이 나고 쓴맛은 없어요’)
+  const neg=i=>{ let seg=t.slice(i,i+16); const c=seg.search(/(고(?!소)|며|지만|는데|그리고|[,.!?~])/); if(c>=0) seg=seg.slice(0,c);
+    const nx=allKw().reduce((m,w)=>{ const j=seg.indexOf(w,1); return j>0&&j<m&&!/^(이?나|이?랑|와|과|하고|및|도)$/.test(seg.slice(0,j))?j:m; },seg.length); seg=seg.slice(0,nx);   // 다른 풍미 낱말이 나오면 거기까지만('A나 B는 없어요'처럼 묶인 건 함께)   // 같은 마디 안에서만 본다(‘꽃향이 나고 쓴맛은 없어요’)
     return /(없|않|아니|별로|안나|안느|제로|zero)/i.test(seg); };
-  const has=w=>{ let i=t.indexOf(w); while(i>=0){ const pre=t.slice(Math.max(0,i-1),i); if(!(pre==='안'||pre==='못')&&!neg(i+w.length)) return true; i=t.indexOf(w,i+1); } return false; };   // 뒤에 '없/않/아니/별로/제로', 앞에 '안/못'이 붙으면 그 풍미는 빼기
+  const has=w=>{ let i=t.indexOf(w); while(i>=0){ const pre=t.slice(Math.max(0,i-1),i), pre2=t.slice(Math.max(0,i-2),i); if(!((pre==='안'&&!/^(입|편|불|미|보|치)안$/.test(pre2))||pre==='못')&&!neg(i+w.length)) return true; i=t.indexOf(w,i+1); } return false; };   // 뒤에 '없/않/아니/별로/제로', 앞에 '안/못'이 붙으면 그 풍미는 빼기
   return FKEYS.filter(k=>FLAVORS[k].kw.some(has)||(typeof FL_EN!=='undefined'&&FL_EN[k].some(w=>lo.includes(' '+w)&&!new RegExp('(no|not|without|hardly|barely)\\s+(any\\s+)?'+w).test(lo)))); }
 function collectExprs(d){
   const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
@@ -1172,8 +1174,8 @@ function grayCircle(x,im,cx,cy,R){ const k=Math.max(2*R/im.width,2*R/im.height),
   gx.drawImage(im,R-im.width*k/2,R-im.height*k/2,im.width*k,im.height*k);
   try{ const D=gx.getImageData(0,0,2*R,2*R), a=D.data; for(let i=0;i<a.length;i+=4){ a[i]=a[i+1]=a[i+2]=a[i]*.299+a[i+1]*.587+a[i+2]*.114; } gx.putImageData(D,0,0); }catch(e){}
   x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(g,cx-R,cy-R); x.restore(); }
-async function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
-  const im=await loadImg(recPhoto(r));
+async function saveTagImage(id,noPhoto){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
+  const im=noPhoto?null:await loadImg(recPhoto(r));
   const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   x.fillStyle='#fff'; x.fillRect(0,0,W,H); drawRec1(x,recFlav(r),W/2,450,360,r.id,CV_SPREAD+1.4,.95);
   const sub=dot(r.brand,r.date.replace(/\.$/,'')), NAME='700 64px Pretendard, sans-serif', SUB='400 34px Pretendard, sans-serif';
@@ -1185,6 +1187,7 @@ async function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.l
   (r.flavors||[]).forEach(f=>{ x.fillStyle=inkText(FLAVORS[f.k].color); x.fillText(HOME_EN[f.k],tx,1060); tx+=x.measureText(HOME_EN[f.k]).width+36; });
   if(r.comment){ x.textAlign='center'; x.fillStyle='#444'; x.font='400 36px Pretendard, sans-serif'; x.fillText(`“${r.comment}”`,W/2,1160); }
   x.textAlign='center'; x.fillStyle='#BBB'; x.font='800 28px Pretendard, sans-serif'; x.fillText('TEA CANVAS',W/2,1290);
+  if(im){ try{ x.getImageData(0,0,1,1); }catch(e){ return saveTagImage(r.id,true); } }   // 다른 출처 사진이라 저장이 막히면 사진 없이
   const fn=`teacanvas-tag-${String(r.date||'').replace(/\D/g,'')||Date.now()}.png`;   // 한글 파일 이름을 못 받는 브라우저가 있어 영문·숫자로
   try{ c.toBlob(b=>{ if(!b){ toast('이미지를 만들지 못했어요'); return; } if(saveTagImage._u) URL.revokeObjectURL(saveTagImage._u); const u=saveTagImage._u=URL.createObjectURL(b);   // 바로 받지 않고, 어떤 이미지가 저장되는지 먼저 보여준다
     openSheet(`<div class="grab"></div><h1 class="t">이미지로 저장하기</h1><p class="sub">이런 이미지로 저장돼요.</p>
@@ -1197,7 +1200,7 @@ function openTypeSheet(){ const n=k=>S.records.filter(r=>r.type===k).length;
   openSheet(`<div class="grab"></div><h1 class="t">마신 차 종류</h1><p class="sub">누르면 그 종류의 기록만 볼 수 있어요.</p>
     <div class="typelist">${ORDER.filter(k=>n(k)).map(k=>`<button onclick="showType('${k}')"><span class="tb">${teabag(k)}</span><b>${TEAS[k].label}</b><span class="muted">${n(k)}잔</span><span class="chev">›</span></button>`).join('')}</div>
     <div style="height:10px"></div><button class="link" onclick="closeSheet()">닫기</button>`); }
-function showType(k){ closeSheet(); S.filter={q:TEAS[k].label,date:'all',fl:[],from:'',to:''}; go('canvas',{tab:'list'},{reset:true}); }
+function showType(k){ closeSheet(); S.filter={q:'',type:k,date:'all',fl:[],from:'',to:''}; go('canvas',{tab:'list'},{reset:true}); }
 function resetFilter(){ S.filter={q:'',date:'all',fl:[],from:'',to:''}; rerender(); }
 const near=(a,b)=>{ if(Math.abs(a.length-b.length)>1) return a.includes(b.slice(0,-1))&&b.length>3; let i=0,j=0,e=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++e>1) return false; if(a.length>b.length) i++; else if(b.length>a.length) j++; else {i++;j++;} } return e+(a.length-i)+(b.length-j)<=1; };   // 오타 한 글자
 function filtered(){
@@ -1206,6 +1209,7 @@ function filtered(){
   const to=f.date==='range'&&f.to?new Date(f.to+'T23:59:59').getTime():Infinity;
   return sortRecs().filter(r=>{
     if((r.ts||0)<from||(r.ts||0)>to) return false;
+    if(f.type&&r.type!==f.type) return false;
     if(f.fl.length&&!f.fl.every(k=>flAll(r).includes(k))) return false;   // 고른 풍미가 모두 담긴 기록만
     if(!q) return true;
     const hay=[r.name,r.brand,r.comment,TEAS[r.type].label,...(r.exprs||[]),...(r.tags||[]),...(r.flavors||[]).flatMap(x=>[FLAVORS[x.k].label,HOME_EN[x.k]])].join(' ').replace(/\s/g,'').toLowerCase();
@@ -1221,6 +1225,7 @@ const DATE_LB={all:'전체','1m':'1개월','3m':'3개월','1y':'올해'};
 const fmtD=v=>v?v.slice(2).replace(/-/g,'.'):'';
 function dateLabel(){ const f=S.filter; return f.date==='range'?(f.from===f.to?fmtD(f.from):`${fmtD(f.from)} ~ ${fmtD(f.to)}`):DATE_LB[f.date]; }
 function activeChips(){ const f=S.filter, out=[];
+  if(f.type&&TEAS[f.type]) out.push(`<button class="achip" onclick="S.filter.type='';rerender()">${TEAS[f.type].label} ✕</button>`);
   if(f.date!=='all') out.push(`<button class="achip" onclick="S.filter.date='all';rerender()">${dateLabel()} ✕</button>`);
   f.fl.forEach(k=>out.push(`<button class="achip" onclick="toggleFl('${k}')"><i style="background:${FLAVORS[k].color}"></i>${HOME_EN[k]} ✕</button>`));
   return out.length?`<div class="achips">${out.join('')}</div>`:''; }
@@ -1254,7 +1259,7 @@ const flBtn=()=>S.filter.fl.length?`기록 ${filtered().length}개 보기`:'보�
 const flAll=r=>[...new Set([...(r.flavors||[]).map(x=>x.k),...(r.flAll||[])])];
 function gridHTML(){
   const rs=filtered();
-  if(!rs.length) return `<div class="empty-q"><p>조건에 맞는 기록이 없어요.</p>${(S.filter.q||S.filter.date!=='all'||S.filter.fl.length)?`<button class="btn line" style="width:auto;padding:0 22px;margin:14px auto 0" onclick="resetFilter()">조건 지우기</button>`:''}</div>`;
+  if(!rs.length) return `<div class="empty-q"><p>조건에 맞는 기록이 없어요.</p>${(S.filter.q||S.filter.type||S.filter.date!=='all'||S.filter.fl.length)?`<button class="btn line" style="width:auto;padding:0 22px;margin:14px auto 0" onclick="resetFilter()">조건 지우기</button>`:''}</div>`;
   return rs.map(r=>`<button class="ritem" onclick="openDetail('${r.id}')">${orb(r,92)}<b>${esc(r.name)}</b><span>${r.seed?'<em class="ex">예시</em> ':''}${r.date.slice(2).replace(/\.$/,'')}</span>${S.filter.fl.length?`<span>${flAll(r).filter(k=>S.filter.fl.includes(k)).map(k=>HOME_EN[k]).join(' · ')}</span>`:''}</button>`).join('');
 }
 function paintList(){ const g=$('#recGrid'); if(!g) return; g.innerHTML=gridHTML(); paintDrops(g); }
@@ -1322,7 +1327,7 @@ compare(){
   ${d3Box('cmp3d',240)}
   ${FL.length?`<div class="center-chips">${flChips(FL.map(k=>({k})))}</div>`:''}
   ${ownHTML(ownWords(d.exprs))}
-  <div class="cmp"><div class="lb">전문가 설명${!X.generic?"":`<small class="muted" style="display:block;font-weight:400;font-size:11.5px;margin-top:2px">${esc(TEAS[d.type].label)} 일반</small>`}</div><div class="bd" id="cmpExpert">${X.text}</div></div>
+  <div class="cmp"><div class="lb">전문가 설명${!X.generic?"":`<small class="muted" style="display:block;font-weight:400;font-size:11.5px;margin-top:2px">${esc((TEAS[d.type]||TEAS.green).label)} 일반</small>`}</div><div class="bd" id="cmpExpert">${X.text}</div></div>
   <div class="cmp"><div class="lb">나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
   ${(()=>{ return `<div class="cmp"><div class="lb">공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
   <div class="cmp"><div class="lb">차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
@@ -1482,7 +1487,7 @@ const AFTER = {
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('analyzing',{},{replace:true}); },1600); },
   analyzing(){ runInfusion(); },
   canvas(p){
-    if(p.tab==='list') return spreadDrops($('#recGrid'));
+    if(p.tab==='list'){ S.justSaved=null; return spreadDrops($('#recGrid')); }
     const cv=$('#bigCv'); if(!cv) return;
     const recs=recsAsc(), hl=null, dur=animCanvas1(cv,recs,hl);   // 들어올 때마다 모든 찻방울이 한꺼번에 번진다(따로 표시하지 않음)
     if(S.justSaved){ const r=recs.find(q=>q.id===S.justSaved); S.justSaved=null;   // 방금 찍은 찻방울 위에 차 이름을 잠깐 띄운다(한 번만)
@@ -1644,11 +1649,11 @@ function seedChat(){
 const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronnefeldt','TWG','Teavana','Dilmah','Yogi','Taylors','Osulloc','Tazo','Bigelow','오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원'];
 /* 차 이름 칸에 문장을 써도 이름만 뽑는다: 'ㅋㅋ·이모지' 빼고, 마디로 나눠 차 이름이 든 마디만, 앞뒤 군말 빼기 */
 function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*\]?/g,' ').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
-  const parts=t.split(/[,.!?~]|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
+  const parts=t.replace(/\s*(이거|이건)?\s*(카페인|몇\s*번|어떻게|왜|효능|다이어트|차이|좋아요|있어요|되나요|돼요)[^,.!?~]*[?？]/g,'?').split(/[,!?~]|(?<=[가-힣])\.|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
   let c=parts.find(x=>findType(x))||parts[0]||t;
-  for(let k=0;k<3;k++) c=c.replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
+  for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ const t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(t.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
