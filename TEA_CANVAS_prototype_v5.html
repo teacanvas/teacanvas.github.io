@@ -965,7 +965,7 @@ function render(keepScroll){
     view.scrollTop = keepScroll ? top : 0;
     const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
     document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-    if(VOICE.on&&cur.name!=='chat'){ VOICE.on=false; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} }
+    if(VOICE.on&&cur.name!=='chat'){ VOICE.on=false; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); }
     fitIn(view);
     (AFTER[cur.name]||(()=>{}))(cur.params||{});
     fitIn(view,false);
@@ -1946,17 +1946,21 @@ const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaTyp
   taste:'처음엔 산뜻하고 끝에 고소한 맛이 남아요',after:'여운이 꽤 길게 남아요',more:'이제 정리할게요',deep:'잘 몰라요',
   talk:{mood:'오늘은 조금 피곤했어요',scene:'집에서 혼자 쉬면서 마시고 있어요',why:'비 오는 날이라 따뜻한 차가 생각났어요'},
   free:['식으니까 단맛이 더 올라와요','목 넘김이 부드러워요','이제 충분해요']};
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(VOICE.on) stopVoice(); else hush(); } });
+addEventListener('pagehide',()=>{ VOICE.on=false; hush(); });
 function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(VOICE.on&&e.target.closest&&e.target.closest('#msgs button')) try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
-function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} VOICE.interim=''; if(cur()==='chat') rerender(); }
+function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=L(m.text||''); if(m.guide){ const d=S.draft, g=m.basic?BASIC:TEAS[d.type]; t+=isEN()?` Water ${g.temp}, brew for ${enTime(g.time)}.`:` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
   return t.replace(/[–-]/g,'에서 ').replace(/°C/g,'도').replace(/[·…]/g,', ').replace(/\n/g,' '); }
-function speak(text){ return new Promise(res=>{ let done=false; const fin=()=>{ if(!done){ done=true; res(); } }; if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
+let SPEAK_ID=0;
+function hush(){ SPEAK_ID++; try{ speechSynthesis.cancel(); }catch(e){} }
+function speak(text){ return new Promise(res=>{ let done=false; const my=++SPEAK_ID; const fin=()=>{ if(!done){ done=true; res(); } }; if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
   try{ if(!window.speechSynthesis) throw 0; speechSynthesis.cancel(); const parts=sayParts(text), v=koVoice(); let i=0;
-    const next=()=>{ if(done) return; if(i>=parts.length) return fin(); const u=new SpeechSynthesisUtterance(parts[i]); u.lang=isEN()?'en-US':'ko-KR'; if(v) u.voice=v;
+    const next=()=>{ if(done) return; if(my!==SPEAK_ID||i>=parts.length) return fin(); const u=new SpeechSynthesisUtterance(parts[i]); u.lang=isEN()?'en-US':'ko-KR'; if(v) u.voice=v;
       const q=/[?？]$/.test(parts[i]); u.rate=VOICE_RATE(v)*(q?.97:1); u.pitch=q?1.08:1.02;   // 묻는 말은 끝을 살짝 올리고 천천히
       u.onend=()=>{ i++; setTimeout(next,i<parts.length?(/[,，]$/.test(parts[i-1])?90:220):0); }; u.onerror=fin; speechSynthesis.speak(u); };
     next(); setTimeout(fin,Math.min(30000,1200+text.length*130)); }catch(e){ setTimeout(fin,Math.min(6000,700+text.length*55)); } }); }
@@ -1995,7 +1999,7 @@ async function voiceLoop(id){
     else await new Promise(r=>setTimeout(r,VOICE.demo?1500:300));
     if(['organizing','analyzing'].includes(cur())) break;
   }
-  if(VOICE.tid===id&&VOICE.on&&cur()!=='chat'){ VOICE.on=false; try{ speechSynthesis.cancel(); }catch(e){} }
+  if(VOICE.tid===id&&VOICE.on&&cur()!=='chat'){ VOICE.on=false; hush(); }
 }
 function paintVoice(){ const d=S.draft; if(!d) return;
   const st=$('#vState'), hd=$('#vHeard');
