@@ -397,11 +397,13 @@ canvas.wcd.big{margin:14px auto}
 .home-q.split.center{text-align:center}
 .home-q.low{margin-top:auto;padding-top:20px}
 .home-note{font-size:12.5px;color:#A6A6A6;text-align:center;margin:0 26px 12px}
-.home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative;padding-top:24px}
+.home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;overflow:visible}
+.scr-home{height:100%;min-height:0;overflow:hidden}
 .home-drop canvas.d3{display:block}
 .home-drop canvas.hw-paper{pointer-events:none} /* 커진 번짐이 아래 버튼 클릭을 가리지 않게 */
 .home .resume,.home .bigbtn{position:relative;z-index:1}
-.hd-stage{display:flex;flex-direction:column;align-items:center;gap:4px}
+.hd-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.hd-stage canvas.hw-paper{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0!important;max-width:none;max-height:none}
 .hd-label{min-height:64px;margin-bottom:-14px;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;transform:scale(.82);filter:blur(3px);transform-origin:50% 50%;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
 .hd-label.on{opacity:1;transform:scale(1);filter:none}
 .hd-stage.pos-bottom{flex-direction:column-reverse}.hd-stage.pos-bottom .hd-label{margin:-14px 0 0;justify-content:flex-start;min-height:0}
@@ -417,7 +419,7 @@ canvas.wcd.big{margin:14px auto}
 .hd-stage.pos-mid.la-ink .hd-label{transform:translateY(-50%) scale(1.06);filter:blur(5px);transition:opacity 1.3s ease,transform 1.3s ease,filter 1.3s ease}.hd-stage.pos-mid.la-ink .hd-label.on{transform:translateY(-50%) scale(1);filter:none}
 .hd-stage.pos-mid.la-letters .hd-label{opacity:1;transition:none}.hd-stage.pos-mid.la-letters .hd-label b i{font-style:normal;display:inline-block;opacity:0;transition:opacity .6s ease}
 .hd-stage.pos-mid.la-letters .hd-label.on b i{opacity:1}.hd-stage.pos-mid.la-letters .hd-label span{opacity:0;transition:opacity .6s ease .45s}.hd-stage.pos-mid.la-letters .hd-label.on span{opacity:1}
-.hd-stage.pos-mid{position:relative}.hd-stage.pos-mid .hd-label{position:absolute;left:0;right:0;top:50%;margin:0;min-height:0;justify-content:center;transform:translateY(-50%) scale(.82)}.hd-stage.pos-mid .hd-label.on{transform:translateY(-50%) scale(1)}
+.hd-stage.pos-mid{position:absolute}.hd-stage.pos-mid .hd-label{position:absolute;left:0;right:0;top:50%;margin:0;min-height:0;justify-content:center;transform:translateY(-50%) scale(.82)}.hd-stage.pos-mid .hd-label.on{transform:translateY(-50%) scale(1)}
 .hd-label b{font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:600;letter-spacing:.02em;line-height:1.1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;transition:color .4s}
 .hd-label b em{font-style:normal}
 .hd-drop{position:relative;display:flex;flex-direction:column;align-items:center}
@@ -1160,11 +1162,11 @@ const SCREENS = {
 
 home(){
   return `<div class="home">
-    <h1 class="home-q ${HQ}" style="margin-top:${HL.qt}px">${/split/.test(HQ)?'<em>오늘의 차,</em>어떤 색들이 담겨 있나요?':'오늘의 차,<br>어떤 색들이 담겨 있나요?'}</h1>
+    <h1 class="home-q ${HQ}" style="margin-top:min(${HL.qt}px,4.5dvh)">${/split/.test(HQ)?'<em>오늘의 차,</em>어떤 색들이 담겨 있나요?':'오늘의 차,<br>어떤 색들이 담겨 있나요?'}</h1>
     <div class="home-drop" id="homeDrop"></div>
     ${(()=>{ const v=loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="dropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
     <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
-    <button class="bigbtn" style="margin-bottom:${HL.bb}px" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
+    <button class="bigbtn" style="margin-bottom:min(${HL.bb}px,3.5dvh)" onclick="startRecord()"><span>새로운 티 기록하기</span><i>${I.arrow}</i></button>
   </div>`;
 },
 
@@ -2203,12 +2205,13 @@ const HC=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d,lo,hi)
 /* 홈 풍미 이름이 나타나고 사라지는 방식(시안용 ?la=): scale 가운데서 커짐 · fade 페이드 · slow 천천히 페이드 · blur 흐림→또렷 · track 자간이 모이며 · rise 살짝 떠오름 · ink 번지듯 · letters 한 글자씩 */
 const HLA=(()=>{ try{ const v=new URLSearchParams(location.search).get('la'); return /^(scale|fade|slow|blur|track|rise|ink|letters)$/.test(v||'')?v:'blur'; }catch(e){ return 'blur'; } })();
 function startHome3D(el){
-  const size=HC.w, cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px'; if(size>340) cv.style.margin=`${-(size-340)/2}px ${-(size-340)/2}px`;
+  const room=el.clientHeight||540, size=Math.round(Math.max(260,Math.min(HC.w,room*1.62))), cv=document.createElement('canvas'); cv.className='hw-paper'; cv.style.width=cv.style.height=size+'px';
+  const lbScale=size/HC.w;
   const px=Math.min(900,Math.round(size*Math.min(2,devicePixelRatio||1)*SCALE)); cv.width=cv.height=px; const x=cv.getContext('2d');
   el.innerHTML=`<div class="hd-stage"><div class="hd-label" id="hdLabel"><i></i><b></b><span></span></div></div>`;
   const stage=el.firstChild; stage.appendChild(cv);
   const label=el.querySelector('#hdLabel'), lb=label.querySelector('b'), ls=label.querySelector('span');
-  stage.classList.add('pos-'+HC.pos,'la-'+HLA); lb.style.fontSize=HC.b+'px'; ls.style.fontSize=HC.s+'px';
+  stage.classList.add('pos-'+HC.pos,'la-'+HLA); lb.style.fontSize=Math.round(HC.b*Math.max(.75,lbScale))+'px'; ls.style.fontSize=HC.s+'px';
   // 번짐 캔버스 위아래의 빈 여백만큼 이름을 번짐 쪽으로 당겨 붙인다
   const pull=/[?&]w=/.test(location.search)?Math.round(size*.2):14; if(HC.pos==='top') label.style.marginBottom=(-pull)+'px'; if(HC.pos==='bottom') label.style.marginTop=(-pull)+'px';
   // 풍미 하나씩: 이름이 먼저 뜨고(0.6초 뒤) 번지기 시작, 머문 뒤 옅어지며 다음으로
