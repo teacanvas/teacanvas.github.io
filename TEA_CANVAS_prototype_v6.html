@@ -1158,10 +1158,11 @@ function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class
   if(rec&&PREF.recNoti) L.push([{id:'rec-'+rec.name,comps:rec.fl.map((k,i)=>({key:k,c:FLAVORS[k].color,w:1-i*.25}))},`나의 취향과 닮은 ${esc(rec.name)}${josa(rec.name,'을','를')} 추천해요. ${esc(rec.note)}.`,'1주 전',`goTab('canvas')`]);
   return L.map(([o,m,w,go])=>`<button class="noti" onclick="${go}">${orb(o,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join(''); }
 /* Tea Tag 이미지로 저장하기: 찻방울 · 이름 · 날짜 · 풍미 · 한 줄을 한 장으로 */
+const recPhoto=r=>r.photoData||(!r.noPhoto&&typeof SEED_PHOTOS!=='undefined'&&SEED_PHOTOS[r.id]?SEED_PHOTOS[r.id].src:null);   // 내 사진, 없으면 예시 기록의 사진
 function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSaved||S.records[0]; if(!r) return;
   const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   x.fillStyle='#fff'; x.fillRect(0,0,W,H); drawRec1(x,recFlav(r),W/2,470,240,r.id,CV_SPREAD+1.4,.95);
-  if(r.photoData&&!saveTagImage._ph){ const im=new Image(); im.onload=()=>{ saveTagImage._ph=im; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.onerror=()=>{ saveTagImage._ph={}; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.src=r.photoData; return; }
+  if(recPhoto(r)&&!saveTagImage._ph){ const im=new Image(); im.onload=()=>{ saveTagImage._ph=im; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.onerror=()=>{ saveTagImage._ph={}; try{ saveTagImage(r.id); }finally{ saveTagImage._ph=null; } }; im.src=recPhoto(r); return; }
   { const im=saveTagImage._ph, sub=dot(r.brand,r.date.replace(/\.$/,''));
     if(im&&im.width){ const R=62, gap=34; x.font='700 64px Pretendard, sans-serif'; const w1=x.measureText(r.name).width; x.font='400 34px Pretendard, sans-serif'; const w2=x.measureText(sub).width;
       const tw=2*R+gap+Math.max(w1,w2), x0=W/2-tw/2, cx=x0+R, cy=920, k=Math.max(2*R/im.width,2*R/im.height);
@@ -1344,7 +1345,7 @@ teaTag(){
   <div style="height:16px"></div>
   <div class="tagcard">
     ${orb(r,210,'big')}
-    <div class="tagid${r.photoData?' ph':''}">${r.photoData?`<img class="tagph" src="${r.photoData}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
+    <div class="tagid${recPhoto(r)?' ph':''}">${recPhoto(r)?`<img class="tagph" src="${recPhoto(r)}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
     <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div></div></div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
     <button class="line tagline" onclick="openCmtSheet('${r.id}')">${r.comment?`“${esc(r.comment)}”`:'<span class="muted">+ 한 줄 남기기</span>'} <span class="pen">${I.pen}</span></button>
