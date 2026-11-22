@@ -454,6 +454,7 @@ canvas.wcd.big{margin:14px auto}
 /* 2-axis canvas */
 .cvbox{position:relative;width:100%;aspect-ratio:1/1;border:0;border-radius:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvbox canvas{display:block;width:100%;height:100%;cursor:crosshair}
+.cvbox.scrollable{touch-action:pan-y}.cvbox.scrollable canvas{cursor:pointer}   /* 보기용 캔버스: 위아래 스크롤은 되고, 톡 누르면 기록 열기 */
 .cvbox .lbl{position:absolute;font-size:11px;color:#8C8C8C;pointer-events:none;background:rgba(255,255,255,.85);padding:0 4px;border-radius:4px}
 .cvbox .lbl.t{top:6px;left:50%;transform:translateX(-50%)}
 .cvbox .lbl.b{bottom:6px;left:50%;transform:translateX(-50%)}
@@ -1046,7 +1047,7 @@ function collectExprs(d){
   if(d.useDeep!==false){ add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
 }
-/* 정도 표현: '살짝·조금·약간·은은하게'는 옅게, '많이·진하게·엄청·확'은 진하게 */
+/* 정도 표현: '살짝·조금·약간·은은하게'는 작게, '많이·진하게·엄청·확'은 크게(찻방울 안에서 그 색이 차지하는 크기) */
 function amountOf(text){ const t=String(text||'').replace(/\s/g,'');
   if(/(엄청|너무|아주|정말|진짜|완전|많이|강하게|강한|진하게|진한|확|가득|꽉|짙)/.test(t)) return 1.6;
   if(/(살짝|조금|약간|은은|희미|살며시|미세|옅게|옅은|어렴풋|아주조금|살짝은)/.test(t)) return .55;
@@ -1307,7 +1308,7 @@ canvas(p){
   const fav=favDrop();
   return `${seg}
   <h2 class="cv-q">${S.records.length}잔의 찻방울이 번진<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
-  ${canvasBox('bigCv')}
+  ${canvasBox('bigCv',{cls:'scrollable'})}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
   ${fav?`<canvas id="favCv"></canvas><div class="fav-en">${fav.all.map(f=>`<span style="color:${inkText(f.c)}">${HOME_EN[f.k]}</span>`).join('')}</div><p class="fav-s">${fav.title}. ${fav.desc}</p><div id="recBox">${recHTML(recommendTeas(fav.all))}</div>`
       :`<p class="fav-s">향도 맛도 좋았던 기록이 모이면, 그 차들의 풍미를 모아 나만의 찻방울을 만들어드려요.</p>`}</section>
@@ -1338,7 +1339,7 @@ detail(p){
   ${r.flavors&&r.flavors.length?`<h3 class="sec">담긴 풍미</h3>${flChips(r.flavors)}`:''}
   ${r.teaColor?`<h3 class="sec">찻물 색</h3><div class="tcrow">${r.teaColor.hex?`<i style="background:${r.teaColor.hex}"></i>`:''}${esc(r.teaColor.name)}</div>`:''}
   <h3 class="sec">캔버스 속 위치</h3>
-  ${canvasBox('detCv',{cls:'sm'})}
+  ${canvasBox('detCv',{cls:'sm scrollable'})}
   <p class="cap">${posText(r.canvas)}</p>
   ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
   <div class="memo"><h4>MEMO</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
@@ -1989,7 +1990,7 @@ function cvWash(N,k,hex,seed){ const id=N+'|'+k+'|'+seed; let o=CV1.ws[id]; if(!
 function recFlav(r){ const f=(r.flavors||[]).filter(x=>FLAVORS[x.k]); const L=f.length?f.map(x=>({c:FLAVORS[x.k].color,k:x.k,w:x.w})):[{c:CLEAR,k:'clear',w:.6}]; return L; }
 function parts1(L,R,seed){ L=[...L].sort((a,b)=>b.w-a.w); const m=L[0].w||1, n=L.length;
   const pr=n===1?1:n===2?.8:n===3?.76:n===4?.66:.6, pd=n===2?.24:n===3?.3:n===4?.36:.32;   // 색이 2~4개 이상이어도 한 잔의 크기가 비슷하도록
-  return L.map((p,i)=>{ const ang=n<=4?seed+(i===0?0:(i-1)*Math.PI*2/Math.max(1,n-1)):seed+i*2.39996, d=n===1?0:R*(i===0?(n===2?pd:.08):pd); return {...p,dx:Math.cos(ang+(n===2&&i===0?Math.PI:0))*d,dy:Math.sin(ang+(n===2&&i===0?Math.PI:0))*d,r:R*pr,a:.45+.55*(p.w/m)}; }).reverse(); }
+  return L.map((p,i)=>{ const ang=n<=4?seed+(i===0?0:(i-1)*Math.PI*2/Math.max(1,n-1)):seed+i*2.39996, d=n===1?0:R*(i===0?(n===2?pd:.08):pd); const k=p.w/m; return {...p,dx:Math.cos(ang+(n===2&&i===0?Math.PI:0))*d,dy:Math.sin(ang+(n===2&&i===0?Math.PI:0))*d,r:R*pr*(n===1?1:.35+.65*Math.pow(k,1.2)),a:.8+.15*k}; }).reverse(); }   // 풍미의 비중은 진하기가 아니라 크기로: '살짝'은 작게, '엄청'은 크게
 function drawRec1(x,L,cx,cy,R,id,t,alpha=.94){
   const seed=WC.hash(id)%1000/1000*6.28, P=parts1(L,R,seed);
   const ext=Math.max(...P.map(p=>Math.hypot(p.dx,p.dy)+p.r))*1.35, S=Math.ceil(ext*2);
