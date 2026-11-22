@@ -230,7 +230,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .rowlink .ric{width:20px;display:grid;place-items:center;flex-shrink:0}
 .rowlink .chev{margin-left:auto;font-weight:400}
 .tagcard{border:1px solid #000;border-radius:18px;padding:22px 20px;text-align:center;margin-top:8px}
-.tagid.ph{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}.tagid.ph>div{text-align:left}.tagid.ph .nm{margin-top:0}
+.tagid.ph{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}.tagid.ph>div{text-align:center}.tagid.ph .nm{margin-top:0}
 .tagph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;filter:grayscale(1)}   /* 색은 찻방울에만 */
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
@@ -1168,7 +1168,7 @@ function saveTagImage(id){ const r=(id&&S.records.find(x=>x.id===id))||S.lastSav
       const g=document.createElement('canvas'); g.width=g.height=2*R; const gx=g.getContext('2d'); gx.drawImage(im,R-im.width*k/2,R-im.height*k/2,im.width*k,im.height*k);
       try{ const D=gx.getImageData(0,0,2*R,2*R), a=D.data; for(let i=0;i<a.length;i+=4){ const v=a[i]*.299+a[i+1]*.587+a[i+2]*.114; a[i]=a[i+1]=a[i+2]=v; } gx.putImageData(D,0,0); }catch(e){}   // 흑백: 색은 찻방울에만
       x.save(); x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.clip(); x.drawImage(g,cx-R,cy-R); x.restore();
-      x.textAlign='left'; x.fillStyle='#111'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,x0+2*R+gap,910); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,x0+2*R+gap,966); }
+      const tc=x0+2*R+gap+Math.max(w1,w2)/2; x.textAlign='center'; x.fillStyle='#111'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,tc,910); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,tc,966); }
     else { x.fillStyle='#111'; x.textAlign='center'; x.font='700 64px Pretendard, sans-serif'; x.fillText(r.name,W/2,900); x.fillStyle='#888'; x.font='400 34px Pretendard, sans-serif'; x.fillText(sub,W/2,960); } }
   const fl=(r.flavors||[]).map(f=>HOME_EN[f.k]); x.font='600 44px Pretendard, sans-serif'; let tx=W/2-fl.reduce((s,t)=>s+x.measureText(t).width+36,-36)/2; x.textAlign='left';
   (r.flavors||[]).forEach(f=>{ x.fillStyle=inkText(FLAVORS[f.k].color); x.fillText(HOME_EN[f.k],tx,1060); tx+=x.measureText(HOME_EN[f.k]).width+36; });
