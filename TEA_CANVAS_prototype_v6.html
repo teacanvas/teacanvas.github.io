@@ -488,10 +488,10 @@ canvas.wcd.big{margin:14px auto}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
 }
 .stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
-.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:12px;flex:0 0 auto}
+.infuse{position:relative;display:flex;align-items:center;margin-top:8px;flex:1 1 0;min-height:0}   /* 설명과 단계 표시 사이를 모두 쓰고, 그 안에서 이름·찻방울을 고르게 나눈다 */
 .infuse #inf3d{margin-bottom:6px}
-.infuse{flex-direction:column;align-items:center;justify-content:flex-end}
-.inflabel{min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
+.infuse{flex-direction:column;align-items:center;justify-content:flex-start}
+.inflabel{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:0}
 .inflabel.on{opacity:1;filter:none}.inflabel b{font-family:Pretendard,system-ui,sans-serif;font-weight:600;font-size:30px;letter-spacing:-.015em;line-height:1.1}.inflabel span{font-size:12.5px;color:#8A8A8A;margin-top:4px;max-width:260px}
 .ffloat{position:absolute;top:8px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px;background:#fff;border:1px solid #DDD;border-radius:16px;padding:5px 12px;
   animation:floatIn 1.45s cubic-bezier(.3,.6,.3,1) forwards}
@@ -1322,12 +1322,12 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="290,130" style="width:290px;height:290px"></div></div>
+  <div class="infuse"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" style="width:220px;height:220px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>
-  <div class="spacer" style="min-height:44px"></div>
+  <div style="flex:0 0 40px"></div>
   <button class="link u" style="margin:0 auto -14px;padding:10px 16px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
@@ -2467,8 +2467,14 @@ function runInfusion(){
   const said=k=>{ const e=exprs.find(e=>e.fl.includes(k)); return e?`“${e.text.length>22?e.text.slice(0,21)+'…':e.text}”`:HOME_EX[k]; };
   const ev=fk.map((k,i)=>({t:T0+i*STEP,k}));
   const lab=$('#infLabel'), lb=lab&&lab.querySelector('b'), ls=lab&&lab.querySelector('span');
-  const show=k=>{ if(!lab) return; lb.textContent=HOME_EN[k]; lb.style.color=inkText(FLAVORS[k].color); ls.textContent=said(k); void lab.offsetWidth; lab.classList.add('on'); };
-  const size=290, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; box.innerHTML=''; box.appendChild(cv);
+  const show=k=>{ if(!lab) return; lb.textContent=HOME_EN[k]; lb.style.color=inkText(FLAVORS[k].color); ls.textContent=said(k); void lab.offsetWidth; lab.classList.add('on'); if(box._fit) box._fit(); };   // 이름 높이가 바뀌면 자리를 다시 맞춘다
+  const fitBox=()=>{ const P=box.parentElement; if(!P||!box.isConnected) return; const H=P.clientHeight, W=P.clientWidth, L=lab?lab.offsetHeight:0;
+    // 화면 크기가 달라도 같은 비율로: 풍미 이름은 영역의 20%, 찻방울은 64% 지점에 중심을 둔다
+    const K=Object.assign({l:.2,d:.69,s:.62},window.INF_POS||{});   // l: 이름 중심 높이, d: 찻방울 중심 높이, s: 찻방울 최대 크기(영역 높이 대비)
+    const sz=Math.round(Math.max(110,Math.min(320,W*.8,K.s*H,2*((K.d-K.l)*H-L/2-8)))), lt=Math.max(4,K.l*H-L/2);
+    if(lab) lab.style.marginTop=lt+'px'; box.style.width=box.style.height=sz+'px'; box.style.marginTop=Math.max(6,K.d*H-sz/2-lt-L)+'px'; };
+  fitBox(); if(!runInfusion._rs){ runInfusion._rs=true; addEventListener('resize',()=>{ const f=$('#inf3d'); if(f&&f._fit) f._fit(); }); } box._fit=fitBox;
+  const size=320, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; box.innerHTML=''; box.appendChild(cv);
   const x=cv.getContext('2d');
   const sid='n'+d.tid, IL=fk.map(k=>({k,c:FLAVORS[k].color,w:(d.flavors.find(f=>f.k===k)||{w:.5}).w})), IP=IL.length?parts1(IL,px*.38,WC.hash(sid)%1000/1000*6.28):[];
   const io=document.createElement('canvas'); io.width=io.height=px; const ioc=io.getContext('2d');
@@ -2486,7 +2492,7 @@ function runInfusion(){
         ioc.globalAlpha=p.a; ioc.drawImage(cvWash(Math.max(80,Math.min(240,Math.round(D*.85))),p.k,p.c,WC.hash(sid+p.k)%100000).frame(Math.min(CV_SPREAD,lt)),px/2+p.dx-D/2,px/2+p.dy-D/2,D,D); });
       x.globalAlpha=.95; x.drawImage(io,0,0); x.globalAlpha=1; }
     const ph=t<T0?0:t<total-1100?1:2; document.querySelectorAll('#phases .ph').forEach((el,k)=>el.classList.toggle('on',k===ph));
-    if(t>total&&!done){ done=true; setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at) go('compare',{},{replace:true}); },900); }
+    if(t>total&&!done){ done=true; setTimeout(()=>{ if(cur()==='analyzing'&&S.stack.length===at&&!window.INF_HOLD) go('compare',{},{replace:true}); /* INF_HOLD: 높이 조절 페이지에서 화면을 붙잡아 둘 때 */ },900); }
     if(!done||t<total+900) requestAnimationFrame(loop);
   })(t0);
 }
