@@ -19,20 +19,23 @@ input[type=range]{width:100%;margin-top:8px}
 <p class="d">설명 문장 아래부터 단계 표시 위까지를 100%로 보고 위치를 정해요. 슬라이더를 움직이면 오른쪽 화면이 바로 바뀌어요. 계산은 앱과 같아요.</p>
 <label>풍미 이름 높이 <span id="vl"></span><input id="l" type="range" min="5" max="45" value="20"></label>
 <label>찻방울 높이 <span id="vd"></span><input id="d" type="range" min="35" max="85" value="69"></label>
+<label>단계 표시 높이 (건너뛰기와의 간격) <span id="vg"></span><input id="g" type="range" min="20" max="220" value="40"></label>
 <label>찻방울 최대 크기 <span id="vs"></span><input id="s" type="range" min="30" max="80" value="62"></label>
-<div class="out">이름 <span id="ol"></span>% · 찻방울 <span id="od"></span>% · 크기 <span id="os"></span>%<small>마음에 드는 값이 되면 이 세 숫자를 알려주세요.</small></div>
+<div class="out">이름 <span id="ol"></span>% · 찻방울 <span id="od"></span>% · 크기 <span id="os"></span>% · 단계 간격 <span id="og"></span>px<small>마음에 드는 값이 되면 이 숫자들을 알려주세요.</small></div>
 </div>
-<div class="holder" id="holder"><div class="phone" id="ph"><div class="area" id="area"><div class="lab" id="lab"><b>Earthy</b><span>“스모키한 향”</span></div><div class="drop" id="drop"></div></div></div></div>
+<div class="holder" id="holder"><div class="phone" id="ph"><div class="area" id="area"><div class="lab" id="lab"><b>Earthy</b><span>“스모키한 향”</span></div><div class="drop" id="drop"></div></div><img id="phs" src="phases.png" alt="" style="position:absolute;width:340px;left:22px"></div></div>
 </div>
 <script>
-const A={"top":201.5,"h":429.75,"w":340,"left":22};   // 앱에서 잰 영역(갤럭시 S24 크기): 설명 아래 ~ 단계 표시 위
-const area=document.getElementById('area'); Object.assign(area.style,{left:A.left+'px',top:A.top+'px',width:A.w+'px',height:A.h+'px'});
+const A={"top": 201.5, "left": 22, "w": 340, "phTop": 661.25, "phH": 38.5, "phLeft": 22, "phW": 340, "skipTop": 739.75};   // 앱에서 잰 영역(갤럭시 S24 크기): 설명 아래 ~ 단계 표시 위
+const area=document.getElementById('area'), AREA_GAP=A.phTop-(A.top+429.75);   // 영역 아래 ~ 단계 표시 사이(고정)
 const v=id=>+document.getElementById(id).value;
-function apply(){ const K={l:v('l')/100,d:v('d')/100,s:v('s')/100}, H=A.h, W=A.w, L=64;   // 앱의 fitBox와 같은 계산
+function apply(){ const g=v('g'), phTop=A.skipTop-g-A.phH, H=phTop-AREA_GAP-A.top;   // 단계 표시를 올리면 이름·찻방울 영역이 줄어든다
+  document.getElementById('phs').style.top=phTop+'px'; Object.assign(area.style,{left:A.left+'px',top:A.top+'px',width:A.w+'px',height:H+'px'});
+  const K={l:v('l')/100,d:v('d')/100,s:v('s')/100}, W=A.w, L=64;   // 앱의 fitBox와 같은 계산
   const sz=Math.round(Math.max(110,Math.min(320,W*.8,K.s*H,2*((K.d-K.l)*H-L/2-8)))), lt=Math.max(4,K.l*H-L/2), mt=Math.max(6,K.d*H-sz/2-lt-L);
   const lab=document.getElementById('lab'), drop=document.getElementById('drop'); lab.style.top=lt+'px'; Object.assign(drop.style,{width:sz+'px',height:sz+'px',top:(lt+L+mt)+'px'});
-  ['l','d','s'].forEach(k=>{ document.getElementById('v'+k).textContent=v(k)+'%'; document.getElementById('o'+k).textContent=v(k); }); }
-['l','d','s'].forEach(k=>document.getElementById(k).addEventListener('input',apply));
+  ['l','d','s'].forEach(k=>{ document.getElementById('v'+k).textContent=v(k)+'%'; document.getElementById('o'+k).textContent=v(k); }); document.getElementById('vg').textContent=g+'px'; document.getElementById('og').textContent=g; }
+['l','d','s','g'].forEach(k=>document.getElementById(k).addEventListener('input',apply));
 function fit(){ const sc=Math.min(1,(innerHeight-50)/854,(innerWidth-40)/384); const ph=document.getElementById('ph'), h=document.getElementById('holder'); ph.style.transform=`scale(${sc})`; h.style.width=384*sc+'px'; h.style.height=854*sc+'px'; }
 addEventListener('resize',fit); fit(); apply();
 </script></body></html>
