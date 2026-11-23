@@ -9,6 +9,8 @@ async function run(b,mode){
   await p.route(EP,async route=>{ if(mode==='fail') return route.fulfill({status:500,body:'x'});
     const body=JSON.parse(route.request().postData()||'{}');
     if(body.mode==='question') return route.fulfill({contentType:'application/json',body:JSON.stringify({text:'(AI) 녹차는 조금 식힌 물이 좋아요.'})});
+    if(body.mode==='chat') return route.fulfill({contentType:'application/json',body:JSON.stringify({reply:'(AI) 녹차는 조금 식힌 물이 좋아요.',finish:false})});
+    if(body.mode==='identify') return route.fulfill({contentType:'application/json',body:JSON.stringify({found:false})});
     return route.fulfill({contentType:'application/json',body:JSON.stringify({expert:'(AI) 전문가 설명',mine:'(AI) 나의 기록',common:['(AI) 풀향'],diff:['(AI) 차이'],ai:'(AI) 해석'})}); });
   await p.goto(FILE); await p.waitForTimeout(700);
   await p.evaluate(()=>{ startRecord(); }); await p.fill('#chatIn','제주 세작'); await p.evaluate(()=>sendInput()); await p.waitForTimeout(1200);
