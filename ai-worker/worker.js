@@ -34,7 +34,7 @@ export default {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
-      'Access-Control-Expose-Headers': 'X-TTS-Model',
+      'Access-Control-Expose-Headers': 'X-TTS-Model, X-AI-Trace',
       'Vary': 'Origin',
     };
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
@@ -71,7 +71,7 @@ export default {
       try {
         const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs });
         const clean = tspec.clean(text, body);
-        return clean ? out(clean) : out({ error: 'empty' }, 502);
+        const res = clean ? out(clean) : out({ error: 'empty' }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res;
       } catch (e) { return out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); }
     }
     const spec = SPECS[body && body.mode];
@@ -130,8 +130,9 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
 
 /* ---------- 글 응답 + Google 검색 (대화·차 찾기) ---------- */
 // 검색 도구를 붙여 보내고, 그 모델이 검색을 못 쓰거나(400) 검색 한도가 차면(429) 검색 없이 다시 보낸다
+let TRACE = [];   // 어느 모델에서 얼마나 걸렸는지 (응답 머리말 X-AI-Trace로 확인용)
 async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) {
-  const deadline = Date.now() + budgetMs;
+  const deadline = Date.now() + budgetMs; TRACE = [];
   const models = [...new Set([...(env.GEMINI_MODEL ? env.GEMINI_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...FALLBACK_MODELS])];
   let last = 'no model';
   for (const model of models) {
@@ -149,8 +150,10 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) 
       let r;
       try {
         // 한 번 시도에 최대 4.5초: 가끔 한 모델이 대답 없이 붙잡혀 있으면, 그걸 기다리느라 전체 시간을 다 쓰지 않고 넘어간다
+        const t0 = Date.now();
         r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(4500, left - 300)) });
-      } catch (e) { last = `${model} timeout`; if (v.tools) continue; break; }   // 검색이 오래 걸렸으면 같은 모델로 검색 없이, 아니면 다음 모델
+        TRACE.push(`${model.replace('gemini-', '')}${v.tools ? '+s' : ''}${v.think ? '' : '+t'}:${r.status}:${Date.now() - t0}`);
+      } catch (e) { TRACE.push(`${model.replace('gemini-', '')}${v.tools ? '+s' : ''}:timeout`); last = `${model} timeout`; if (v.tools) continue; break; }   // 검색이 오래 걸렸으면 같은 모델로 검색 없이, 아니면 다음 모델
       tried++;
       if (r.ok) {
         const j = await r.json();
