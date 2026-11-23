@@ -111,7 +111,7 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
       if (left < 1200) throw new Error('timeout; last ' + last);
       let r;
       try {
-        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(tries[i]), signal: AbortSignal.timeout(left - 300) });
+        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(tries[i]), signal: AbortSignal.timeout(Math.min(4500, left - 300)) });
       } catch (e) { last = `${model} timeout`; break; }
       if (r.ok) {
         const j = await r.json();
@@ -148,8 +148,9 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) 
       if (v.tools) payload.tools = [{ google_search: {} }];
       let r;
       try {
-        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal: AbortSignal.timeout(left - 300) });
-      } catch (e) { last = `${model} timeout`; break; }
+        // 한 번 시도에 최대 4.5초: 가끔 한 모델이 대답 없이 붙잡혀 있으면, 그걸 기다리느라 전체 시간을 다 쓰지 않고 넘어간다
+        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(4500, left - 300)) });
+      } catch (e) { last = `${model} timeout`; if (v.tools) continue; break; }   // 검색이 오래 걸렸으면 같은 모델로 검색 없이, 아니면 다음 모델
       tried++;
       if (r.ok) {
         const j = await r.json();
