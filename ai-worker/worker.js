@@ -92,7 +92,7 @@ export default {
 /* ---------- Gemini 호출 ---------- */
 // 무료 플랜은 모델이 붐비면 503을 준다 → 다음 모델로 넘어간다. 앱이 기다리는 시간 안에서만 시도한다.
 // 무료 한도는 모델마다 따로다 (예: 3.5·3.1 Flash Lite 하루 500번·분당 15번, Flash 하루 20번). 가벼운 모델부터 쓰고, 한도(429)·붐빔(503)이면 다음 모델로
-const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-3-flash-preview'];
+const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3-flash-preview'];
 const NO_THINK_CFG = new Set();      // 생각 끄기 설정을 거절한 모델 (다음 요청부터 바로 설정 없이)
 // 3.x 모델과 '최신' 별칭은 생각 끄기(thinkingBudget 0)를 거절(400)한다 → 대신 '생각 최소(thinkingLevel minimal)'로 빨리 답하게. 그것도 거절하면 설정 없이
 const noThink = m => NO_THINK_CFG.has(m);
