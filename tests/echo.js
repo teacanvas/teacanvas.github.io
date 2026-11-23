@@ -4,4 +4,6 @@ const {chromium}=require('playwright');
 const L='좋아요, 그럼 오설록의 제주 세작으로 시작해 볼까요? 맑고 고소한 맛이 매력적인 녹차예요. 이 차를 녹차로 기록할게요, 맞나요?';
 for(const [h,strict,want] of [['좋아요 그럼 오설록에',false,true],['좋아요',false,true],['맑고 고소한 맛이',false,true],['응 좋아',false,false],['아니 홍차야',false,false],['잠깐만 근데 이거 녹차 맞아?',false,false],['좋아요',true,false],['응 맞아요',true,false],['이 차를 녹차로 기록할게요',true,true]])
   { const r=await p.evaluate(([h,s,L])=>isEcho(h,L,s),[h,strict,L]); if(r!==want) process.exitCode=1; console.log(r===want?'  ✓':'  ✗',JSON.stringify(h),strict?'(말 끝난 뒤)':'(말하는 중)','→',r?'메아리로 무시':'내 말로 받음'); }
+for(const [h,want] of [['좋아요 그럼 오설록에',false],['맑고 고소한 맛이',false],['좋아요',false],['응 좋아',true],['아니 홍차야',true],['좋아요 그럼 잠깐만요',true],['잠깐 근데 이거 녹차 맞아',true]])
+  { const r=await p.evaluate(([h,L])=>hasMyWords(h,L),[h,L]); if(r!==want) process.exitCode=1; console.log(r===want?'  ✓':'  ✗',JSON.stringify(h),'(봇이 말하는 중 끼어들기) →',r?'끊고 내 말로':'메아리로 보고 계속'); }
 await b.close();})();

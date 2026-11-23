@@ -1318,7 +1318,7 @@ chat(){
   ${pin}
   <div id="msgs"></div>
   <div class="chatfoot ${VOICE.on?'voicing':''}">
-    <div class="vpanel" id="vPanel"><canvas id="vwash"></canvas><div class="vtext"><p class="vstate" id="vState"></p><p class="heard" id="vHeard"></p></div>
+    <div class="vpanel" id="vPanel" onclick="tapInterrupt()"><canvas id="vwash"></canvas><div class="vtext"><p class="vstate" id="vState"></p><p class="heard" id="vHeard"></p></div>
       <button class="vstop" onclick="stopVoice()" aria-label="음성 끝내기">${I.stop}</button></div>
     <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" oninput="syncSend()" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
       <button class="send" id="sendBtn" onclick="sendOrVoice()" aria-label="말로 하기">${I.mic}</button></div>
@@ -2070,7 +2070,7 @@ const EN={
  "— 우림이 끝났어요 —":"— Brewing done —","생각하는 중이에요.":"Thinking…","끌어서 골라주세요":"Drag to choose","고른 찻물 색":"Tea color","색 계열":"Hue","진하기":"Depth","맑게":"Light","진하게":"Deep","이 색으로 보내기 →":"Send this color →","보내기 →":"Send →","떠오르면 직접 적어도 돼요":"You can also type your own",
  "맛·향으로는 담지 않았어요":"Not saved as a flavor","바꾸기":"change","이 표현에 담긴 맛과 향을 골라주세요":"Pick the flavors in this phrase","다 골랐어요":"Done",
  "기본 우림 가이드":"Basic brewing guide","물 온도":"Water","우리는 시간":"Time","양":"Amount","맛있게":"Tip",
- "말하는 중…":"Speaking…","대답하는 중… 말하면 끊을 수 있어요":"Answering… just talk to interrupt","대답하는 중…":"Answering…","시연용 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…",
+ "말하는 중…":"Speaking…","대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요":"Answering… talk or tap to interrupt","대답하는 중…":"Answering…","시연용 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…",
  "예: 오설록 제주 세작":"e.g. Twinings Earl Grey","차 종류를 골라주세요":"Pick a tea type","편하게 적어보세요":"Type freely","색을 말로 적어도 돼요":"You can describe the color","내 말로 편하게 적어보세요":"Say it your way","직접 적어도 돼요":"You can type your own","느낀 그대로 적어보세요":"Type what you feel",
  "꽃향":"Floral","과일향":"Fruity","상큼한 시트러스":"Citrusy","풀향":"Grassy","민트처럼 상쾌한 향":"Minty fresh","고소한 향":"Nutty","달콤한 향":"Sweet","흙·나무 향":"Earthy, woody","스모키한 향":"Smoky","계피·생강 향":"Cinnamon, ginger","은은한 향":"Subtle",
  "단맛":"Sweet","고소함":"Nutty","새콤함":"Tangy","산뜻함":"Bright","부드러움":"Smooth","묵직함":"Full-bodied","깔끔함":"Clean","은은함":"Delicate","쌉쌀함":"Slightly bitter","떫은맛":"Astringent","텁텁함":"Dry",
@@ -2264,6 +2264,8 @@ function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsO
   if(AI_ENDPOINT&&aiVoice()!=='device'&&Date.now()<TTS_OFF_UNTIL){ VOICE.ttsOff=true; setTimeout(ttsNote,300); }   /* 이미 한도라는 걸 알면 누르자마자 알린다 */
   VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
+/* 봇이 말하는 중에 음성 화면을 톡 누르면 바로 멈추고 내 말을 듣는다 (시끄러운 곳에서 말로 끊기 어려울 때) */
+function tapInterrupt(){ if(!VOICE.on||VOICE.phase!=='speaking') return; const d=S.draft; hush(); if(d) VOICE.spoken=d.chat.length; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} VOICE.phase='listening'; S.listening=true; paintVoice(); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=L(m.text||''); if(m.guide){ const d=S.draft, g=guideOf(d,m); t+=isEN()?` Water ${g.temp}, brew for ${enTime(g.time)}.`:` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
@@ -2342,12 +2344,18 @@ function isEcho(heard,line,strict){ const norm=t=>String(t||'').replace(/[^가-�
   if(!n||!s) return !n; if(s.includes(n)) return strict?n.length>=6:true; if(n.length<3) return false;
   const bg=new Set(); for(let i=0;i<s.length-1;i++) bg.add(s.slice(i,i+2)); let hit=0, tot=0; for(let i=0;i<n.length-1;i++){ tot++; if(bg.has(n.slice(i,i+2))) hit++; }
   return hit/tot>=(strict?.7:.55)&&(!strict||n.length>=6); }
+/* 끼어들기 판단: 봇 목소리와 내 말이 섞여 들려도, 봇이 하지 않은 말이 연달아 세 글자 넘게 있으면 내가 말한 것으로 본다
+   (음성 인식이 봇 말을 한두 글자 틀리게 듣는 건 메아리로 보고 넘긴다) */
+function hasMyWords(heard,line){ const norm=t=>String(t||'').replace(/[^가-힣a-z0-9]/gi,'').toLowerCase(), n=norm(heard), s=norm(line);
+  if(n.length<2||s.includes(n)) return false; const bg=new Set(); for(let i=0;i<s.length-1;i++) bg.add(s.slice(i,i+2));
+  let run=0, best=0, any=false; for(let i=0;i<n.length-1;i++){ if(bg.has(n.slice(i,i+2))) run=0; else { run++; any=true; best=Math.max(best,run); } }
+  return best>=2||(n.length<=4&&any); }
 /* 끼어들기: 봇이 말하는 동안 마이크를 함께 켜 두고, 봇이 하는 말이 아닌 소리가 들리면 봇 목소리를 멈춘다 */
 function bargeListen(id,line){ const norm=t=>String(t||'').replace(/[^가-힣a-z0-9]/gi,'').toLowerCase(), said=norm(line);
   let r, cut=false, got='', mid='', ended=false, done; const p=new Promise(res=>done=res);
   try{ r=new SR(); r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; VOICE.rec=r; }catch(e){ return null; }
   r.onresult=e=>{ let fin='', m=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(m+=x[0].transcript)); } const t=fin||m, n=norm(t);
-    if(!cut&&n.length>=2&&!isEcho(t,line)){ cut=true; hush(); VOICE.phase='listening'; S.listening=true; }   // 봇 목소리가 다시 들린 게(메아리) 아니면 끊기
+    if(!cut&&n.length>=2&&hasMyWords(t,line)){ cut=true; hush(); VOICE.phase='listening'; S.listening=true; }   // 봇이 하지 않은 말이 들리면 끊기
     if(cut){ VOICE.interim=t; if(fin) got=fin; mid=t; paintVoice(); } };
   r.onerror=()=>{}; r.onend=()=>{ ended=true; done(cut?(got||mid).trim()||null:null); };
   try{ r.start(); }catch(e){ return null; }
@@ -2360,7 +2368,7 @@ async function voiceLoop(id){
       VOICE.phase='speaking'; S.listening=false; VOICE.interim=''; paintVoice();   // 봇이 말하기 시작하면 이미 보낸 내 말은 지운다
       const line=speakLine(m), barge=(!VOICE.demo&&SR)?bargeListen(id,line):null;   // 말하는 동안에도 듣다가, 내가 말하면 바로 끊는다
       await speak(line); if(!vAlive(id)) break;
-      const cut=barge?await barge.finish():null; if(cut&&!isEcho(cut,line)){ await takeHeard(d,cut); }   // 끊고 들은 말도 다시 한 번 메아리인지 본다
+      const cut=barge?await barge.finish():null; if(cut&&hasMyWords(cut,line)){ await takeHeard(d,cut); }   // 끊고 들은 말도 다시 한 번 내 말이 있는지 본다
       VOICE.lastLine=line; VOICE.spokeAt=Date.now();
       continue; }
     VOICE.phase='listening'; S.listening=true; VOICE.interim=''; paintVoice();
@@ -2373,7 +2381,7 @@ async function voiceLoop(id){
 }
 function paintVoice(){ const d=S.draft; if(!d) return;
   const st=$('#vState'), hd=$('#vHeard');
-  if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하면 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):'생각하는 중…');
+  if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):'생각하는 중…');
   if(hd) hd.textContent=VOICE.interim||''; }
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
