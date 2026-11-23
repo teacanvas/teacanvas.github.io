@@ -1327,7 +1327,7 @@ analyzing(){
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>
-  <div style="flex:0 0 40px"></div>
+  <div style="flex:0 0 74px"></div>
   <button class="link u" style="margin:0 auto -14px;padding:10px 16px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
@@ -2470,7 +2470,7 @@ function runInfusion(){
   const show=k=>{ if(!lab) return; lb.textContent=HOME_EN[k]; lb.style.color=inkText(FLAVORS[k].color); ls.textContent=said(k); void lab.offsetWidth; lab.classList.add('on'); if(box._fit) box._fit(); };   // 이름 높이가 바뀌면 자리를 다시 맞춘다
   const fitBox=()=>{ const P=box.parentElement; if(!P||!box.isConnected) return; const H=P.clientHeight, W=P.clientWidth, L=lab?lab.offsetHeight:0;
     // 화면 크기가 달라도 같은 비율로: 풍미 이름은 영역의 20%, 찻방울은 64% 지점에 중심을 둔다
-    const K=Object.assign({l:.2,d:.69,s:.62},window.INF_POS||{});   // l: 이름 중심 높이, d: 찻방울 중심 높이, s: 찻방울 최대 크기(영역 높이 대비)
+    const K=Object.assign({l:.20,d:.58,s:.62},window.INF_POS||{});   /* 높이 조절 페이지에서 고른 값 */   // l: 이름 중심 높이, d: 찻방울 중심 높이, s: 찻방울 최대 크기(영역 높이 대비)
     const sz=Math.round(Math.max(110,Math.min(320,W*.8,K.s*H,2*((K.d-K.l)*H-L/2-8)))), lt=Math.max(4,K.l*H-L/2);
     if(lab) lab.style.marginTop=lt+'px'; box.style.width=box.style.height=sz+'px'; box.style.marginTop=Math.max(6,K.d*H-sz/2-lt-L)+'px'; };
   fitBox(); if(!runInfusion._rs){ runInfusion._rs=true; addEventListener('resize',()=>{ const f=$('#inf3d'); if(f&&f._fit) f._fit(); }); } box._fit=fitBox;
