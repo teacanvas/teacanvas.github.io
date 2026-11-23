@@ -27,7 +27,7 @@ AI가 쓰이는 곳은 세 군데예요.
 ## 3. 키 넣기
 1. 만든 Worker에서 **Settings → Variables and Secrets → Add**를 눌러요.
 2. Type은 **Secret**, Name은 `GEMINI_API_KEY`, Value에는 1단계에서 만든 키를 넣고 **Deploy**를 눌러요.
-3. (선택) 모델을 바꾸고 싶으면 `GEMINI_MODEL` 변수를 추가해요. Type은 Text로 해요. 기본값은 `gemini-flash-latest`예요.
+3. (선택) 먼저 쓸 모델을 정하고 싶으면 `GEMINI_MODEL` 변수(Text)를 추가해요. 쉼표로 여러 개를 적을 수 있어요. 없으면 `gemini-flash-lite-latest` → `gemini-flash-latest` → … 순서로 쓰고, 붐비는(503) 모델은 건너뛰어요. Worker 주소 뒤에 `?models`를 붙여 열면 이 키로 쓸 수 있는 Flash 모델 이름이 보여요.
 
 ## 4. 확인하고 앱에 연결
 1. Worker 주소(`https://teacanvas-ai.<내 서브도메인>.workers.dev`)를 브라우저로 열어요. `{"ok":true,...}`가 보이면 정상이에요.

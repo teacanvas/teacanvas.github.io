@@ -1698,7 +1698,7 @@ function showGuide(again){ const d=S.draft; d.stage='guide';
     chips:['우림 시작 ▶',d.gongfu?'머그컵으로 우려요':'개완으로 우려요',d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기','바로 마실게요']})); }
 /* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
    나중에 연결할 때 AI_ENDPOINT에 중간 서버 주소만 넣으면 된다. 보내는 것: {question, tea, history} / 받는 것: {text} */
-const AI_ENDPOINT=window.TC_AI_ENDPOINT||'';   // 여기에 중간 서버 주소를 넣는다. 예: 'https://teacanvas-ai.<계정>.workers.dev/chat'
+const AI_ENDPOINT=window.TC_AI_ENDPOINT??(navigator.webdriver?'':'https://teacanvas-ai.sehoon3554.workers.dev/');   // AI 중간 서버(ai-worker/worker.js). 자동 테스트 중에는 끄고(무료 한도 보호), 비우면('') 정해진 대답만 쓴다
 const AI_TIMEOUT=9000, AI_TIMEOUT_LONG=15000;  // 이 시간 안에 대답이 없으면 정해진 대답으로 (질문 / 비교·추천)
 const FAQ=[
   [/떫|쓴|쓰다|씁쓸/, t=>`떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요.${t?` ${t.label}는 ${t.temp}, ${t.time}이 알맞아요.`:''}`],

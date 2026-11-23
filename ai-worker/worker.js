@@ -3,7 +3,7 @@
 
    필요한 설정 (Cloudflare 대시보드 → 이 Worker → Settings → Variables and Secrets)
    - GEMINI_API_KEY  (Secret)  Google AI Studio에서 만든 키
-   - GEMINI_MODEL    (선택)    기본값 gemini-flash-latest
+   - GEMINI_MODEL    (선택)    먼저 쓸 모델 (쉼표로 여러 개). 없으면 FALLBACK_MODELS 순서대로
    - ALLOWED_ORIGINS (선택)    쉼표로 구분. 기본값은 아래 DEFAULT_ORIGINS
 
    앱이 보내는 것 (POST JSON)
@@ -39,7 +39,14 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return out({ ok: true, service: 'teacanvas-ai' });   // 주소가 살아 있는지 확인용
+    if (req.method === 'GET') {   // 주소가 살아 있는지 확인용. ?models 를 붙이면 이 키로 쓸 수 있는 Flash 모델 이름을 보여준다
+      if (new URL(req.url).searchParams.has('models') && env.GEMINI_API_KEY) {
+        const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': env.GEMINI_API_KEY } });
+        const j = r.ok ? await r.json() : {};
+        return out({ ok: r.ok, status: r.status, models: (j.models || []).map(m => m.name.replace('models/', '')).filter(n => /flash/.test(n)) });
+      }
+      return out({ ok: true, service: 'teacanvas-ai', key: !!env.GEMINI_API_KEY });
+    }
     if (req.method !== 'POST') return out({ error: 'method' }, 405);
     if (!okOrigin) return out({ error: 'origin' }, 403);
     if (!env.GEMINI_API_KEY) return out({ error: 'no key' }, 500);
@@ -56,7 +63,7 @@ export default {
     const en = body.lang === 'en';
 
     try {
-      const json = await gemini(env, spec.system(en), spec.prompt(body, en), spec.schema, spec.maxTokens);
+      const json = await gemini(env, spec.system(en), spec.prompt(body, en), spec.schema, spec.maxTokens, body.mode === 'question' ? 8000 : 14000);
       const clean = spec.clean(json, body);
       if (!clean) return out({ error: 'empty' }, 502);
       return out(clean);
@@ -67,27 +74,39 @@ export default {
 };
 
 /* ---------- Gemini 호출 ---------- */
-async function gemini(env, system, prompt, schema, maxTokens) {
-  const model = env.GEMINI_MODEL || 'gemini-flash-latest';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+// 무료 플랜은 모델이 붐비면 503을 준다 → 다음 모델로 넘어간다. 앱이 기다리는 시간 안에서만 시도한다.
+const FALLBACK_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
+const NO_THINK_CFG = new Set();      // 생각 끄기 설정을 거절한 모델 (다음 요청부터 바로 설정 없이)
+async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
+  const deadline = Date.now() + budgetMs;
+  const models = [...new Set([...(env.GEMINI_MODEL ? env.GEMINI_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...FALLBACK_MODELS])];
   const base = {
     systemInstruction: { parts: [{ text: system }] },
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json', responseSchema: schema, maxOutputTokens: maxTokens, temperature: 0.6 },
   };
-  // 빠른 응답을 위해 생각(thinking)을 끈다. 이 설정을 모르는 모델이면 한 번 더, 설정 없이 보낸다.
-  const tries = [{ ...base, generationConfig: { ...base.generationConfig, thinkingConfig: { thinkingBudget: 0 } } }, base];
-  let last;
-  for (const payload of tries) {
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload) });
-    if (r.ok) {
-      const j = await r.json();
-      const text = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim();
-      if (!text) throw new Error('no text');
-      return JSON.parse(text);
+  let last = 'no model';
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const tries = NO_THINK_CFG.has(model) ? [base] : [{ ...base, generationConfig: { ...base.generationConfig, thinkingConfig: { thinkingBudget: 0 } } }, base];
+    for (let i = 0; i < tries.length; i++) {
+      const left = deadline - Date.now();
+      if (left < 1200) throw new Error('timeout; last ' + last);
+      let r;
+      try {
+        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(tries[i]), signal: AbortSignal.timeout(left - 300) });
+      } catch (e) { last = `${model} timeout`; break; }
+      if (r.ok) {
+        const j = await r.json();
+        const text = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim();
+        if (!text) { last = `${model} empty`; break; }
+        return JSON.parse(text);
+      }
+      last = `${model} ${r.status} ${(await r.text()).slice(0, 120)}`;
+      if (r.status === 400 && i === 0 && tries.length > 1) { NO_THINK_CFG.add(model); continue; }   // 설정 문제 → 설정 빼고 같은 모델로
+      if (r.status === 401 || r.status === 403) throw new Error(last);                             // 키 문제는 다른 모델로 가도 같다
+      break;                                                                                        // 503·429·404 등 → 다음 모델
     }
-    last = `${r.status} ${(await r.text()).slice(0, 160)}`;
-    if (r.status !== 400) break;      // 400(설정 문제)일 때만 설정을 빼고 다시
   }
   throw new Error(last);
 }
