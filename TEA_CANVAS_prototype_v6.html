@@ -2115,20 +2115,41 @@ function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.target.closest('#msgs button,#chatEnd button')) return;
   hush(); if(S.draft) VOICE.spoken=S.draft.chat.length;   // 아직 안 읽은 말은 건너뛰고, 누른 뒤에 나오는 말부터
   try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
-function startVoice(){ const d=S.draft; if(!d) return; VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
+function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=L(m.text||''); if(m.guide){ const d=S.draft, g=guideOf(d,m); t+=isEN()?` Water ${g.temp}, brew for ${enTime(g.time)}.`:` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
   return t.replace(/[–-]/g,'에서 ').replace(/°C/g,'도').replace(/[·…]/g,', ').replace(/\n/g,' '); }
 let SPEAK_ID=0;
-function hush(){ SPEAK_ID++; try{ speechSynthesis.cancel(); }catch(e){} }
-function speak(text){ return new Promise(res=>{ let done=false; const my=++SPEAK_ID; const fin=()=>{ if(!done){ done=true; res(); } }; if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
+/* AI 목소리(Gemini, 3번 Aoede): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
+   안 되면(인터넷·한도·시간 초과) 휴대폰 목소리로. 연달아 실패하면 5분 동안은 바로 휴대폰 목소리로 */
+const AI_VOICE='Aoede', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0;
+function unlockAudio(){ try{ if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='auto'; }   // 휴대폰은 처음 소리를 누른 순간에 열어 둬야 나중에 틀 수 있다
+  AUDIO.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+async function aiVoiceUrl(text){ const key=(isEN()?'en|':'ko|')+text; if(TTS_CACHE.has(key)) return TTS_CACHE.get(key);
+  const ctl=TTS_CTL=new AbortController(), timer=setTimeout(()=>ctl.abort(),7000);
+  try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({mode:'speak',lang:isEN()?'en':'ko',voice:AI_VOICE,text})});
+    if(!r.ok||!/audio/.test(r.headers.get('Content-Type')||'')) return null;
+    const url=URL.createObjectURL(await r.blob()); TTS_CACHE.set(key,url);
+    if(TTS_CACHE.size>40){ const k=TTS_CACHE.keys().next().value; URL.revokeObjectURL(TTS_CACHE.get(k)); TTS_CACHE.delete(k); }
+    return url; }catch(e){ return null; } finally{ clearTimeout(timer); } }
+function hush(){ SPEAK_ID++; try{ speechSynthesis.cancel(); }catch(e){} try{ AUDIO&&AUDIO.pause(); }catch(e){} try{ TTS_CTL&&TTS_CTL.abort(); }catch(e){} }
+function speak(text){ return new Promise(res=>{ const my=++SPEAK_ID; const fin=()=>{ if(!fin.done){ fin.done=true; res(); } };
+  if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
+  if(!AI_ENDPOINT||Date.now()<TTS_OFF_UNTIL||navigator.onLine===false) return speakDevice(text,my,fin);
+  aiVoiceUrl(text).then(url=>{ if(my!==SPEAK_ID) return fin();   // 기다리는 사이에 끊겼으면 끝
+    if(!url){ if(++TTS_FAILS>=2) TTS_OFF_UNTIL=Date.now()+5*60e3; return speakDevice(text,my,fin); }
+    TTS_FAILS=0; if(!AUDIO) AUDIO=new Audio();
+    const a=AUDIO; a.onended=fin; a.onerror=()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); }; a.onpause=()=>{ if(my!==SPEAK_ID) fin(); };
+    a.src=url; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); });
+    setTimeout(fin,Math.min(45000,3000+text.length*160)); }); }); }
+function speakDevice(text,my,fin){ return (()=>{ if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
   try{ if(!window.speechSynthesis) throw 0; speechSynthesis.cancel(); const parts=sayParts(text), v=koVoice(); let i=0;
-    const next=()=>{ if(done) return; if(my!==SPEAK_ID||i>=parts.length) return fin(); const u=new SpeechSynthesisUtterance(parts[i]); u.lang=isEN()?'en-US':'ko-KR'; if(v) u.voice=v;
+    const next=()=>{ if(fin.done) return; if(my!==SPEAK_ID||i>=parts.length) return fin(); const u=new SpeechSynthesisUtterance(parts[i]); u.lang=isEN()?'en-US':'ko-KR'; if(v) u.voice=v;
       const q=/[?？]$/.test(parts[i]); u.rate=VOICE_RATE(v)*(q?.97:1); u.pitch=q?1.08:1.02;   // 묻는 말은 끝을 살짝 올리고 천천히
       u.onend=()=>{ i++; setTimeout(next,i<parts.length?(/[,，]$/.test(parts[i-1])?90:220):0); }; u.onerror=fin; speechSynthesis.speak(u); };
-    next(); setTimeout(fin,Math.min(30000,1200+text.length*130)); }catch(e){ setTimeout(fin,Math.min(6000,700+text.length*55)); } }); }
+    next(); setTimeout(fin,Math.min(30000,1200+text.length*130)); }catch(e){ setTimeout(fin,Math.min(6000,700+text.length*55)); } })(); }
 /* 더 자연스럽게: 기기에 있는 한국어 목소리 중 사람 같은 것(Natural·Neural·Premium·Google)을 고르고, 문장마다 짧게 쉬어 말한다 */
 function koVoices(){ try{ const re=isEN()?/^en/i:/^ko/i; return speechSynthesis.getVoices().filter(v=>re.test(v.lang)); }catch(e){ return []; } }
 function voiceScore(v){ const n=v.name; return (/Natural|Neural|Online/i.test(n)?50:0)+(/Premium|Enhanced|향상/i.test(n)?40:0)+(/Google/i.test(n)?30:0)+(/SunHi|InJoon|Yuna|Sora|Minsang/i.test(n)?10:0)-(/compact|eloquence/i.test(n)?40:0)+(v.localService?0:5); }
