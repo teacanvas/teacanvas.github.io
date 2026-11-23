@@ -14,7 +14,7 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
   let t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?'); return {ms:Date.now()-t0,src:AUDIO&&AUDIO.src}; });
   ok(calls===1&&last.mode==='speak'&&last.voice==='Zephyr','AI 목소리 요청 (기본: 여성 Zephyr)'); ok(/^blob:/.test(t.src)&&t.ms>=500&&t.ms<4000,`받은 소리를 끝까지 틀고 끝남 (${t.ms}ms)`);
   await p.evaluate(()=>speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?')); ok(calls===1,'같은 문장은 다시 요청하지 않음');
-  await p.evaluate(()=>speak('두 번째 문장이에요.')); ok(last.pin==='gemini-3.8-flash-tts','두 번째 말부터는 처음 쓴 목소리 모델로 고정');
+  await p.evaluate(()=>speak('두 번째 문장이에요.')); ok(last.pin==='gemini-3.8-flash-tts','목소리는 늘 같은 모델로만 만듦 (목소리 결이 바뀌지 않게)');
   await p.evaluate(()=>{ PREF.aiVoice='device'; }); const c0=calls; await p.evaluate(()=>speak('기본 목소리로.')); ok(calls===c0,'설정에서 휴대폰 목소리를 고르면 AI 목소리를 부르지 않음'); await p.evaluate(()=>{ PREF.aiVoice='Zephyr'; });
   mode='slow'; t=await p.evaluate(async()=>{ const t0=Date.now(); const pr=speak('조금 기다려야 하는 문장이에요.'); setTimeout(hush,400); await pr; return Date.now()-t0; });
   ok(t<1500,`기다리는 중에 끊으면 바로 멈춤 (${t}ms)`);

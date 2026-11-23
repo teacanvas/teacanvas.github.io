@@ -476,7 +476,7 @@ canvas.wcd.big{margin:14px auto}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button.danger{color:#D6453D}.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
 .vmark{display:inline-flex;vertical-align:-3px;margin-right:4px;color:#111}.vmark svg{width:15px;height:15px}
-.vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
+.vpick{display:flex;gap:8px;align-items:center;margin-top:6px}.vpick select{flex:1;min-width:0;height:40px;border-radius:10px;background:var(--g0);padding:0 10px;font-size:13.5px;text-align:center;text-align-last:center}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
 /* 키 작은 폰: 여백과 글자를 줄여 한 화면에 */
@@ -1841,10 +1841,10 @@ function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=
    앱은 큰 흐름(차 정보 → 우리기 → 색·향·맛 → 마무리)과 '지금 기록할 것(want)·그다음(next)'만 정하고,
    말은 전부 Gemini가 한다: 내 말을 듣고 대답하고, 그 안에서 색·향·맛·여운·그날의 이야기를 뽑아 기록에 채운다.
    AI가 안 되면 그 자리부터 예전의 정해진 흐름으로 이어간다 */
-const FLOW_STAGES=['teaOK','teaType','guide','wait','color','wait2','aroma','taste','free','after','more'];
+const FLOW_STAGES=['tea','teaOK','teaType','guide','wait','color','wait2','aroma','taste','free','after','more'];
 const flowOn=d=>!!(d&&d.aiFlow&&chatAIOn());
-const flowWant=d=>({teaOK:'teatype',teaType:'teatype',color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
-const flowNext=d=>({teaOK:'guide',teaType:'guide',guide:'brew',color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
+const flowWant=d=>({tea:'tea',teaOK:'teatype',teaType:'teatype',color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
+const flowNext=d=>({tea:'teatype',teaOK:'guide',teaType:'guide',guide:'brew',color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
 function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
   return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
 async function flowCall(event,message){ const d=S.draft;
@@ -1872,6 +1872,10 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; } }
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(!j.sense&&!(want==='after'&&got)) me.ans='talk'; }   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
+    if(st==='tea'){ me.ans='tea';   // 차 이름: AI가 말 속에서 차를 찾아 소개하고 종류를 확인한다. 차가 없으면 그냥 대화
+      if(f.name&&TEAS[f.type]){ d.name=f.name; d.brand=f.brand||''; d.type=f.type; d.about=f.about||''; d.stage='teaOK'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:['맞아요','다시 적을게요']}); return rerender(); }
+      if(f.name){ d.name=f.name; d.brand=f.brand||''; d.stage='teaType'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:ORDER.map(k=>TEAS[k].label)}); return rerender(); }
+      d.chat.push({who:'bot',text:j.reply,ai:true,teaAsk:true}); return paintMsgs(); }
     if(st==='teaOK'||st==='teaType'||st==='guide'){ me.ans='tea';   // 차 종류 확인·우림 가이드: 대화로 묻고 답하고, 정해지면 가이드로
       if(f.name) d.name=f.name;
       if(st!=='guide'&&TEAS[f.type]){ d.type=f.type; d.chat.push({who:'bot',text:j.reply,ai:true}); return showGuide(); }
@@ -2155,7 +2159,7 @@ function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String
 function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
-  if(flowOn(d)&&(d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
+  if(flowOn(d)&&(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
   if(flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다
@@ -2246,7 +2250,9 @@ let SPEAK_ID=0;
 /* AI 목소리(Gemini, 3번 Aoede): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
    안 되면(인터넷·한도·시간 초과) 휴대폰 목소리로 */
 /* 고를 수 있는 AI 목소리 (Gemini 목소리 이름 · 설명). 'device'는 휴대폰 기본 목소리 */
-const AI_VOICES=[['Zephyr','여성'],['Umbriel','남성']];
+const AI_VOICES=[['Umbriel','남성'],['Zephyr','여성']];
+/* 목소리는 늘 같은 모델(3.8 Flash TTS)로만 만든다: 모델이 바뀌면 같은 이름이어도 목소리 결이 달라지므로, 이 모델이 안 되면 다른 AI 목소리 대신 휴대폰 목소리로 */
+const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Zephyr:'assets/voice/zephyr.m4a',Umbriel:'assets/voice/umbriel.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
 const aiVoice=()=>PREF.aiVoice==='device'?'device':AI_VOICES.some(v=>v[0]===PREF.aiVoice)?PREF.aiVoice:'Zephyr', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
 /* AI 목소리를 못 쓰면 음성 모드마다 한 번 위에 알린다 (처음부터인지, 쓰다가 바뀐 건지) */
 function ttsNote(){ if(VOICE.ttsNoted||aiVoice()==='device') return; VOICE.ttsNoted=true; const first=!VOICE.ttsUsed;
@@ -2256,9 +2262,8 @@ function unlockAudio(){ try{ if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='auto'
   AUDIO.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
 async function aiVoiceUrl(text){ const key=aiVoice()+(isEN()?'|en|':'|ko|')+text; if(TTS_CACHE.has(key)) return TTS_CACHE.get(key);
   const ctl=TTS_CTL=new AbortController(), timer=setTimeout(()=>ctl.abort(),7000);
-  try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({mode:'speak',lang:isEN()?'en':'ko',voice:aiVoice(),pin:VOICE.ttsModel||'',text})});   // pin: 이번 대화에서 처음 쓴 목소리 모델만 (말할 때마다 목소리 결이 바뀌지 않게)
+  try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({mode:'speak',lang:isEN()?'en':'ko',voice:aiVoice(),pin:TTS_MODEL,text})});
     if(!r.ok||!/audio/.test(r.headers.get('Content-Type')||'')){ try{ const j=await r.json(); TTS_WHY=/\b429\b|quota|RESOURCE_EXHAUSTED/i.test(j.detail||'')?'quota':'net'; }catch(e){ TTS_WHY='net'; } return null; }
-    if(!VOICE.ttsModel) VOICE.ttsModel=r.headers.get('X-TTS-Model')||'';
     const url=URL.createObjectURL(await r.blob()); TTS_CACHE.set(key,url);
     if(TTS_CACHE.size>40){ const k=TTS_CACHE.keys().next().value; URL.revokeObjectURL(TTS_CACHE.get(k)); TTS_CACHE.delete(k); }
     return url; }catch(e){ TTS_WHY='net'; return null; } finally{ clearTimeout(timer); } }
@@ -2286,7 +2291,9 @@ const VOICE_RATE=v=>v&&/Google/i.test(v.name)?1.05:v&&/Natural|Neural/i.test(v.n
 function sayParts(t){ t=String(t).replace(/[‘’“”"'「」]/g,'').replace(/\([^)]*\)/g,'').replace(/[~→]/g,' ').replace(/\s+/g,' ').trim();
   return (t.match(/[^.!?？。]+[.!?？。]*/g)||[t]).map(x=>x.trim()).filter(Boolean).flatMap(x=>x.length>42?x.split(/(?<=[,，])\s*/).filter(Boolean):[x]); }
 try{ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }catch(e){}
-function previewAIVoice(){ unlockAudio(); const was=PREF.voiceSound; PREF.voiceSound=true; VOICE.ttsOff=false; VOICE.ttsModel=''; hush(); speak(isEN()?'Hello. What tea shall we have today?':'반가워요. 오늘은 어떤 차를 마셔볼까요?').then(()=>PREF.voiceSound=was); }
+function previewAIVoice(){ hush(); const v=aiVoice(), clip=!isEN()&&VOICE_CLIP[v];
+  if(clip){ try{ if(!AUDIO) AUDIO=new Audio(); AUDIO.src=clip; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} return; }   // AI 목소리: 미리 만든 소리를 바로 튼다
+  const was=PREF.voiceSound; PREF.voiceSound=true; const my=++SPEAK_ID; new Promise(res=>{ const fin=()=>{ if(!fin.done){ fin.done=true; res(); } }; speakDevice(isEN()?'Hello. What tea shall we have today?':'반가워요. 오늘은 어떤 차를 마셔볼까요?',my,fin); }).then(()=>PREF.voiceSound=was); }
 function previewVoice(){ PREF.voiceName=$('#prefVoice').value; savePref(); const was=PREF.voiceSound; PREF.voiceSound=true; speak(isEN()?'Hello! What tea are you having today?':'안녕하세요. 오늘은 어떤 차를 마셔볼까요?').then(()=>PREF.voiceSound=was); }
 const DEMO_EN={tea:'Twinings Earl Grey',teaOK:'Yes, that\'s right',teaType:'Black tea',guide:'Start brewing',color:'A deep amber color',aroma:'It smells like bergamot and a bit of flowers',taste:'Bright at first, with a slightly sweet finish',after:'The finish lasts quite long',more:'Let\'s wrap up',deep:'Not sure',
   talk:{mood:'A little tired today',scene:'Relaxing alone at home',why:'It was rainy, so I wanted something warm'},free:['It gets sweeter as it cools','Very smooth to swallow','That\'s enough']};
@@ -2484,7 +2491,7 @@ Object.assign(EN,{
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","남성":"Male","여성":"Female","휴대폰":"Phone","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",
@@ -2571,7 +2578,7 @@ function openSettings(k){
   const body={chat:['대화 기록 설정',row('keepChat','대화 내용 함께 저장','끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요')],
     app:['앱 설정',`<label class="pref col"><b>대화 언어</b><small>채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요</small>
       <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();try{sessionStorage.setItem('tc.reopen','app')}catch(e){};location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label>`+row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+`<label class="pref col"><b>음성 대화 목소리</b><small>AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요</small>
-      <span class="vpick"><select id="prefAIVoice" onchange="PREF.aiVoice=this.value;savePref()">${AI_VOICES.map(([v,dd])=>`<option value="${v}" ${aiVoice()===v?'selected':''}>AI 목소리 · ${dd}</option>`).join('')}<option value="device" ${aiVoice()==='device'?'selected':''}>휴대폰 기본 목소리</option></select><button class="pillbtn" onclick="event.preventDefault();previewAIVoice()">들어보기</button></span></label>`+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
+      <span class="vpick"><select id="prefAIVoice" onchange="PREF.aiVoice=this.value;savePref()">${AI_VOICES.map(([v,dd])=>`<option value="${v}" ${aiVoice()===v?'selected':''}>${dd}</option>`).join('')}<option value="device" ${aiVoice()==='device'?'selected':''}>휴대폰</option></select><button class="pillbtn" onclick="event.preventDefault();previewAIVoice()">들어보기</button></span></label>`+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
