@@ -1841,10 +1841,10 @@ function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=
    앱은 큰 흐름(차 정보 → 우리기 → 색·향·맛 → 마무리)과 '지금 기록할 것(want)·그다음(next)'만 정하고,
    말은 전부 Gemini가 한다: 내 말을 듣고 대답하고, 그 안에서 색·향·맛·여운·그날의 이야기를 뽑아 기록에 채운다.
    AI가 안 되면 그 자리부터 예전의 정해진 흐름으로 이어간다 */
-const FLOW_STAGES=['wait','color','wait2','aroma','taste','free','after','more'];
+const FLOW_STAGES=['teaOK','teaType','guide','wait','color','wait2','aroma','taste','free','after','more'];
 const flowOn=d=>!!(d&&d.aiFlow&&chatAIOn());
-const flowWant=d=>({color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
-const flowNext=d=>({color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
+const flowWant=d=>({teaOK:'teatype',teaType:'teatype',color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
+const flowNext=d=>({teaOK:'guide',teaType:'guide',guide:'brew',color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
 function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
   return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
 async function flowCall(event,message){ const d=S.draft;
@@ -1872,6 +1872,10 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; } }
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(!j.sense&&!(want==='after'&&got)) me.ans='talk'; }   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
+    if(st==='teaOK'||st==='teaType'||st==='guide'){ me.ans='tea';   // 차 종류 확인·우림 가이드: 대화로 묻고 답하고, 정해지면 가이드로
+      if(f.name) d.name=f.name;
+      if(st!=='guide'&&TEAS[f.type]){ d.type=f.type; d.chat.push({who:'bot',text:j.reply,ai:true}); return showGuide(); }
+      d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:st==='guide'?['우림 시작 ▶','바로 마실게요']:st==='teaOK'?['맞아요','다시 적을게요']:ORDER.map(k=>TEAS[k].label)}); return paintMsgs(); }
     if(st==='more'&&(got||j.end)){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }
     if(got) flowAdvance(d); else if(st==='free'&&j.finish) flowAdvance(d);
     flowBot(d,j.reply); },Math.max(0,500-(Date.now()-t0)))); }
@@ -2151,6 +2155,7 @@ function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String
 function sendMsg(text,isChip){
   const d=S.draft; if(S.typing) return;
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
+  if(flowOn(d)&&(d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
   if(flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다

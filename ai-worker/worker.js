@@ -233,6 +233,9 @@ What to record (the app gives "want" and "next"):
 - When want gets filled (or when want is none and the user says they've finished drinking), react, then move on according to next:
   wait = don't ask anything new, just keep chatting (the app will tell you when the tea is ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
 - If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
+- If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb (blends: by the base tea leaf; no tea leaf at all = herb). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
+  next = guide: once the type is settled, say briefly that you'll show how to brew it (the app shows the guide).
+- If next is brew (they're looking at the brewing guide): answer brewing questions and tell them to tap or say "start brewing" when ready.
 - Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
 Reply with ONLY a JSON object:
 {"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed}`
@@ -246,6 +249,9 @@ Reply with ONLY a JSON object:
 - want가 채워지면 (또는 want가 없고 사용자가 다 마셨다고 하면) 반응한 뒤 next에 따라 자연스럽게 이어가:
   wait = 새로 묻지 말고 이야기만 이어가 (차가 다 우러나면 앱이 알려줘) · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
 - 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
+- want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브차·찻잎 없는 차) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎이 전혀 없으면 herb). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
+  next가 guide면: 종류가 정해졌을 때 '이 차에 맞는 우림 방법을 보여드릴게요'처럼 짧게 이어가 (앱이 가이드를 보여줘).
+- 지금이 우림 가이드를 보는 중이면 (next가 brew): 우리는 법에 대한 질문에 답하고, 준비되면 '우림 시작'을 누르거나 말해 달라고 해.
 - 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
 답은 JSON 하나만:
 {"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true}`),
@@ -271,8 +277,9 @@ Reply with ONLY a JSON object:
       let j = null; if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
       if (!j) { const t = plain(raw.replace(/```[a-z]*|```/g, '')).slice(0, 400); return t && !/^\{/.test(t) ? { reply: t, fill: {}, sense: false, finish: false, end: false } : null; }   // JSON이 깨지면 글만이라도
       const reply = plain(str(j.reply, 500)).slice(0, 400); if (!reply) return null;
-      const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo'], fill = {};
+      const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo', 'name'], fill = {};
       if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
+      if (j.fill && TEA_TYPES.includes(j.fill.type)) fill.type = j.fill.type;
       return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end };
     },
   },
