@@ -7,7 +7,7 @@
    - ALLOWED_ORIGINS (선택)    쉼표로 구분. 기본값은 아래 DEFAULT_ORIGINS
 
    앱이 보내는 것 (POST JSON)
-   - mode: 'question' | 'compare' | 'recommend'
+   - mode: 'question' | 'compare' | 'recommend' | 'speak'
    - lang: 'ko' | 'en'
    - tea: {name, brand, type} | null,  history: [{who:'me'|'bot', text}]
    - question 모드: question
@@ -58,6 +58,12 @@ export default {
       body = JSON.parse(raw);
     } catch (e) { return out({ error: 'bad json' }, 400); }
 
+    if (body && body.mode === 'speak') {   // 글 → 목소리(wav). 실패하면 JSON 오류 → 앱은 휴대폰 목소리로
+      try {
+        const wav = await speakGemini(env, body);
+        return new Response(wav, { headers: { ...cors, 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store' } });
+      } catch (e) { return out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); }
+    }
     const spec = SPECS[body && body.mode];
     if (!spec) return out({ error: 'mode' }, 400);
     const en = body.lang === 'en';
@@ -109,6 +115,49 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
     }
   }
   throw new Error(last);
+}
+
+/* ---------- 목소리 (Gemini TTS) ---------- */
+// 보내는 것: {mode:'speak', text, lang, voice?, style?}  받는 것: audio/wav
+const TTS_MODELS = ['gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts'];
+async function speakGemini(env, b) {
+  const text = str(b.text, 400);
+  if (!text) throw new Error('no text');
+  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Sulafat';
+  const en = b.lang === 'en';
+  const style = str(b.style, 120) || (en ? 'Read this in a calm, gentle, warm voice, at a relaxed pace, like a friend sitting with you over tea' : '차 한 잔 앞에 함께 앉은 친구처럼, 차분하고 다정한 목소리로 천천히 읽어줘');
+  const deadline = Date.now() + 12000;
+  const models = [...new Set([...(env.GEMINI_TTS_MODEL ? env.GEMINI_TTS_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...TTS_MODELS])];
+  let last = 'no model';
+  for (const model of models) {
+    const left = deadline - Date.now();
+    if (left < 1500) break;
+    let r;
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST', signal: AbortSignal.timeout(left - 300),
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `${style}:\n${text}` }] }],
+          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
+        }),
+      });
+    } catch (e) { last = `${model} timeout`; continue; }
+    if (!r.ok) { last = `${model} ${r.status} ${(await r.text()).slice(0, 120)}`; if (r.status === 401 || r.status === 403) break; continue; }
+    const j = await r.json();
+    const part = (j.candidates?.[0]?.content?.parts || []).find(p => p.inlineData && p.inlineData.data);
+    if (!part) { last = `${model} no audio`; continue; }
+    const rate = +((part.inlineData.mimeType || '').match(/rate=(\d+)/) || [])[1] || 24000;
+    return pcmToWav(b64ToBytes(part.inlineData.data), rate);
+  }
+  throw new Error(last);
+}
+function b64ToBytes(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function pcmToWav(pcm, rate) {   // 16비트 모노 PCM 앞에 WAV 머리말(44바이트)을 붙인다
+  const h = new DataView(new ArrayBuffer(44)), w = (o, s) => [...s].forEach((c, i) => h.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); h.setUint32(4, 36 + pcm.length, true); w(8, 'WAVE'); w(12, 'fmt '); h.setUint32(16, 16, true); h.setUint16(20, 1, true); h.setUint16(22, 1, true);
+  h.setUint32(24, rate, true); h.setUint32(28, rate * 2, true); h.setUint16(32, 2, true); h.setUint16(34, 16, true); w(36, 'data'); h.setUint32(40, pcm.length, true);
+  const out = new Uint8Array(44 + pcm.length); out.set(new Uint8Array(h.buffer), 0); out.set(pcm, 44); return out;
 }
 
 /* ---------- 공통 ---------- */

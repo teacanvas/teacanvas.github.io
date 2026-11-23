@@ -28,6 +28,11 @@ const tea={name:'제주 세작',type:'녹차'};
   calls=[]; let n503=0; const keep=globalThis.fetch; globalThis.fetch=async(url,init)=>{ if(/flash-lite-latest/.test(url)){ n503++; return new Response('busy',{status:503}); } return keep(url,init); };
   reply={text:'다음 모델'}; r=await post({mode:'question',question:'q'}); j=await r.json(); globalThis.fetch=keep;
   ok(j.text==='다음 모델'&&n503===1&&/gemini-flash-latest/.test(calls[0].url),'붐비는 모델(503) → 다음 모델로');
+  { const keep=globalThis.fetch; let seen; globalThis.fetch=async(url,init)=>{ seen={url,body:JSON.parse(init.body)}; return new Response(JSON.stringify({candidates:[{content:{parts:[{inlineData:{mimeType:'audio/L16;codec=pcm;rate=24000',data:Buffer.from(new Uint8Array(480)).toString('base64')}}]}}]}),{status:200}); };
+    r=await post({mode:'speak',lang:'ko',text:'안녕하세요.',voice:'Kore'}); const buf=new Uint8Array(await r.arrayBuffer()); globalThis.fetch=keep;
+    ok(r.status===200&&r.headers.get('Content-Type')==='audio/wav'&&buf.length===524&&String.fromCharCode(...buf.slice(0,4))==='RIFF','목소리 → wav (머리말 44바이트 + 소리)');
+    ok(/-tts:generateContent/.test(seen.url)&&seen.body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName==='Kore','목소리 모델·목소리 이름 전달');
+    r=await post({mode:'speak',text:''}); ok(r.status===502,'읽을 글이 없으면 오류'); }
   status=500; r=await post({mode:'question',question:'q'}); ok(r.status===502,'Gemini 실패 → 502 (앱은 정해진 대답)'); status=200;
   r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'허용 안 된 주소는 거절');
   r=await post({mode:'question',question:'q'},'null'); ok(r.status===200,'내려받은 파일(file://)에서도 동작');
