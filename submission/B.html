@@ -59,6 +59,7 @@ textarea{resize:none}
 .dots i.done{background:#333}
 .dots i.on{background:#333;width:18px}
 .stepbar .mid{display:flex;align-items:center;gap:10px}
+.aibadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--g2);background:var(--g0);border-radius:11px;padding:3px 9px;white-space:nowrap}.aibadge i{width:6px;height:6px;border-radius:50%;background:#9BB87A}.aibadge.off i{background:#C9C9C9}
 .stepbar .quit{font-size:13px;color:var(--g2);padding:6px 2px 6px 10px}.stepbar .quit:hover{color:#111}
 .resume{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 22px 10px;background:var(--g0);border-radius:var(--r-card);padding:0 6px 0 16px;height:46px;font-size:13.5px}
 .resume>button:first-child{flex:1;text-align:left;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;height:100%}
@@ -1058,7 +1059,7 @@ function teabag(type){ const c=(TEAS[type]||TEAS.green).color, dk=tcMix(c,'#2A1A
 function stepbar(n){
   const rec=recording(), atChat=S.stack.length&&S.stack[S.stack.length-1].name==='chat';
   return `<div class="stepbar"><button class="back" onclick="${atChat?'askQuit()':'back()'}" aria-label="뒤로">${I.back}</button>
-    <div class="mid"></div>
+    <div class="mid">${atChat?aiBadge():''}</div>
     ${rec?'<button class="quit" onclick="askQuit()">그만하기</button>':'<span></span>'}</div>`;
 }
 function startDrink(){ const d=S.draft; if(d&&!d.drinkAt) d.drinkAt=Date.now(); }
@@ -1656,7 +1657,7 @@ function ackLine(d,text){ const n=d.ackN=(d.ackN||0)+1, fl=matchFlavors(text);
   if(fl.length){ const l=FLAVORS[fl[0]].label; return ACK_FL[n%ACK_FL.length](l); }
   return ACK[n%ACK.length]; }
 function freeEnough(said){ const d=S.draft; if(S.typing||d.stage!=='free') return; S.endAt=Date.now(); if(!said) d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'});   // said: 이미 말로 마무리했으면 버튼 말은 넣지 않는다
-  if(flowOn(d)){ d.stage='after'; flowEvent('wrap').then(ok=>{ if(!ok&&S.draft===d&&d.stage==='after'){ d.aiFlow=false; d.chat.push({who:'bot',text:AFTER_ASK,after:true}); paintMsgs(); } }); return; }
+  if(flowOn(d)){ d.stage='after'; flowEvent('wrap').then(ok=>{ if(!ok&&S.draft===d&&d.stage==='after'){ d.aiFlow=false; paintBadge(); d.chat.push({who:'bot',text:AFTER_ASK,after:true}); paintMsgs(); } }); return; }
   if(d.chat.some(m=>m.who==='me'&&m.kept&&(/(식으|식었|식으니|여운|끝맛|뒷맛|남아|남는)/.test(String(m.text).replace(/\s/g,''))||/\b(cool(s|ed|ing)?|aftertaste|finish|linger(s|ing)?)\b/i.test(m.text)))){ d.stage='more'; return botSay(moreMsg('여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),500); }   // 이미 말했으면 다시 묻지 않기
   d.stage='after'; botSay({who:'bot',text:AFTER_ASK,after:true},500); }
 setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
@@ -1696,7 +1697,7 @@ function teaInput(text){
   aiCall('identify',{text,brand:r.brand}).then(j=>{ if(!S.draft||S.draft.tid!==at) return; S.typing=false;
     if(j&&j.found&&TEAS[j.type]){ d.type=j.type; d.name=j.name||r.name; d.brand=j.brand||r.brand; d.about=j.about||''; d.stage='teaOK'; const lb=TEAS[j.type].label;
       d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nShall I record it as ${lb}?`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')} 찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요. 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
-    else{ if(!j) aiFallbackNote(); d.chat.push(r.type?localOK():askType()); }
+    else{ if(!j) aiFail(); d.chat.push(r.type?localOK():askType()); }
     if(cur()==='chat') rerender(); });
 }
 function teaChip(c){
@@ -1779,15 +1780,26 @@ function answerQuestion(text){
 /* 함께 마시는 친구 같은 대화: 우림·마시는 동안 내가 한 말은 AI가 듣고 그 말에 맞춰 대답한다(필요하면 검색까지).
    AI가 안 되면(한도·연결) 예전처럼 정해진 대화로. 두 번 연달아 실패하면 3분 동안은 바로 정해진 대화 */
 const CHAT_AI={fails:0,off:0}; let AI_WHY='';
+/* AI를 지금 못 쓰는 상태(한도·연결)를 기억해 둔다: 다시 열어도 처음부터 알 수 있게 */
+const AI_OFF_KEY='teacanvas.v6.aiOff';
+try{ const o=JSON.parse(localStorage.getItem(AI_OFF_KEY)||'{}'); if(o.chat>Date.now()) CHAT_AI.off=o.chat; if(o.why) AI_WHY=o.why; }catch(e){}
+function saveAIOff(){ try{ localStorage.setItem(AI_OFF_KEY,JSON.stringify({chat:CHAT_AI.off,tts:typeof TTS_OFF_UNTIL!=='undefined'?TTS_OFF_UNTIL:0,why:AI_WHY})); }catch(e){} }
+/* 지금 AI 대화인지 자동 대화인지 (+ 음성 모드면 목소리도) 위에 작게 보여준다. 누르면 설명 */
+function aiChatLive(){ const d=S.draft; return !!AI_ENDPOINT&&!!d&&d.aiFlow!==false&&Date.now()>=CHAT_AI.off&&navigator.onLine!==false; }
+function aiVoiceLive(){ return !!AI_ENDPOINT&&aiVoice()!=='device'&&!VOICE.ttsOff&&Date.now()>=TTS_OFF_UNTIL&&navigator.onLine!==false; }
+function aiBadge(){ if(!AI_ENDPOINT) return ''; const c=aiChatLive(), v=VOICE.on?`<span>·</span><span>${aiVoiceLive()?'AI 목소리':'기본 목소리'}</span>`:'';
+  return `<button id="aiBadge" class="aibadge${c?'':' off'}" onclick="toast(${c?"'Gemini가 내 말을 듣고 대답하고 있어요'":"'AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요'"},true)"><i></i><span>${c?'AI 대화':'자동 대화'}</span>${v}</button>`; }
+function paintBadge(){ const e=$('#aiBadge'); if(e) e.outerHTML=aiBadge(); }
 const chatAIOn=()=>{ if(!AI_ENDPOINT) return false; if(Date.now()<CHAT_AI.off||navigator.onLine===false){ aiFallbackNote(); return false; } return true; };
 /* AI 대화가 안 돼서 정해진 대화로 넘어가면, 기록마다 한 번 위에 알린다 */
-function aiFallbackNote(){ const d=S.draft; if(!d||d.aiNoted||cur()!=='chat') return; d.aiNoted=true;
-  toast(AI_WHY==='quota'?'오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요':'AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요',true); }
+function aiFallbackNote(){ const d=S.draft; if(!d||cur()!=='chat') return; paintBadge(); if(d.aiNoted) return; d.aiNoted=true;
+  const first=!d.chat.some(m=>m.ai);   // 처음부터 못 쓰는지, 쓰다가 끊긴 건지
+  toast(AI_WHY==='quota'?(first?'오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요':'오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요'):(first?'AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요':'AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요'),true); }
 async function aiChat(event,message){ const d=S.draft; if(!d||!chatAIOn()) return null;
   const j=await aiCall('chat',{event,message:message||'',stage:d.stage,about:d.about||'',timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
   if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return {reply:j.reply.trim(),finish:!!j.finish}; }
   return aiFail(); }
-function aiFail(){ if(++CHAT_AI.fails>=2) CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
+function aiFail(){ if(AI_WHY==='quota'||++CHAT_AI.fails>=2){ CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; saveAIOff(); } aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
 /* 내 말 → AI 대답. me: 대화에 넣을 내 말(이미 넣었으면 null), fallback: AI가 안 될 때 할 일, endAfter: 대답 뒤 마무리로 */
 function aiTalk(me,text,fallback,endAfter){ const d=S.draft, at=d.tid, t0=Date.now(); if(me) d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   aiChat('message',text).then(a=>{ setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
@@ -1855,7 +1867,7 @@ function flowFinish(){ const d=S.draft, at=d.tid;   // 마지막 인사를 다 �
 function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.stage, want=flowWant(d);
   const me={who:'me',text,...((forced&&forced.extra)||{})}; if(forced) me.ans=forced.k; d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   flowCall('message',text).then(j=>setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
-    if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); d.aiFlow=false;   // AI가 안 되면 예전 흐름으로 이 말부터 다시
+    if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); d.aiFlow=false; paintBadge();   // AI가 안 되면 예전 흐름으로 이 말부터 다시
       if(forced) return answer(forced.k,text,forced.extra||{}); return sendMsg(text,false); }
     const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; } }
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
@@ -1891,7 +1903,7 @@ function askNext(){
   d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]}; d.talkPending=null;
   if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); talkNext(2200); return; } }
   if(flowOn(d)&&(d.stage==='color'||d.stage==='aroma')){ const st=d.stage; if(st==='color'&&d.type&&TC_GUESS[d.type]) S.ask.hd=[...TC_GUESS[d.type]];
-    flowEvent(st==='color'?'color_ready':'brew_done').then(ok=>{ if(!ok&&S.draft===d&&d.stage===st){ d.aiFlow=false; askMsg(d); paintMsgs(); } }); return; }
+    flowEvent(st==='color'?'color_ready':'brew_done').then(ok=>{ if(!ok&&S.draft===d&&d.stage===st){ d.aiFlow=false; paintBadge(); askMsg(d); paintMsgs(); } }); return; }
   askMsg(d); }
 function askMsg(d){   // 정해진 질문 (AI가 안 될 때)
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
@@ -2217,7 +2229,9 @@ function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.target.closest('#msgs button,#chatEnd button')) return;
   hush(); if(S.draft) VOICE.spoken=S.draft.chat.length;   // 아직 안 읽은 말은 건너뛰고, 누른 뒤에 나오는 말부터
   try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
-function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsOff=false; VOICE.ttsUsed=false; VOICE.ttsModel=''; VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
+function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsOff=false; VOICE.ttsUsed=false; VOICE.ttsModel=''; VOICE.ttsNoted=false;
+  if(AI_ENDPOINT&&aiVoice()!=='device'&&Date.now()<TTS_OFF_UNTIL){ VOICE.ttsOff=true; setTimeout(ttsNote,300); }   /* 이미 한도라는 걸 알면 누르자마자 알린다 */
+  VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
@@ -2229,6 +2243,10 @@ let SPEAK_ID=0;
 /* 고를 수 있는 AI 목소리 (Gemini 목소리 이름 · 설명). 'device'는 휴대폰 기본 목소리 */
 const AI_VOICES=[['Aoede','산뜻한'],['Vindemiatrix','다정한'],['Despina','부드러운'],['Callirrhoe','편안한'],['Achird','친근한 남성'],['Umbriel','차분한 남성']];
 const aiVoice=()=>PREF.aiVoice||'Aoede', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
+/* AI 목소리를 못 쓰면 음성 모드마다 한 번 위에 알린다 (처음부터인지, 쓰다가 바뀐 건지) */
+function ttsNote(){ if(VOICE.ttsNoted||aiVoice()==='device') return; VOICE.ttsNoted=true; const first=!VOICE.ttsUsed;
+  toast(TTS_WHY==='quota'?(first?'오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요':'오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요'):(first?'AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요':'AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요'),true); }
+try{ const o=JSON.parse(localStorage.getItem('teacanvas.v6.aiOff')||'{}'); if(o.tts>Date.now()){ TTS_OFF_UNTIL=o.tts; TTS_WHY=o.why||'quota'; } }catch(e){}
 function unlockAudio(){ try{ if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='auto'; }   // 휴대폰은 처음 소리를 누른 순간에 열어 둬야 나중에 틀 수 있다
   AUDIO.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
 async function aiVoiceUrl(text){ const key=aiVoice()+(isEN()?'|en|':'|ko|')+text; if(TTS_CACHE.has(key)) return TTS_CACHE.get(key);
@@ -2244,8 +2262,7 @@ function speak(text){ return new Promise(res=>{ const my=++SPEAK_ID; const fin=(
   if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
   if(!AI_ENDPOINT||aiVoice()==='device'||VOICE.ttsOff||Date.now()<TTS_OFF_UNTIL||navigator.onLine===false) return speakDevice(text,my,fin);
   aiVoiceUrl(text).then(url=>{ if(my!==SPEAK_ID) return fin();   // 기다리는 사이에 끊겼으면 끝
-    if(!url){ if(!VOICE.ttsOff&&VOICE.ttsUsed) toast(TTS_WHY==='quota'?'오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요':'AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요',true);   // 듣던 목소리가 바뀌면 왜 바뀌었는지 위에 알린다
-      VOICE.ttsOff=true; if(++TTS_FAILS>=2) TTS_OFF_UNTIL=Date.now()+30*60e3; return speakDevice(text,my,fin); }   // 한 번 실패하면 이번 대화는 끝까지 휴대폰 목소리로(목소리가 오락가락하지 않게). 두 번이면 30분 쉰다(무료 한도는 하루 단위)
+    if(!url){ if(TTS_WHY==='quota'||++TTS_FAILS>=2){ TTS_OFF_UNTIL=Date.now()+30*60e3; saveAIOff(); } if(!VOICE.ttsOff) ttsNote(); VOICE.ttsOff=true; paintBadge(); return speakDevice(text,my,fin); }   // 한 번 실패하면 이번 대화는 끝까지 휴대폰 목소리로(목소리가 오락가락하지 않게). 두 번이면 30분 쉰다(무료 한도는 하루 단위)
     TTS_FAILS=0; VOICE.ttsUsed=true; if(!AUDIO) AUDIO=new Audio();
     const a=AUDIO; a.onended=fin; a.onerror=()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); }; a.onpause=()=>{ if(my!==SPEAK_ID) fin(); };
     a.src=url; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); });
@@ -2462,7 +2479,7 @@ Object.assign(EN,{
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",

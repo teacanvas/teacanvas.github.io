@@ -23,5 +23,10 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
   const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
   ok(/AI 목소리를 다 써서/.test(tt),'듣던 AI 목소리가 바뀌면 위에 이유를 알림: '+tt); await p.evaluate(()=>speak('두 번째 실패.')); calls=0;
   await p.evaluate(()=>speak('세 번째 문장.')); ok(calls===0,'연달아 실패하면 잠시 AI 목소리를 쉬고 바로 휴대폰 목소리');
+  await p.evaluate(()=>{ localStorage.setItem('teacanvas.v6.aiOff',JSON.stringify({tts:Date.now()+6e5,why:'quota'})); }); await p.reload(); await p.waitForTimeout(600);
+  await p.evaluate(()=>{ startRecord(); }); await p.waitForTimeout(400); calls=0; await p.evaluate(()=>{ window.TC_VOICE_FAST=0; toggleVoice(); }); await p.waitForTimeout(900);
+  const vt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
+  ok(/이번에는 기본 목소리로/.test(vt),'음성 모드를 누르자마자 AI 목소리 한도를 알림: '+vt.replace(/\n/,' '));
+  ok(await p.evaluate(()=>/기본 목소리/.test(document.querySelector('#aiBadge').textContent)),'위 표시에 "기본 목소리"'); await p.evaluate(()=>stopVoice());
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
