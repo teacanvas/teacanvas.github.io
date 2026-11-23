@@ -60,6 +60,11 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   await say('비 온 뒤 숲길 같은 풀 향'); await p.waitForTimeout(300); m=await last();
   const back=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
   ok(m.ai&&/다시 연결/.test(back)&&/AI 대화/.test(await p.evaluate(()=>document.querySelector('#aiBadge').textContent)),'AI가 다시 되면 다음 말부터 다시 AI 대화 + 위에 알림: '+back.replace(/\n/,' '));
+  // 설정에서 '자동 대화'를 고르면 AI를 부르지 않고 바로 정해진 대화로
+  await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>{ PREF.chatAI='auto'; savePref(); startRecord(); }); await p.waitForTimeout(300);
+  const n0=seen.length; await say('오설록 달빛 걷기'); m=await last();
+  ok(seen.length===n0&&!m.ai&&/자동 대화/.test(await p.evaluate(()=>document.querySelector('#aiBadge').textContent))&&!(await p.evaluate(()=>document.querySelector('#toast').classList.contains('show'))),'자동 대화를 고르면 AI 없이 바로 진행 (알림 없음, 위에는 자동 대화)');
+  await p.evaluate(()=>{ PREF.chatAI='ai'; savePref(); });
   // AI 실패 → 예전 흐름
   down=true; await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);
   await say('오설록 달빛 걷기'); await p.waitForTimeout(800); m=await last(); ok(/처음 보는 차/.test(m.text),'AI 실패 → 예전처럼 종류를 물어봄');
