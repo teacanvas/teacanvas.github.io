@@ -419,13 +419,15 @@ const SPECS = {
 - common: flavors both the user and the expert mention. Choose ONLY from this list: ${labels.join(', ')}. 0–4 items.
 - diff: 1–2 short sentences (under 60 chars each) about what only the user noticed or only the expert mentions.
 - ai: a warm 1–2 sentence reading (under 120 chars) of how the user's senses relate to the description.
-- own: 0–3 of the user's most personal, vivid phrases (images, memories, scenes — e.g. "like a forest path after rain"), copied EXACTLY as a contiguous part of their expressions above. Skip plain flavor words like "grassy" or "sweet".`
+- mine: one tidy line (under 90 chars) of the user's notes about how the tea looks, smells and tastes, joined with commas in their own words. Drop fillers (uh, um, like…), small talk and words the speech recognition obviously misheard. Never add impressions they didn't give. e.g. "nutty, gentle aroma, a little sweet and bitter".
+- own: 0–3 of the user's most personal, vivid phrases (images, memories, scenes — e.g. "like a forest path after rain"), taken from their expressions above; you may drop fillers but keep their words. Skip plain flavor words like "grassy" or "sweet".`
           : `JSON으로 답해:
 - expert: ${L.generic ? '이 차(이름 기준)에 대한 전문가식 설명 1~2문장, 90자 이내. 이 차를 잘 모르면 빈 문자열.' : '빈 문자열 (지금 설명을 그대로 쓴다).'}
 - common: 사용자와 전문가가 함께 짚은 풍미. 반드시 이 목록에서만 골라: ${labels.join(', ')}. 0~4개.
 - diff: 사용자만 느낀 것 또는 전문가만 말한 것, 짧은 문장 1~2개 (각 45자 이내, '~했어요' 체).
 - ai: 내 감각과 설명이 어떻게 닿아 있는지 다정한 해석 1~2문장, 100자 이내.
-- own: 사용자 표현 중 가장 그 사람다운 생생한 표현 0~3개 (장면·기억·비유, 예: '비 온 뒤 숲길 같은 향'). 위 사용자 표현의 일부를 글자 그대로 잘라서 써. '풀향', '단맛'처럼 흔한 풍미 단어만 있는 건 빼.`,
+- mine: 사용자가 남긴 차의 색·향·맛·느낌 표현을 정리한 한 줄 (70자 이내). 추임새(어, 음, 아, 그, 막, 그냥, 이제…), 잡담, 음성 인식이 잘못 들은 말(뜻이 안 통하는 말)은 빼고, 사용자의 말투 그대로 쉼표로 이어. 사용자가 하지 않은 표현은 절대 지어내지 마. 예: '고소하고 은은한 냄새, 살짝 달큰하고 쌉쌀한 맛'.
+- own: 사용자 표현 중 가장 그 사람다운 생생한 표현 0~3개 (장면·기억·비유, 예: '비 온 뒤 숲길 같은 향'). 위 사용자 표현에서 가져오되 추임새는 빼도 돼. 말 자체는 바꾸지 마. '풀향', '단맛'처럼 흔한 풍미 단어만 있는 건 빼.`,
       ].join('\n');
     },
     schema: {
@@ -436,6 +438,7 @@ const SPECS = {
         diff: { type: 'ARRAY', items: { type: 'STRING' } },
         ai: { type: 'STRING' },
         own: { type: 'ARRAY', items: { type: 'STRING' } },
+        mine: { type: 'STRING' },
       },
       required: ['common', 'diff', 'ai'],
     },
@@ -449,8 +452,13 @@ const SPECS = {
       };
       const ex = str(j.expert, 200);
       if (ex && b.local && b.local.generic) outp.expert = ex;
-      const said = list(b.expressions, 20, 120).join(' / ').replace(/\s+/g, '');   // 사용자가 실제로 한 말 안에 있는 것만
-      outp.own = list(j.own, 3, 40).map(x => x.replace(/^[‘'"“]+|[’'"”.!?]+$/g, '').trim()).filter(x => x.length >= 3 && said.includes(x.replace(/\s+/g, '')));
+      // 사용자가 실제로 한 말에서 온 것만 남긴다: 추임새를 뺀 정도는 괜찮지만, 두 글자 묶음 대부분이 사용자 말에 있어야 한다 (지어낸 표현은 버림)
+      const said = list(b.expressions, 20, 120).join(' / ').replace(/\s+/g, '');
+      const bg = new Set(); for (let i = 0; i < said.length - 1; i++) bg.add(said.slice(i, i + 2));
+      const fromUser = (x, need) => { const n = x.replace(/[\s,.·'"‘’“”]/g, ''); if (n.length < 2) return false; let hit = 0; for (let i = 0; i < n.length - 1; i++) if (bg.has(n.slice(i, i + 2))) hit++; return hit / Math.max(1, n.length - 1) >= need; };
+      outp.own = list(j.own, 3, 40).map(x => x.replace(/^[‘'"“]+|[’'"”.!?]+$/g, '').trim()).filter(x => x.length >= 3 && fromUser(x, 0.8));
+      const mine = str(j.mine, 160).replace(/^[‘'"“]+|[’'"”]+$/g, '');
+      if (mine && fromUser(mine, 0.6)) outp.mine = mine;
       if (!outp.ai) return null;
       if (!outp.diff.length) delete outp.diff;
       return outp;

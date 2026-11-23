@@ -650,7 +650,10 @@ Object.entries({sweet:['스윗','스위트'],soft:['소프트','스무스','부�
 Object.entries(KW_MORE).forEach(([k,a])=>a.forEach(w=>{ if(!FLAVORS[k].kw.includes(w)) FLAVORS[k].kw.push(w); }));
 /* 나만의 표현: 풍미로 잇지 못한 말은 그대로 남긴다 */
 let _CW; const chipWords=()=>_CW||(_CW=new Set(['더 부드러워졌어요','단맛이 늘었어요','향이 옅어졌어요','더 진해졌어요','비슷해요',...FEEL.aroma.opts,...FEEL.taste.opts]));   // 버튼 문구
-function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'').trim(); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)||chipWords().has(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
+/* 말할 때 섞인 추임새(어, 음, 그…)와 웃음은 뺀다 */
+const FILLER=/(^|[\s,])(어+|음+|으+|아+|에+|그+|저기|저|막|뭐|이제|그냥|약간|좀|ㅋ+|ㅎ+)(?=[\s,.!?~]|$)/g;
+const unfill=t=>{ let x=String(t||''); for(let i=0;i<3;i++) x=x.replace(FILLER,'$1'); return x.replace(/\s+/g,' ').replace(/^[\s,.]+|[\s,]+$/g,'').trim(); };
+function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=unfill(t); if(t.length<4||/모르겠|없어요/.test(t)||out.includes(t)||chipWords().has(t)) return; if(!FKEYS.filter(k=>FLAVORS[k].kw.some(w=>t.replace(/\s/g,'').includes(w))).length) out.push(t); }); return out.slice(0,3); }
 const recOwn=r=>r.own||ownWords(r.exprs);
 const FKEYS = Object.keys(FLAVORS);
 /* 개완(공부차) 우림: 찻잎을 많이, 짧게 여러 번 */
@@ -1780,7 +1783,7 @@ async function aiCompare(){
   { const b=$('#cmpBusy'); if(b) b.hidden=true; }
   if(!j||cur()!=='compare') return; const set=(id,html)=>{ const el=$('#'+id); if(el&&html){ el.innerHTML=html; el.classList.add('ai-in'); } };
   if(typeof j.expert==='string'&&j.expert){ set('cmpExpert',esc(j.expert)); const g=$('#cmpExpert')&&$('#cmpExpert').previousElementSibling; if(g&&g.tagName==='SMALL') g.remove(); }   // 이 차에 맞춘 설명이 오면 '○○ 일반' 표시는 뗀다
-  if(typeof j.mine==='string') set('cmpMine',esc(j.mine));
+  if(typeof j.mine==='string'&&j.mine.trim()){ d.mine=j.mine.trim(); set('cmpMine',esc(d.mine)); }   // AI가 추임새·잡담을 걸러 정리한 나의 기록
   if(Array.isArray(j.common)) set('cmpCommon',j.common.map(c=>`<span class="chip">${esc(c)}</span>`).join(''));
   if(Array.isArray(j.diff)) set('cmpDiff',`<ul>${j.diff.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`);
   if(typeof j.ai==='string') set('cmpAI',esc(j.ai));
@@ -2407,7 +2410,8 @@ function cmpAIText(c){ const en=isEN();
   return en? `Both notes share ${a}.`+(b?` On top of that, you added your own words — ‘${esc(b)}’.`:' Your senses and the description point the same way.')
            : `두 기록 모두 ${a}의 인상을 담고 있어요.`+(b?` 여기에 ‘${esc(b)}’처럼 나만의 표현이 더해졌어요.`:' 내 감각이 설명과 같은 쪽을 짚었어요.'); }
 function myExpression(d){
-  const mine=(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))).map(m=>m.text.replace(/[.!?]+$/,'')).filter(t=>t!=='잘 모르겠어요');
+  if(d.mine) return d.mine;   // AI가 정리한 게 있으면 그걸로
+  const mine=(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))).map(m=>unfill(m.text.replace(/[.!?]+$/,''))).filter(t=>t.length>=2&&t!=='잘 모르겠어요');
   if(mine.length) return mine.slice(0,6).map(x=>isEN()?(EN[x]||x):x).join(', ') + '.';
   const f=['aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}${josa(f[f.length-1],'이','가')} 먼저 느껴졌어요.`;
