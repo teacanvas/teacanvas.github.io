@@ -72,7 +72,7 @@ export default {
         const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs });
         const clean = tspec.clean(text, body);
         const res = clean ? out(clean) : out({ error: 'empty' }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res;
-      } catch (e) { return out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); }
+      } catch (e) { const res = out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res; }
     }
     const spec = SPECS[body && body.mode];
     if (!spec) return out({ error: 'mode' }, 400);
