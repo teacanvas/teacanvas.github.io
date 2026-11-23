@@ -233,7 +233,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagid.ph{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}.tagid.ph>div{text-align:center}.tagid.ph .nm{margin-top:0}
 .tagph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;filter:grayscale(1)}   /* 색은 찻방울에만 */
 .tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid #E5E5E5}
-.cmtrow .box{position:relative}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
+.cmtrow .box{position:relative}.cmtrow .box input{padding-right:46px}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
 .btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
 .typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
 .typelist .tb{width:34px;height:34px;flex:none;display:grid;place-items:center}.typelist .tb svg{width:100%;height:100%}.typelist b{font-weight:600}.typelist .muted{margin-left:auto}.typelist .chev{color:#AAA}
@@ -271,7 +271,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px 10px;margin-top:10px}
 .detail{background:var(--g0);border-radius:var(--r-card);padding:18px 18px 14px;margin-top:10px}
 .dhead{display:flex;gap:18px;align-items:center;margin-bottom:16px}
-.det-drop{width:220px;margin:-14px auto -14px}.det-drop canvas{display:block;width:100%;aspect-ratio:1.3}
+.det-drop{width:300px;max-width:100%;margin:-10px auto -10px}.det-drop canvas{display:block;width:100%;aspect-ratio:1.3}
 .det-en{margin:0 12px 10px}
 .tcrow{display:flex;align-items:center;gap:8px;font-size:14px}.tcrow i{width:16px;height:16px;border-radius:50%;display:block}
 .dhead div{font-size:13.5px;line-height:1.7}
@@ -487,7 +487,7 @@ canvas.wcd.big{margin:14px auto}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
 }
 .stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
-.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:4px;flex:0 0 auto}
+.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:12px;flex:0 0 auto}
 .infuse #inf3d{margin-bottom:6px}
 .infuse{flex-direction:column;align-items:center;justify-content:flex-end}
 .inflabel{min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
@@ -929,12 +929,12 @@ function orb(src,size,cls=''){
 /* 모든 방울을 ① 수채로: 풍미 색만 쓰고, 풍미가 없으면 맑은 물. 같은 기록은 어디서나 같은 모양(id로 시드) */
 function dropFlav(drop){ const f=(drop.comps||[]).filter(c=>FLAVORS[c.key]); const L=f.length?f.map(c=>({k:c.key,c:FLAVORS[c.key].color,w:c.w})):[{k:'clear',c:CLEAR,w:.6}]; return L; }
 const dropSid=drop=>String(drop.id).replace(/^draft-/,'n').replace(/^rb-/,'');
-function dropBitmap(drop,px){
-  const k=drop.id+'|'+px+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
+function dropBitmap(drop,px,rk=.33){
+  const k=drop.id+'|'+px+'|'+rk+'|'+drop.comps.map(c=>c.key+c.w.toFixed(2)).join();
   if(BMP.has(k)) return BMP.get(k);
   if(BMP.size>300) BMP.clear();
   const c=document.createElement('canvas'); c.width=c.height=px; const x=c.getContext('2d');
-  drawRec1(x,dropFlav(drop),px/2,px/2,px*.33,dropSid(drop),CV_SPREAD+1.4,.95);
+  drawRec1(x,dropFlav(drop),px/2,px/2,px*rk,dropSid(drop),CV_SPREAD+1.4,.95);
   BMP.set(k,c); return c;
 }
 const pxFor=size=>Math.round(size*Math.min(2.5,(window.devicePixelRatio||1)*SCALE));
@@ -953,7 +953,7 @@ function paintDrops(root=document){
   root.querySelectorAll('canvas.wcd:not([data-done])').forEach(cv=>{
     const drop=DROPS[cv.dataset.dk]; if(!drop) return;
     const px=pxFor(+cv.dataset.sz); cv.width=cv.height=px;
-    cv.getContext('2d').drawImage(dropBitmap(drop,px),0,0); cv.dataset.done='1';
+    cv.getContext('2d').drawImage(dropBitmap(drop,px,cv.classList.contains('big')?.4:.33),0,0);   // 큰 칸(Tea Tag)은 번짐을 칸에 더 꽉 차게 cv.dataset.done='1';
   });
 }
 const TYPE_EN={green:['green','sencha','matcha','gyokuro','jasmine','genmaicha','hojicha','longjing','dragonwell'],white:['white','silverneedle','whitepeony','baimudan','shoumei'],oolong:['oolong','tieguanyin','orientalbeauty','dahongpao','milkoolong','phoenix'],
@@ -1352,7 +1352,7 @@ compare(){
 done(){
   const r=S.lastSaved||S.records[0];
   return `${stepbar(4)}
-  ${d3Box('done3d',250)}
+  ${d3Box('done3d',300,false,160)}
   <h1 class="t">기록을 완료했어요</h1>
   <p class="sub">오늘의 찻방울이 나의 캔버스에 물들었어요.</p>
   <div style="height:16px"></div>
@@ -1382,7 +1382,7 @@ teaTag(){
   <h1 class="t">오늘의 Tea Tag</h1><p class="sub">오늘 남긴 감각을 한 장에 담았어요.</p>
   <div style="height:16px"></div>
   <div class="tagcard">
-    ${orb(r,210,'big')}
+    ${orb(r,270,'big')}
     <div class="tagid${ph?' ph':''}">${ph?`<img class="tagph" src="${ph}" alt="내가 넣은 사진">`:''}<div><div class="nm">${esc(r.name)}</div>
     <div class="meta">${dot(esc(r.brand),r.date,stars(r.stars))}</div></div></div>
     <div class="tags">${tags.map(t=>`<span class="chip">#${esc(t)}</span>`).join('')}</div>
@@ -1512,10 +1512,10 @@ const AFTER = {
       if(best && bd<R1(1)*1.3) openDetail(best.id); else toast('찻방울을 눌러 기록을 열어보세요'); };
   },
   detail(p){ const r=S.records.find(x=>x.id===p.id); if(!r) return;
-    const c=$('#detCv1'); if(c){ animFav1(c,recFlav(r),r.id,.15,.28); c.onclick=()=>animFav1(c,recFlav(r),r.id,0,.28); }
+    const c=$('#detCv1'); if(c){ animFav1(c,recFlav(r),r.id,.15,.32); c.onclick=()=>animFav1(c,recFlav(r),r.id,0,.32); }
     const cv=$('#detCv'); if(cv) paintCanvas1(cv,recsAsc(),r.id); },
   compare(){ aiCompare(); mountDrop3D($('#cmp3d'),draftDrop(S.draft),240); },
-  done(){ const r=S.lastSaved||S.records[0]; if(r) mountDrop3D($('#done3d'),recDrop(r),250); },
+  done(){ const r=S.lastSaved||S.records[0]; if(r) mountDrop3D($('#done3d'),recDrop(r),300); },
 };
 const cur=()=>S.stack[S.stack.length-1].name;
 
@@ -2746,7 +2746,7 @@ function mountDrop3D(el,drop,size){
   const cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; cv.className='wc-big';
   el.innerHTML=''; el.appendChild(cv); const x=cv.getContext('2d'), t0=performance.now();
   const L=dropFlav(drop), sid=dropSid(drop), END=CV_SPREAD+1.4;
-  (function f(now){ if(!cv.isConnected) return; const lt=(now-t0)/1000*1.9; x.clearRect(0,0,px,px); drawRec1(x,L,px/2,px/2,px*.36,sid,Math.min(END,lt),.95); if(lt<END) requestAnimationFrame(f); })(t0);
+  (function f(now){ if(!cv.isConnected) return; const lt=(now-t0)/1000*1.9; x.clearRect(0,0,px,px); drawRec1(x,L,px/2,px/2,px*.42,sid,Math.min(END,lt),.95); if(lt<END) requestAnimationFrame(f); })(t0);
   return {};
 }
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
