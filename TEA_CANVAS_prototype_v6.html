@@ -487,7 +487,7 @@ canvas.wcd.big{margin:14px auto}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
 }
 .stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
-.infuse{position:relative;height:330px;display:flex;align-items:flex-end;justify-content:center;margin-top:8px}
+.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:14px;flex:1 1 auto;min-height:0}
 .infuse #inf3d{margin-bottom:6px}
 .infuse{flex-direction:column;align-items:center;justify-content:flex-end}
 .inflabel{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
@@ -1321,7 +1321,7 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse" data-fit="330,140,h"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,100" style="width:236px;height:236px"></div></div>
+  <div class="infuse"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,110" style="width:236px;height:236px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
@@ -1635,7 +1635,8 @@ const FREE_NUDGE='천천히 마시고 있네요.\n식으면서 달라지는 맛�
 const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는 여운이 있었나요?';
 const HINT_EX=['비 온 뒤 숲길 같아요','구운 빵처럼 고소해요','끝에 꿀 같은 단맛이 남아요','혀가 살짝 조이는 느낌이에요','입안이 시원하게 맑아져요'];
 function focusEnd(el){ if(!el) return; el.focus(); const n=el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
-function useHint(t){ const i=$('#chatIn'); if(!i) return; i.value=t; try{ syncSend(); }catch(e){} focusEnd(i); }
+function useHint(t){ if(VOICE.on){ sendMsg(t); return; }   // 음성 모드엔 입력칸이 숨어 있어 누른 예시를 바로 보낸다
+  const i=$('#chatIn'); if(!i) return; i.value=t; try{ syncSend(); }catch(e){} focusEnd(i); }
 function showExprHint(){ const d=S.draft; d.chat.push({who:'bot',hint:true,text:'이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.'}); paintMsgs(); }
 /* 맞장구: 들은 풍미를 살짝 되짚거나, 짧게 공감만. 같은 말이 이어지지 않게 돌려 쓴다 */
 const ACK=['음, 그렇군요.','아, 좋네요.','그 느낌 알 것 같아요.','네, 천천히 즐겨요.','음, 좋은 한 모금이네요.'];
