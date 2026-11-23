@@ -94,8 +94,9 @@ export default {
 // 무료 한도는 모델마다 따로다 (예: 3.5·3.1 Flash Lite 하루 500번·분당 15번, Flash 하루 20번). 가벼운 모델부터 쓰고, 한도(429)·붐빔(503)이면 다음 모델로
 const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-3-flash-preview'];
 const NO_THINK_CFG = new Set();      // 생각 끄기 설정을 거절한 모델 (다음 요청부터 바로 설정 없이)
-// 3.x 모델과 '최신' 별칭은 생각 끄기 설정(thinkingBudget 0)을 거절(400)한다 → 처음부터 보내지 않는다
-const noThink = m => NO_THINK_CFG.has(m) || /^gemini-3|latest$/.test(m);
+// 3.x 모델과 '최신' 별칭은 생각 끄기(thinkingBudget 0)를 거절(400)한다 → 대신 '생각 최소(thinkingLevel minimal)'로 빨리 답하게. 그것도 거절하면 설정 없이
+const noThink = m => NO_THINK_CFG.has(m);
+const thinkCfg = m => /^gemini-3|latest$/.test(m) ? { thinkingLevel: 'minimal' } : { thinkingBudget: 0 };
 let SEARCH_OFF_UNTIL = 0;           // 검색 한도가 차면(429) 잠시 검색 없이 (매번 거절당하며 시간 쓰지 않게)
 async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
   const deadline = Date.now() + budgetMs;
@@ -108,7 +109,7 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
   let last = 'no model';
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-    const tries = noThink(model) ? [base] : [{ ...base, generationConfig: { ...base.generationConfig, thinkingConfig: { thinkingBudget: 0 } } }, base];
+    const tries = noThink(model) ? [base] : [{ ...base, generationConfig: { ...base.generationConfig, thinkingConfig: thinkCfg(model) } }, base];
     for (let i = 0; i < tries.length; i++) {
       const left = deadline - Date.now();
       if (left < 1200) throw new Error('timeout; last ' + last);
@@ -147,7 +148,7 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) 
       const left = deadline - Date.now();
       if (left < 1200) throw new Error('timeout; last ' + last);
       const gc = { maxOutputTokens: maxTokens, temperature: 0.7 };
-      if (v.think) gc.thinkingConfig = { thinkingBudget: 0 };
+      if (v.think) gc.thinkingConfig = thinkCfg(model);
       const payload = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gc };
       if (v.tools) payload.tools = [{ google_search: {} }];
       let r;
