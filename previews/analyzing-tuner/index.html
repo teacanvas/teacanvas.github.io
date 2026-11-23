@@ -7,35 +7,32 @@
 h1{font-size:19px;font-weight:800}p.d{font-size:13px;color:#6b6b6b;margin-top:6px;line-height:1.5}
 label{display:block;margin-top:18px;font-size:14px;font-weight:600}label span{float:right;font-weight:800}
 input[type=range]{width:100%;margin-top:8px}
-.devs{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.devs button{border:1px solid #ccc;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.devs button.on{background:#111;color:#fff;border-color:#111}
-.out{margin-top:20px;background:#F4F4F2;border-radius:12px;padding:14px;font-size:15px;font-weight:700;line-height:1.6}
-.out small{display:block;font-weight:400;color:#6b6b6b;font-size:12.5px}
-.phone{background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 0 0 8px #222;flex:none}
-iframe{border:0;display:block}
+.out{margin-top:20px;background:#F4F4F2;border-radius:12px;padding:14px;font-size:15px;font-weight:700;line-height:1.6}.out small{display:block;font-weight:400;color:#6b6b6b;font-size:12.5px}
+.phone{position:relative;width:384px;height:854px;border-radius:28px;overflow:hidden;box-shadow:0 0 0 8px #222;background:#fff url(bg.png) 0 0/384px 854px no-repeat;flex:none;transform-origin:0 0}
+.holder{flex:none}
+.area{position:absolute}
+.lab{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:64px}
+.lab b{font-size:30px;font-weight:600;letter-spacing:-.015em;color:#7a6a58;line-height:1.1}.lab span{font-size:12.5px;color:#8A8A8A;margin-top:4px}
+.drop{position:absolute;left:50%;transform:translateX(-50%);background:url(drop.png) center/contain no-repeat}
 </style></head><body><div class="wrap">
 <div class="ctrl"><h1>찻방울 완성 화면 높이 조절</h1>
-<p class="d">설명 문장 아래부터 단계 표시(표현 읽는 중 → …) 위까지를 100%로 보고, 그 안에서 위치를 정해요. 움직이면 오른쪽 실제 화면이 바로 바뀌어요.</p>
-<div class="devs" id="devs"></div>
+<p class="d">설명 문장 아래부터 단계 표시 위까지를 100%로 보고 위치를 정해요. 슬라이더를 움직이면 오른쪽 화면이 바로 바뀌어요. 계산은 앱과 같아요.</p>
 <label>풍미 이름 높이 <span id="vl"></span><input id="l" type="range" min="5" max="45" value="20"></label>
 <label>찻방울 높이 <span id="vd"></span><input id="d" type="range" min="35" max="85" value="69"></label>
 <label>찻방울 최대 크기 <span id="vs"></span><input id="s" type="range" min="30" max="80" value="62"></label>
 <div class="out">이름 <span id="ol"></span>% · 찻방울 <span id="od"></span>% · 크기 <span id="os"></span>%<small>마음에 드는 값이 되면 이 세 숫자를 알려주세요.</small></div>
 </div>
-<div class="phone" id="ph"><iframe id="f" src="../../TEA_CANVAS_prototype_v6.html"></iframe></div>
+<div class="holder" id="holder"><div class="phone" id="ph"><div class="area" id="area"><div class="lab" id="lab"><b>Earthy</b><span>“스모키한 향”</span></div><div class="drop" id="drop"></div></div></div></div>
 </div>
 <script>
-const DEVS=[['갤럭시 S24',384,854],['아이폰 13',390,844],['아이폰 SE',375,667],['큰 폰',430,932]];
-let dev=DEVS[0]; const f=document.getElementById('f'), ph=document.getElementById('ph');
-document.getElementById('devs').innerHTML=DEVS.map((d,i)=>`<button data-i="${i}" class="${i?'':'on'}">${d[0]}</button>`).join('');
-document.querySelectorAll('#devs button').forEach(b=>b.onclick=()=>{ dev=DEVS[+b.dataset.i]; document.querySelectorAll('#devs button').forEach(x=>x.classList.toggle('on',x===b)); size(); setTimeout(apply,300); });
-function size(){ const sc=Math.min(1,(innerHeight-60)/dev[2]); f.style.width=dev[1]+'px'; f.style.height=dev[2]+'px'; f.style.transform=`scale(${sc})`; f.style.transformOrigin='0 0'; ph.style.width=dev[1]*sc+'px'; ph.style.height=dev[2]*sc+'px'; }
+const A={"top":201.5,"h":429.75,"w":340,"left":22};   // 앱에서 잰 영역(갤럭시 S24 크기): 설명 아래 ~ 단계 표시 위
+const area=document.getElementById('area'); Object.assign(area.style,{left:A.left+'px',top:A.top+'px',width:A.w+'px',height:A.h+'px'});
 const v=id=>+document.getElementById(id).value;
-function apply(){ ['l','d','s'].forEach(k=>{ document.getElementById('v'+k).textContent=v(k)+'%'; document.getElementById('o'+k).textContent=v(k); });
-  const w=f.contentWindow; if(!w||!w.$) return; w.INF_POS={l:v('l')/100,d:v('d')/100,s:v('s')/100}; const b=w.$('#inf3d'); if(b&&b._fit) b._fit(); }
-function start(){ const w=f.contentWindow; w.INF_HOLD=true;
-  w.eval(`try{ closeSheet(); clearLive(); }catch(e){} startRecord(); Object.assign(S.draft,{name:'제주 세작',type:'green'}); ['스모키한 향','풀향이 싱그러워요','은은한 단맛'].forEach(t=>S.draft.chat.push({who:'me',text:t,kept:true})); go('analyzing');`);
-  clearInterval(start._k); start._k=setInterval(()=>{ const l=w.document.querySelector('#infLabel'); if(l){ l.style.transition='none'; l.classList.add('on'); l.querySelector('b').textContent='Earthy'; l.querySelector('b').style.color='#7a6a58'; l.querySelector('span').textContent='“스모키한 향”'; } },400);   // 이름이 늘 보이게
-  setTimeout(apply,2600); }
-['l','d','s'].forEach(k=>document.getElementById(k).oninput=apply);
-f.onload=()=>{ size(); start(); }; addEventListener('resize',size); size();
+function apply(){ const K={l:v('l')/100,d:v('d')/100,s:v('s')/100}, H=A.h, W=A.w, L=64;   // 앱의 fitBox와 같은 계산
+  const sz=Math.round(Math.max(110,Math.min(320,W*.8,K.s*H,2*((K.d-K.l)*H-L/2-8)))), lt=Math.max(4,K.l*H-L/2), mt=Math.max(6,K.d*H-sz/2-lt-L);
+  const lab=document.getElementById('lab'), drop=document.getElementById('drop'); lab.style.top=lt+'px'; Object.assign(drop.style,{width:sz+'px',height:sz+'px',top:(lt+L+mt)+'px'});
+  ['l','d','s'].forEach(k=>{ document.getElementById('v'+k).textContent=v(k)+'%'; document.getElementById('o'+k).textContent=v(k); }); }
+['l','d','s'].forEach(k=>document.getElementById(k).addEventListener('input',apply));
+function fit(){ const sc=Math.min(1,(innerHeight-50)/854,(innerWidth-40)/384); const ph=document.getElementById('ph'), h=document.getElementById('holder'); ph.style.transform=`scale(${sc})`; h.style.width=384*sc+'px'; h.style.height=854*sc+'px'; }
+addEventListener('resize',fit); fit(); apply();
 </script></body></html>
