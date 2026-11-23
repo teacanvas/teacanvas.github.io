@@ -33,6 +33,10 @@ const tea={name:'제주 세작',type:'녹차'};
     r=await post({mode:'speak',lang:'ko',text:'안녕하세요.',voice:'Kore'}); const buf=new Uint8Array(await r.arrayBuffer()); globalThis.fetch=keep;
     ok(r.status===200&&r.headers.get('Content-Type')==='audio/wav'&&buf.length===524&&String.fromCharCode(...buf.slice(0,4))==='RIFF','목소리 → wav (머리말 44바이트 + 소리)');
     ok(/-tts:generateContent/.test(seen.url)&&seen.body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName==='Kore','목소리 모델·목소리 이름 전달');
+    ok(seen.body.contents[0].parts[0].text==='안녕하세요.'&&r.headers.get('X-TTS-Model')&&r.headers.get('Access-Control-Expose-Headers')==='X-TTS-Model','읽을 글만 보냄(지시문 없음) + 쓴 모델을 알려줌');
+    globalThis.fetch=async(url,init)=>{ seen={url,body:JSON.parse(init.body)}; return new Response('busy',{status:429}); };
+    r=await post({mode:'speak',lang:'ko',text:'두 번째',voice:'Kore',pin:'gemini-3.8-flash-tts'}); globalThis.fetch=keep;
+    ok(r.status===502&&/3\.8-flash-tts:/.test(seen.url),'모델을 고정하면 그 모델만 (안 되면 다른 목소리로 바꾸지 않고 오류)');
     r=await post({mode:'speak',text:''}); ok(r.status===502,'읽을 글이 없으면 오류'); }
   { const keep=globalThis.fetch; const sent=[]; let txt='오늘 고생 많았어요. 따뜻하게 마셔요. [[FINISH]]', first429=false;
     globalThis.fetch=async(url,init)=>{ const body=JSON.parse(init.body); sent.push(body); if(first429&&body.tools){ return new Response('quota',{status:429}); } return new Response(JSON.stringify({candidates:[{content:{parts:[{text:txt}]}}]}),{status:200}); };

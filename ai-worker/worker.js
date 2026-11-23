@@ -34,6 +34,7 @@ export default {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
+      'Access-Control-Expose-Headers': 'X-TTS-Model',
       'Vary': 'Origin',
     };
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
@@ -60,8 +61,8 @@ export default {
 
     if (body && body.mode === 'speak') {   // 글 → 목소리(wav). 실패하면 JSON 오류 → 앱은 휴대폰 목소리로
       try {
-        const wav = await speakGemini(env, body);
-        return new Response(wav, { headers: { ...cors, 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store' } });
+        const { wav, model } = await speakGemini(env, body);
+        return new Response(wav, { headers: { ...cors, 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store', 'X-TTS-Model': model } });
       } catch (e) { return out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); }
     }
     const tspec = TEXT_SPECS[body && body.mode];   // 대화·차 찾기: 필요하면 Google 검색까지 하는 글 응답
@@ -289,11 +290,12 @@ const TTS_MODELS = ['gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts', 'gemini
 async function speakGemini(env, b) {
   const text = str(b.text, 400);
   if (!text) throw new Error('no text');
-  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Sulafat';
-  const en = b.lang === 'en';
-  const style = str(b.style, 120) || (en ? 'Read this in a calm, gentle, warm voice, at a relaxed pace, like a friend sitting with you over tea' : '차 한 잔 앞에 함께 앉은 친구처럼, 차분하고 다정한 목소리로 천천히 읽어줘');
+  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Aoede';
+  // 말투 지시문을 앞에 붙이면 가벼운 목소리 모델은 그 지시문까지 소리 내 읽는다 → 읽을 글만 보낸다
+  // pin: 같은 대화에서는 처음 쓴 모델만 쓴다(모델마다 목소리 결이 달라 말할 때마다 바뀌지 않게). 그 모델이 안 되면 오류 → 앱은 휴대폰 목소리로
+  const pin = /^gemini-[a-z0-9.\-]+-tts$/.test(b.pin || '') ? b.pin : '';
   const deadline = Date.now() + 12000;
-  const models = [...new Set([...(env.GEMINI_TTS_MODEL ? env.GEMINI_TTS_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...TTS_MODELS])];
+  const models = pin ? [pin] : [...new Set([...(env.GEMINI_TTS_MODEL ? env.GEMINI_TTS_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...TTS_MODELS])];
   let last = 'no model';
   for (const model of models) {
     const left = deadline - Date.now();
@@ -304,19 +306,37 @@ async function speakGemini(env, b) {
         method: 'POST', signal: AbortSignal.timeout(left - 300),
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: `${style}:\n${text}` }] }],
+          contents: [{ role: 'user', parts: [{ text }] }],
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
         }),
       });
     } catch (e) { last = `${model} timeout`; continue; }
     if (!r.ok) { last = `${model} ${r.status} ${(await r.text()).slice(0, 120)}`; if (r.status === 401 || r.status === 403) break; continue; }
     const j = await r.json();
-    const part = (j.candidates?.[0]?.content?.parts || []).find(p => p.inlineData && p.inlineData.data);
-    if (!part) { last = `${model} no audio`; continue; }
-    const rate = +((part.inlineData.mimeType || '').match(/rate=(\d+)/) || [])[1] || 24000;
-    return pcmToWav(b64ToBytes(part.inlineData.data), rate);
+    const parts = (j.candidates?.[0]?.content?.parts || []).filter(p => p.inlineData && p.inlineData.data);
+    if (!parts.length) { last = `${model} no audio`; continue; }
+    const rate = +((parts[0].inlineData.mimeType || '').match(/rate=(\d+)/) || [])[1] || 24000;
+    const pcm = concat(parts.map(p => b64ToBytes(p.inlineData.data)));
+    return { wav: pcmToWav(cleanTail(pcm, rate), rate), model };
   }
   throw new Error(last);
+}
+function concat(arrs) { const n = arrs.reduce((a, x) => a + x.length, 0), out = new Uint8Array(n); let o = 0; for (const x of arrs) { out.set(x, o); o += x.length; } return out; }
+/* 목소리 끝의 '치직' 소리 없애기: 말이 끝나고 0.1초 넘게 조용하다가, 맨 끝에 짧고(0.4초 이하) 아주 큰 소리가 붙어 있으면 그 앞에서 자른다.
+   말소리(보통 크기)나 문장 사이 쉼은 건드리지 않는다. 끝은 0.03초 동안 살짝 줄여 툭 끊기지 않게 */
+function cleanTail(pcm, rate) {
+  const n = pcm.length >> 1, win = Math.round(rate * 0.02), W = Math.floor(n / win); if (W < 20) return pcm;
+  const v = new DataView(pcm.buffer, pcm.byteOffset, n * 2), R = [];
+  for (let w = 0; w < W; w++) { let s = 0; for (let k = w * win; k < (w + 1) * win; k++) { const x = v.getInt16(k * 2, true); s += x * x; } R.push(Math.sqrt(s / win)); }
+  let end = n;
+  for (let w = W - 1, run = 0; w >= Math.max(0, W - 50); w--) {   // 끝에서 1초 안: 0.1초 넘게 조용한 구간을 찾고, 그 뒤가 짧고 아주 크면 자른다
+    if (R[w] < 150) { run++; continue; }
+    if (run >= 5) { const tail = R.slice(w + run + 1); if (tail.length <= 20 && Math.max(...tail) > 8000) end = (w + run + 1) * win; break; }
+    run = 0;
+  }
+  const fade = Math.min(Math.round(rate * 0.03), end), out = new Uint8Array(pcm.slice(0, end * 2)), ov = new DataView(out.buffer);
+  for (let k = 0; k < fade; k++) { const i = end - fade + k; ov.setInt16(i * 2, Math.round(ov.getInt16(i * 2, true) * (1 - k / fade)), true); }
+  return out;
 }
 function b64ToBytes(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
 function pcmToWav(pcm, rate) {   // 16비트 모노 PCM 앞에 WAV 머리말(44바이트)을 붙인다
