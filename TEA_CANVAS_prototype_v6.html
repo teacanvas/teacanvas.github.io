@@ -1745,7 +1745,7 @@ async function aiCompare(){
     local:(()=>{ const X=expertOf(d), c=cmpFacts(d); return {expert:X.text,generic:X.generic,common:c.common,diff:c.diff}; })()});
   { const b=$('#cmpBusy'); if(b) b.hidden=true; }
   if(!j||cur()!=='compare') return; const set=(id,html)=>{ const el=$('#'+id); if(el&&html){ el.innerHTML=html; el.classList.add('ai-in'); } };
-  if(typeof j.expert==='string') set('cmpExpert',esc(j.expert));
+  if(typeof j.expert==='string'&&j.expert){ set('cmpExpert',esc(j.expert)); const g=$('#cmpExpert')&&$('#cmpExpert').previousElementSibling; if(g&&g.tagName==='SMALL') g.remove(); }   // 이 차에 맞춘 설명이 오면 '○○ 일반' 표시는 뗀다
   if(typeof j.mine==='string') set('cmpMine',esc(j.mine));
   if(Array.isArray(j.common)) set('cmpCommon',j.common.map(c=>`<span class="chip">${esc(c)}</span>`).join(''));
   if(Array.isArray(j.diff)) set('cmpDiff',`<ul>${j.diff.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`);
