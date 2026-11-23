@@ -1699,7 +1699,7 @@ function showGuide(again){ const d=S.draft; d.stage='guide';
 /* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
    나중에 연결할 때 AI_ENDPOINT에 중간 서버 주소만 넣으면 된다. 보내는 것: {question, tea, history} / 받는 것: {text} */
 const AI_ENDPOINT=window.TC_AI_ENDPOINT||'';   // 여기에 중간 서버 주소를 넣는다. 예: 'https://teacanvas-ai.<계정>.workers.dev/chat'
-const AI_TIMEOUT=8000;  // 이 시간 안에 대답이 없으면 정해진 대답으로
+const AI_TIMEOUT=9000, AI_TIMEOUT_LONG=15000;  // 이 시간 안에 대답이 없으면 정해진 대답으로 (질문 / 비교·추천)
 const FAQ=[
   [/떫|쓴|쓰다|씁쓸/, t=>`떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요.${t?` ${t.label}는 ${t.temp}, ${t.time}이 알맞아요.`:''}`],
   [/몇 ?번|여러 ?번|다시 우려|재탕/, ()=>'잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.'],
@@ -1731,16 +1731,18 @@ function faqAnswer(q){ if(/[a-z]/i.test(q)){ const lo=q.toLowerCase(); const hit
 /* AI 중간 서버 호출(공용). mode: 'question' | 'compare'. 실패·시간 초과면 null → 정해진 대답 */
 async function aiCall(mode,extra){
   if(!AI_ENDPOINT) return null;
-  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),AI_TIMEOUT);
+  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),mode==='question'?AI_TIMEOUT:AI_TIMEOUT_LONG);
   try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
-      body:JSON.stringify({mode,tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-30).map(m=>({who:m.who,text:m.text})),...extra})});
+      body:JSON.stringify({mode,lang:isEN()?'en':'ko',tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-30).map(m=>({who:m.who,text:m.text})),...extra})});
     if(!r.ok) return null; return await r.json();
   }catch(e){ return null; } finally{ clearTimeout(timer); } }
 async function askAI(q){ const j=await aiCall('question',{question:q}); return j&&typeof j.text==='string'&&j.text.trim()?j.text.trim():null; }
 /* 비교 화면 정리: 받는 것 {expert, mine, common:[], diff:[], ai} — 빠진 칸은 정해진 내용 그대로 */
 async function aiCompare(){
   const d=S.draft; if(!d) return; const busy=$('#cmpBusy'); if(busy&&AI_ENDPOINT) busy.hidden=false;
-  const j=await aiCall('compare',{expressions:collectExprs(d).map(e=>e.text),feel:{color:d.feel.color,aroma:d.feel.aroma,taste:d.feel.taste},flavors:(d.flavors||[]).map(f=>HOME_EN[f.k])});
+  const j=await aiCall('compare',{expressions:collectExprs(d).map(e=>e.text),feel:{color:d.feel.color,aroma:d.feel.aroma,taste:d.feel.taste},flavors:(d.flavors||[]).map(f=>HOME_EN[f.k]),
+    labels:Object.keys(FLAVORS).map(k=>isEN()?HOME_EN[k]:FLAVORS[k].label),   // 공통점은 이 목록에서만 고르게 한다
+    local:(()=>{ const X=expertOf(d), c=cmpFacts(d); return {expert:X.text,generic:X.generic,common:c.common,diff:c.diff}; })()});
   { const b=$('#cmpBusy'); if(b) b.hidden=true; }
   if(!j||cur()!=='compare') return; const set=(id,html)=>{ const el=$('#'+id); if(el&&html){ el.innerHTML=html; el.classList.add('ai-in'); } };
   if(typeof j.expert==='string') set('cmpExpert',esc(j.expert));

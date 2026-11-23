@@ -1,0 +1,35 @@
+// AI 중간 서버(ai-worker/worker.js) 확인: Gemini를 가짜로 바꿔 세 모드·허용 주소·실패 처리를 본다
+// 사용법: node tests/ai-worker.mjs
+import worker from '../ai-worker/worker.js';
+let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fails++; };
+let calls=[], reply=null, status=200, firstStatus=null;
+globalThis.fetch=async(url,init)=>{ calls.push({url,body:JSON.parse(init.body),key:init.headers['x-goog-api-key']});
+  const st=firstStatus&&calls.length===1?firstStatus:status;
+  if(st!==200) return new Response('err',{status:st});
+  return new Response(JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(reply)}]}}]}),{status:200}); };
+const env={GEMINI_API_KEY:'test-key'};
+const post=(body,origin='https://teacanvas.github.io')=>worker.fetch(new Request('https://w.test/',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify(body)}),env);
+const tea={name:'제주 세작',type:'녹차'};
+(async()=>{
+  reply={text:'70~80도 물이 좋아요.'}; let r=await post({mode:'question',lang:'ko',tea,history:[{who:'me',text:'풀향'}],question:'몇 도?'}); let j=await r.json();
+  ok(r.status===200&&j.text==='70~80도 물이 좋아요.','질문 → {text}');
+  ok(calls[0].key==='test-key'&&calls[0].body.generationConfig.responseMimeType==='application/json','키는 서버에서만 붙고, JSON으로 요청');
+  ok(r.headers.get('Access-Control-Allow-Origin')==='https://teacanvas.github.io','허용 주소에 CORS 헤더');
+  reply={expert:'(AI) 설명',common:['풀향','없는풍미'],diff:['나는 ‘상쾌’라고 했어요'],ai:'(AI) 해석'};
+  r=await post({mode:'compare',lang:'ko',tea,expressions:['상쾌'],labels:['풀향','단맛'],local:{expert:'x',generic:false}}); j=await r.json();
+  ok(j.ai==='(AI) 해석'&&j.common.join()==='풀향','비교 → 목록에 없는 풍미는 버림');
+  ok(!('expert' in j),'이름별 설명이 있으면 전문가 설명은 그대로');
+  r=await post({mode:'compare',lang:'ko',tea,labels:['풀향'],local:{generic:true}}); j=await r.json(); ok(j.expert==='(AI) 설명','일반 설명일 때만 AI 설명으로');
+  reply={teas:[{name:'동방미인',type:'oolong',flavors:['Fruity','Honey'],why:'꿀 향'},{name:'제주 세작',type:'green',flavors:['Grassy'],why:'x'},{name:'X',type:'??',flavors:['Sweet'],why:'y'}]};
+  r=await post({mode:'recommend',lang:'ko',flavors:['Fruity'],recorded:['제주 세작']}); j=await r.json();
+  ok(j.teas.length===2&&j.teas[0].flavors.join()==='Fruity'&&j.teas[1].type==='green','추천 → 이미 기록한 차·없는 풍미 걸러냄');
+  calls=[]; firstStatus=400; reply={text:'ok'}; r=await post({mode:'question',question:'q'}); j=await r.json(); firstStatus=null;
+  ok(j.text==='ok'&&calls.length===2&&!calls[1].body.generationConfig.thinkingConfig,'설정을 모르는 모델이면 설정 빼고 다시');
+  status=500; r=await post({mode:'question',question:'q'}); ok(r.status===502,'Gemini 실패 → 502 (앱은 정해진 대답)'); status=200;
+  r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'허용 안 된 주소는 거절');
+  r=await post({mode:'question',question:'q'},'null'); ok(r.status===200,'내려받은 파일(file://)에서도 동작');
+  r=await post({mode:'hack'}); ok(r.status===400,'모르는 모드 거절');
+  r=await worker.fetch(new Request('https://w.test/',{method:'OPTIONS',headers:{Origin:'https://teacanvas.github.io'}}),env); ok(r.status===204,'사전 요청(OPTIONS) 응답');
+  r=await worker.fetch(new Request('https://w.test/',{method:'POST',headers:{Origin:'https://teacanvas.github.io'},body:'x'.repeat(30000)}),env); ok(r.status===413,'너무 큰 요청 거절');
+  r=await worker.fetch(new Request('https://w.test/',{method:'POST',headers:{Origin:'https://teacanvas.github.io'},body:'{}'}),{}); ok(r.status===500,'키가 없으면 500');
+  console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
