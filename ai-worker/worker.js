@@ -7,7 +7,7 @@
    - ALLOWED_ORIGINS (선택)    쉼표로 구분. 기본값은 아래 DEFAULT_ORIGINS
 
    앱이 보내는 것 (POST JSON)
-   - mode: 'chat' | 'identify' | 'question' | 'compare' | 'recommend' | 'speak'
+   - mode: 'flow' | 'chat' | 'identify' | 'question' | 'compare' | 'recommend' | 'speak'
    - lang: 'ko' | 'en'
    - tea: {name, brand, type} | null,  history: [{who:'me'|'bot', text}]
    - question 모드: question
@@ -208,6 +208,63 @@ How to talk:
       let t = plain(text), finish = /\[\[\s*FINISH\s*\]\]/i.test(t);
       t = t.replace(/\[\[\s*FINISH\s*\]\]/ig, '').trim().slice(0, 400);
       return t ? { reply: t, finish } : null;
+    },
+  },
+  /* 대화 전체를 AI가 이끈다: 앱은 큰 단계와 '지금 채울 것(want)·그다음(next)'만 알려주고, AI가 듣고 말하고 기록할 것을 뽑는다 */
+  flow: {
+    maxTokens: 600, budgetMs: 11500,
+    system: en => (en
+      ? `You are a friend sitting with the user over a cup of tea, inside TEA CANVAS (an app that records how a tea looks, smells and tastes and turns it into a watercolor drop). You lead the whole conversation; the app only tells you what still needs recording.
+How to talk:
+- Listen first and respond to exactly what the user just said (their words, mood, story). Answer questions about the tea accurately and simply; search the web when unsure.
+- Always polite, warm and calm. 1–3 short sentences (under 220 characters), it may be read aloud. At most one question per reply.
+- You cannot taste or smell the tea yourself; reflect the user's senses. Never say timer numbers. No markdown, lists, emoji or links.
+What to record (the app gives "want" and "next"):
+- want = the thing to record now (color = the tea's color in the cup, aroma, taste, after = aftertaste/how it changed as it cooled, extra = one optional detail). If the user's message gives it, put their own words in fill.<want> (short, as they said it).
+- When want gets filled (or when want is none and the user says they've finished drinking), react, then move on according to next:
+  wait = don't ask anything new, just keep chatting (the app will tell you when the tea is ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
+- If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
+- Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
+Reply with ONLY a JSON object:
+{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed}`
+      : `너는 TEA CANVAS(차의 색·향·맛을 기록해 수채화 찻방울로 남기는 앱) 안에서 사용자와 마주 앉아 차를 함께 마시는 친구야. 대화는 처음부터 끝까지 네가 이끌어. 앱은 아직 기록할 것만 알려줘.
+말하는 법:
+- 먼저 들어. 사용자가 방금 한 말(말·기분·이야기)에 정확히 반응해. 차에 대해 물으면 정확하고 쉽게 답하고, 확실하지 않으면 웹에서 찾아봐.
+- 늘 다정한 존댓말(해요체). 사용자가 반말해도 바꾸지 마. 1~3문장, 160자 이내(소리 내 읽을 수 있어). 질문은 한 번에 하나만.
+- 너는 차를 맛보거나 냄새 맡을 수 없어. 사용자의 감각을 받아서 말해. 타이머 숫자는 말하지 마. 마크다운·목록·이모지·링크 금지.
+기록할 것 (앱이 want와 next를 줘):
+- want = 지금 기록할 것 (color = 찻잔 속 찻물 색, aroma = 향, taste = 맛, after = 끝에 남는 여운이나 식으면서 달라진 점, extra = 덧붙일 한 가지). 사용자 말에 그게 있으면 fill.<want>에 사용자의 말 그대로 짧게 넣어.
+- want가 채워지면 (또는 want가 없고 사용자가 다 마셨다고 하면) 반응한 뒤 next에 따라 자연스럽게 이어가:
+  wait = 새로 묻지 말고 이야기만 이어가 (차가 다 우러나면 앱이 알려줘) · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
+- 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
+- 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
+답은 JSON 하나만:
+{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true}`),
+    prompt: (b, en) => {
+      const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
+      const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
+      const ev = str(b.event, 30);
+      const evText = {
+        brew_start: en ? 'They just started steeping. Open the conversation in one or two short sentences.' : '방금 우리기 시작했어. 한두 문장으로 대화를 열어 줘.',
+        color_ready: en ? 'The color is coming out now. Invite them to look at the tea\'s color (want is color).' : '이제 찻물에 색이 우러나고 있어. 찻물 색을 보자고 자연스럽게 권해 줘 (want는 color).',
+        brew_done: en ? 'The tea has finished steeping. Tell them it\'s ready and invite them to smell it (want is aroma).' : '차가 다 우러났어. 다 됐다고 알려주고 향을 맡아보자고 권해 줘 (want는 aroma).',
+        wrap: en ? 'The user says they have had enough. React warmly, then ask about the aftertaste (want is after).' : '사용자가 이제 충분히 마셨대. 다정하게 반응하고 끝에 남는 여운을 물어 줘 (want는 after).',
+        idle: en ? 'The user has been quiet for a while. Say one gentle thing that fits this moment.' : '사용자가 한동안 조용해. 지금에 어울리는 말을 한 번 건네 줘.',
+      }[ev];
+      return [teaLine(b, en), b.about ? (en ? 'About this tea: ' : '이 차 정보: ') + str(b.about, 200) : '', timer,
+        `want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'}`,
+        (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
+        (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
+        evText || ((en ? 'The user just said: ' : '사용자가 방금 한 말: ') + `"${str(b.message, 400)}"`)].filter(Boolean).join('\n');
+    },
+    clean: (text) => {
+      const raw = String(text || ''), m = raw.match(/\{[\s\S]*\}/);
+      let j = null; if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
+      if (!j) { const t = plain(raw.replace(/```[a-z]*|```/g, '')).slice(0, 400); return t && !/^\{/.test(t) ? { reply: t, fill: {}, sense: false, finish: false, end: false } : null; }   // JSON이 깨지면 글만이라도
+      const reply = plain(str(j.reply, 500)).slice(0, 400); if (!reply) return null;
+      const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo'], fill = {};
+      if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
+      return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end };
     },
   },
   identify: {

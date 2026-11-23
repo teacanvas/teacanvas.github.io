@@ -1656,6 +1656,7 @@ function ackLine(d,text){ const n=d.ackN=(d.ackN||0)+1, fl=matchFlavors(text);
   if(fl.length){ const l=FLAVORS[fl[0]].label; return ACK_FL[n%ACK_FL.length](l); }
   return ACK[n%ACK.length]; }
 function freeEnough(said){ const d=S.draft; if(S.typing||d.stage!=='free') return; S.endAt=Date.now(); if(!said) d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'});   // said: 이미 말로 마무리했으면 버튼 말은 넣지 않는다
+  if(flowOn(d)){ d.stage='after'; flowEvent('wrap').then(ok=>{ if(!ok&&S.draft===d&&d.stage==='after'){ d.aiFlow=false; d.chat.push({who:'bot',text:AFTER_ASK,after:true}); paintMsgs(); } }); return; }
   if(d.chat.some(m=>m.who==='me'&&m.kept&&(/(식으|식었|식으니|여운|끝맛|뒷맛|남아|남는)/.test(String(m.text).replace(/\s/g,''))||/\b(cool(s|ed|ing)?|aftertaste|finish|linger(s|ing)?)\b/i.test(m.text)))){ d.stage='more'; return botSay(moreMsg('여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),500); }   // 이미 말했으면 다시 묻지 않기
   d.stage='after'; botSay({who:'bot',text:AFTER_ASK,after:true},500); }
 setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
@@ -1666,7 +1667,7 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
 function seedChat(){
   const d=S.draft;
   if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’이에요.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
-  if(!d.stage){ d.freeN=0; d.stage='tea'; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }
+  if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }
   chatTick();
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
@@ -1785,7 +1786,8 @@ function aiFallbackNote(){ const d=S.draft; if(!d||d.aiNoted||cur()!=='chat') re
 async function aiChat(event,message){ const d=S.draft; if(!d||!chatAIOn()) return null;
   const j=await aiCall('chat',{event,message:message||'',stage:d.stage,about:d.about||'',timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
   if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return {reply:j.reply.trim(),finish:!!j.finish}; }
-  if(++CHAT_AI.fails>=2) CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
+  return aiFail(); }
+function aiFail(){ if(++CHAT_AI.fails>=2) CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
 /* 내 말 → AI 대답. me: 대화에 넣을 내 말(이미 넣었으면 null), fallback: AI가 안 될 때 할 일, endAfter: 대답 뒤 마무리로 */
 function aiTalk(me,text,fallback,endAfter){ const d=S.draft, at=d.tid, t0=Date.now(); if(me) d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   aiChat('message',text).then(a=>{ setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
@@ -1823,6 +1825,47 @@ function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=
   if(!skip){ (d.talk||(d.talk={}))[k]=text; }
   d.chat.push({who:'me',text:skip?'건너뛸게요':text,ans:'talk',talk:k});   // 기분·상황·이유는 '그날의 이야기'로만(맛·향 분석에는 넣지 않음)
   paintMsgs(); talkNext(1100); }  // 맞장구 없이 다음 이야기로
+/* ===== AI가 이끄는 대화 =====
+   앱은 큰 흐름(차 정보 → 우리기 → 색·향·맛 → 마무리)과 '지금 기록할 것(want)·그다음(next)'만 정하고,
+   말은 전부 Gemini가 한다: 내 말을 듣고 대답하고, 그 안에서 색·향·맛·여운·그날의 이야기를 뽑아 기록에 채운다.
+   AI가 안 되면 그 자리부터 예전의 정해진 흐름으로 이어간다 */
+const FLOW_STAGES=['wait','color','wait2','aroma','taste','free','after','more'];
+const flowOn=d=>!!(d&&d.aiFlow&&chatAIOn());
+const flowWant=d=>({color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
+const flowNext=d=>({color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
+function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
+  return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
+async function flowCall(event,message){ const d=S.draft;
+  const j=await aiCall('flow',{event,message:message||'',stage:d.stage,want:flowWant(d),next:flowNext(d),about:d.about||'',filled:flowFilled(d),timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
+  if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return j; } return aiFail(); }
+function flowApply(d,f){   // AI가 뽑은 것을 기록 칸에 채운다
+  if(f.color){ d.feel.color=f.color; const hd=colorFromWords(f.color); if(hd&&!d.feel.colorHex){ d.feel.colorHD=hd; d.feel.colorHex=tcColor(hd[0],hd[1]); } }
+  if(f.aroma) d.feel.aroma=f.aroma; if(f.taste) d.feel.taste=f.taste; if(f.after) d.afterText=f.after;
+  ['mood','scene','why'].forEach(k=>{ if(f[k]) (d.talk||(d.talk={}))[k]=f[k]; });
+  const dp=d.deep||(d.deep={brews:{}}), add=t=>{ dp.memo=dp.memo?dp.memo+'\n'+t:t; };
+  if(f.origin) dp.origin=f.origin; if(f.temp) dp.temp=/\d/.test(f.temp)?num(f.temp):f.temp; if(f.time) dp.timeRaw=f.time; if(f.memo) add(f.memo); if(f.extra&&f.extra!==f.memo&&!/^(없|아니|괜찮|됐)/.test(f.extra)) add(f.extra); }
+function flowAdvance(d){ const st=d.stage; S.ask={hd:null,sel:[]};   // 지금 기록할 것이 채워지면 다음 단계로
+  if(st==='color') d.stage=brewDone()?'aroma':'wait2'; else if(st==='aroma') d.stage='taste'; else if(st==='taste'){ d.stage='free'; startDrink(); }
+  else if(st==='free'){ d.stage='after'; S.endAt=Date.now(); } else if(st==='after') d.stage='more'; }
+function flowBot(d,text){ d.chat.push({who:'bot',text,ai:true,...(isAsk(d.stage)?{ask:d.stage}:{})}); d.lastBotAt=Date.now(); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); }
+function flowFinish(){ const d=S.draft, at=d.tid;   // 마지막 인사를 다 말한 뒤 기록 정리로
+  const tick=()=>{ if(!S.draft||S.draft.tid!==at||cur()!=='chat') return; if(VOICE.on&&(VOICE.spoken<d.chat.length||VOICE.phase==='speaking')) return setTimeout(tick,400); setTimeout(()=>{ if(S.draft&&S.draft.tid===at&&cur()==='chat') finishChat(); },VOICE.on?300:1600); };
+  setTimeout(tick,600); }
+/* 내 말(또는 위젯으로 고른 대답 forced={k,extra}) → AI */
+function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.stage, want=flowWant(d);
+  const me={who:'me',text,...((forced&&forced.extra)||{})}; if(forced) me.ans=forced.k; d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
+  flowCall('message',text).then(j=>setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
+    if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); d.aiFlow=false;   // AI가 안 되면 예전 흐름으로 이 말부터 다시
+      if(forced) return answer(forced.k,text,forced.extra||{}); return sendMsg(text,false); }
+    const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; } }
+    flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
+    if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(!j.sense&&!(want==='after'&&got)) me.ans='talk'; }   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
+    if(st==='more'&&(got||j.end)){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }
+    if(got) flowAdvance(d); else if(st==='free'&&j.finish) flowAdvance(d);
+    flowBot(d,j.reply); },Math.max(0,500-(Date.now()-t0)))); }
+/* 앱 쪽 일(색이 우러남·다 우러남·다 마심)을 AI가 말로 전한다. 실패하면 false */
+function flowEvent(ev){ const d=S.draft, at=d.tid; S.typing=true; paintMsgs();
+  return flowCall(ev).then(j=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return false; } S.typing=false; if(!j){ paintMsgs(); return false; } flowApply(d,j.fill||{}); flowBot(d,j.reply); return true; }); }
 /* AI 대화일 때 우리는 동안: 정해진 질문 대신, 한동안(25초) 조용하면 AI가 한마디 건넨다(최대 3번) */
 function aiNudge(delay){ setTimeout(()=>{ const d=S.draft; if(!d||cur()!=='chat'||!(d.stage==='wait'||d.stage==='wait2')) return;
   if(!chatAIOn()) return talkNext(1000);
@@ -1847,14 +1890,19 @@ function askNext(){
   const d=S.draft, order=['wait','color','wait2','aroma','taste','free'], i=order.indexOf(d.stage);
   d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]}; d.talkPending=null;
   if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); talkNext(2200); return; } }
+  if(flowOn(d)&&(d.stage==='color'||d.stage==='aroma')){ const st=d.stage; if(st==='color'&&d.type&&TC_GUESS[d.type]) S.ask.hd=[...TC_GUESS[d.type]];
+    flowEvent(st==='color'?'color_ready':'brew_done').then(ok=>{ if(!ok&&S.draft===d&&d.stage===st){ d.aiFlow=false; askMsg(d); paintMsgs(); } }); return; }
+  askMsg(d); }
+function askMsg(d){   // 정해진 질문 (AI가 안 될 때)
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
-  else if(d.stage==='color'&&d.type&&TC_GUESS[d.type]){ S.ask.hd=[...TC_GUESS[d.type]]; const t=TEAS[d.type].label;
+  else if(d.stage==='color'&&d.type&&TC_GUESS[d.type]){ S.ask.hd=S.ask.hd||[...TC_GUESS[d.type]]; S.ask.hd=[...TC_GUESS[d.type]]; const t=TEAS[d.type].label;
     d.chat.push({who:'bot',text:VOICE.on?`${d.direct?'':'찻물에 색이 우러나기 시작했어요.\n'}지금 찻물 색은 어떤가요? 보이는 색을 말로 알려주세요.`:`${d.direct?'먼저 찻물 색부터 볼까요?':'찻물에 색이 우러나기 시작했어요.'}\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
   else { let q=ASK_VAR[d.stage]?pick(ASK_VAR[d.stage],(d.tid||1)+d.stage.length):ASK[d.stage]; if(d.direct) q=q.replace(/^(다 우려졌어요|차가 다 우려졌어요)\.\s*/,''); d.chat.push({who:'bot',text:q,ask:d.stage}); }
 }
 const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
 function answer(k,text,extra={}){
   const d=S.draft; if(S.typing) return;
+  if(flowOn(d)&&isAsk(k)&&d.stage===k) return flowMsg(text,{k,extra});
   d.feel[k]=text; d.chat.push({who:'me',text,ans:k,...extra}); d.lastMeAt=Date.now();
   S.typing=true; paintMsgs();
   const next=()=>{ S.typing=false; askNext(); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); };
@@ -2081,8 +2129,8 @@ function textIntent(d,text){
   if(W&&d.talkPending&&start(/^(건너뛸|건너뛰|패스|넘어가|다음으로|다음질문)/)) return ()=>talkAnswer('',true);
   if(W&&S.timer&&S.timer.left>0&&start(/^(벌써)?다우렸|^다됐|^다우러졌|^벌써다/)){ return ()=>{ d.chat.push({who:'me',text,ans:'nav'}); finishTimer(); paintMsgs(); }; }
   if((d.stage==='aroma'||d.stage==='taste')&&start(/^(잘)?모르겠/)&&!(d.chat[d.chat.length-1]||{}).opts) return ()=>showOpts(d.stage);
-  if(d.stage==='free'&&t.length<=22&&/(충분해|충분하|충분히마셨|충분히다마셨|충분히먹었|다마셨|다먹었|그만마실|그만할|끝낼게|마칠게|이제됐|다비웠|잘마셨)/.test(t)&&!matchFlavors(t).length) return ()=>chatAIOn()?aiTalk({who:'me',text,ans:'nav'},text,()=>freeEnough(true),true):freeEnough();
-  if(d.stage==='more'){ if(start(/^(이제)?(정리할|정리해|끝낼|끝내|그만할|마칠|없어요|없어|됐어요|됐어)/)) return ()=>morePick('done'); const m=MORE.find(([k,l])=>t.startsWith(l.split(' ')[0])); if(m) return ()=>morePick(m[0]); }
+  if(d.stage==='free'&&t.length<=22&&/(충분해|충분하|충분히마셨|충분히다마셨|충분히먹었|다마셨|다먹었|그만마실|그만할|끝낼게|마칠게|이제됐|다비웠|잘마셨)/.test(t)&&!matchFlavors(t).length) return ()=>flowOn(d)?(d.chat.push({who:'me',text,ans:'nav'}),freeEnough(true)):chatAIOn()?aiTalk({who:'me',text,ans:'nav'},text,()=>freeEnough(true),true):freeEnough();
+  if(d.stage==='more'&&!flowOn(d)){ if(start(/^(이제)?(정리할|정리해|끝낼|끝내|그만할|마칠|없어요|없어|됐어요|됐어)/)) return ()=>morePick('done'); const m=MORE.find(([k,l])=>t.startsWith(l.split(' ')[0])); if(m) return ()=>morePick(m[0]); }
   return null; }
 /* 말로 한 색: '연한 연두색이에요' → 색 점도 함께 */
 function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String(text).toLowerCase().replace(/\s/g,'').replace(/red/g,'빨강').replace(/orange/g,'주황').replace(/amber/g,'호박').replace(/gold(en)?/g,'황금').replace(/yellow/g,'노랑').replace(/green/g,'초록').replace(/blue/g,'파랑').replace(/indigo/g,'남색').replace(/purple|violet/g,'보라').replace(/pink/g,'분홍').replace(/brown/g,'갈색').replace(/pale|light|clear/g,'연한').replace(/dark|deep/g,'진한'); const fam=[[/(빨강|빨간|붉은|적색)/,0],[/(주황|호박|오렌지)/,.17],[/(황금|금빛|골드)/,.24],[/(노랑|노란|누런)/,.33],[/(연두|초록|녹색|풀색)/,.46],[/(파랑|파란|하늘)/,.67],[/(남색)/,.83],[/(보라)/,1],[/(분홍|핑크)/,0]];
@@ -2093,6 +2141,7 @@ function sendMsg(text,isChip){
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
+  if(flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending&&!chatAIOn()) return talkAnswer(text);
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending){ const k=d.talkPending; d.talkPending=null; d.planI=(d.planI||0)+1; (d.talk||(d.talk={}))[k]=text; return aiTalk({who:'me',text,ans:'talk',talk:k},text,()=>{ paintMsgs(); talkNext(1100); }); }

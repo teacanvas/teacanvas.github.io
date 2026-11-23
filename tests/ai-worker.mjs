@@ -43,6 +43,13 @@ const tea={name:'제주 세작',type:'녹차'};
     first429=false; txt='```json\n{"found":true,"name":"달빛 걷기","brand":"오설록","type":"green","about":"배 향을 더한 녹차예요."}\n```';
     r=await post({mode:'identify',lang:'ko',text:'오설록 달빛 걷기'}); j=await r.json(); ok(j.found&&j.type==='green'&&j.name==='달빛 걷기','차 찾기 → 글 속 JSON을 꺼내 종류·이름');
     txt='{"found":true,"type":"coffee"}'; r=await post({mode:'identify',text:'x'}); j=await r.json(); ok(j.found===false,'모르는 종류면 못 찾은 것으로');
+    txt='네, 연한 연두색이네요. ```json\n{"reply":"맑은 연두색이라니 산뜻해 보여요. 이제 향을 맡아볼까요?","fill":{"color":"연한 연두색","bogus":"x","mood":"피곤함"},"sense":true,"finish":false,"end":false}\n```';
+    r=await post({mode:'flow',lang:'ko',tea,stage:'color',want:'color',next:'aroma',message:'연한 연두색이야',filled:{},history:[]}); j=await r.json();
+    ok(j.reply.startsWith('맑은 연두색')&&j.fill.color==='연한 연두색'&&j.fill.mood==='피곤함'&&!('bogus' in j.fill)&&j.sense===true,'대화 흐름 → 대답·기록할 것(정해진 칸만)·감각 여부');
+    txt='그냥 글로만 답했어요.'; r=await post({mode:'flow',lang:'ko',want:'aroma',message:'음'}); j=await r.json();
+    ok(j.reply==='그냥 글로만 답했어요.'&&JSON.stringify(j.fill)==='{}','JSON이 깨져도 대답은 살림');
+    sent.length=0; txt='{"reply":"다 우러났어요.","fill":{}}'; r=await post({mode:'flow',lang:'ko',event:'brew_done',want:'aroma',next:'taste'}); j=await r.json();
+    ok(j.reply==='다 우러났어요.'&&/향을 맡아보자고/.test(sent[0].contents[0].parts[0].text),'앱 이벤트(다 우러남)도 AI가 말로');
     globalThis.fetch=keep; }
   status=500; r=await post({mode:'question',question:'q'}); ok(r.status===502,'Gemini 실패 → 502 (앱은 정해진 대답)'); status=200;
   r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'허용 안 된 주소는 거절');
