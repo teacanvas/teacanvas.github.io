@@ -1,0 +1,30 @@
+# ai-worker/ 가 바뀌어 푸시되면 Cloudflare Worker(teacanvas-ai)에 자동 배포
+# 필요한 저장소 비밀값: CLOUDFLARE_API_TOKEN (Edit Cloudflare Workers 권한), CLOUDFLARE_ACCOUNT_ID
+name: Deploy AI worker
+on:
+  push:
+    paths: ['ai-worker/**', '.github/workflows/deploy-ai-worker.yml']
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        id: chk
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$T" ] || [ -z "$A" ]; then echo "Cloudflare 비밀값이 아직 없어 배포를 건너뜁니다"; echo "ok=false" >> "$GITHUB_OUTPUT"; else echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Test worker
+        if: steps.chk.outputs.ok == 'true'
+        run: node tests/ai-worker.mjs
+      - name: Deploy
+        if: steps.chk.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ai-worker
+          command: deploy
