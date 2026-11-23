@@ -2324,7 +2324,7 @@ function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
   if(VOICE.demo){ if(VOICE.demoUsed&&!window.TC_VOICE_FAST){ stopVoice(); toast('시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요'); return res(null); } setTimeout(()=>{ VOICE.demoUsed=true; res(vAlive(id)?demoLine(d):null); },window.TC_VOICE_FAST?250:2200); return; }
   let got='', r; try{ r=new SR(); }catch(e){ VOICE.demo=true; return res(null); }
   VOICE.rec=r; r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
-  r.onresult=e=>{ let fin='', mid=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(mid+=x[0].transcript)); } VOICE.interim=fin||mid; if(fin) got=fin; paintVoice(); };
+  VOICE.heardAt=0; r.onresult=e=>{ if(!VOICE.heardAt) VOICE.heardAt=Date.now(); let fin='', mid=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(mid+=x[0].transcript)); } VOICE.interim=fin||mid; if(fin) got=fin; paintVoice(); };
   r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='network'||e.error==='audio-capture'){ VOICE.demo=true; toast('마이크를 쓸 수 없어 시연용 목소리로 이어갈게요'); } };
   let heard=false; r.onaudiostart=()=>{ heard=true; };
   const t1=setTimeout(()=>{ if(!heard&&vAlive(id)){ VOICE.demo=true; toast('마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요'); try{ r.abort(); }catch(e){} } },3500);
@@ -2333,12 +2333,18 @@ function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
 /* 들은 말을 대화로 보내기 */
 async function takeHeard(d,heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; S.listening=false; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; sendMsg(heard); d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
   VOICE.spoken=Math.min(VOICE.spoken,d.chat.length); await new Promise(r=>setTimeout(r,500)); }
+/* 봇 목소리가 마이크로 다시 들어온 것(메아리)인지: 음성 인식은 '오설록의'를 '오설록에'처럼 조금 틀리게 듣기도 하므로
+   글자가 똑같지 않아도, 들은 말의 두 글자 묶음이 봇이 한 말과 대부분(strict면 70%, 아니면 55%) 겹치면 메아리로 본다 */
+function isEcho(heard,line,strict){ const norm=t=>String(t||'').replace(/[^가-힣a-z0-9]/gi,'').toLowerCase(), n=norm(heard), s=norm(line);
+  if(!n||!s) return !n; if(s.includes(n)) return strict?n.length>=6:true; if(n.length<3) return false;
+  const bg=new Set(); for(let i=0;i<s.length-1;i++) bg.add(s.slice(i,i+2)); let hit=0, tot=0; for(let i=0;i<n.length-1;i++){ tot++; if(bg.has(n.slice(i,i+2))) hit++; }
+  return hit/tot>=(strict?.7:.55)&&(!strict||n.length>=6); }
 /* 끼어들기: 봇이 말하는 동안 마이크를 함께 켜 두고, 봇이 하는 말이 아닌 소리가 들리면 봇 목소리를 멈춘다 */
 function bargeListen(id,line){ const norm=t=>String(t||'').replace(/[^가-힣a-z0-9]/gi,'').toLowerCase(), said=norm(line);
   let r, cut=false, got='', mid='', ended=false, done; const p=new Promise(res=>done=res);
   try{ r=new SR(); r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; VOICE.rec=r; }catch(e){ return null; }
   r.onresult=e=>{ let fin='', m=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(m+=x[0].transcript)); } const t=fin||m, n=norm(t);
-    if(!cut&&n.length>=2&&!said.includes(n)){ cut=true; hush(); VOICE.phase='listening'; S.listening=true; }   // 봇 목소리가 다시 들린 게 아니면 끊기
+    if(!cut&&n.length>=2&&!isEcho(t,line)){ cut=true; hush(); VOICE.phase='listening'; S.listening=true; }   // 봇 목소리가 다시 들린 게(메아리) 아니면 끊기
     if(cut){ VOICE.interim=t; if(fin) got=fin; mid=t; paintVoice(); } };
   r.onerror=()=>{}; r.onend=()=>{ ended=true; done(cut?(got||mid).trim()||null:null); };
   try{ r.start(); }catch(e){ return null; }
@@ -2351,11 +2357,12 @@ async function voiceLoop(id){
       VOICE.phase='speaking'; S.listening=false; VOICE.interim=''; paintVoice();   // 봇이 말하기 시작하면 이미 보낸 내 말은 지운다
       const line=speakLine(m), barge=(!VOICE.demo&&SR)?bargeListen(id,line):null;   // 말하는 동안에도 듣다가, 내가 말하면 바로 끊는다
       await speak(line); if(!vAlive(id)) break;
-      const cut=barge?await barge.finish():null; if(cut){ await takeHeard(d,cut); }
+      const cut=barge?await barge.finish():null; if(cut&&!isEcho(cut,line)){ await takeHeard(d,cut); }   // 끊고 들은 말도 다시 한 번 메아리인지 본다
+      VOICE.lastLine=line; VOICE.spokeAt=Date.now();
       continue; }
     VOICE.phase='listening'; S.listening=true; VOICE.interim=''; paintVoice();
     const heard=await listenOnce(id); if(!vAlive(id)) break; S.listening=false;
-    if(heard) await takeHeard(d,heard);
+    if(heard&&!(VOICE.heardAt&&VOICE.heardAt-(VOICE.spokeAt||0)<1200&&isEcho(heard,VOICE.lastLine||'',true))) await takeHeard(d,heard);   // 봇이 말을 끝낸 직후(1.2초 안)에 들어온 긴 조각이 봇 말과 거의 같으면 꼬리 소리로 보고 버린다
     else await new Promise(r=>setTimeout(r,VOICE.demo?1500:300));
     if(['organizing','analyzing'].includes(cur())) break;
   }
