@@ -212,10 +212,10 @@ How to talk:
   },
   identify: {
     maxTokens: 500, budgetMs: 12000,
-    system: en => 'You identify tea products. Search the web to find the exact product. Reply with ONLY a JSON object, no other text.',
+    system: en => 'You identify teas from what the user typed. For a specific product, search the web to find it. Reply with ONLY a JSON object, no other text.',
     prompt: (b, en) => `Tea the user typed: "${str(b.text, 80)}"${b.brand ? ` (brand: ${str(b.brand, 40)})` : ''}
 Return JSON: {"found": true/false, "name": product name as commonly written${en ? '' : ' in Korean'}, "brand": brand or "", "type": one of ${TEA_TYPES.join('|')} (blends: by the base tea leaf; no tea leaf at all = herb), "about": ${en ? 'one short sentence (under 80 chars) on its base and main flavor notes' : '이 차의 바탕 찻잎과 주된 향·맛을 한 문장으로 (60자 이내, 해요체)'}}
-If you cannot find this specific product, set found to false.`,
+The user may type a whole sentence (e.g. "I don't know the brand but it's rooibos") — take only the tea. A general tea (green tea, rooibos, chamomile, Earl Grey…) also counts as found: use its common name and describe it in general. Set found to false only if you cannot tell what tea it is.`,
     clean: (text) => {
       const m = String(text || '').match(/\{[\s\S]*\}/); if (!m) return null;
       let j; try { j = JSON.parse(m[0]); } catch (e) { return null; }

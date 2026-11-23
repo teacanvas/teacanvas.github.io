@@ -1677,7 +1677,7 @@ function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*
   let c=parts.find(x=>findType(x))||parts[0]||t;
   for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요)$/,'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s*차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
@@ -1687,15 +1687,16 @@ function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=
 function teaInput(text){
   const d=S.draft, r=parseTea(text); d.chat.push({who:'me',text,ans:'tea'}); d.name=r.name; d.brand=r.brand;
   if(/[?？]/.test(text)&&/(카페인|몇\s*번|온도|효능|다이어트|차이|어떻게|왜|좋아요|있어요|되나요|돼요)/.test(text)){ if(r.type) d.type=r.type; d.chat.push({who:'bot',text:faqAnswer(text)}); }   // 이름과 함께 물어본 건 먼저 답한다
-  if(r.type){ d.type=r.type; d.stage='teaOK'; botSay({who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
-  else if(chatAIOn()){ d.stage='teaType'; S.typing=true; paintMsgs(); const at=d.tid;   // 처음 보는 차는 AI가 검색해서 찾아본다
-    aiCall('identify',{text,brand:r.brand}).then(j=>{ if(!S.draft||S.draft.tid!==at) return; S.typing=false;
-      if(j&&j.found&&TEAS[j.type]){ d.type=j.type; d.name=j.name||r.name; d.brand=j.brand||r.brand; d.about=j.about||''; d.stage='teaOK'; const lb=TEAS[j.type].label;
-        d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nShall I record it as ${lb}?`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')}찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요. 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
-      else d.chat.push({who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true});
-      if(cur()==='chat') rerender(); }); }
-  else { d.stage='teaType'; botSay({who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true}); }
-  if(r.type&&chatAIOn()){ const at=d.tid; aiCall('identify',{text,brand:r.brand}).then(j=>{ if(S.draft&&S.draft.tid===at&&j&&j.found&&j.about) d.about=j.about; }); }   // 아는 차도 대화에 쓸 정보는 조용히 찾아 둔다
+  const localOK=()=>{ d.type=r.type; d.stage='teaOK'; return {who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}; };
+  const askType=()=>{ d.stage='teaType'; return {who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true}; };
+  if(!chatAIOn()) return botSay(()=>r.type?localOK():askType());
+  // AI가 먼저 찾아본다: 문장으로 적어도 차 이름만 깔끔하게, 종류와 한 줄 설명까지. 못 찾으면 앱이 아는 대로, 그것도 없으면 종류를 묻는다
+  d.stage='teaType'; S.typing=true; paintMsgs(); const at=d.tid;
+  aiCall('identify',{text,brand:r.brand}).then(j=>{ if(!S.draft||S.draft.tid!==at) return; S.typing=false;
+    if(j&&j.found&&TEAS[j.type]){ d.type=j.type; d.name=j.name||r.name; d.brand=j.brand||r.brand; d.about=j.about||''; d.stage='teaOK'; const lb=TEAS[j.type].label;
+      d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nShall I record it as ${lb}?`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')} 찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요. 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
+    else d.chat.push(r.type?localOK():askType());
+    if(cur()==='chat') rerender(); });
 }
 function teaChip(c){
   const d=S.draft; if(S.typing) return; d.chat.push({who:'me',text:c,ans:'tea'});
