@@ -32,7 +32,7 @@ const tea={name:'제주 세작',type:'녹차'};
   { const keep=globalThis.fetch; let seen; globalThis.fetch=async(url,init)=>{ seen={url,body:JSON.parse(init.body)}; return new Response(JSON.stringify({candidates:[{content:{parts:[{inlineData:{mimeType:'audio/L16;codec=pcm;rate=24000',data:Buffer.from(new Uint8Array(480)).toString('base64')}}]}}]}),{status:200}); };
     r=await post({mode:'speak',lang:'ko',text:'안녕하세요.',voice:'Kore'}); const buf=new Uint8Array(await r.arrayBuffer()); globalThis.fetch=keep;
     ok(r.status===200&&r.headers.get('Content-Type')==='audio/wav'&&buf.length===524&&String.fromCharCode(...buf.slice(0,4))==='RIFF','목소리 → wav (머리말 44바이트 + 소리)');
-    ok(/-tts:generateContent/.test(seen.url)&&seen.body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName==='Kore','목소리 모델·목소리 이름 전달');
+    ok(/3\.8-flash-tts:generateContent/.test(seen.url)&&seen.body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName==='Kore','목소리 모델·목소리 이름 전달');
     ok(seen.body.contents[0].parts[0].text==='안녕하세요.'&&r.headers.get('X-TTS-Model')&&/X-TTS-Model/.test(r.headers.get('Access-Control-Expose-Headers')),'읽을 글만 보냄(지시문 없음) + 쓴 모델을 알려줌');
     globalThis.fetch=async(url,init)=>{ seen={url,body:JSON.parse(init.body)}; return new Response('busy',{status:429}); };
     r=await post({mode:'speak',lang:'ko',text:'두 번째',voice:'Kore',pin:'gemini-3.8-flash-tts'}); globalThis.fetch=keep;

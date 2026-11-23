@@ -294,11 +294,12 @@ The user may type a whole sentence (e.g. "I don't know the brand but it's rooibo
 /* ---------- 목소리 (Gemini TTS) ---------- */
 // 보내는 것: {mode:'speak', text, lang, voice?, style?}  받는 것: audio/wav
 // 목소리 모델은 무료 한도가 아주 작다 (하루 10번 안팎). 모델마다 따로라 여러 개를 차례로 쓴다
-const TTS_MODELS = ['gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts', 'gemini-2.5-pro-preview-tts'];
+// 고른 목소리(Zephyr·Umbriel) 샘플을 만든 3.8 Flash TTS를 먼저 쓴다
+const TTS_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts', 'gemini-2.5-pro-preview-tts'];
 async function speakGemini(env, b) {
   const text = str(b.text, 400);
   if (!text) throw new Error('no text');
-  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Aoede';
+  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Zephyr';
   // 말투 지시문을 앞에 붙이면 가벼운 목소리 모델은 그 지시문까지 소리 내 읽는다 → 읽을 글만 보낸다
   // pin: 같은 대화에서는 처음 쓴 모델만 쓴다(모델마다 목소리 결이 달라 말할 때마다 바뀌지 않게). 그 모델이 안 되면 오류 → 앱은 휴대폰 목소리로
   const pin = /^gemini-[a-z0-9.\-]+-tts$/.test(b.pin || '') ? b.pin : '';
