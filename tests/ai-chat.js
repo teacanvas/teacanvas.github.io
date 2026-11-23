@@ -6,7 +6,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
 (async()=>{ const b=await chromium.launch(); const p=await b.newPage({viewport:{width:430,height:900}}); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   let down=false; const seen=[];
   await p.addInitScript(ep=>{ window.TC_AI_ENDPOINT=ep; },EP);
-  await p.route(EP,async r=>{ const q=JSON.parse(r.request().postData()||'{}'); seen.push(q.mode+(q.event?':'+q.event:'')); if(down) return r.fulfill({status:502,body:'{}'});
+  await p.route(EP,async r=>{ const q=JSON.parse(r.request().postData()||'{}'); seen.push(q.mode+(q.event?':'+q.event:'')); if(down) return r.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'upstream',detail:'gemini-3.5-flash-lite 429 RESOURCE_EXHAUSTED'})});
     if(q.mode==='identify') return r.fulfill({contentType:'application/json',body:JSON.stringify(/달빛/.test(q.text)?{found:true,name:'달빛 걷기',brand:'오설록',type:'green',about:'녹차에 배와 별사탕 향을 더한 블렌드예요.'}:{found:false})});
     if(q.mode==='chat'){ const fin=/다 마셨/.test(q.message||''); return r.fulfill({contentType:'application/json',body:JSON.stringify({reply:`(AI:${q.event}) ${q.message||''}`.slice(0,80),finish:fin})}); }
     return r.fulfill({status:404,body:'{}'}); });
@@ -32,5 +32,8 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   // AI 실패 → 정해진 대화
   down=true; await p.evaluate(()=>{ localStorage.clear(); }); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);
   await say('오설록 달빛 걷기'); await p.waitForTimeout(800); m=await last(); ok(/처음 보는 차/.test(m.text),'AI 실패 → 예전처럼 종류를 물어봄');
+  const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
+  ok(/AI 대화를 다 써서/.test(tt),'한도 초과로 정해진 대화가 되면 위에 알림: '+tt.replace(/\n/,' '));
+  ok(await p.evaluate(()=>!S.draft.chat.some(m=>m.who==='sys')),'알림은 채팅에 섞이지 않음');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

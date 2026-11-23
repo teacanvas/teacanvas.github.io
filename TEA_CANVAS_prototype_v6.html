@@ -1695,7 +1695,7 @@ function teaInput(text){
   aiCall('identify',{text,brand:r.brand}).then(j=>{ if(!S.draft||S.draft.tid!==at) return; S.typing=false;
     if(j&&j.found&&TEAS[j.type]){ d.type=j.type; d.name=j.name||r.name; d.brand=j.brand||r.brand; d.about=j.about||''; d.stage='teaOK'; const lb=TEAS[j.type].label;
       d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nShall I record it as ${lb}?`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')} 찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요. 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
-    else d.chat.push(r.type?localOK():askType());
+    else{ if(!j) aiFallbackNote(); d.chat.push(r.type?localOK():askType()); }
     if(cur()==='chat') rerender(); });
 }
 function teaChip(c){
@@ -1751,8 +1751,8 @@ async function aiCall(mode,extra){
   const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),{question:AI_TIMEOUT,chat:12500,identify:13500}[mode]||AI_TIMEOUT_LONG);
   try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
       body:JSON.stringify({mode,lang:isEN()?'en':'ko',tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-30).map(m=>({who:m.who,text:m.text})),...extra})});
-    if(!r.ok) return null; return await r.json();
-  }catch(e){ return null; } finally{ clearTimeout(timer); } }
+    if(!r.ok){ try{ const j=await r.json(); AI_WHY=/\b429\b|quota|RESOURCE_EXHAUSTED/i.test(j.detail||'')?'quota':'net'; }catch(e){ AI_WHY='net'; } return null; } return await r.json();
+  }catch(e){ AI_WHY='net'; return null; } finally{ clearTimeout(timer); } }
 async function askAI(q){ const j=await aiCall('question',{question:q}); return j&&typeof j.text==='string'&&j.text.trim()?j.text.trim():null; }
 /* 비교 화면 정리: 받는 것 {expert, mine, common:[], diff:[], ai} — 빠진 칸은 정해진 내용 그대로 */
 async function aiCompare(){
@@ -1777,12 +1777,15 @@ function answerQuestion(text){
 }
 /* 함께 마시는 친구 같은 대화: 우림·마시는 동안 내가 한 말은 AI가 듣고 그 말에 맞춰 대답한다(필요하면 검색까지).
    AI가 안 되면(한도·연결) 예전처럼 정해진 대화로. 두 번 연달아 실패하면 3분 동안은 바로 정해진 대화 */
-const CHAT_AI={fails:0,off:0};
-const chatAIOn=()=>!!AI_ENDPOINT&&Date.now()>=CHAT_AI.off&&navigator.onLine!==false;
+const CHAT_AI={fails:0,off:0}; let AI_WHY='';
+const chatAIOn=()=>{ if(!AI_ENDPOINT) return false; if(Date.now()<CHAT_AI.off||navigator.onLine===false){ aiFallbackNote(); return false; } return true; };
+/* AI 대화가 안 돼서 정해진 대화로 넘어가면, 기록마다 한 번 위에 알린다 */
+function aiFallbackNote(){ const d=S.draft; if(!d||d.aiNoted||cur()!=='chat') return; d.aiNoted=true;
+  toast(AI_WHY==='quota'?'오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요':'AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요',true); }
 async function aiChat(event,message){ const d=S.draft; if(!d||!chatAIOn()) return null;
   const j=await aiCall('chat',{event,message:message||'',stage:d.stage,about:d.about||'',timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
   if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return {reply:j.reply.trim(),finish:!!j.finish}; }
-  if(++CHAT_AI.fails>=2) CHAT_AI.off=Date.now()+3*60e3; return null; }
+  if(++CHAT_AI.fails>=2) CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
 /* 내 말 → AI 대답. me: 대화에 넣을 내 말(이미 넣었으면 null), fallback: AI가 안 될 때 할 일, endAfter: 대답 뒤 마무리로 */
 function aiTalk(me,text,fallback,endAfter){ const d=S.draft, at=d.tid, t0=Date.now(); if(me) d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   aiChat('message',text).then(a=>{ setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
@@ -2406,7 +2409,7 @@ Object.assign(EN,{
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",
