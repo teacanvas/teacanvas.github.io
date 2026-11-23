@@ -1682,16 +1682,26 @@ const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronn
 function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*\]?/g,' ').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
   const parts=t.replace(/\s*(이거|이건)?\s*(카페인|몇\s*번|어떻게|왜|효능|다이어트|차이|좋아요|있어요|되나요|돼요)[^,.!?~]*[?？]/g,'?').split(/[,!?~]|(?<=[가-힣])\.|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
   let c=parts.find(x=>findType(x))||parts[0]||t;
-  for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
+  for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?|어제|그제|방금|아까|지난번에?|요즘|며칠\s*전에?|주말에)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셨어|마셔요|마셔|마실게요|마실게|마실래(요)?|마시려(구|고)(요)?|마셔\s*볼(게|래)(요)?|샀어요|샀어|산\s*거|사\s*왔어(요)?|사왔어(요)?|받았어(요)?|선물\s*받은\s*거|있어(요)?)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s*차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s+차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
 function botSay(msg,delay=600){ const d=S.draft; S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; d.chat.push(typeof msg==='function'?msg():msg); if(cur()==='chat') rerender(); },delay); }
 function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=true; d.chat.push({who:'me',text:'',img:url,ans:'tea'});
   botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},700); }); }
+/* 자동 대화에서 차 종류를 확인하는 중: '아니야'는 아니라는 뜻으로, '응'은 맞다는 뜻으로, 종류 이름을 말하면 그 종류로. 차 이름으로 착각하지 않는다 */
+const TYPE_WORD={green:/녹차|그린티|green/i,white:/백차|white/i,oolong:/우롱|철관음|oolong/i,black:/홍차|black/i,dark:/보이|흑차|pu-?erh|puer/i,herb:/허브|herb/i,other:/기타|곡물|보리|우엉|옥수수|other/i};
+function teaConfirmIntent(d,text){ const t=String(text).replace(/\s/g,''), no=/(아니|아냐|아닌|틀렸|틀려|틀린|별로|다른|^노$|^no\b)/i.test(t), yes=!no&&/^(응|웅|네|넹|예|어|그래|맞|ㅇㅇ|오케이|ok|yes|좋아)/i.test(t);
+  const chosen=ORDER.find(k=>new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:으로|로|야|이야|예요|이에요|요|이지|지|$)','i').test(t)&&!new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:가|이)?아니','i').test(t));   // '허브차야', '기타로 해줘'는 그 종류로. '녹차 아니야'는 고른 게 아니다
+  const pick=k=>()=>{ d.chat.push({who:'me',text,ans:'tea'}); d.type=k; showGuide(); };
+  if(chosen) return pick(chosen);
+  if(yes&&d.stage==='teaOK') return pick(d.type);
+  if(no||d.stage==='teaType') return ()=>{ d.chat.push({who:'me',text,ans:'tea'}); d.stage='teaType'; botSay({who:'bot',text:no?`그럼 ‘${d.name}’${josa(d.name,'은','는')} 어떤 종류에 가까운가요?\n아래에서 골라주세요.`:'아래에서 가까운 종류를 골라주세요.',chips:ORDER.map(k=>TEAS[k].label),tea:true}); };
+  return null; }
 function teaInput(text){
+  { const d0=S.draft; if((d0.stage==='teaOK'||d0.stage==='teaType')&&d0.name){ const go=teaConfirmIntent(d0,text); if(go) return go(); } }
   const d=S.draft, r=parseTea(text); d.chat.push({who:'me',text,ans:'tea'}); d.name=r.name; d.brand=r.brand;
   if(/[?？]/.test(text)&&/(카페인|몇\s*번|온도|효능|다이어트|차이|어떻게|왜|좋아요|있어요|되나요|돼요)/.test(text)){ if(r.type) d.type=r.type; d.chat.push({who:'bot',text:faqAnswer(text)}); }   // 이름과 함께 물어본 건 먼저 답한다
   const localOK=()=>{ d.type=r.type; d.stage='teaOK'; return {who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}; };
@@ -1755,7 +1765,7 @@ function faqAnswer(q){ if(/[a-z]/i.test(q)){ const lo=q.toLowerCase(); const hit
 /* AI 중간 서버 호출(공용). mode: 'question' | 'compare'. 실패·시간 초과면 null → 정해진 대답 */
 async function aiCall(mode,extra){
   if(!AI_ENDPOINT) return null;
-  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),{question:AI_TIMEOUT,chat:10500,flow:10500,identify:11000}[mode]||AI_TIMEOUT_LONG);
+  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),(S.draft&&S.draft.aiLost&&(mode==='flow'||mode==='chat')?6000:{question:AI_TIMEOUT,chat:10500,flow:10500,identify:11000}[mode])   /* AI가 끊긴 뒤 다시 시도할 땐 6초만 기다리고 자동 대화로 */||AI_TIMEOUT_LONG);
   try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
       body:JSON.stringify({mode,lang:isEN()?'en':'ko',tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-30).map(m=>({who:m.who,text:m.text})),...extra})});
     if(!r.ok){ try{ const j=await r.json(); AI_WHY=/\b429\b|quota|RESOURCE_EXHAUSTED/i.test(j.detail||'')?'quota':'net'; }catch(e){ AI_WHY='net'; } return null; } return await r.json();
@@ -1792,7 +1802,7 @@ function saveAIOff(){ try{ localStorage.setItem(AI_OFF_KEY,JSON.stringify({chat:
 /* 지금 AI 대화인지 자동 대화인지 (+ 음성 모드면 목소리도) 위에 작게 보여준다. 누르면 설명 */
 /* 설정에서 고른 대화 방식: 'ai'(기본) 또는 'auto'(정해진 대화로 빠르게 — 테스트할 때) */
 const aiChatPref=()=>PREF.chatAI!=='auto';
-function aiChatLive(){ const d=S.draft; return !!AI_ENDPOINT&&aiChatPref()&&!!d&&d.aiFlow!==false&&Date.now()>=CHAT_AI.off&&navigator.onLine!==false; }
+function aiChatLive(){ const d=S.draft; return !!AI_ENDPOINT&&aiChatPref()&&!(d&&d.aiLost)&&!!d&&d.aiFlow!==false&&Date.now()>=CHAT_AI.off&&navigator.onLine!==false; }
 function aiVoiceLive(){ return !!AI_ENDPOINT&&aiVoice()!=='device'&&!VOICE.ttsOff&&Date.now()>=TTS_OFF_UNTIL&&navigator.onLine!==false; }
 function aiBadge(){ if(!AI_ENDPOINT) return ''; const c=aiChatLive(), v=VOICE.on?`<span>·</span><span>${aiVoiceLive()?'AI 목소리':'기본 목소리'}</span>`:'';
   return `<button id="aiBadge" class="aibadge${c?'':' off'}" onclick="toast(${c?"'Gemini가 내 말을 듣고 대답하고 있어요'":aiChatPref()?"'AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요'":"'설정에서 자동 대화를 골랐어요\\n정해진 대화로 빠르게 진행해요'"},true)"><i></i><span>${c?'AI 대화':'자동 대화'}</span>${v}</button>`; }
@@ -2151,7 +2161,7 @@ function textIntent(d,text){
     if(d.stage==='free'&&/(that's enough|thats enough|^enough|i'm done|im done|^done|finished|that's it|all done|i drank it all|no more)/.test(e)) return ()=>freeEnough();
     if(d.stage==='more'&&/(wrap up|finish|done|that's all|nothing|no more|let's wrap)/.test(e)) return ()=>morePick('done');
   }
-  if(d.stage==='teaOK'){ if(/^(네|예|응|웅|그래|맞아|맞아요|맞습니다|맞네|좋아요|ㅇㅇ)[.!~요]*$/.test(t)||/^(네|예|응),?맞/.test(t)) return ()=>teaChip('맞아요'); if(start(/^(아니|아뇨|다시|틀렸)/)) return ()=>teaChip('다시 적을게요'); }
+  if(d.stage==='teaOK'){ if(/^(네|예|응|웅|그래|맞아|맞아요|맞습니다|맞네|좋아요|ㅇㅇ)[.!~요]*$/.test(t)||/^(네|예|응),?맞/.test(t)) return ()=>teaChip('맞아요'); if(!flowOn(d)){ if(start(/^(다시\s*(적|쓸|말))/)) return ()=>teaChip('다시 적을게요'); if(start(/^(아니|아뇨|틀렸)/)) return teaConfirmIntent(d,text); } }   // '아니'는 종류가 틀렸다는 뜻 → 종류 고르기 (AI 대화면 AI가 알아듣는다)
   if(d.stage==='teaType'){ const k=ORDER.find(k=>t.includes(TEAS[k].label.replace(/차$/,''))); if(k) return ()=>teaChip(TEAS[k].label);
     return ()=>{ d.chat.push({who:'me',text,ans:'tea'}); botSay({who:'bot',text:'아래에서 가장 가까운 차 종류를 골라주세요.',chips:ORDER.map(k=>TEAS[k].label),tea:true},500); }; }
   if(d.stage==='guide'){ if(start(/^바로마실|^그냥마실|^바로마셔/)) return ()=>teaChip('바로 마실게요'); if(start(/^기본가이드|^추천가이드|^어떤차든|^이차에맞춘/)) return ()=>teaChip(d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기'); if(start(/^(우림)?시작|^우릴게|^우려볼게|^지금우릴/)) return ()=>teaChip('우림 시작 ▶'); }
