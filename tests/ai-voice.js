@@ -8,7 +8,7 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
 (async()=>{ const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});
   const p=await b.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); let mode='ok', calls=0, last=null;
   await p.addInitScript(ep=>{ window.TC_AI_ENDPOINT=ep; },EP);
-  await p.route(EP,async r=>{ calls++; last=JSON.parse(r.request().postData()||'{}'); if(mode==='fail') return r.fulfill({status:502,contentType:'application/json',body:'{"error":"x"}'});
+  await p.route(EP,async r=>{ calls++; last=JSON.parse(r.request().postData()||'{}'); if(mode==='fail') return r.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'upstream',detail:'gemini-3.8-flash-lite-tts 429 RESOURCE_EXHAUSTED'})});
     if(mode==='slow') await new Promise(x=>setTimeout(x,3000)); return r.fulfill({status:200,contentType:'audio/wav',body:wav(600)}); });
   await p.goto(FILE); await p.waitForTimeout(600);
   let t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?'); return {ms:Date.now()-t0,src:AUDIO&&AUDIO.src}; });
@@ -16,8 +16,10 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
   await p.evaluate(()=>speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?')); ok(calls===1,'같은 문장은 다시 요청하지 않음');
   mode='slow'; t=await p.evaluate(async()=>{ const t0=Date.now(); const pr=speak('조금 기다려야 하는 문장이에요.'); setTimeout(hush,400); await pr; return Date.now()-t0; });
   ok(t<1500,`기다리는 중에 끊으면 바로 멈춤 (${t}ms)`);
-  mode='fail'; calls=0; t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('실패하면 휴대폰 목소리로.'); return Date.now()-t0; });
-  ok(calls===1,'실패 → 휴대폰 목소리로 넘어감'); await p.evaluate(()=>speak('두 번째 실패.')); calls=0;
+  await p.evaluate(()=>{ VOICE.ttsUsed=true; }); mode='fail'; calls=0; t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('실패하면 휴대폰 목소리로.'); return Date.now()-t0; });
+  ok(calls===1,'실패 → 휴대폰 목소리로 넘어감');
+  const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
+  ok(/AI 목소리를 다 써서/.test(tt),'듣던 AI 목소리가 바뀌면 위에 이유를 알림: '+tt); await p.evaluate(()=>speak('두 번째 실패.')); calls=0;
   await p.evaluate(()=>speak('세 번째 문장.')); ok(calls===0,'연달아 실패하면 잠시 AI 목소리를 쉬고 바로 휴대폰 목소리');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

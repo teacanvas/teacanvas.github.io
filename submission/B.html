@@ -306,7 +306,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .state h2{font-size:19px;font-weight:700;margin-top:22px}
 .state p{font-size:13.5px;color:var(--g2);margin-top:10px}
 /* ---------- overlays ---------- */
-.toast{position:absolute;left:50%;top:64px;bottom:auto;transform:translate(-50%,-8px);background:rgba(0,0,0,.84);color:#fff;font-size:12.5px;padding:9px 15px;border-radius:18px;
+.toast{white-space:pre-line;text-align:center;line-height:1.5;position:absolute;left:50%;top:64px;bottom:auto;transform:translate(-50%,-8px);background:rgba(0,0,0,.84);color:#fff;font-size:12.5px;padding:9px 15px;border-radius:18px;
   opacity:0;transition:.25s;pointer-events:none;max-width:86%;text-align:center;z-index:60}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .sheetWrap{position:absolute;inset:0;background:rgba(0,0,0,.07);display:none;z-index:40;align-items:flex-end}
@@ -966,8 +966,8 @@ function findType(text){
   return null;
 }
 let toastT;
-function toast(msg){ if(S&&S.draft&&cur()==='chat'&&$('#msgs')){ const d=S.draft, last=d.chat[d.chat.length-1]; if(!(last&&last.who==='sys'&&last.text===msg)){ d.chat.push({who:'sys',text:msg}); paintMsgs(); } return; }   // 기록 중엔 채팅으로 알린다
-  const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);}
+function toast(msg,top){ if(!top&&S&&S.draft&&cur()==='chat'&&$('#msgs')){ const d=S.draft, last=d.chat[d.chat.length-1]; if(!(last&&last.who==='sys'&&last.text===msg)){ d.chat.push({who:'sys',text:msg}); paintMsgs(); } return; }   // 기록 중엔 채팅으로 알린다
+  const el=$('#toast');el.textContent=L(msg);el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),top?4200:2200);}   // top: 기록 중에도 채팅 대신 위에 띄운다
 
 const I = {
   back:'<svg width="10" height="14" viewBox="0 0 10 14"><path d="M7.5 1.5 2 7l5.5 5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2164,7 +2164,7 @@ function toggleVoice(){ VOICE.on?stopVoice():startVoice(); }
 document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.target.closest('#msgs button,#chatEnd button')) return;
   hush(); if(S.draft) VOICE.spoken=S.draft.chat.length;   // 아직 안 읽은 말은 건너뛰고, 누른 뒤에 나오는 말부터
   try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
-function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsOff=false; VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
+function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsOff=false; VOICE.ttsUsed=false; VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 function stopVoice(){ VOICE.on=false; VOICE.phase='idle'; VOICE.tid++; S.listening=false; try{ VOICE.rec&&VOICE.rec.abort(); }catch(e){} hush(); VOICE.interim=''; if(cur()==='chat') rerender(); }
 const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
@@ -2173,23 +2173,24 @@ function speakLine(m){ let t=L(m.text||''); if(m.guide){ const d=S.draft, g=guid
 let SPEAK_ID=0;
 /* AI 목소리(Gemini, 3번 Aoede): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
    안 되면(인터넷·한도·시간 초과) 휴대폰 목소리로 */
-const AI_VOICE='Aoede', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0;
+const AI_VOICE='Aoede', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
 function unlockAudio(){ try{ if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='auto'; }   // 휴대폰은 처음 소리를 누른 순간에 열어 둬야 나중에 틀 수 있다
   AUDIO.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
 async function aiVoiceUrl(text){ const key=(isEN()?'en|':'ko|')+text; if(TTS_CACHE.has(key)) return TTS_CACHE.get(key);
   const ctl=TTS_CTL=new AbortController(), timer=setTimeout(()=>ctl.abort(),7000);
   try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({mode:'speak',lang:isEN()?'en':'ko',voice:AI_VOICE,text})});
-    if(!r.ok||!/audio/.test(r.headers.get('Content-Type')||'')) return null;
+    if(!r.ok||!/audio/.test(r.headers.get('Content-Type')||'')){ try{ const j=await r.json(); TTS_WHY=/\b429\b|quota|RESOURCE_EXHAUSTED/i.test(j.detail||'')?'quota':'net'; }catch(e){ TTS_WHY='net'; } return null; }
     const url=URL.createObjectURL(await r.blob()); TTS_CACHE.set(key,url);
     if(TTS_CACHE.size>40){ const k=TTS_CACHE.keys().next().value; URL.revokeObjectURL(TTS_CACHE.get(k)); TTS_CACHE.delete(k); }
-    return url; }catch(e){ return null; } finally{ clearTimeout(timer); } }
+    return url; }catch(e){ TTS_WHY='net'; return null; } finally{ clearTimeout(timer); } }
 function hush(){ SPEAK_ID++; try{ speechSynthesis.cancel(); }catch(e){} try{ AUDIO&&AUDIO.pause(); }catch(e){} try{ TTS_CTL&&TTS_CTL.abort(); }catch(e){} }
 function speak(text){ return new Promise(res=>{ const my=++SPEAK_ID; const fin=()=>{ if(!fin.done){ fin.done=true; res(); } };
   if(!PREF.voiceSound) return setTimeout(fin,Math.min(2500,500+text.length*25)); if(window.TC_VOICE_FAST) return setTimeout(fin,120);  // 자동 확인용
   if(!AI_ENDPOINT||VOICE.ttsOff||Date.now()<TTS_OFF_UNTIL||navigator.onLine===false) return speakDevice(text,my,fin);
   aiVoiceUrl(text).then(url=>{ if(my!==SPEAK_ID) return fin();   // 기다리는 사이에 끊겼으면 끝
-    if(!url){ VOICE.ttsOff=true; if(++TTS_FAILS>=2) TTS_OFF_UNTIL=Date.now()+30*60e3; return speakDevice(text,my,fin); }   // 한 번 실패하면 이번 대화는 끝까지 휴대폰 목소리로(목소리가 오락가락하지 않게). 두 번이면 30분 쉰다(무료 한도는 하루 단위)
-    TTS_FAILS=0; if(!AUDIO) AUDIO=new Audio();
+    if(!url){ if(!VOICE.ttsOff&&VOICE.ttsUsed) toast(TTS_WHY==='quota'?'오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요':'AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요',true);   // 듣던 목소리가 바뀌면 왜 바뀌었는지 위에 알린다
+      VOICE.ttsOff=true; if(++TTS_FAILS>=2) TTS_OFF_UNTIL=Date.now()+30*60e3; return speakDevice(text,my,fin); }   // 한 번 실패하면 이번 대화는 끝까지 휴대폰 목소리로(목소리가 오락가락하지 않게). 두 번이면 30분 쉰다(무료 한도는 하루 단위)
+    TTS_FAILS=0; VOICE.ttsUsed=true; if(!AUDIO) AUDIO=new Audio();
     const a=AUDIO; a.onended=fin; a.onerror=()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); }; a.onpause=()=>{ if(my!==SPEAK_ID) fin(); };
     a.src=url; const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(my===SPEAK_ID) speakDevice(text,my,fin); else fin(); });
     setTimeout(fin,Math.min(45000,3000+text.length*160)); }); }); }
@@ -2404,7 +2405,7 @@ Object.assign(EN,{
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",
