@@ -487,10 +487,10 @@ canvas.wcd.big{margin:14px auto}
   .sheet .cmt-h{display:none}.sheet .cap{margin-top:4px}
 }
 .stickfoot{position:sticky;bottom:0;background:linear-gradient(transparent,#fff 18px);padding:22px 0 6px;margin:0 -2px}
-.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:14px;flex:1 1 auto;min-height:0}
+.infuse{position:relative;display:flex;align-items:flex-end;justify-content:center;margin-top:4px;flex:0 0 auto}
 .infuse #inf3d{margin-bottom:6px}
 .infuse{flex-direction:column;align-items:center;justify-content:flex-end}
-.inflabel{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
+.inflabel{min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;opacity:0;filter:blur(4px);transition:opacity .8s ease,filter .8s ease;margin-bottom:-6px}
 .inflabel.on{opacity:1;filter:none}.inflabel b{font-family:Pretendard,system-ui,sans-serif;font-weight:600;font-size:30px;letter-spacing:-.015em;line-height:1.1}.inflabel span{font-size:12.5px;color:#8A8A8A;margin-top:4px;max-width:260px}
 .ffloat{position:absolute;top:8px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px;background:#fff;border:1px solid #DDD;border-radius:16px;padding:5px 12px;
   animation:floatIn 1.45s cubic-bezier(.3,.6,.3,1) forwards}
@@ -1321,12 +1321,12 @@ analyzing(){
   return `${stepbar(4)}
   <h1 class="t" style="margin-top:18px">찻방울을 완성하고 있어요</h1>
   <p class="sub">내가 남긴 표현이 하나씩 찻방울에 스며들어요.</p>
-  <div class="infuse"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="236,110" style="width:236px;height:236px"></div></div>
+  <div class="infuse"><div class="inflabel" id="infLabel"><b></b><span></span></div><div id="inf3d" data-fit="290,130" style="width:290px;height:290px"></div></div>
   <div class="phases" id="phases">
     <div class="ph on"><i></i>표현 읽는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>색 스며드는 중</div><span class="ar">→</span>
     <div class="ph"><i></i>정리 중</div></div>
-  <div class="spacer" style="min-height:56px"></div>
+  <div class="spacer" style="min-height:44px"></div>
   <button class="link u" style="margin:0 auto -14px;padding:10px 16px" onclick="go('compare',{},{replace:true})">건너뛰기</button>`;
 },
 
@@ -1925,7 +1925,7 @@ const EN={
  "— 우림이 끝났어요 —":"— Brewing done —","생각하는 중이에요.":"Thinking…","끌어서 골라주세요":"Drag to choose","고른 찻물 색":"Tea color","색 계열":"Hue","진하기":"Depth","맑게":"Light","진하게":"Deep","이 색으로 보내기 →":"Send this color →","보내기 →":"Send →","떠오르면 직접 적어도 돼요":"You can also type your own",
  "맛·향으로는 담지 않았어요":"Not saved as a flavor","바꾸기":"change","이 표현에 담긴 맛과 향을 골라주세요":"Pick the flavors in this phrase","다 골랐어요":"Done",
  "기본 우림 가이드":"Basic brewing guide","물 온도":"Water","우리는 시간":"Time","양":"Amount","맛있게":"Tip",
- "말하는 중…":"Speaking…","시연용 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…",
+ "말하는 중…":"Speaking…","대답하는 중… 말하면 끊을 수 있어요":"Answering… just talk to interrupt","대답하는 중…":"Answering…","시연용 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…",
  "예: 오설록 제주 세작":"e.g. Twinings Earl Grey","차 종류를 골라주세요":"Pick a tea type","편하게 적어보세요":"Type freely","색을 말로 적어도 돼요":"You can describe the color","내 말로 편하게 적어보세요":"Say it your way","직접 적어도 돼요":"You can type your own","느낀 그대로 적어보세요":"Type what you feel",
  "꽃향":"Floral","과일향":"Fruity","상큼한 시트러스":"Citrusy","풀향":"Grassy","민트처럼 상쾌한 향":"Minty fresh","고소한 향":"Nutty","달콤한 향":"Sweet","흙·나무 향":"Earthy, woody","스모키한 향":"Smoky","계피·생강 향":"Cinnamon, ginger","은은한 향":"Subtle",
  "단맛":"Sweet","고소함":"Nutty","새콤함":"Tangy","산뜻함":"Bright","부드러움":"Smooth","묵직함":"Full-bodied","깔끔함":"Clean","은은함":"Delicate","쌉쌀함":"Slightly bitter","떫은맛":"Astringent","텁텁함":"Dry",
@@ -2150,16 +2150,32 @@ function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
   const t1=setTimeout(()=>{ if(!heard&&vAlive(id)){ VOICE.demo=true; toast('마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요'); try{ r.abort(); }catch(e){} } },3500);
   const t2=setTimeout(()=>{ if(vAlive(id)&&!got&&!VOICE.interim){ const st=$('#vState'); if(st) st.textContent=L('잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요'); } },8000);
   r.onend=()=>{ clearTimeout(t1); clearTimeout(t2); res(got.trim()||null); }; try{ r.start(); }catch(e){ res(null); } }); }
+/* 들은 말을 대화로 보내기 */
+async function takeHeard(d,heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; S.listening=false; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; sendMsg(heard); d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
+  VOICE.spoken=Math.min(VOICE.spoken,d.chat.length); await new Promise(r=>setTimeout(r,500)); }
+/* 끼어들기: 봇이 말하는 동안 마이크를 함께 켜 두고, 봇이 하는 말이 아닌 소리가 들리면 봇 목소리를 멈춘다 */
+function bargeListen(id,line){ const norm=t=>String(t||'').replace(/[^가-힣a-z0-9]/gi,'').toLowerCase(), said=norm(line);
+  let r, cut=false, got='', mid='', ended=false, done; const p=new Promise(res=>done=res);
+  try{ r=new SR(); r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; VOICE.rec=r; }catch(e){ return null; }
+  r.onresult=e=>{ let fin='', m=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(m+=x[0].transcript)); } const t=fin||m, n=norm(t);
+    if(!cut&&n.length>=2&&!said.includes(n)){ cut=true; hush(); VOICE.phase='listening'; S.listening=true; }   // 봇 목소리가 다시 들린 게 아니면 끊기
+    if(cut){ VOICE.interim=t; if(fin) got=fin; mid=t; paintVoice(); } };
+  r.onerror=()=>{}; r.onend=()=>{ ended=true; done(cut?(got||mid).trim()||null:null); };
+  try{ r.start(); }catch(e){ return null; }
+  return { finish(){ if(!cut&&!ended){ try{ r.abort(); }catch(e){} } return p; } }; }
 async function voiceLoop(id){
   while(vAlive(id)){
     const d=S.draft;
     if(S.typing){ await new Promise(r=>setTimeout(r,300)); continue; }
     if(VOICE.spoken<d.chat.length){ const m=d.chat[VOICE.spoken++]; if(m.who!=='bot') continue;
-      VOICE.phase='speaking'; S.listening=false; paintVoice(); await speak(speakLine(m)); continue; }
+      VOICE.phase='speaking'; S.listening=false; VOICE.interim=''; paintVoice();   // 봇이 말하기 시작하면 이미 보낸 내 말은 지운다
+      const line=speakLine(m), barge=(!VOICE.demo&&SR)?bargeListen(id,line):null;   // 말하는 동안에도 듣다가, 내가 말하면 바로 끊는다
+      await speak(line); if(!vAlive(id)) break;
+      const cut=barge?await barge.finish():null; if(cut){ await takeHeard(d,cut); }
+      continue; }
     VOICE.phase='listening'; S.listening=true; VOICE.interim=''; paintVoice();
     const heard=await listenOnce(id); if(!vAlive(id)) break; S.listening=false;
-    if(heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; sendMsg(heard); d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
-      VOICE.spoken=Math.min(VOICE.spoken,d.chat.length); await new Promise(r=>setTimeout(r,500)); }
+    if(heard) await takeHeard(d,heard);
     else await new Promise(r=>setTimeout(r,VOICE.demo?1500:300));
     if(['organizing','analyzing'].includes(cur())) break;
   }
@@ -2167,7 +2183,7 @@ async function voiceLoop(id){
 }
 function paintVoice(){ const d=S.draft; if(!d) return;
   const st=$('#vState'), hd=$('#vHeard');
-  if(st) st.textContent=L(VOICE.phase==='speaking'?'말하는 중…':VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):'생각하는 중…');
+  if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하면 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):'생각하는 중…');
   if(hd) hd.textContent=VOICE.interim||''; }
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
@@ -2449,9 +2465,9 @@ function runInfusion(){
   const ev=fk.map((k,i)=>({t:T0+i*STEP,k}));
   const lab=$('#infLabel'), lb=lab&&lab.querySelector('b'), ls=lab&&lab.querySelector('span');
   const show=k=>{ if(!lab) return; lb.textContent=HOME_EN[k]; lb.style.color=inkText(FLAVORS[k].color); ls.textContent=said(k); void lab.offsetWidth; lab.classList.add('on'); };
-  const size=236, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; box.innerHTML=''; box.appendChild(cv);
+  const size=290, cv=document.createElement('canvas'), px=pxFor(size); cv.width=cv.height=px; cv.style.width=cv.style.height='100%'; box.innerHTML=''; box.appendChild(cv);
   const x=cv.getContext('2d');
-  const sid='n'+d.tid, IL=fk.map(k=>({k,c:FLAVORS[k].color,w:(d.flavors.find(f=>f.k===k)||{w:.5}).w})), IP=IL.length?parts1(IL,px*.27,WC.hash(sid)%1000/1000*6.28):[];
+  const sid='n'+d.tid, IL=fk.map(k=>({k,c:FLAVORS[k].color,w:(d.flavors.find(f=>f.k===k)||{w:.5}).w})), IP=IL.length?parts1(IL,px*.38,WC.hash(sid)%1000/1000*6.28):[];
   const io=document.createElement('canvas'); io.width=io.height=px; const ioc=io.getContext('2d');
   const starts={}; let ei=0, done=false; const t0=performance.now();
   (function loop(now){
