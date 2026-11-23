@@ -136,44 +136,52 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
 // 검색 도구를 붙여 보내고, 그 모델이 검색을 못 쓰거나(400) 검색 한도가 차면(429) 검색 없이 다시 보낸다
 let TRACE = [];   // 어느 모델에서 얼마나 걸렸는지 (응답 머리말 X-AI-Trace로 확인용)
 async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) {
+  // 붐빌 때를 위한 '겹쳐 묻기': 첫 모델이 2.5초 안에 답이 없으면 다음 모델에도 같이 묻고, 먼저 온 답을 쓴다 (동시에 최대 2개)
   const deadline = Date.now() + budgetMs; TRACE = [];
   const models = [...new Set([...(env.GEMINI_MODEL ? env.GEMINI_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...FALLBACK_MODELS])];
-  let last = 'no model';
-  for (const model of models) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-    const variants = [];
-    for (const tools of (search && Date.now() >= SEARCH_OFF_UNTIL ? [true, false] : [false])) for (const think of (noThink(model) ? [false] : [true, false])) variants.push({ tools, think });
-    let tried = 0;
-    for (const v of variants) {
-      const left = deadline - Date.now();
-      if (left < 1200) throw new Error('timeout; last ' + last);
+  const queue = []; for (const m of models) { if (search) queue.push({ m, tools: true }); queue.push({ m, tools: false }); }
+  const tag = (a, x) => `${a.m.replace('gemini-', '')}${a.tools ? '+s' : ''}:${x}`;
+  const attempt = async (a, signal) => {
+    for (const think of (noThink(a.m) ? [false] : [true, false])) {
       const gc = { maxOutputTokens: maxTokens, temperature: 0.7 };
-      if (v.think) gc.thinkingConfig = thinkCfg(model);
+      if (think) gc.thinkingConfig = thinkCfg(a.m);
       const payload = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gc };
-      if (v.tools) payload.tools = [{ google_search: {} }];
-      let r;
-      try {
-        // 한 번 시도에 최대 4.5초: 가끔 한 모델이 대답 없이 붙잡혀 있으면, 그걸 기다리느라 전체 시간을 다 쓰지 않고 넘어간다
-        const t0 = Date.now();
-        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(4500, left - 300)) });
-        TRACE.push(`${model.replace('gemini-', '')}${v.tools ? '+s' : ''}${v.think ? '' : '+t'}:${r.status}:${Date.now() - t0}`);
-      } catch (e) { TRACE.push(`${model.replace('gemini-', '')}${v.tools ? '+s' : ''}:timeout`); last = `${model} timeout`; if (v.tools) continue; break; }   // 검색이 오래 걸렸으면 같은 모델로 검색 없이, 아니면 다음 모델
-      tried++;
+      if (a.tools) payload.tools = [{ google_search: {} }];
+      const t0 = Date.now();
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(a.m)}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal });
+      TRACE.push(tag(a, `${r.status}:${Date.now() - t0}`));
       if (r.ok) {
         const j = await r.json();
         const text = (j.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('').trim();
         if (text) return text;
-        last = `${model} empty`; break;
+        throw new Error(`${a.m} empty`);
       }
-      last = `${model} ${r.status} ${(await r.text()).slice(0, 120)}`;
-      if (r.status === 400 && v.think) { NO_THINK_CFG.add(model); continue; }   // 생각 끄기 설정 문제 → 설정 빼고
-      if (r.status === 429 && v.tools) { SEARCH_OFF_UNTIL = Date.now() + 15 * 60e3; continue; }   // 검색 한도 → 15분 동안 검색 없이
-      if (r.status === 400 && v.tools) continue;                                // 검색을 못 쓰는 모델 → 검색 없이
-      if (r.status === 401 || r.status === 403) throw new Error(last);
-      break;                                                                    // 붐빔(503) 등 → 다음 모델
+      const body = (await r.text()).slice(0, 120);
+      if (r.status === 400 && think) { NO_THINK_CFG.add(a.m); continue; }                       // 생각 설정을 모르는 모델 → 설정 없이 한 번 더
+      if (r.status === 429 && a.tools) SEARCH_OFF_UNTIL = Date.now() + 15 * 60e3;              // 검색 한도 → 15분 동안 검색 없이
+      const e = new Error(`${a.m} ${r.status} ${body}`); e.fatal = r.status === 401 || r.status === 403; throw e;
     }
-  }
-  throw new Error(last);
+    throw new Error(`${a.m} no variant`);
+  };
+  return new Promise((resolve, reject) => {
+    let running = 0, done = false, last = 'no model'; const ctls = new Set();
+    const finish = (ok, v) => { if (done) return; done = true; ctls.forEach(c => c.abort()); ok ? resolve(v) : reject(v); };
+    const launch = () => {
+      if (done) return;
+      let a; while ((a = queue.shift()) && a.tools && Date.now() < SEARCH_OFF_UNTIL);   // 검색이 쉬는 중이면 검색 시도는 건너뛴다
+      const left = deadline - Date.now();
+      if (!a || left < 1200) { if (!running) finish(false, new Error((a ? 'timeout; last ' : '') + last)); return; }
+      running++; const ctl = new AbortController(); ctls.add(ctl);
+      const cap = setTimeout(() => ctl.abort(), Math.min(6000, left - 300));
+      let hedge = setTimeout(() => { hedge = null; if (!done && running < 2) launch(); }, 2500);
+      attempt(a, ctl.signal).then(t => finish(true, t)).catch(e => {
+        if (e && e.name === 'AbortError') { if (!done) TRACE.push(tag(a, 'timeout')); last = `${a.m} timeout`; }
+        else last = String(e && e.message || e);
+        if (e && e.fatal) finish(false, e);
+      }).finally(() => { running--; ctls.delete(ctl); clearTimeout(cap); if (hedge) clearTimeout(hedge); if (!done && running < 2) launch(); });
+    };
+    launch();
+  });
 }
 const plain = t => String(t || '').replace(/\*\*|__|[#*`>]/g, '').replace(/\[(\d+(,\s*\d+)*)\]/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
 const STAGE_KO = { tea: '차 이름을 정하는 중', teaOK: '차 종류를 확인하는 중', teaType: '차 종류를 고르는 중', guide: '우림 가이드를 보는 중', wait: '차가 우러나기를 기다리는 중', color: '찻물 색을 보는 중', wait2: '다 우러나기를 기다리는 중', aroma: '향을 맡아보는 중', taste: '맛을 보는 중', free: '차를 마시며 자유롭게 이야기하는 중', after: '다 마시고 여운을 보는 중', more: '기록을 마무리하는 중', deep: '기록을 마무리하는 중' };

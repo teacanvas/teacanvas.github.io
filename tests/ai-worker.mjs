@@ -55,6 +55,11 @@ const tea={name:'제주 세작',type:'녹차'};
     sent.length=0; txt='{"reply":"다 우러났어요.","fill":{}}'; r=await post({mode:'flow',lang:'ko',event:'brew_done',want:'aroma',next:'taste'}); j=await r.json();
     ok(j.reply==='다 우러났어요.'&&/향을 맡아보자고/.test(sent[0].contents[0].parts[0].text),'앱 이벤트(다 우러남)도 AI가 말로');
     globalThis.fetch=keep; }
+  { const keep=globalThis.fetch; const urls=[];
+    globalThis.fetch=async(url,init)=>{ urls.push(url); const slow=/3\.5-flash-lite:/.test(url); if(slow) await new Promise((res,rej)=>{ const t=setTimeout(res,5000); init.signal&&init.signal.addEventListener('abort',()=>{ clearTimeout(t); rej(Object.assign(new Error('aborted'),{name:'AbortError'})); }); });
+      return new Response(JSON.stringify({candidates:[{content:{parts:[{text:slow?'느린 답':'빠른 답'}]}}]}),{status:200}); };
+    const t0=Date.now(); r=await post({mode:'chat',lang:'ko',message:'안녕'}); j=await r.json(); const ms=Date.now()-t0; globalThis.fetch=keep;
+    ok(j.reply==='빠른 답'&&ms<4000,`첫 모델이 2.5초 안에 답이 없으면 다음 모델에도 물어 먼저 온 답을 씀 (${ms}ms)`); }
   status=500; r=await post({mode:'question',question:'q'}); ok(r.status===502,'Gemini 실패 → 502 (앱은 정해진 대답)'); status=200;
   r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'허용 안 된 주소는 거절');
   r=await post({mode:'question',question:'q'},'null'); ok(r.status===200,'내려받은 파일(file://)에서도 동작');
