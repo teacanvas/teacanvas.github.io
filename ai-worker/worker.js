@@ -21,7 +21,7 @@
 
 const DEFAULT_ORIGINS = ['https://teacanvas.github.io', 'null', 'http://localhost', 'http://127.0.0.1'];
 const MAX_BODY = 24000;            // 요청 크기 상한 (글자)
-const TEA_TYPES = ['green', 'white', 'oolong', 'black', 'dark', 'herb'];
+const TEA_TYPES = ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'];   // other = 기타 (보리차·우엉차 같은 곡물·뿌리 차)
 const FLAVOR_EN = ['Floral', 'Fruity', 'Citrus', 'Grassy', 'Fresh', 'Nutty', 'Sweet', 'Earthy', 'Spicy', 'Smooth', 'Astringent'];
 
 export default {
@@ -187,7 +187,7 @@ const plain = t => String(t || '').replace(/\*\*|__|[#*`>]/g, '').replace(/\[(\d
 const STAGE_KO = { tea: '차 이름을 정하는 중', teaOK: '차 종류를 확인하는 중', teaType: '차 종류를 고르는 중', guide: '우림 가이드를 보는 중', wait: '차가 우러나기를 기다리는 중', color: '찻물 색을 보는 중', wait2: '다 우러나기를 기다리는 중', aroma: '향을 맡아보는 중', taste: '맛을 보는 중', free: '차를 마시며 자유롭게 이야기하는 중', after: '다 마시고 여운을 보는 중', more: '기록을 마무리하는 중', deep: '기록을 마무리하는 중' };
 const TEXT_SPECS = {
   chat: {
-    maxTokens: 400, budgetMs: 11000,
+    maxTokens: 400, budgetMs: 9500,
     system: en => (en
       ? `You are a friend sitting with the user over a cup of tea, inside TEA CANVAS (an app that records how tea tastes and smells and turns it into a watercolor drop).
 How to talk:
@@ -230,7 +230,7 @@ How to talk:
   },
   /* 대화 전체를 AI가 이끈다: 앱은 큰 단계와 '지금 채울 것(want)·그다음(next)'만 알려주고, AI가 듣고 말하고 기록할 것을 뽑는다 */
   flow: {
-    maxTokens: 600, budgetMs: 11500,
+    maxTokens: 600, budgetMs: 9500,
     system: en => (en
       ? `You are a friend sitting with the user over a cup of tea, inside TEA CANVAS (an app that records how a tea looks, smells and tastes and turns it into a watercolor drop). You lead the whole conversation; the app only tells you what still needs recording.
 How to talk:
@@ -243,7 +243,7 @@ What to record (the app gives "want" and "next"):
   wait = don't ask anything new, just keep chatting (the app will tell you when the tea is ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
 - If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
 - If want is tea: we don't know the tea yet. If the user mentions one, fill name (tea name only, no brand), brand (if any), type (one of the six types below) and about (one sentence on its base and main flavor notes), and in reply introduce it briefly and ask whether to record it as that type. If no tea is mentioned, respond and ask what tea they'll have.
-- If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb (blends: by the base tea leaf; no tea leaf at all = herb). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
+- If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb|other (blends: by the base tea leaf; herbs, flowers or fruit with no tea leaf = herb; grain or root teas like barley, burdock or corn tea = other). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
   next = guide: once the type is settled, say briefly that you'll show how to brew it (the app shows the guide).
 - If next is brew (they're looking at the brewing guide): answer brewing questions and tell them to tap or say "start brewing" when ready.
 - Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
@@ -260,7 +260,7 @@ Reply with ONLY a JSON object:
   wait = 새로 묻지 말고 이야기만 이어가 (차가 다 우러나면 앱이 알려줘) · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
 - 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
 - want가 tea면: 아직 무슨 차를 마실지 몰라. 사용자 말에 차가 나오면 fill.name(차 이름만, 브랜드 빼고), fill.brand(브랜드, 없으면 빼), fill.type(아래 teatype과 같은 6가지 중 하나), fill.about(이 차의 바탕 찻잎과 주된 향·맛을 한 문장, 60자 이내)을 넣고, reply에서 그 차를 짧게 소개한 뒤 그 종류로 기록할지 물어봐 (예: '…녹차로 기록할게요. 맞나요?'). 차가 안 나오면 그 말에 반응하고 어떤 차를 마실지 물어봐.
-- want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브차·찻잎 없는 차) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎이 전혀 없으면 herb). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
+- want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브·꽃·과일 차)·other(기타: 보리차·우엉차·옥수수차 같은 곡물·뿌리 차) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎 없이 허브·꽃·과일이면 herb, 곡물·뿌리면 other). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
   next가 guide면: 종류가 정해졌을 때 '이 차에 맞는 우림 방법을 보여드릴게요'처럼 짧게 이어가 (앱이 가이드를 보여줘).
 - 지금이 우림 가이드를 보는 중이면 (next가 brew): 우리는 법에 대한 질문에 답하고, 준비되면 '우림 시작'을 누르거나 말해 달라고 해.
 - 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
@@ -295,10 +295,10 @@ Reply with ONLY a JSON object:
     },
   },
   identify: {
-    maxTokens: 500, budgetMs: 12000,
+    maxTokens: 500, budgetMs: 10000,
     system: en => 'You identify teas from what the user typed. For a specific product, search the web to find it. Reply with ONLY a JSON object, no other text.',
     prompt: (b, en) => `Tea the user typed: "${str(b.text, 80)}"${b.brand ? ` (brand: ${str(b.brand, 40)})` : ''}
-Return JSON: {"found": true/false, "name": product name as commonly written${en ? '' : ' in Korean'}, "brand": brand or "", "type": one of ${TEA_TYPES.join('|')} (blends: by the base tea leaf; no tea leaf at all = herb), "about": ${en ? 'one short sentence (under 80 chars) on its base and main flavor notes' : '이 차의 바탕 찻잎과 주된 향·맛을 한 문장으로 (60자 이내, 해요체)'}}
+Return JSON: {"found": true/false, "name": product name as commonly written${en ? '' : ' in Korean'}, "brand": brand or "", "type": one of ${TEA_TYPES.join('|')} (blends: by the base tea leaf; herbs/flowers/fruit with no tea leaf = herb; grain or root teas like barley or burdock = other), "about": ${en ? 'one short sentence (under 80 chars) on its base and main flavor notes' : '이 차의 바탕 찻잎과 주된 향·맛을 한 문장으로 (60자 이내, 해요체)'}}
 The user may type a whole sentence (e.g. "I don't know the brand but it's rooibos") — take only the tea. A general tea (green tea, rooibos, chamomile, Earl Grey…) also counts as found: use its common name and describe it in general. Set found to false only if you cannot tell what tea it is.`,
     clean: (text) => {
       const m = String(text || '').match(/\{[\s\S]*\}/); if (!m) return null;

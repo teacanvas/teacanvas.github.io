@@ -54,13 +54,17 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   await say('오설록 달빛 걷기'); await p.click('#msgs .chip >> text=맞아요'); await p.waitForTimeout(1200); await p.click('#msgs .chip >> text=바로 마실게요'); await p.waitForTimeout(2600);
   ok((await st())==='color','바로 마시기 → AI가 색부터 물음');
   down=true; await say('연한 연두색'); await p.waitForTimeout(800);
-  m=await last(); ok(['aroma','wait2'].includes(await st())&&!m.ai&&await p.evaluate(()=>S.draft.feel.color==='연한 연두색'&&!S.draft.aiFlow),'도중에 AI 실패 → 내 대답은 그대로 기록되고 정해진 다음 질문으로');
-  down=false;
+  m=await last(); ok(['aroma','wait2'].includes(await st())&&!m.ai&&await p.evaluate(()=>S.draft.feel.color==='연한 연두색'),'도중에 AI 실패 → 내 대답은 그대로 기록되고 정해진 다음 질문으로');
+  ok(await p.evaluate(()=>/자동 대화/.test(document.querySelector('#aiBadge').textContent)),'위 표시가 자동 대화로');
+  down=false; await p.evaluate(()=>{ CHAT_AI.off=0; }); await p.waitForTimeout(200);   // 잠시 뒤(쉬는 시간이 지나) AI가 다시 되면
+  await say('비 온 뒤 숲길 같은 풀 향'); await p.waitForTimeout(300); m=await last();
+  const back=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
+  ok(m.ai&&/다시 연결/.test(back)&&/AI 대화/.test(await p.evaluate(()=>document.querySelector('#aiBadge').textContent)),'AI가 다시 되면 다음 말부터 다시 AI 대화 + 위에 알림: '+back.replace(/\n/,' '));
   // AI 실패 → 예전 흐름
   down=true; await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);
   await say('오설록 달빛 걷기'); await p.waitForTimeout(800); m=await last(); ok(/처음 보는 차/.test(m.text),'AI 실패 → 예전처럼 종류를 물어봄');
   const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
-  ok(/AI 대화를 다 써서\n이번에는 자동 대화로/.test(tt),'처음 말부터 AI를 못 쓰면 바로 알림: '+tt.replace(/\n/,' '));
+  ok(/AI 사용 한도에 걸려서 지금은 자동 대화로/.test(tt),'처음 말부터 AI를 못 쓰면 바로 알림: '+tt.replace(/\n/,' '));
   ok(await p.evaluate(()=>/자동 대화/.test(document.querySelector('#aiBadge').textContent)),'위 표시가 "자동 대화"로');
   await p.goto(FILE); await p.waitForTimeout(600); ok(await p.evaluate(()=>CHAT_AI.off>Date.now()),'다시 열어도 한도 상태를 기억 (기다리지 않고 바로 자동 대화)');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));

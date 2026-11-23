@@ -577,8 +577,8 @@ let SCALE=1;
 /* =========================================================
    DATA
    ========================================================= */
-/* 6대 다류 — 찻방울 기본 색은 우린 찻물 색. 자스민 같은 가향차는 녹차로 분류 */
-const ORDER = ['green','white','oolong','black','dark','herb'];
+/* 6대 다류 + 기타(보리차·우엉차 같은 곡물·뿌리 차) — 찻방울 기본 색은 우린 찻물 색. 자스민 같은 가향차는 녹차로 분류 */
+const ORDER = ['green','white','oolong','black','dark','herb','other'];
 const TEAS = {
   green:{label:'녹차', color:'#B5D07E', kw:['녹차','세작','우전','중작','센차','말차','현미녹차','green','자스민','쟈스민','재스민','jasmine','말리화','가향'],
     temp:'70 – 80°C', time:'2 – 3분', secs:180, amount:'티백 1개 또는 찻잎 1 tsp (약 2g)', how:['물을 한 김 식혀서 부어주세요','뜨거운 물은 쓴맛을 끌어내요.'],
@@ -605,11 +605,16 @@ const TEAS = {
     tip:'진하게 느껴지면 물을 조금 더 부어 연하게 즐겨보세요.',
     expert:'젖은 흙과 나무를 닮은 깊은 향, 묵직하고 매끄러운 바디감에 달큰한 여운이 길게 남는 차예요.',
     common:['묵직함','부드러움','달큰한 여운'], diff:['나는 ‘따뜻함’으로 느낌','전문가는 ‘흙 향’을 구체적으로 표현']},
-  herb:{label:'허브차', color:'#C4B2E2', kw:['허브','캐모마일','카모마일','페퍼민트','민트','루이보스','히비스커스','라벤더','레몬밤','보리차','옥수수','herb'],
+  herb:{label:'허브차', color:'#C4B2E2', kw:['허브','캐모마일','카모마일','페퍼민트','민트','루이보스','히비스커스','라벤더','레몬밤','herb'],
     temp:'95°C', time:'5 – 7분', secs:300, amount:'티백 1개 또는 찻잎 1 – 2 tsp', how:['우릴 때 컵 뚜껑을 덮어주세요','향이 더 잘 살아나요.'],
     tip:'더 진한 향을 원한다면 1 – 2분 정도 조금 더 우려보세요.',
     expert:'은은한 꽃향과 부드러운 곡물 향이 이어지고, 끝에는 고소한 여운이 남는 차예요.',
     common:['은은함','부드러움','고소한 여운'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘꽃향’을 구체적으로 표현']},
+  other:{label:'기타', color:'#C9A47A', kw:['보리차','보리','우엉','옥수수','메밀','둥굴레','결명자','현미차','곡물','돼지감자','도라지','barley','burdock','corn tea'],
+    temp:'100°C', time:'5 – 10분', secs:360, amount:'티백 1개 또는 곡물 1 – 2 tbsp', how:['끓는 물을 부어 충분히 우려주세요','곡물·뿌리 차는 오래 우려도 쓰지 않아요.'],
+    tip:'주전자에 넣고 끓이면 더 구수하게 즐길 수 있어요.',
+    expert:'볶은 곡물이나 뿌리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.',
+    common:['구수함','부드러움','은은한 단맛'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘구수함’을 구체적으로 표현']},
 };
 
 /* 풍미 계열(차 플레이버 휠 기준) → 색. 사용자가 쓴 표현에 들어 있는 낱말로 찾는다 */
@@ -649,7 +654,7 @@ function ownWords(texts){ const out=[]; (texts||[]).forEach(t=>{ t=String(t||'')
 const recOwn=r=>r.own||ownWords(r.exprs);
 const FKEYS = Object.keys(FLAVORS);
 /* 개완(공부차) 우림: 찻잎을 많이, 짧게 여러 번 */
-const GONGFU_T={green:'75 – 80°C',white:'85 – 90°C',oolong:'95 – 100°C',black:'90 – 95°C',dark:'100°C',herb:'95 – 100°C'};
+const GONGFU_T={green:'75 – 80°C',white:'85 – 90°C',oolong:'95 – 100°C',black:'90 – 95°C',dark:'100°C',herb:'95 – 100°C',other:'100°C'};
 const gongfuOf=type=>({temp:GONGFU_T[type]||'90 – 95°C',time:'15 – 25초',secs:20,amount:'찻잎 5 – 7g (개완 100ml)',how:['첫 물은 찻잎을 깨우듯 헹궈 버려주세요','우릴 때마다 5 – 10초씩 늘려가요.'],tip:'같은 잎으로 다섯 번 넘게 우려도 좋아요. 우림마다 달라지는 향을 비교해보세요.'});
 const guideOf=(d,m)=>{ const b=m?m.basic:d.basic, gf=m?m.gongfu:d.gongfu; return b?BASIC:gf?gongfuOf(d.type):TEAS[d.type]; };
 const BASIC = {temp:'80 – 95°C', time:'2 – 5분', secs:180, amount:'찻잎 2g 또는 티백 1개', how:['처음엔 짧게, 점점 길게','맛을 보며 시간을 늘려보세요.'], tip:'잎차는 우릴수록 맛이 달라져요. 처음엔 짧게 시작해보세요.'};
@@ -662,7 +667,7 @@ const FEEL = {
    찻물 색은 기록에만 남고, 찻방울 색(맛·향 분석)에는 들어가지 않는다 */
 const TC_FAM=[['빨강','#C8452F'],['주황','#DE8A3A'],['노랑','#E6CC55'],['초록','#8DBB5A'],['파랑','#5B95C9'],['남색','#3E4E9A'],['보라','#9A7BC4']];
 /* 차 종류별로 흔한 찻물 색(색 계열, 진하기): 색 질문에서 미리 골라 둔다 */
-const TC_GUESS={green:[.42,.32],white:[.33,.24],oolong:[.24,.5],black:[.06,.78],dark:[.13,.9],herb:[.3,.36]};
+const TC_GUESS={green:[.42,.32],white:[.33,.24],oolong:[.24,.5],black:[.06,.78],dark:[.13,.9],herb:[.3,.36],other:[.14,.6]};
 const tcHx=h=>{ const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; };
 const tcMix=(a,b,t)=>'#'+tcHx(a).map((v,i)=>Math.round(v+(tcHx(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
 function tcBase(h){ const f=Math.max(0,Math.min(1,h))*(TC_FAM.length-1), i=Math.min(TC_FAM.length-2,Math.floor(f)); return tcMix(TC_FAM[i][1],TC_FAM[i+1][1],f-i); }
@@ -685,7 +690,7 @@ function manySeeds(){
     ['white','백호은침','운남 다원'],['white','수미','티하우스'],['oolong','동방미인','대만 다원'],['oolong','대홍포','무이산'],['oolong','봉황단총','광동 다원'],['oolong','문산포종','대만 다원'],
     ['black','다즐링','트와이닝'],['black','아쌈','티하우스'],['black','기문','기문 다원'],['black','실론','딜마'],['black','잉글리시 브렉퍼스트','트와이닝'],['dark','생차 보이','운남 다원'],['dark','육보차','광서 다원'],
     ['herb','캐모마일','오설록'],['herb','페퍼민트','티하우스'],['herb','루이보스','티하우스'],['herb','히비스커스','티하우스'],['herb','레몬그라스','티하우스']];
-  const LEAN={green:['vegetal','fresh','sweet','nutty'],white:['sweet','floral','soft'],oolong:['floral','fruity','nutty','sweet'],black:['fruity','sweet','astringent','citrus','spicy'],dark:['earthy','nutty','sweet','soft'],herb:['floral','fresh','citrus','soft','spicy']};
+  const LEAN={green:['vegetal','fresh','sweet','nutty'],white:['sweet','floral','soft'],oolong:['floral','fruity','nutty','sweet'],black:['fruity','sweet','astringent','citrus','spicy'],dark:['earthy','nutty','sweet','soft'],herb:['floral','fresh','citrus','soft','spicy'],other:['nutty','soft','sweet','earthy']};
   const out=[];
   for(let i=0;i<40;i++){ const [type,name,brand]=pick(names), pool=[...LEAN[type],...FKEYS.filter(k=>!LEAN[type].includes(k))];
     const n=3+(r()<.4?1:0), ks=[]; while(ks.length<n){ const k=r()<.8?pool[Math.floor(r()*LEAN[type].length)]:pick(FKEYS); if(!ks.includes(k)) ks.push(k); }
@@ -959,7 +964,7 @@ function paintDrops(root=document){
   });
 }
 const TYPE_EN={green:['green','sencha','matcha','gyokuro','jasmine','genmaicha','hojicha','longjing','dragonwell'],white:['white','silverneedle','whitepeony','baimudan','shoumei'],oolong:['oolong','tieguanyin','orientalbeauty','dahongpao','milkoolong','phoenix'],
-  black:['black','earlgrey','darjeeling','assam','ceylon','breakfast','lapsang','keemun','chai'],dark:['puer','pu-erh','puerh','pu\'er','dark','shou','sheng'],herb:['herb','herbal','chamomile','peppermint','mint','rooibos','hibiscus','lavender','lemonbalm','barley','tisane']};
+  black:['black','earlgrey','darjeeling','assam','ceylon','breakfast','lapsang','keemun','chai'],dark:['puer','pu-erh','puerh','pu\'er','dark','shou','sheng'],herb:['herb','herbal','chamomile','peppermint','mint','rooibos','hibiscus','lavender','lemonbalm','barley','tisane'],other:['barley','burdock','corn','grain']};
 function findType(text){
   const t=text.toLowerCase().replace(/\s/g,'');
   for(const k of ORDER){ if(TEAS[k].kw.some(w=>t.includes(w.toLowerCase()))) return k; }
@@ -1657,7 +1662,7 @@ function ackLine(d,text){ const n=d.ackN=(d.ackN||0)+1, fl=matchFlavors(text);
   if(fl.length){ const l=FLAVORS[fl[0]].label; return ACK_FL[n%ACK_FL.length](l); }
   return ACK[n%ACK.length]; }
 function freeEnough(said){ const d=S.draft; if(S.typing||d.stage!=='free') return; S.endAt=Date.now(); if(!said) d.chat.push({who:'me',text:'이제 충분해요',ans:'nav'});   // said: 이미 말로 마무리했으면 버튼 말은 넣지 않는다
-  if(flowOn(d)){ d.stage='after'; flowEvent('wrap').then(ok=>{ if(!ok&&S.draft===d&&d.stage==='after'){ d.aiFlow=false; paintBadge(); d.chat.push({who:'bot',text:AFTER_ASK,after:true}); paintMsgs(); } }); return; }
+  if(flowOn(d)){ d.stage='after'; flowEvent('wrap').then(ok=>{ if(!ok&&S.draft===d&&d.stage==='after'){ paintBadge(); d.chat.push({who:'bot',text:AFTER_ASK,after:true}); paintMsgs(); } }); return; }
   if(d.chat.some(m=>m.who==='me'&&m.kept&&(/(식으|식었|식으니|여운|끝맛|뒷맛|남아|남는)/.test(String(m.text).replace(/\s/g,''))||/\b(cool(s|ed|ing)?|aftertaste|finish|linger(s|ing)?)\b/i.test(m.text)))){ d.stage='more'; return botSay(moreMsg('여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.'),500); }   // 이미 말했으면 다시 묻지 않기
   d.stage='after'; botSay({who:'bot',text:AFTER_ASK,after:true},500); }
 setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!=='chat'||S.typing||(d.nudgeN||0)>=3) return;
@@ -1679,7 +1684,7 @@ function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*
   let c=parts.find(x=>findType(x))||parts[0]||t;
   for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셔요|마실게요|샀어요|산\s*거|사\s*왔어요|받았어요|선물\s*받은\s*거)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s*차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s*차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
@@ -1750,7 +1755,7 @@ function faqAnswer(q){ if(/[a-z]/i.test(q)){ const lo=q.toLowerCase(); const hit
 /* AI 중간 서버 호출(공용). mode: 'question' | 'compare'. 실패·시간 초과면 null → 정해진 대답 */
 async function aiCall(mode,extra){
   if(!AI_ENDPOINT) return null;
-  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),{question:AI_TIMEOUT,chat:12500,identify:13500}[mode]||AI_TIMEOUT_LONG);
+  const d=S.draft, ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),{question:AI_TIMEOUT,chat:10500,flow:10500,identify:11000}[mode]||AI_TIMEOUT_LONG);
   try{ const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
       body:JSON.stringify({mode,lang:isEN()?'en':'ko',tea:d&&d.type?{name:d.name,brand:d.brand,type:TEAS[d.type].label}:null,history:(d?d.chat:[]).slice(-30).map(m=>({who:m.who,text:m.text})),...extra})});
     if(!r.ok){ try{ const j=await r.json(); AI_WHY=/\b429\b|quota|RESOURCE_EXHAUSTED/i.test(j.detail||'')?'quota':'net'; }catch(e){ AI_WHY='net'; } return null; } return await r.json();
@@ -1792,14 +1797,16 @@ function aiBadge(){ if(!AI_ENDPOINT) return ''; const c=aiChatLive(), v=VOICE.on
 function paintBadge(){ const e=$('#aiBadge'); if(e) e.outerHTML=aiBadge(); }
 const chatAIOn=()=>{ if(!AI_ENDPOINT) return false; if(Date.now()<CHAT_AI.off||navigator.onLine===false){ aiFallbackNote(); return false; } return true; };
 /* AI 대화가 안 돼서 정해진 대화로 넘어가면, 기록마다 한 번 위에 알린다 */
-function aiFallbackNote(){ const d=S.draft; if(!d||cur()!=='chat') return; paintBadge(); if(d.aiNoted) return; d.aiNoted=true;
+function aiFallbackNote(){ const d=S.draft; if(!d||cur()!=='chat') return; d.aiLost=true; paintBadge(); if(d.aiNoted) return; d.aiNoted=true;
   const first=!d.chat.some(m=>m.ai);   // 처음부터 못 쓰는지, 쓰다가 끊긴 건지
-  toast(AI_WHY==='quota'?(first?'오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요':'오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요'):(first?'AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요':'AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요'),true); }
+  toast((AI_WHY==='quota'?'AI 사용 한도에 걸려서':'AI 연결이 불안정해서')+(first?' 지금은 자동 대화로 진행해요':' 잠시 자동 대화로 이어가요')+'\n다시 연결되면 알려드릴게요',true); }
+/* AI가 다시 답하면: 위에 알리고 다음 말부터 다시 AI 대화 */
+function aiBackNote(){ const d=S.draft; CHAT_AI.fails=0; if(!d||!d.aiLost) return; d.aiLost=false; d.aiNoted=false; paintBadge(); toast('AI가 다시 연결됐어요\n이제 다시 AI와 대화해요',true); }
 async function aiChat(event,message){ const d=S.draft; if(!d||!chatAIOn()) return null;
   const j=await aiCall('chat',{event,message:message||'',stage:d.stage,about:d.about||'',timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
-  if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return {reply:j.reply.trim(),finish:!!j.finish}; }
+  if(j&&typeof j.reply==='string'&&j.reply.trim()){ aiBackNote(); return {reply:j.reply.trim(),finish:!!j.finish}; }
   return aiFail(); }
-function aiFail(){ if(AI_WHY==='quota'||++CHAT_AI.fails>=2){ CHAT_AI.off=Date.now()+(AI_WHY==='quota'?30:3)*60e3; saveAIOff(); } aiFallbackNote(); return null; }   // 한도면 30분, 연결 문제면 3분 쉰다
+function aiFail(){ CHAT_AI.fails++; CHAT_AI.off=Date.now()+(AI_WHY==='quota'?3*60e3:40e3); saveAIOff(); aiFallbackNote(); return null; }   // 잠깐 쉬었다가(한도 3분·연결 40초) 다음 말에서 다시 AI를 시도한다
 /* 내 말 → AI 대답. me: 대화에 넣을 내 말(이미 넣었으면 null), fallback: AI가 안 될 때 할 일, endAfter: 대답 뒤 마무리로 */
 function aiTalk(me,text,fallback,endAfter){ const d=S.draft, at=d.tid, t0=Date.now(); if(me) d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   aiChat('message',text).then(a=>{ setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
@@ -1849,7 +1856,7 @@ function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
   return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
 async function flowCall(event,message){ const d=S.draft;
   const j=await aiCall('flow',{event,message:message||'',stage:d.stage,want:flowWant(d),next:flowNext(d),about:d.about||'',filled:flowFilled(d),timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
-  if(j&&typeof j.reply==='string'&&j.reply.trim()){ CHAT_AI.fails=0; return j; } return aiFail(); }
+  if(j&&typeof j.reply==='string'&&j.reply.trim()){ aiBackNote(); return j; } return aiFail(); }
 function flowApply(d,f){   // AI가 뽑은 것을 기록 칸에 채운다
   if(f.color){ d.feel.color=f.color; const hd=colorFromWords(f.color); if(hd&&!d.feel.colorHex){ d.feel.colorHD=hd; d.feel.colorHex=tcColor(hd[0],hd[1]); } }
   if(f.aroma) d.feel.aroma=f.aroma; if(f.taste) d.feel.taste=f.taste; if(f.after) d.afterText=f.after;
@@ -1867,8 +1874,8 @@ function flowFinish(){ const d=S.draft, at=d.tid;   // 마지막 인사를 다 �
 function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.stage, want=flowWant(d);
   const me={who:'me',text,...((forced&&forced.extra)||{})}; if(forced) me.ans=forced.k; d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
   flowCall('message',text).then(j=>setTimeout(()=>{ if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
-    if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); d.aiFlow=false; paintBadge();   // AI가 안 되면 예전 흐름으로 이 말부터 다시
-      if(forced) return answer(forced.k,text,forced.extra||{}); return sendMsg(text,false); }
+    if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); paintBadge();   // AI가 안 되면 이 말은 정해진 흐름으로. AI가 다시 되면 다음 말부터 다시 AI
+      if(forced) return answer(forced.k,text,forced.extra||{},true); return sendMsg(text,false,true); }
     const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; } }
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(!j.sense&&!(want==='after'&&got)) me.ans='talk'; }   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
@@ -1911,7 +1918,7 @@ function askNext(){
   d.stage=order[Math.min(order.length-1,i+1)]; S.ask={hd:null,sel:[]}; d.talkPending=null;
   if(d.stage==='wait2'){ if(brewDone()) d.stage='aroma'; else { d.chat.push({who:'bot',text:'좋아요. 다 우려지면 향과 맛을 함께 볼게요.\n찻물 색이 조금씩 변하는 것도 지켜봐요.',wait:true}); talkNext(2200); return; } }
   if(flowOn(d)&&(d.stage==='color'||d.stage==='aroma')){ const st=d.stage; if(st==='color'&&d.type&&TC_GUESS[d.type]) S.ask.hd=[...TC_GUESS[d.type]];
-    flowEvent(st==='color'?'color_ready':'brew_done').then(ok=>{ if(!ok&&S.draft===d&&d.stage===st){ d.aiFlow=false; paintBadge(); askMsg(d); paintMsgs(); } }); return; }
+    flowEvent(st==='color'?'color_ready':'brew_done').then(ok=>{ if(!ok&&S.draft===d&&d.stage===st){ paintBadge(); askMsg(d); paintMsgs(); } }); return; }
   askMsg(d); }
 function askMsg(d){   // 정해진 질문 (AI가 안 될 때)
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
@@ -1920,9 +1927,9 @@ function askMsg(d){   // 정해진 질문 (AI가 안 될 때)
   else { let q=ASK_VAR[d.stage]?pick(ASK_VAR[d.stage],(d.tid||1)+d.stage.length):ASK[d.stage]; if(d.direct) q=q.replace(/^(다 우려졌어요|차가 다 우려졌어요)\.\s*/,''); d.chat.push({who:'bot',text:q,ask:d.stage}); }
 }
 const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
-function answer(k,text,extra={}){
+function answer(k,text,extra={},legacy){
   const d=S.draft; if(S.typing) return;
-  if(flowOn(d)&&isAsk(k)&&d.stage===k) return flowMsg(text,{k,extra});
+  if(!legacy&&flowOn(d)&&isAsk(k)&&d.stage===k) return flowMsg(text,{k,extra});
   d.feel[k]=text; d.chat.push({who:'me',text,ans:k,...extra}); d.lastMeAt=Date.now();
   S.typing=true; paintMsgs();
   const next=()=>{ S.typing=false; askNext(); if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); };
@@ -1969,8 +1976,8 @@ function bindAskColor(){
    대화 언어(한국어 / English): 기록은 한국어로 저장하고, 채팅에 보여주고 말할 때만 영어로 바꾼다.
    그래서 언어를 바꿔도 지난 기록과 분석은 그대로. 영어로 한 대답은 영어 낱말로도 풍미를 읽는다.
    ========================================================= */
-const EN_TYPE={green:'green tea',white:'white tea',oolong:'oolong',black:'black tea',dark:'pu-erh (dark tea)',herb:'herbal tea'};
-const EN_TYPE_LABEL={'녹차':'Green tea','백차':'White tea','우롱차':'Oolong','홍차':'Black tea','보이차':'Pu-erh','허브차':'Herbal tea'};
+const EN_TYPE={green:'green tea',white:'white tea',oolong:'oolong',black:'black tea',dark:'pu-erh (dark tea)',herb:'herbal tea',other:'grain or other tea'};
+const EN_TYPE_LABEL={'녹차':'Green tea','백차':'White tea','우롱차':'Oolong','홍차':'Black tea','보이차':'Pu-erh','허브차':'Herbal tea','기타':'Other'};
 const EN={
  "반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작":"Hello! What tea are you having today?\nTell me its name, and the brand if you know it.\ne.g. Twinings Earl Grey",
  "사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?":"I'll keep the photo with today's entry.\nI can't read text in photos yet, so could you tell me the tea's name?",
@@ -2069,7 +2076,7 @@ const EN_RE=[
  [/^다시 (.+)에 맞춘 가이드예요\.$/,(m,a)=>`Here's the guide for ${a} again.`],
  [/^(.+?)(?:을|를) 가장 맛있게 우리는 방법이에요\.\n준비되면 ‘우림 시작’을 눌러주세요\.$/,(m,a)=>`Here's how to brew ${a} at its best.\nTap ‘Start brewing’ when you're ready.`],
  [/^이어서 기록해볼까요\? 오늘의 차는 ‘(.+)’이에요\.$/,(m,a)=>`Shall we continue? Today's tea is ‘${a}’.`],
- [/^(녹차|백차|우롱차|홍차|보이차|허브차) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea'})[a]}`],
+ [/^(녹차|백차|우롱차|홍차|보이차|허브차|기타) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea',기타:'grain/other tea'})[a]}`],
  [/^(.+) 개완 우림 가이드$/,(m,a)=>`${a} gongfu guide`],
  [/^(.+) 우림 가이드$/,(m,a)=>`${a} brewing guide`],
  [/^(먼저 찻물 색부터 볼까요\?|찻물에 색이 우러나기 시작했어요\.)\n(.+?)(?:은|는) 보통 이런 색이에요\. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요\.$/,(m,a,b)=>`${a.startsWith('먼저')?'First, the color.':'The color is starting to come out.'}\n${EN_TYPE_LABEL[b]||b} usually looks like this. Send it if it matches, or adjust it.`],
@@ -2156,13 +2163,13 @@ function textIntent(d,text){
 function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String(text).toLowerCase().replace(/\s/g,'').replace(/red/g,'빨강').replace(/orange/g,'주황').replace(/amber/g,'호박').replace(/gold(en)?/g,'황금').replace(/yellow/g,'노랑').replace(/green/g,'초록').replace(/blue/g,'파랑').replace(/indigo/g,'남색').replace(/purple|violet/g,'보라').replace(/pink/g,'분홍').replace(/brown/g,'갈색').replace(/pale|light|clear/g,'연한').replace(/dark|deep/g,'진한'); const fam=[[/(빨강|빨간|붉은|적색)/,0],[/(주황|호박|오렌지)/,.17],[/(황금|금빛|골드)/,.24],[/(노랑|노란|누런)/,.33],[/(연두|초록|녹색|풀색)/,.46],[/(파랑|파란|하늘)/,.67],[/(남색)/,.83],[/(보라)/,1],[/(분홍|핑크)/,0]];
   let h=null; for(const [re,v] of fam){ if(re.test(t)){ h=v; break; } } if(/갈색|밤색|브라운/.test(t)) return [.13,.86];
   if(h===null) return null; let v=/(연한|맑은|옅은|투명|흐린)/.test(t)?.24:/(진한|짙은|깊은|어두운)/.test(t)?.8:.5; if(/분홍|핑크/.test(t)) v=Math.min(v,.4); return [h,v]; }
-function sendMsg(text,isChip){
+function sendMsg(text,isChip,legacy){   // legacy: AI가 안 돼서 이번 말만 정해진 흐름으로
   const d=S.draft; if(S.typing) return;
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
-  if(flowOn(d)&&(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
+  if(!legacy&&flowOn(d)&&(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
-  if(flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다
+  if(!legacy&&flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending&&!chatAIOn()) return talkAnswer(text);
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending){ const k=d.talkPending; d.talkPending=null; d.planI=(d.planI||0)+1; (d.talk||(d.talk={}))[k]=text; return aiTalk({who:'me',text,ans:'talk',talk:k},text,()=>{ paintMsgs(); talkNext(1100); }); }
@@ -2253,7 +2260,7 @@ let SPEAK_ID=0;
 const AI_VOICES=[['Umbriel','남성'],['Zephyr','여성']];
 /* 목소리는 늘 같은 모델(3.8 Flash TTS)로만 만든다: 모델이 바뀌면 같은 이름이어도 목소리 결이 달라지므로, 이 모델이 안 되면 다른 AI 목소리 대신 휴대폰 목소리로 */
 const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Zephyr:'assets/voice/zephyr.m4a',Umbriel:'assets/voice/umbriel.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
-const aiVoice=()=>PREF.aiVoice==='device'?'device':AI_VOICES.some(v=>v[0]===PREF.aiVoice)?PREF.aiVoice:'Zephyr', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
+const aiVoice=()=>AI_VOICES.some(v=>v[0]===PREF.aiVoice)?PREF.aiVoice:'device', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
 /* AI 목소리를 못 쓰면 음성 모드마다 한 번 위에 알린다 (처음부터인지, 쓰다가 바뀐 건지) */
 function ttsNote(){ if(VOICE.ttsNoted||aiVoice()==='device') return; VOICE.ttsNoted=true; const first=!VOICE.ttsUsed;
   toast(TTS_WHY==='quota'?(first?'오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요':'오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요'):(first?'AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요':'AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요'),true); }
@@ -2351,7 +2358,7 @@ function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTim
 
 /* compare helpers */
 /* 비교 카드: 이 차 종류의 대표 풍미(전문가)와 내가 말한 풍미를 비교 */
-const TYPE_FL={green:['vegetal','sweet','fresh'],white:['sweet','floral','soft'],oolong:['nutty','floral','sweet'],black:['fruity','sweet','astringent'],dark:['earthy','soft','sweet'],herb:['floral','nutty','soft']};
+const TYPE_FL={green:['vegetal','sweet','fresh'],white:['sweet','floral','soft'],oolong:['nutty','floral','sweet'],black:['fruity','sweet','astringent'],dark:['earthy','soft','sweet'],herb:['floral','nutty','soft'],other:['nutty','soft','sweet']};
 /* 이름으로 알 수 있는 차는 그 차만의 설명으로(얼그레이=베르가못, 다즐링=머스캣 …) */
 const EXPERT_BY_NAME=[
   {re:/얼그레이|earl\s*grey/i,fl:['citrus','floral','sweet'],text:'베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.'},
@@ -2480,6 +2487,7 @@ addEventListener('appinstalled',()=>toast('TEA CANVAS를 앱으로 설치했어�
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 const PREF_KEY='teacanvas.v6.prefs';
 const PREF=(()=>{ try{ return Object.assign({keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:'',voiceName:'',lang:'ko'},JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); }catch(e){ return {keepChat:true,voiceSound:true,timerToast:true,recNoti:true,name:''}; } })();
+if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
 Object.assign(EN,{
  "내가 마신 차가 쌓일수록, 나의 취향이 선명해져요":"The more tea you drink, the clearer your taste becomes","화면을 직접 눌러 오늘의 차를 기록해보세요":"Tap the screen to record today's tea",
@@ -2491,7 +2499,7 @@ Object.assign(EN,{
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","남성":"Male","여성":"Female","휴대폰":"Phone","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","남성":"Male","여성":"Female","휴대폰":"Phone","AI 사용 한도에 걸려서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we're in automatic chat for now\nI'll let you know when it's back","AI 연결이 불안정해서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we're in automatic chat for now\nI'll let you know when it's back","AI 사용 한도에 걸려서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI 연결이 불안정해서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI가 다시 연결됐어요\n이제 다시 AI와 대화해요":"AI is back\nYou're chatting with AI again","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",

@@ -7,10 +7,10 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
   for(let i=0;i<n;i++) b.writeInt16LE(Math.round(3000*Math.sin(i/5)),44+i*2); return b; }
 (async()=>{ const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});
   const p=await b.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); let mode='ok', calls=0, last=null;
-  await p.addInitScript(ep=>{ window.TC_AI_ENDPOINT=ep; },EP);
+  await p.addInitScript(ep=>{ window.TC_AI_ENDPOINT=ep; if(!localStorage.getItem('teacanvas.v6.prefs')) localStorage.setItem('teacanvas.v6.prefs',JSON.stringify({aiVoice:'Zephyr',voiceV2:true})); },EP);   // 이 시험은 AI 목소리를 고른 경우
   await p.route(EP,async r=>{ calls++; last=JSON.parse(r.request().postData()||'{}'); if(mode==='fail') return r.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:'upstream',detail:'gemini-3.8-flash-lite-tts 429 RESOURCE_EXHAUSTED'})});
     if(mode==='slow') await new Promise(x=>setTimeout(x,3000)); return r.fulfill({status:200,headers:{'Content-Type':'audio/wav','X-TTS-Model':'gemini-3.8-flash-tts','Access-Control-Expose-Headers':'X-TTS-Model'},body:wav(600)}); });
-  await p.goto(FILE); await p.waitForTimeout(600);
+  await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>{ PREF.aiVoice='Zephyr'; });
   let t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?'); return {ms:Date.now()-t0,src:AUDIO&&AUDIO.src}; });
   ok(calls===1&&last.mode==='speak'&&last.voice==='Zephyr','AI 목소리 요청 (기본: 여성 Zephyr)'); ok(/^blob:/.test(t.src)&&t.ms>=500&&t.ms<4000,`받은 소리를 끝까지 틀고 끝남 (${t.ms}ms)`);
   await p.evaluate(()=>speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?')); ok(calls===1,'같은 문장은 다시 요청하지 않음');
@@ -23,10 +23,11 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
   const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
   ok(/AI 목소리를 다 써서/.test(tt),'듣던 AI 목소리가 바뀌면 위에 이유를 알림: '+tt); await p.evaluate(()=>speak('두 번째 실패.')); calls=0;
   await p.evaluate(()=>speak('세 번째 문장.')); ok(calls===0,'연달아 실패하면 잠시 AI 목소리를 쉬고 바로 휴대폰 목소리');
-  await p.evaluate(()=>{ localStorage.setItem('teacanvas.v6.aiOff',JSON.stringify({tts:Date.now()+6e5,why:'quota'})); }); await p.reload(); await p.waitForTimeout(600);
+  await p.evaluate(()=>{ localStorage.setItem('teacanvas.v6.aiOff',JSON.stringify({tts:Date.now()+6e5,why:'quota'})); PREF.aiVoice='Zephyr'; savePref(); }); await p.reload(); await p.waitForTimeout(600);
   await p.evaluate(()=>{ startRecord(); }); await p.waitForTimeout(400); calls=0; await p.evaluate(()=>{ window.TC_VOICE_FAST=0; toggleVoice(); }); await p.waitForTimeout(900);
   const vt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
   ok(/이번에는 기본 목소리로/.test(vt),'음성 모드를 누르자마자 AI 목소리 한도를 알림: '+vt.replace(/\n/,' '));
   ok(await p.evaluate(()=>/기본 목소리/.test(document.querySelector('#aiBadge').textContent)),'위 표시에 "기본 목소리"'); await p.evaluate(()=>stopVoice());
+  { const q=await b.newPage(); await q.goto(FILE); await q.waitForTimeout(500); ok(await q.evaluate(()=>aiVoice()==='device'),'처음 쓰는 사람은 휴대폰 목소리가 기본'); await q.close(); }
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
