@@ -222,6 +222,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .cmp .lb{display:flex;align-items:center;gap:9px;width:96px;flex-shrink:0;justify-content:center;text-align:center;font-size:14px;font-weight:700;border-right:1px solid #DDD;align-self:stretch}
 .cmp .bd{font-size:13px;line-height:1.6;flex:1;text-align:center;word-break:keep-all}.cmp .bd.chips{justify-content:center}
 .cmp .bd ul{list-style:none}
+.cmp .mycolor{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--g2);margin-bottom:4px}
 .cmp .bd li::before{content:"·";margin-right:6px}
 /* ---------- done / tag ---------- */
 .wave{height:120px;position:relative;margin:4px 0 10px;overflow:hidden}
@@ -1353,7 +1354,7 @@ compare(){
   ${FL.length?`<div class="center-chips">${flChips(FL.map(k=>({k})))}</div>`:''}
   <div id="cmpOwn">${ownHTML(d.own||ownWords(d.exprs))}</div>
   <div class="cmp"><div class="lb">전문가 설명</div><div class="bd">${X.generic?`<small class="muted" style="display:block;font-size:11.5px;margin-bottom:3px">${esc((TEAS[d.type]||TEAS.green).label)} 일반</small>`:""}<span id="cmpExpert">${X.text}</span></div></div>
-  <div class="cmp"><div class="lb">나의 기록</div><div class="bd" id="cmpMine">${esc(myExpression(d))}</div></div>
+  <div class="cmp"><div class="lb">나의 기록</div><div class="bd">${d.feel.color&&d.feel.color!=='잘 모르겠어요'?`<small class="mycolor">${d.feel.colorHex?`<i class="cdot" style="background:${d.feel.colorHex}"></i>`:''}${esc(L('찻물 색'))} · ${esc(L(d.feel.color))}</small>`:''}<span id="cmpMine">${esc(myExpression(d))}</span></div></div>
   ${(()=>{ return `<div class="cmp"><div class="lb">공통점</div><div class="bd chips" id="cmpCommon">${c.common.length?c.common.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="muted" style="font-size:13px">겹치는 풍미가 아직 없어요</span>'}</div></div>
   <div class="cmp"><div class="lb">차이점</div><div class="bd" id="cmpDiff"><ul>${c.diff.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`; })()}
   <div class="cmp"><div class="lb">AI 해석</div><div class="bd" id="cmpAI">${cmpAIText(C)}</div></div>
@@ -1688,7 +1689,7 @@ function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*
   let c=parts.find(x=>findType(x))||parts[0]||t;
   for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?|어제|그제|방금|아까|지난번에?|요즘|며칠\s*전에?|주말에)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셨어|마셔요|마셔|마실게요|마실게|마실래(요)?|마시려(구|고)(요)?|마셔\s*볼(게|래)(요)?|샀어요|샀어|산\s*거|사\s*왔어(요)?|사왔어(요)?|받았어(요)?|선물\s*받은\s*거|있어(요)?)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s+차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ text=String(text||'').replace(/(^|\s)[ㄱ-ㅎㅏ-ㅣ]+(?=\s|$)/g,' ').trim(); const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s+차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
@@ -1883,7 +1884,11 @@ async function flowCall(event,message,voice){ const d=S.draft;
   const j=await aiCall('flow',{event,message:message||'',stage:d.stage,want:flowWant(d),next:flowNext(d),about:d.about||'',filled:flowFilled(d),screen,...(voice?{voice}:{}),timer:S.timer?{left:S.timer.left,total:S.timer.total}:null});
   if(j&&j.amended) return j;
   if(j&&typeof j.reply==='string'&&j.reply.trim()){ aiBackNote(); return j; } return aiFail(); }
+const NOT_ANSWER=/^(잘\s*)?(모르|몰라|모름|모르겠|글쎄|없|딱히)/;   // '모르겠어요'는 대답이 아니다 → 칸을 채우지 않는다
+const cleanBrand=b=>{ b=String(b||'').trim(); return /^[ㄱ-ㅎㅏ-ㅣ\s]+$|^(없음|모름|몰라|모르겠|없어|none|unknown|-)/i.test(b)?'':b; };   // 'ㅇㅇ' 같은 말은 브랜드가 아니다
 function flowApply(d,f){   // AI가 뽑은 것을 기록 칸에 채운다
+  ['color','aroma','taste','after','extra'].forEach(k=>{ if(f[k]&&NOT_ANSWER.test(String(f[k]).trim())) delete f[k]; });
+  if(f.after&&!['after','more'].includes(d.stage)&&flowWant(d)!=='after'){ if(!d.feel.taste&&d.stage==='taste') f.taste=f.after; delete f.after; }   // 여운은 여운을 물었을 때만
   if(f.color){ let hd=colorFromWords(f.color);
     if(!hd&&S.ask&&S.ask.hd){ hd=S.ask.hd; if(/^(비슷|이대로|그대로|맞|응|네|예|좋|그거|그 색|ok|yes|same|similar)/i.test(String(f.color).trim())) f.color=tcName(hd[0],hd[1]); }   // '비슷해 이대로' → 슬라이더에 보이는 색을 그대로 저장
     d.feel.color=f.color; if(hd&&!d.feel.colorHex){ d.feel.colorHD=hd; d.feel.colorHex=tcColor(hd[0],hd[1]); } }
@@ -1910,11 +1915,11 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(!j.sense&&!(want==='after'&&got)) me.ans='talk'; }   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
     if(st==='tea'){ me.ans='tea';   // 차 이름: AI가 말 속에서 차를 찾아 소개하고 종류를 확인한다. 차가 없으면 그냥 대화
-      if(f.name&&TEAS[f.type]){ d.name=f.name; d.brand=f.brand||''; d.type=f.type; d.about=f.about||''; d.stage='teaOK'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:['맞아요','다시 적을게요']}); return rerender(); }
-      if(f.name){ d.name=f.name; d.brand=f.brand||''; d.stage='teaType'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:ORDER.map(k=>TEAS[k].label)}); return rerender(); }
+      if(f.name&&TEAS[f.type]){ d.name=f.name; d.brand=cleanBrand(f.brand); d.type=f.type; d.about=f.about||''; d.stage='teaOK'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:['맞아요','다시 적을게요']}); return rerender(); }
+      if(f.name){ d.name=f.name; d.brand=cleanBrand(f.brand); d.stage='teaType'; d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:ORDER.map(k=>TEAS[k].label)}); return rerender(); }
       d.chat.push({who:'bot',text:j.reply,ai:true,teaAsk:true}); return paintMsgs(); }
     if(st==='teaOK'||st==='teaType'||st==='guide'){ me.ans='tea';   // 차 종류 확인·우림 가이드: 대화로 묻고 답하고, 정해지면 가이드로
-      if(f.name) d.name=f.name;
+      if(f.name) d.name=f.name; if('brand' in f) d.brand=cleanBrand(f.brand);
       if(st!=='guide'&&TEAS[f.type]){ d.type=f.type; d.chat.push({who:'bot',text:j.reply,ai:true}); return showGuide(); }
       // 말뜻으로 버튼을 누른 것처럼: '응 시작하자' → 우림 시작, '바로 마실래' → 바로 마시기
       if(st==='guide'&&j.action==='start_brew'){ d.chat.push({who:'bot',text:j.reply,ai:true}); return beginBrew(true); }
@@ -2002,7 +2007,7 @@ function askWidget(st){
       <div class="tc-lab">${L(L('색 계열'))}</div><div class="tc-track" id="tcH" style="background:linear-gradient(90deg,${TC_FAM.map(x=>x[1]).join(',')})"><i style="left:${hd[0]*100}%;background:${tcBase(hd[0])}"></i></div>
       <div class="tc-lab">${L(L('진하기'))}</div><div class="tc-track" id="tcD" style="background:linear-gradient(90deg,${tcColor(hd[0],0)},${tcColor(hd[0],.5)},${tcColor(hd[0],1)})"><i style="left:${hd[1]*100}%;background:${c}"></i></div>
       <div class="tc-tl"><span>${L(L('맑게'))}</span><span>${L(L('진하게'))}</span></div>
-      <div class="askrow"><button class="chip" onclick="answerColor('잘 모르겠어요')">${L('잘 모르겠어요')}</button><button class="feelnext" id="askSend" onclick="answerColor()" ${on?'':'hidden'}>${L(L('이 색으로 보내기 →'))}</button></div></div>`; }
+      <div class="askrow">${flowOn(S.draft)||LIVE.on?'<span></span>':`<button class="chip" onclick="answerColor('잘 모르겠어요')">${L('잘 모르겠어요')}</button>`}<button class="feelnext" id="askSend" onclick="answerColor()" ${on?'':'hidden'}>${L(L('이 색으로 보내기 →'))}</button></div></div>`; }
   const f=FEEL[st], last=[...S.draft.chat].reverse().find(m=>m.ask===st)||{};
   if(!last.opts) return flowOn(S.draft)||LIVE.on?'':`<div class="chips"><button class="chip" onclick="showOpts('${st}')">${L('잘 모르겠어요')}</button></div>`;   /* AI 대화에선 '잘 모르겠어요' 버튼 없이 AI가 말로 도와준다 */
   return `<div class="askw" id="askW"><div class="chips">${f.opts.map(o=>`<button class="chip ${a.sel.includes(o)?'sel':''}" onclick="answerMulti('${st}','${o}')">${L(o)}</button>`).join('')}</div>
