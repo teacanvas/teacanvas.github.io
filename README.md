@@ -60,6 +60,7 @@
    ```bash
    node tests/syntax.js && node tests/ai-worker.mjs && node tests/flow-fixes.js && node tests/ai-chat.js && node tests/e2e-v5.js
    ```
+   사파리(맥·아이폰)에서도 확인하려면 `node tests/safari-check.js`를 돌려요. 사파리와 같은 엔진(WebKit)으로 큰 화면, 전시 화면, 아이폰 크기에서 모든 화면을 열어 봐요.
 3. 배포 전에 `sw.js`의 `CACHE` 버전 숫자를 하나 올려 주세요. 그래야 휴대폰에 새 버전이 바로 받아져요.
 4. 제출 파일이 필요하면 `python3 tools/build-submission.py`를 돌려요.
 5. AI가 대답하는 방식은 `ai-worker/worker.js`의 `FRAME_KO`(판단 원칙과 예시)와 `APP_GUIDE_KO`(앱 설명서)에서 바꿔요. 규칙을 한 줄씩 덧붙이기보다 원칙과 예시를 고치는 게 좋아요.
