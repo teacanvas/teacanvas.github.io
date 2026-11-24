@@ -78,6 +78,15 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.fill('#chatIn','쓰고 있던 말'); await p.focus('#chatIn');
   ok(await E(()=>{ S.draft.stage='color'; S.ask={hd:[.4,.3],sel:[]}; S.draft.chat.push({who:'bot',text:'찻물 색은 어때요?',ask:'color'}); rerender(); const i=document.querySelector('#chatIn'); return i.value==='쓰고 있던 말'&&document.activeElement===i&&!!document.querySelector('#askW.tc'); }),'슬라이더가 떠도 치고 있던 글과 커서는 그대로');
   await p.fill('#chatIn','');
+  // 우림 타이머: Gemini가 남은 시간을 바꾸고, 멈추고, 다시 돌린다
+  await E(()=>{ const d=S.draft; d.stage='wait'; d.feel.color=''; S.timer={total:420,left:200,running:true}; S.ask={hd:null,sel:[]}; });
+  R['1분만 더']=()=>({reply:'네, 1분으로 바꿨어요.',fill:{},step:'stay',timer_set:60}); await say('1분만 더 우리면 될 것 같아');
+  ok(await E(()=>S.timer.left<=60&&S.timer.left>55&&S.timer.running&&S.timer.total-S.timer.left>=220&&S.timer.total-S.timer.left<=226),'"1분만 더" → 남은 시간 1분 (이미 우린 시간은 그대로)');
+  R['잠깐 멈춰']=()=>({reply:'타이머를 멈췄어요.',fill:{},step:'stay',requests:['pause_timer']}); await say('타이머 잠깐 멈춰줘');
+  ok(await E(()=>S.timer.running===false),'"잠깐 멈춰줘" → 타이머 멈춤');
+  R['다시 돌려']=()=>({reply:'다시 돌릴게요.',fill:{},step:'stay',requests:['resume_timer']}); await say('다시 돌려줘');
+  ok(await E(()=>S.timer.running===true),'"다시 돌려줘" → 타이머 다시');
+  ok(await E(()=>{ const t=S.timer.left; liveTool({timer_set:90}); return S.timer.left===90; }),'음성도 timer_set → 남은 시간 바꿈');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

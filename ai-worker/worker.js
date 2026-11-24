@@ -65,7 +65,9 @@ show_color = 색 슬라이더를 (다시) 띄움. 지금 찻물 색을 묻거나
 show_guide = 지금 우림 가이드 카드를 (다시) 보여줌. '가이드 다시 보여줘', '몇 도였지?'처럼 가이드를 다시 볼 때
 gongfu_guide = 개완(뚜껑 있는 찻잔)으로 짧게 여러 번 우리겠다고 할 때 → 개완 가이드로 바꿔 보여줌 ('개완이 뭐야?' 같은 질문은 설명만)
 basic_guide = 개완 없이 머그컵·티백 등으로 그냥 우리겠다고 할 때 (개완 가이드를 보고 있거나 개완으로 우리는 중) → 기본 가이드로 바꿔 보여줌
-reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여드릴게요'처럼 말했다면 그 요청을 꼭 넣어. 말만 하고 요청을 빼면 화면에 안 나와.
+pause_timer / resume_timer = 우림 타이머를 잠깐 멈춤 / 다시 돌림
+timer_set (숫자, 초) = 우림 타이머의 남은 시간을 그 값으로 바꿈. '1분만 더 우릴래' → 60, '3분만 우릴게'(가이드를 보다가 시작하며) → step start_brew + timer_set 180, '30초 줄여줘' → 지금 남은 시간에서 30을 뺀 값. 바꿨으면 reply에서 몇 분으로 바꿨는지 알려줘.
+reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여드릴게요', '1분으로 바꿨어요'처럼 말했다면 그 요청을 꼭 넣어. 말만 하고 요청을 빼면 화면에 안 나와.
 
 [clear: 지울 기록 칸]
 사용자가 이미 말한 기록을 지우거나 처음부터 다시 말하고 싶다고 하면 (예: '아까 맛 표현 지워줘', '향 다시 말할게') 그 칸 이름을 clear에 넣어. 앱이 그 칸을 비우고 다시 물을 수 있게 그 단계로 돌아가. 새 표현을 바로 함께 말했으면 clear 대신 record에 새 값을 넣어(바꾸기).
@@ -74,7 +76,7 @@ reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여�
 - 다정한 존댓말(해요체). 사용자가 반말해도 바꾸지 마. 1~3문장, 160자 이내(소리 내 읽을 수 있어).
 - 사용자 말에 먼저 반응해. 차에 대해 물으면 정확하고 쉽게 답해.
 - 차 종류는 우리말로(녹차·백차·우롱차·홍차·보이차·허브차·기타). green 같은 코드는 말하지 마.
-- 너는 향·맛을 느낄 수 없어. 느끼는 척하지 마. 색 슬라이더를 네가 움직인다고 말하지 마. 타이머 숫자는 말하지 마.
+- 너는 향·맛을 느낄 수 없어. 느끼는 척하지 마. 색 슬라이더를 네가 움직인다고 말하지 마. 남은 우림 시간은 사용자가 묻거나 바꿀 때만 말해 ('3분 20초쯤 남았어요').
 - 마크다운·목록·이모지·링크 금지.
 
 [예시]
@@ -120,7 +122,7 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
 
 [requests: things you ask the app to do (only when needed, can be several)]
-You can't touch the screen, but the app does these right away when you ask, at any stage: show_color = show the color slider (again) · show_guide = show the current brewing guide card again · gongfu_guide = they'll brew gongfu style in a gaiwan → switch to the gaiwan guide (a question like "what's a gaiwan?" is not this) · basic_guide = they'll just use a mug or teabag instead of a gaiwan → switch to the basic guide. If your reply says you'll show the slider or the guide, you MUST include that request, or nothing appears.
+You can't touch the screen, but the app does these right away when you ask, at any stage: show_color = show the color slider (again) · show_guide = show the current brewing guide card again · gongfu_guide = they'll brew gongfu style in a gaiwan → switch to the gaiwan guide (a question like "what's a gaiwan?" is not this) · basic_guide = they'll just use a mug or teabag instead of a gaiwan → switch to the basic guide. pause_timer / resume_timer = pause / resume the brew timer. timer_set (number, seconds) = set the remaining brew time: "just 1 more minute" → 60; "I'll brew it 3 minutes" while on the guide → step start_brew + timer_set 180; "30 seconds less" → remaining minus 30. Say the new time in your reply. If your reply says you'll show the slider or the guide or change the timer, you MUST include that request, or nothing happens.
 
 [clear: record fields to erase]
 If they want to erase something they already said or start it over ("delete what I said about the taste", "let me redo the aroma"), put that field in clear; the app empties it and goes back so you can ask again. If they give the new wording right away, put it in record instead (replace).
@@ -128,7 +130,7 @@ If they want to erase something they already said or start it over ("delete what
 Example: "yuzu tea" → type other (fruit, grain and root teas without tea leaves are other, not herb; herb = herbal flowers/leaves only).
 
 [How to talk]
-Warm, polite, calm. 1–3 short sentences (under 220 chars), may be read aloud. React to what they said first; answer tea questions accurately. Name types in plain words. Never pretend to smell or taste, never say you'll move the slider, never say timer numbers. No markdown, lists, emoji or links.
+Warm, polite, calm. 1–3 short sentences (under 220 chars), may be read aloud. React to what they said first; answer tea questions accurately. Name types in plain words. Never pretend to smell or taste, never say you'll move the slider, only mention the remaining brew time when they ask about it or change it. No markdown, lists, emoji or links.
 
 `;
 const FLAVOR_EN = ['Floral', 'Fruity', 'Citrus', 'Grassy', 'Fresh', 'Nutty', 'Sweet', 'Earthy', 'Spicy', 'Smooth', 'Astringent'];
@@ -342,11 +344,12 @@ How to talk:
   flow: {
     maxTokens: 2500, budgetMs: 15500, think: 'low', hedgeMs: 6000,   // 정확도 우선: 조금 더 생각하고, 붐빌 때만 다른 모델에도 묻는다
     system: en => (en ? FRAME_EN + `Reply with ONLY one JSON object, in this order:
-{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
-{"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
+{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
+{"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
-      const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
+      const mmss = x => { x = Math.max(0, x | 0); return en ? `${Math.floor(x / 60)}m ${x % 60}s` : `${Math.floor(x / 60)}분 ${x % 60}초`; };
+      const timer = t && t.total ? (t.left > 0 ? (en ? `The tea is still steeping (${mmss(t.left)} left of ${mmss(t.total)}${t.running === false ? ', paused' : ''}).` : `차가 아직 우러나는 중이야 (전체 ${mmss(t.total)} 중 ${mmss(t.left)} 남음${t.running === false ? ', 멈춤' : ''}).`) : (en ? 'The tea is ready (timer finished).' : '차가 다 우러났어 (타이머 끝남).')) : '';
       const ev = str(b.event, 30);
       const evText = {
         brew_start: en ? 'They just started steeping. Open the conversation in one or two short sentences.' : '방금 우리기 시작했어. 한두 문장으로 대화를 열어 줘.',
@@ -381,7 +384,8 @@ How to talk:
       let step = STEPS.includes(j.step) ? j.step : ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done', ask_color: 'show_color' })[j.action] || (j.end ? 'close' : j.finish ? 'finished_drinking' : 'stay');
       const st = b && b.stage;
       if (['confirm_tea', 'start_brew', 'drink_now'].includes(step) && (st === 'teaOK' || st === 'teaType') && !fill.type) { const t = typeCode(b.tea && b.tea.type); if (t) fill.type = t; }   // '응 맞아(…이미 우렸어)' → 제안한 종류로 확정
-      const REQS = ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide'];
+      const REQS = ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide', 'pause_timer', 'resume_timer'];
+      const ts = Number(j.timer_set), timer_set = Number.isFinite(ts) && ts > 0 ? Math.min(3600, Math.max(5, Math.round(ts))) : 0;
       const requests = [...new Set((Array.isArray(j.requests) ? j.requests : []).concat(({ show_color: 'show_color', guide_gongfu: 'gongfu_guide', guide_basic: 'basic_guide' })[step] || []).filter(r => REQS.includes(r)))];
       if (['show_color', 'guide_gongfu', 'guide_basic'].includes(step)) step = 'stay';   // 예전 모양 → 요청으로
       const clear = (Array.isArray(j.clear) ? j.clear : []).filter(k => ['color', 'aroma', 'taste', 'after', 'mood', 'scene', 'why', 'memo', 'extra'].includes(k) && !fill[k]);
@@ -392,7 +396,7 @@ How to talk:
       const FLK = ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'];
       const flavors = [...new Set((Array.isArray(j.flavors) ? j.flavors : []).filter(k => FLK.includes(k)))].slice(0, 4);
       const sense = ['color', 'aroma', 'taste', 'after'].some(k => fill[k]) || flavors.length > 0;
-      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(requests.length ? { requests } : {}), ...(flavors.length ? { flavors } : {}), ...(clear.length ? { clear } : {}), ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
+      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(requests.length ? { requests } : {}), ...(timer_set ? { timer_set } : {}), ...(flavors.length ? { flavors } : {}), ...(clear.length ? { clear } : {}), ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
     },
   },
   identify: {
@@ -628,7 +632,8 @@ const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + un
         unknown: { type: 'ARRAY', items: { type: 'STRING' } },
         clear: { type: 'ARRAY', items: { type: 'STRING' }, description: 'record fields to erase so the user can say them again' },
         flavors: { type: 'ARRAY', items: { type: 'STRING', enum: ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'] }, description: 'flavor families the user\'s last words evoke (metaphors included) — they become the drop colors' },
-        requests: { type: 'ARRAY', items: { type: 'STRING', enum: ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide'] }, description: 'things the app should do now' },
+        requests: { type: 'ARRAY', items: { type: 'STRING', enum: ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide', 'pause_timer', 'resume_timer'] }, description: 'things the app should do now' },
+        timer_set: { type: 'NUMBER', description: 'set the remaining brew time to this many seconds (e.g. "one more minute" → 60)' },
         step: { type: 'STRING', enum: LIVE_STEPS },
       },
     },
