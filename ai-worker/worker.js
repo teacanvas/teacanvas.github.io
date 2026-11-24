@@ -52,7 +52,11 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
    - 시간·장소·기억·기분·날씨·사람 이야기는 감각 묘사가 아니야 → 빈 배열 (예: '작년 겨울에 마셨던 기억이 떠올라', '마음이 편해져', '친구랑 마시던 생각나'). 네가 그 말에서 연상한 풍미를 덧붙이지 마.
    - 확실하지 않으면 비워 둬. 비워 두는 게 틀린 색을 칠하는 것보다 나아. 사용자의 표현은 '나만의 표현'으로 그대로 남으니 억지로 풍미로 바꿀 필요가 없어.
 9. 천천히 마시는 중(free)에 '지금 찻방울에 담긴 풍미'가 2가지 이하이고 사용자가 짧게 감상만 말하면('음 좋다', '맛있네'), 반응한 뒤 아직 안 나온 쪽(식으면서 달라진 맛, 입안 느낌, 떠오르는 장면이나 향) 하나를 가볍게 질문으로 물어. 작별 인사처럼 끝내지 마. 사용자가 그만하고 싶어 하면 따라가.
-10. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
+10. 앱 기능(슬라이더·가이드·타이머)을 말로 약속하는 건 그 요청을 실제로 보낼 때만 해. 묻지 않은 기능을 덧붙이지 마 (예: 남은 시간을 물었는데 '가이드도 다시 보여드릴게요'라고 하지 마).
+11. 사용자가 말하지 않은 감상·행동을 지어내지 마 ('천천히 비우셨네요', '깔끔하게 마셨네요' 같은 말 금지). '모르겠어'에는 판단 없이 받아 줘.
+12. 사용자가 빨리 끝내고 싶다거나 바쁘다고 하면, 마시며 이야기하기를 건너뛰고 바로 여운을 묻거나(step finished_drinking) 마무리해.
+13. 기록 칸에는 핵심만 짧게(30자 이내) 다듬어 넣어. 뜻은 바꾸지 말고 말투만 다듬어 ('좀 떫어' → '살짝 떫은맛'). 산지(대만·제주 등)는 origin이지 brand가 아니야.
+14. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
 
 [step: 대화 흐름에서 다음으로 넘어가는 동작 하나]
 stay = 그대로 대화 이어가기 (대부분)
@@ -106,8 +110,8 @@ reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여�
 const photoOf = b => { const m = typeof b.image === 'string' && b.image.length < 380000 && b.image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/); return m ? { mime_type: m[1], data: m[2] } : null; };
 /* 사용자의 지난 기록 요약(앱이 보냄) → 한 줄씩. 지난 기록·취향에 대한 질문에 답할 수 있게 */
 const memLine = (b, en) => { const m = b.memory && typeof b.memory === 'object' ? b.memory : null; if (!m || !Array.isArray(m.records)) return '';
-  const rows = m.records.slice(0, 30).map(r => [str(r.date, 12), str(r.name, 30) + (r.brand ? `(${str(r.brand, 20)})` : ''), str(r.type, 10), list(r.flavors, 4, 12).join('·'), str(r.pos, 30), r.stars ? '★' + (r.stars | 0) : '', r.comment ? `"${str(r.comment, 50)}"` : ''].filter(Boolean).join(' / '));
-  return (en ? `User's past records (${m.total | 0} total, newest first; date / tea / type / flavors / canvas: aroma·taste liking / stars / comment):\n` : `사용자의 지난 기록 (전체 ${m.total | 0}잔, 최근 순; 날짜 / 차 / 종류 / 풍미 / 캔버스: 향·맛 호감 / 별점 / 코멘트):\n`) + (rows.join('\n') || '-') + (m.fav ? (en ? `\nMy taste drop: ${str(m.fav, 80)}` : `\n나의 취향 찻방울: ${str(m.fav, 80)}`) : ''); };
+  const rows = m.records.slice(0, 30).map(r => [str(r.date, 12) + (Number.isFinite(r.ago) ? (en ? ` (${r.ago | 0}d ago)` : ` (${r.ago | 0}일 전)`) : ''), str(r.name, 30) + (r.brand ? `(${str(r.brand, 20)})` : ''), str(r.type, 10), list(r.flavors, 4, 12).join('·'), str(r.pos, 30), r.stars ? '★' + (r.stars | 0) : '', r.comment ? `"${str(r.comment, 50)}"` : ''].filter(Boolean).join(' / '));
+  return (m.today ? (en ? `Today: ${str(m.today, 12)}\n` : `오늘: ${str(m.today, 12)}\n`) : '') + (en ? `User's past records (${m.total | 0} total, newest first; date / tea / type / flavors / canvas: aroma·taste liking / stars / comment):\n` : `사용자의 지난 기록 (전체 ${m.total | 0}잔, 최근 순; 날짜 / 차 / 종류 / 풍미 / 캔버스: 향·맛 호감 / 별점 / 코멘트):\n`) + (rows.join('\n') || '-') + (m.fav ? (en ? `\nMy taste drop: ${str(m.fav, 80)}` : `\n나의 취향 찻방울: ${str(m.fav, 80)}`) : ''); };
 const APP_GUIDE_KO = `
 [앱 설명서: 사용자가 앱에 대해 물으면 이걸로 정확히 답해]
 - 아래 탭: Home(오늘의 3D 찻방울, '새로운 티 테이스팅 기록하기' 버튼) · Canvas · My.
@@ -119,7 +123,7 @@ const APP_GUIDE_KO = `
 - My: 프로필, 마신 차 종류(종류별 잔 수), 설정(AI 대화/자동 대화, 목소리 여자/남자, 실시간 음성 등).
 - 음성 모드: 입력칸 옆 마이크. 실시간 음성(Gemini Live)이나 기본 음성으로 같은 대화를 말로 해.
 - 지난 기록은 읽기만 할 수 있어. 고치고 싶다고 하면 Canvas → 기록 → 그 기록의 상세에서 직접 고칠 수 있다고 안내해. 지금 기록 중인 한 잔은 네가 record·clear·requests로 바꿀 수 있어.
-- 지난 기록을 물으면('지난번 홍차보다 어때?', '내가 좋아했던 차가 뭐였지?') '사용자의 지난 기록'을 보고 구체적으로 답해. 없는 기록을 지어내지 마.`;
+- 지난 기록을 물으면('지난번 홍차보다 어때?', '내가 좋아했던 차가 뭐였지?') '사용자의 지난 기록'을 보고 구체적으로 답해. '지난번 ○○'은 그 종류 중 가장 최근 기록이야. 날짜는 '오늘'과 'N일 전'을 기준으로 말해 (연도를 추측하지 마). 없는 기록을 지어내지 마.`;
 const APP_GUIDE_EN = `
 [App guide: answer questions about the app accurately with this]
 - Bottom tabs: Home (today's 3D drop, the "record a new tasting" button) · Canvas · My.
@@ -131,7 +135,7 @@ const APP_GUIDE_EN = `
 - My: profile, tea types drunk (cups per type), settings (AI chat / scripted chat, female/male voice, live voice…).
 - Voice mode: the mic next to the input; the same conversation by voice (Gemini Live or basic voice).
 - Past records are read-only for you. If they want to change one, tell them they can edit it in Canvas → Records → that record's detail. The cup being recorded now you can change with record, clear and requests.
-- When they ask about past records ("how does this compare to the black tea last time?", "which tea did I like?"), answer concretely from "User's past records". Never invent records.`;
+- When they ask about past records ("how does this compare to the black tea last time?", "which tea did I like?"), answer concretely from "User's past records". "Last time's X" means the most recent record of that kind. Talk about dates relative to "today" and "N days ago" (don't guess years). Never invent records.`;
 const FRAME_EN = `You are a friend sitting with the user over a cup of tea inside TEA CANVAS. You lead the whole conversation.
 
 [What the app does]
@@ -158,7 +162,11 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
    - Time, place, memories, mood, weather or people are not sensory descriptions → empty ("it reminds me of last winter", "I feel calm", "makes me think of my friend"). Never add flavors you merely associate with the words.
    - If unsure, leave it empty; an empty list is better than a wrong color. Their words are kept as personal expressions anyway, so there's no need to force them into flavors.
 9. While drinking freely, if "flavors in the drop so far" has 2 or fewer and they only give a short remark ("mm, nice"), react and then ask one light question about something not covered yet (how it changed as it cooled, mouthfeel, a scene or aroma it brings up). Don't sign off like a goodbye. Follow them if they want to stop.
-10. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
+10. Only mention an app feature (slider, guide, timer) when you actually send that request; never tack on unrequested ones (asked about the time left → don't add "I'll show the guide again").
+11. Never invent impressions or actions the user didn't express ("you drank it slowly", "you finished it cleanly"). Accept "I don't know" without judging.
+12. If they want to finish quickly or are busy, skip the free-drinking chat: ask the aftertaste right away (step finished_drinking) or wrap up.
+13. Keep record fields short (under ~30 chars), tidy the wording without changing the meaning ("kinda bitter" → "slightly bitter"). Places like Taiwan or Jeju are origin, not brand.
+14. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
 
 [step: the one next move in the flow]
 stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
@@ -570,16 +578,16 @@ const SPECS = {
         '',
         en ? `Return JSON:
 - expert: ${L.generic ? 'a 1–2 sentence expert-style description of THIS specific tea (under 110 chars). If you do not know this tea, return an empty string.' : 'return an empty string (keep the current one).'}
-- common: flavors both the user and the expert mention. Choose ONLY from this list: ${labels.join(', ')}. 0–4 items.
-- diff: 1–2 short sentences (under 60 chars each) about what only the user noticed or only the expert mentions. Base it ONLY on the user's tea notes (color, aroma, taste, feel) and the expert text — never on weather, mood or small talk, and never invent points. Don't list a flavor as a difference if it is in common.
-- ai: a warm 1–2 sentence reading (under 120 chars) of how the user's senses relate to the description, grounded only in their tea notes and the expert text.
+- common: flavors that BOTH the user's notes and the expert text actually mention (if only one side has it, it's not common). Choose ONLY from this list: ${labels.join(', ')}. 0–4 items.
+- diff: 1–2 short sentences (under 60 chars each) about what only the user noticed or only the expert mentions. Base it ONLY on the user's tea notes (color, aroma, taste, feel) and the expert text — never on weather, mood or small talk, and never invent points. Don't list a flavor as a difference if it is in common. State differences as differences; don't explain them away.
+- ai: a warm 1–2 sentence reading (under 120 chars) of how the user's senses relate to the description, grounded only in their tea notes and the expert text; if they differ, say so warmly instead of forcing a link.
 - mine: one tidy line (under 90 chars) of the user's notes about how the tea looks, smells and tastes, joined with commas in their own words. Drop fillers (uh, um, like…), small talk and words the speech recognition obviously misheard. Never add impressions they didn't give. e.g. "nutty, gentle aroma, a little sweet and bitter".
 - own: 0–3 of the user's most personal, vivid phrases (images, memories, scenes — e.g. "like a forest path after rain"), taken from their expressions above; you may drop fillers but keep their words. Skip plain flavor words like "grassy" or "sweet".`
           : `JSON으로 답해:
 - expert: ${L.generic ? '이 차(이름 기준)에 대한 전문가식 설명 1~2문장, 90자 이내. 이 차를 잘 모르면 빈 문자열.' : '빈 문자열 (지금 설명을 그대로 쓴다).'}
-- common: 사용자와 전문가가 함께 짚은 풍미. 반드시 이 목록에서만 골라: ${labels.join(', ')}. 0~4개.
-- diff: 사용자만 느낀 것 또는 전문가만 말한 것, 짧은 문장 1~2개 (각 45자 이내, '~했어요' 체). 사용자의 차 표현(색·향·맛·느낌)과 전문가 설명만 근거로 해. 날씨·기분·잡담은 쓰지 말고, 없는 내용을 지어내지 마. common에 넣은 풍미는 차이점으로 쓰지 마.
-- ai: 내 감각과 설명이 어떻게 닿아 있는지 다정한 해석 1~2문장, 100자 이내. 사용자의 차 표현과 전문가 설명만 근거로 해.
+- common: 사용자 표현과 전문가 설명 양쪽에 실제로 다 나온 풍미만 (한쪽에만 있으면 공통이 아니야). 반드시 이 목록에서만 골라: ${labels.join(', ')}. 0~4개.
+- diff: 사용자만 느낀 것 또는 전문가만 말한 것, 짧은 문장 1~2개 (각 45자 이내, '~했어요' 체). 사용자의 차 표현(색·향·맛·느낌)과 전문가 설명만 근거로 해. 날씨·기분·잡담은 쓰지 말고, 없는 내용을 지어내지 마. common에 넣은 풍미는 차이점으로 쓰지 마. 다른 점은 다르다고만 쓰고 억지로 이어 붙이거나 합리화하지 마.
+- ai: 내 감각과 설명이 어떻게 닿아 있는지 다정한 해석 1~2문장, 100자 이내. 사용자의 차 표현과 전문가 설명만 근거로 해. 서로 다르면 억지로 잇지 말고 다르다는 걸 다정하게 말해.
 - mine: 사용자가 남긴 차의 색·향·맛·느낌 표현을 정리한 한 줄 (70자 이내). 추임새(어, 음, 아, 그, 막, 그냥, 이제…), 잡담, 음성 인식이 잘못 들은 말(뜻이 안 통하는 말)은 빼고, 사용자의 말을 살려 쉼표로 이어. 말끝('~가 나', '~이 있고', '~해')은 '은은한 냄새', '달큰한 맛'처럼 짧은 표현으로 다듬고, 차와 상관없는 말(뜨거워, 맛있어 같은 단순 반응은 하나만 남겨도 돼)은 줄여. 사용자가 하지 않은 표현은 절대 지어내지 마. 예: '고소하고 은은한 냄새, 살짝 달큰한 맛, 비 오는 날 같은 느낌'.
 - own: 사용자 표현 중 가장 그 사람다운 생생한 표현 0~3개 (장면·기억·비유, 예: '비 온 뒤 숲길 같은 향'). 위 사용자 표현에서 가져오되 추임새는 빼고, 말끝('~가 나', '~이 있고')과 띄어쓰기('달 크단'→'달큰한')는 다듬어. 뜻은 바꾸지 마. '풀향', '단맛'처럼 흔한 풍미 단어만 있는 건 빼.`,
       ].join('\n');

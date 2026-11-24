@@ -57,6 +57,9 @@ const CASES = [
   { id: '기억은 풍미 아님', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '작년 겨울에 마셨었는데 그때 겨울의 기억이 떠올라', drop: ['단맛', '꽃향'], filled: { color: '연두색', aroma: '꽃향', taste: '단맛' } }, ok: r => r.flavors.length === 0 },
   { id: '기분은 풍미 아님', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '마시니까 마음이 편안해지네', drop: ['단맛', '꽃향'], filled: { color: '연두색', aroma: '꽃향', taste: '단맛' } }, ok: r => r.flavors.length === 0 },
   { id: '냄새 비유는 풍미', tea: GREEN, b: { stage: 'aroma', want: 'aroma', next: 'taste', message: '비 온 뒤 숲길 같은 냄새가 나', filled: { color: '연두색' } }, ok: r => r.flavors.some(k => ['vegetal', 'earthy', 'fresh'].includes(k)) },
+  { id: '산지는 브랜드 아님', b: { stage: 'tea', want: 'tea', next: 'teatype', message: '오늘은 동방미인이요. 대만에서 사온 거예요' }, ok: r => !/대만/.test(r.set.brand || '') && r.set.type === 'oolong' },
+  { id: '빨리 끝내고 싶어', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '고소하고 밍밍해. 피곤해서 빨리 끝내고 싶어', drop: ['고소함'], filled: { color: '갈색', aroma: '구수한 향' } }, ok: r => r.finish || r.end },
+  { id: '시간만 묻고 가이드 약속 안 함', tea: GREEN, b: { stage: 'wait', want: '', next: 'wait', message: '몇 분 남았어?', timer: { left: 164, total: 180, running: true } }, ok: r => /2\s*분/.test(r.reply) && !/가이드/.test(r.reply) },
   // 맛
   { id: '맛', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '쌉싸름한데 끝에 단맛이 있어', filled: { color: '연두색', aroma: '꽃향' } }, ok: r => /쌉/.test(r.set.taste || '') },
   { id: '달콤하게 나요=맛·향', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '배 향이 달콤하게 나요', filled: { color: '연두색', aroma: '꽃향' } }, ok: r => !/좋은 질문/.test(r.reply) },

@@ -1118,7 +1118,7 @@ function matchFlavors(text){ const raw=String(text||''), t=raw.replace(/\s/g,'')
 function collectExprs(d){
   const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
   const fm=d.flMap||{}; ['aroma','taste'].forEach(k=>{ const v=String((d.feel&&d.feel[k])||''); if(Array.isArray(fm[v])) return add(v,fm[v]); v.split(', ').forEach(t=>add(t,fm[t])); }); // 찻물 색은 찻방울 색에 넣지 않는다 · fm: Gemini가 고른 풍미
-  (d.chat||[]).filter(m=>m.who==='me'&&!m.ans&&!m.fix).forEach(m=>add(m.text,m.fl));
+  (d.chat||[]).filter(m=>m.who==='me'&&!m.ans&&!m.fix&&!m.queued&&(!d.aiFlow||(Array.isArray(m.fl)&&m.fl.length&&!isQuestion(m.text||'')))).forEach(m=>add(m.text,m.fl));   // AI 대화: Gemini가 풍미를 찾은 말만 (질문·잡담·정정 문구는 빼기)
   if(d.afterText&&Array.isArray(fm[d.afterText])&&fm[d.afterText].length) add(d.afterText,fm[d.afterText]);
   if(d.useDeep!==false){ if(!d.aiFlow) add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
@@ -1190,7 +1190,7 @@ function favDrop(){
   const all=Object.keys(fl).sort((a,b)=>fl[b]-fl[a]).map(k=>({k,c:FLAVORS[k].color,w:fl[k]/mx})).slice(0,4); // 탁해지지 않게 상위 4색만
   return {drop,top,all,n:rs.length,
     title:`향도 맛도 좋았던 ${rs.length}잔을 모았어요`,
-    desc:names.length?`${names.join(', ')} 풍미가 가장 진하게 담겼어요. 좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`:`좋은 기억은 주로 ${TEAS[topT].label}에서 남았어요.`};
+    desc:names.length?`${names.join(', ')} 풍미가 가장 진하게 담겼어요. 주로 ${TEAS[topT].label}${josa(TEAS[topT].label,'을','를')} 마실 때 좋았어요.`:`주로 ${TEAS[topT].label}${josa(TEAS[topT].label,'을','를')} 마실 때 좋았어요.`};
 }
 
 /* 기록 목록 검색 · 필터 */
@@ -1198,7 +1198,7 @@ function favDrop(){
 const agoText=ts=>{ const d=Math.floor((Date.now()-(ts||0))/864e5); return d<1?'오늘':d<7?`${d}일 전`:d<30?`${Math.floor(d/7)}주 전`:`${Math.floor(d/30)}달 전`; };
 function notiHTML(){ const rs=sortRecs(), n=rs.length; if(!n) return `<div class="state" style="padding-top:60px"><h2 style="font-size:16px">아직 알림이 없어요</h2><p>차를 기록하면 지난 기록과<br>추천 차를 알려드릴게요.</p></div>`;
   const r=rs[0], ex=(r.exprs||[])[0], fav=favDrop(), rec=fav?recommendTeas(fav.all,1)[0]:null;
-  const L=[[r,`지난번 ${esc(r.name)}${josa(r.name,'은','는')} ${ex?`“${esc(ex)}”로 남겼어요`:'기록으로 남아 있어요'}. 오늘은 어떤 차를 마셔볼까요?`,agoText(r.ts),`openDetail('${r.id}')`],
+  const L=[[r,`지난번 ${esc(r.name)}${josa(r.name,'은','는')} ${ex?`“${esc(ex)}”${josa(ex,'으로','로')} 남겼어요`:'기록으로 남아 있어요'}. 오늘은 어떤 차를 마셔볼까요?`,agoText(r.ts),`openDetail('${r.id}')`],
     ['clear',`찻방울이 ${n}개 모였어요. Canvas 탭에서 나의 취향 찻방울을 확인해보세요.`,agoText(r.ts),`goTab('canvas')`]];
   if(rec&&PREF.recNoti) L.push([{id:'rec-'+rec.name,comps:rec.fl.map((k,i)=>({key:k,c:FLAVORS[k].color,w:1-i*.25}))},`나의 취향과 닮은 ${esc(rec.name)}${josa(rec.name,'을','를')} 추천해요. ${esc(rec.note)}.`,'1주 전',`goTab('canvas')`]);
   return L.map(([o,m,w,go])=>`<button class="noti" onclick="${go}">${orb(o,36)}<div><p>${m}</p><span>${w}</span></div></button>`).join(''); }
@@ -1341,7 +1341,7 @@ chat(){
 
 organizing(){
   return `${stepbar(3)}
-  ${loaderHTML('감각 기록을 정리하는 중')}`;
+  ${loaderHTML('감각 기록을 정리하고 있어요')}`;
 },
 
 analyzing(){
@@ -1477,7 +1477,7 @@ detail(p){
   <div class="sec-row"><h3 class="sec">캔버스 속 위치</h3><button class="pillbtn" onclick="openMoveSheet('${r.id}')">위치 옮기기</button></div>
   ${canvasBox('detCv',{cls:'sm scrollable'})}
   ${talk.length?`<div class="memo"><h4>그날의 이야기</h4><dl>${talk.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`:''}
-  <div class="memo"><h4>대화에서 남긴 말</h4>${(r.memo&&r.memo.length?r.memo:['남긴 메모가 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
+  <div class="memo"><h4>대화에서 남긴 말</h4>${(r.memo&&r.memo.length?r.memo:['남긴 말이 없어요.']).map(m=>`<p>${esc(m)}</p>`).join('')}
     ${info.length?`<dl>${info.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div>
   ${r.chat&&r.chat.length?`<button class="link" onclick="go('fullChat',{id:'${r.id}'})">대화 기록 보기 ›</button>`:''}
   <div style="height:24px"></div>`;
@@ -1508,7 +1508,7 @@ noti(){
 
 thin(){
   return `<div class="stepbar"><button class="back" onclick="back()" aria-label="뒤로">${I.back}</button><span></span><span></span></div>
-  <div class="state">${orb('clear',120,'big')}<h2>아직 담을 맛과 향이 없어요</h2><p>향이나 맛을 한 마디라도 내 말로 남기면<br>그 표현이 색이 되어 찻방울에 물들어요.</p></div>
+  <div class="state">${orb('clear',120,'big')}<h2>아직 담을 맛과 향이 없어요</h2><p>향이나 맛을 한마디라도 내 말로 남기면<br>그 표현이 색이 되어 찻방울에 물들어요.</p></div>
   <button class="btn" onclick="back()">채팅으로 돌아가 남기기</button>
   <button class="link" onclick="finishChat(true)">색 없이 맑은 찻방울로 남기기</button><div style="height:30px"></div>`;
 },
@@ -1557,8 +1557,8 @@ const cur=()=>S.stack[S.stack.length-1].name;
 /* =========================================================
    ACTIONS
    ========================================================= */
-function startRecord(force){ const v=!force&&(loadLive()||loadPaused()); S.ask={hd:null,sel:[]};   // 앞 기록의 색 슬라이더 값이 남지 않게
-  if(v) return openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">작성 중인 기록이 있어요</h1><p class="sub">‘${esc(v.draft.name||'새 기록')}’을 이어서 할까요?<br>새로 시작하면 작성 중인 기록은 지워져요.</p><div style="height:22px"></div>
+function startRecord(force){ const v=!force&&(loadLive()||loadPaused()); S.ask={hd:null,sel:[]}; S.outbox=[];   // 앞 기록의 색 슬라이더 값이 남지 않게
+  if(v) return openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">작성 중인 기록이 있어요</h1><p class="sub">‘${esc(v.draft.name||'새 기록')}’${josa(v.draft.name||'새 기록','을','를')} 이어서 할까요?<br>새로 시작하면 작성 중인 기록은 지워져요.</p><div style="height:22px"></div>
     <button class="btn" onclick="closeSheet();resumeRecord()">이어서 하기</button><button class="btn line" onclick="closeSheet();clearLive();savePaused(null);startRecord(true)">새로 시작하기</button><button class="link" onclick="closeSheet()">취소</button>`);
   closeSheet(); stopTimer(); S.draft=newDraft(); S.chatMode='chat'; go('chat',{}, {reset:true}); }
 function openDetail(id){ closeSheet(); if(!(cur() in TAB_OF)||cur()==='my'||cur()==='noti') S.stack=[{name:'canvas',params:{tab:'list'}}]; go('detail',{id}); }
@@ -1688,7 +1688,7 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
   d.nudged=true; d.nudgeAt=now; d.chat.push({who:'bot',text:order[d.nudgeN||0],nudge:true}); d.nudgeN=(d.nudgeN||0)+1; if(S.chatMode==='chat') paintMsgs(); },10000);
 function seedChat(){
   const d=S.draft;
-  if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’이에요.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
+  if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’${josa(d.name,'이에요','예요')}.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
   if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }
   chatTick();
 }
@@ -1747,16 +1747,16 @@ function teaChip(c){
 }
 function showGuide(again){ const d=S.draft; d.stage='guide'; if(!again&&!d.gongfu&&!d.aiFlow&&(d.chat||[]).some(m=>m.who==='me'&&/개완|공부차|gongfu|gaiwan/i.test(m.text||''))){ d.gongfu=true; d.basic=false; }   /* 앞에서 개완으로 우린다고 했으면 처음부터 개완 가이드 */
   botSay(()=>({who:'bot',guide:true,basic:!!d.basic,gongfu:!!d.gongfu,text:again?(d.basic?'어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.':d.gongfu?'개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.':`다시 ${d.name}에 맞춘 가이드예요.`):`${d.name}${josa(d.name,'을','를')} 가장 맛있게 우리는 방법이에요.\n준비되면 ‘우림 시작’을 눌러주세요.`,
-    chips:['우림 시작 ▶',d.gongfu?'머그컵으로 우려요':'개완으로 우려요',d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기','바로 마실게요']})); }
+    chips:['우림 시작 ▶',...(d.gongfu?['머그컵으로 우려요']:/티백|tea\s*bag/i.test((d.name||'')+' '+(d.chat||[]).filter(m=>m.who==='me').map(m=>m.text).join(' '))?[]:['개완으로 우려요']),d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기','바로 마실게요']})); }
 /* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
    AI 대화(Gemini가 이끄는 흐름)일 때는 질문도 flowMsg로 가고, 이 길은 정해진 대화일 때 쓴다. 서버 주소는 AI_ENDPOINT */
 const AI_ENDPOINT=window.TC_AI_ENDPOINT??(navigator.webdriver?'':'https://teacanvas-ai.sehoon3554.workers.dev/');   // AI 중간 서버(ai-worker/worker.js). 자동 테스트 중에는 끄고(무료 한도 보호), 비우면('') 정해진 대답만 쓴다
 const AI_TIMEOUT=9000, AI_TIMEOUT_LONG=15000;  // 이 시간 안에 대답이 없으면 정해진 대답으로 (질문 / 비교·추천)
 const FAQ=[
   [/떫|쓴|쓰다|씁쓸/, t=>`떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요.${t?` ${t.label}는 ${t.temp}, ${t.time}이 알맞아요.`:''}`],
-  [/몇 ?번|여러 ?번|다시 우려|재탕/, ()=>'잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.'],
+  [/몇 ?번|여러 ?번|다시 우려|재탕/, ()=>'잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 우릴 때마다 달라지는 걸 비교해보세요.'],
   [/카페인|잠|밤에/, ()=>'녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차나 보리차·유자차 같은 기타 차가 편해요.'],
-  [/온도|몇 ?도|뜨거/, t=>t?`${t.label}는 ${t.temp}가 알맞아요. 끓인 물을 잠시 식혀서 부으면 돼요.`:'차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.'],
+  [/온도|몇 ?도|뜨거/, t=>t?`${t.label}는 ${t.temp}가 알맞아요. ${/^(홍차|보이차|기타)$/.test(t.label)?'끓는 물을 바로 부으면 돼요.':'끓인 물을 잠시 식혀서 부으면 돼요.'}`:'차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.'],
   [/얼마나|시간|몇 ?분/, t=>t?`${t.label}는 ${t.time} 정도 우려보세요. 진하게 좋으면 조금 더 길게요.`:'보통 2~5분이에요. 처음엔 짧게, 맛을 보며 늘려보세요.'],
   [/몇 ?그램|양|얼마나 넣/, ()=>'찻잎은 물 150~200ml에 2~3g(티스푼 하나 정도)이 알맞아요.'],
   [/보관|유통|오래/, ()=>'빛·습기·냄새를 피해서 밀봉해 서늘한 곳에 두세요. 녹차는 개봉 후 한두 달 안에 마시는 게 좋아요.'],
@@ -1831,13 +1831,13 @@ function aiVoiceLive(){ return !!AI_ENDPOINT&&aiVoice()!=='device'&&!VOICE.ttsOf
 /* 위 표시는 '연결돼 있는지'가 아니라 '방금 내 말을 실제로 누가 받았는지'를 보여준다 (d.by: 'ai' | 'auto') */
 function setBy(v){ const d=S.draft; if(!d||d.by===v) return; d.by=v; paintBadge(); }
 function aiBadge(){ if(!AI_ENDPOINT) return ''; const d=S.draft, byAuto=!!(d&&d.by==='auto'), c=aiChatLive()&&!byAuto, v=VOICE.on?`<span>·</span><span>${VOICE.live&&LIVE.on?'실시간 음성':aiVoiceLive()?'AI 목소리':'기본 목소리'}</span>`:'';
-  return `<button id="aiBadge" class="aibadge${c?'':' off'}" onclick="toast(${c?"'Gemini가 내 말을 듣고 대답하고 있어요'":aiChatPref()&&byAuto&&aiChatLive()?"'방금 말은 미리 정해둔 자동 대화가 받았어요\\n다음 말부터 다시 AI가 받아요'":aiChatPref()?"'AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요'":"'설정에서 자동 대화를 골랐어요\\n정해진 대화로 빠르게 진행해요'"},true)"><i></i><span>${c?'AI 대화':'자동 대화'}</span>${v}</button>`; }
+  return `<button id="aiBadge" class="aibadge${c?'':' off'}" onclick="toast(${c?"'AI가 내 말을 듣고 대답하고 있어요'":aiChatPref()&&byAuto&&aiChatLive()?"'방금 말에는 자동 대화가 대답했어요\\n다음 말부터 다시 AI가 대답해요'":aiChatPref()?"'AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요'":"'설정에서 자동 대화를 골랐어요\\n정해진 대화로 빠르게 진행해요'"},true)"><i></i><span>${c?'AI 대화':'자동 대화'}</span>${v}</button>`; }
 function paintBadge(){ const e=$('#aiBadge'); if(e) e.outerHTML=aiBadge(); }
 const chatAIOn=()=>{ if(!AI_ENDPOINT||!aiChatPref()) return false; if(Date.now()<CHAT_AI.off||navigator.onLine===false){ aiFallbackNote(); return false; } return true; };
 /* AI 대화가 안 돼서 정해진 대화로 넘어가면, 기록마다 한 번 위에 알린다 */
 function aiFallbackNote(){ const d=S.draft; if(!d||cur()!=='chat') return; d.aiLost=true; paintBadge(); if(d.aiNoted) return; d.aiNoted=true;
   const first=!d.chat.some(m=>m.ai);   // 처음부터 못 쓰는지, 쓰다가 끊긴 건지
-  toast((AI_WHY==='quota'?'AI 사용 한도에 걸려서':'AI 연결이 불안정해서')+(first?' 지금은 자동 대화로 진행해요':' 잠시 자동 대화로 이어가요')+'\n다시 연결되면 알려드릴게요',true); }
+  toast((AI_WHY==='quota'?'오늘 쓸 수 있는 AI를 다 써서':'AI 연결이 불안정해서')+(first?' 지금은 자동 대화로 진행해요':' 잠시 자동 대화로 이어가요')+'\n다시 연결되면 알려드릴게요',true); }
 /* AI가 다시 답하면: 위에 알리고 다음 말부터 다시 AI 대화 */
 function aiBackNote(){ const d=S.draft; CHAT_AI.fails=0; if(!d||!d.aiLost) return; d.aiLost=false; d.aiNoted=false; paintBadge(); toast('AI가 다시 연결됐어요\n이제 다시 AI와 대화해요',true); }
 async function aiChat(event,message){ const d=S.draft; if(!d||!chatAIOn()) return null;
@@ -1911,7 +1911,7 @@ function flowApply(d,f){   // AI가 뽑은 것을 기록 칸에 채운다
     if(!hd&&S.ask&&S.ask.hd){ hd=S.ask.hd; if(/^(비슷|이대로|그대로|맞|응|네|예|좋|그거|그 색|ok|yes|same|similar)/i.test(String(f.color).trim())) f.color=tcName(hd[0],hd[1]); }   // '비슷해 이대로' → 슬라이더에 보이는 색을 그대로 저장
     d.feel.color=f.color; if(hd&&!slid){ d.feel.colorHD=hd; d.feel.colorHex=tcColor(hd[0],hd[1]); } }
   if(f.aroma) d.feel.aroma=f.aroma; if(f.taste) d.feel.taste=f.taste; if(f.after) d.afterText=f.after;
-  ['mood','scene','why'].forEach(k=>{ if(f[k]) (d.talk||(d.talk={}))[k]=f[k]; });
+  ['mood','scene','why'].forEach(k=>{ if(!f[k]) return; const t=d.talk||(d.talk={}), v=String(f[k]); t[k]=t[k]&&!String(t[k]).includes(v)&&!v.includes(t[k])?t[k]+' · '+v:v; });   // 그날의 이야기는 덮어쓰지 않고 쌓는다
   const dp=d.deep||(d.deep={brews:{}}), add=t=>{ dp.memo=dp.memo?dp.memo+'\n'+t:t; };
   if(f.origin) dp.origin=f.origin; if(f.temp) dp.temp=/\d/.test(f.temp)?num(f.temp):f.temp; if(f.time) dp.timeRaw=f.time; if(f.memo) add(f.memo); if(f.extra&&f.extra!==f.memo&&!/^(없|아니|괜찮|됐)/.test(f.extra)) add(f.extra); }
 function flowAdvance(d,skipOnly){ const st=d.stage; if(!skipOnly) S.ask={hd:null,sel:[]};   // 지금 기록할 것이 채워지면 다음 단계로 (skipOnly: 이미 채운 단계만 건너뛰기)
@@ -1955,12 +1955,12 @@ function flowFlavors(d,me,f,fl,seen){ if(!seen) return; fl=(Array.isArray(fl)?fl
   ['aroma','taste','after'].forEach(k=>{ if(f[k]) fm[String(f[k])]=fl; }); if(me&&me.ans!=='tea'&&me.ans!=='nav'){ me.fl=fl; if(fl.length&&me.ans==='talk') delete me.ans; } }
 /* Gemini가 앱 전체를 알 수 있게: 지난 기록 요약 (최근 30잔). 읽기만 하고, 지금 기록 중인 한 잔만 Gemini가 바꿀 수 있다 */
 function appMemory(){ const like=v=>v>=.62?'좋아요':v<=.38?'별로':'보통';
-  const rs=[...S.records].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,30).map(r=>({date:r.date||ymd(r.ts||0),name:r.name,brand:r.brand||'',type:TEAS[r.type]?TEAS[r.type].label:'',
+  const rs=[...S.records].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,30).map(r=>({date:r.date||ymd(r.ts||0),ago:Math.max(0,Math.floor((Date.now()-(r.ts||0))/864e5)),name:r.name,brand:r.brand||'',type:TEAS[r.type]?TEAS[r.type].label:'',
     flavors:(Array.isArray(r.flavors)?r.flavors.map(f=>f&&f.k):(r.flAll||[])).filter(k=>FLAVORS[k]).slice(0,4).map(k=>FLAVORS[k].label),
     pos:r.canvas?`향 ${like(r.canvas.x)}·맛 ${like(1-r.canvas.y)}`:'',stars:r.stars||0,comment:String(r.comment||'').slice(0,50)}));
   let fav=''; try{ const f=favDrop(); if(f) fav=`${f.title} (${f.all.map(x=>FLAVORS[x.k]?FLAVORS[x.k].label:x.k).join('·')})`; }catch(e){}
-  return {total:S.records.length,records:rs,fav}; }
-function appMemoryText(){ const m=appMemory(); return `[앱 정보] 사용자의 지난 기록 (전체 ${m.total}잔, 최근 순; 날짜 / 차 / 종류 / 풍미 / 캔버스: 향·맛 호감 / 별점 / 코멘트):\n`+m.records.map(r=>[r.date,r.name+(r.brand?`(${r.brand})`:''),r.type,r.flavors.join('·'),r.pos,r.stars?'★'+r.stars:'',r.comment?`"${r.comment}"`:''].filter(Boolean).join(' / ')).join('\n')+(m.fav?`\n나의 취향 찻방울: ${m.fav}`:'')+'\n(이건 참고 정보야. 대답하지 말고, 물어볼 때 써.)'; }
+  return {today:ymd(Date.now()),total:S.records.length,records:rs,fav}; }
+function appMemoryText(){ const m=appMemory(); return `[앱 정보] 오늘: ${m.today}\n사용자의 지난 기록 (전체 ${m.total}잔, 최근 순; 날짜 / 차 / 종류 / 풍미 / 캔버스: 향·맛 호감 / 별점 / 코멘트):\n`+m.records.map(r=>[`${r.date} (${r.ago}일 전)`,r.name+(r.brand?`(${r.brand})`:''),r.type,r.flavors.join('·'),r.pos,r.stars?'★'+r.stars:'',r.comment?`"${r.comment}"`:''].filter(Boolean).join(' / ')).join('\n')+(m.fav?`\n나의 취향 찻방울: ${m.fav}`:'')+'\n(이건 참고 정보야. 대답하지 말고, 물어볼 때 써.)'; }
 /* Gemini가 우림 타이머를 바꿔 달라고 하면: 남은 시간 바꾸기(timer_set, 초) · 멈추기 · 다시 돌리기 */
 function flowTimer(j){ const t=S.timer, req=Array.isArray(j&&j.requests)?j.requests:[], n=Number(j&&j.timer_set); if(!t) return false; let ch=false;
   if(Number.isFinite(n)&&n>0){ const done=t.total-t.left; t.left=Math.round(n); t.total=done+t.left; t.running=true; ch=true; }
@@ -2049,7 +2049,7 @@ function askNext(){
 function askMsg(d){   // 정해진 질문 (AI가 안 될 때)
   if(d.stage==='free'){ d.chat.push({who:'bot',text:FREE_INTRO}); }
   else if(d.stage==='color'&&d.type&&TC_GUESS[d.type]){ S.ask.hd=S.ask.hd||[...TC_GUESS[d.type]]; S.ask.hd=[...TC_GUESS[d.type]]; const t=d.type==='other'?'이 차':TEAS[d.type].label;
-    d.chat.push({who:'bot',text:VOICE.on?`${d.direct?'':'찻물에 색이 우러나기 시작했어요.\n'}지금 찻물 색은 어떤가요? 보이는 색을 말로 알려주세요.`:`${d.direct?'먼저 찻물 색부터 볼까요?':'찻물에 색이 우러나기 시작했어요.'}\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
+    d.chat.push({who:'bot',text:VOICE.on?`${d.direct?'':'찻물에 색이 우러나기 시작했어요.\n'}지금 찻물 색은 어떤가요? 보이는 색을 말로 알려주세요.`:`${d.direct?'먼저 찻물 색부터 볼까요?':brewDone()?'다 우러났어요. 찻물 색부터 볼까요?':'찻물에 색이 우러나기 시작했어요.'}\n${t}${josa(t,'은','는')} 보통 이런 색이에요. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요.`,ask:'color'}); }
   else { let q=ASK_VAR[d.stage]?pick(ASK_VAR[d.stage],(d.tid||1)+d.stage.length):ASK[d.stage]; if(d.direct) q=q.replace(/^(다 우려졌어요|차가 다 우려졌어요)\.\s*/,''); d.chat.push({who:'bot',text:q,ask:d.stage}); }
 }
 const isAsk=st=>st==='color'||st==='aroma'||st==='taste';
@@ -2158,7 +2158,7 @@ const EN={
  "기억하고 싶은 점을 자유롭게 남겨주세요.\n함께 마신 사람, 장소, 그날의 기분도 좋아요.":"Leave anything you want to remember.\nWho you were with, the place, your mood.",
  "남겨둘게요.\n더 남기고 싶은 게 있나요? 없으면 정리할게요.":"Saved.\nAnything else? If not, I'll wrap up.",
  "좋은 질문이에요. 지금은 정확히 답하기 어려워요.\n마시면서 느낀 점을 계속 들려주세요.":"Good question. I can't answer that exactly right now.\nKeep telling me what you notice.",
- "잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.":"Loose-leaf tea can usually be brewed 3–5 times. Each infusion gets lighter and smoother, so compare them.",
+ "잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 우릴 때마다 달라지는 걸 비교해보세요.":"Loose-leaf tea can usually be brewed 3–5 times. Each infusion gets lighter and smoother, so compare them.",
  "녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차나 보리차·유자차 같은 기타 차가 편해요.":"Green, black, oolong and pu-erh teas have caffeine. Late at night, an herbal tea like chamomile, or another caffeine-free tea like barley or yuzu, is easier.",
  "차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.":"It depends. Green tea likes 70–80°C; black and pu-erh like 90°C or more.",
  "보통 2~5분이에요. 처음엔 짧게, 맛을 보며 늘려보세요.":"Usually 2–5 minutes. Start short and extend as you taste.",
@@ -2180,7 +2180,7 @@ const EN={
  "— 우림이 끝났어요 —":"— Brewing done —","생각하는 중이에요.":"Thinking…","끌어서 골라주세요":"Drag to choose","고른 찻물 색":"Tea color","색 계열":"Hue","진하기":"Depth","맑게":"Light","진하게":"Deep","이 색으로 보내기 →":"Send this color →","보내기 →":"Send →","떠오르면 직접 적어도 돼요":"You can also type your own",
  "맛·향으로는 담지 않았어요":"Not saved as a flavor","바꾸기":"change","이 표현에 담긴 맛과 향을 골라주세요":"Pick the flavors in this phrase","다 골랐어요":"Done",
  "기본 우림 가이드":"Basic brewing guide","물 온도":"Water","우리는 시간":"Time","양":"Amount","맛있게":"Tip",
- "말하는 중…":"Speaking…","대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요":"Answering… talk or tap to interrupt","대답하는 중…":"Answering…","시연용 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…","생각하는 중… 이어서 말해도 돼요":"Thinking… you can keep talking",
+ "말하는 중…":"Speaking…","대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요":"Answering… talk or tap to interrupt","대답하는 중…":"Answering…","예시 목소리로 대답하는 중…":"Answering with the demo voice…","듣고 있어요":"Listening","생각하는 중…":"Thinking…","생각하는 중… 이어서 말해도 돼요":"Thinking… you can keep talking",
  "예: 오설록 제주 세작":"e.g. Twinings Earl Grey","차 종류를 골라주세요":"Pick a tea type","편하게 적어보세요":"Type freely","색을 말로 적어도 돼요":"You can describe the color","내 말로 편하게 적어보세요":"Say it your way","직접 적어도 돼요":"You can type your own","느낀 그대로 적어보세요":"Type what you feel",
  "꽃향":"Floral","과일향":"Fruity","상큼한 시트러스":"Citrusy","풀향":"Grassy","민트처럼 상쾌한 향":"Minty fresh","고소한 향":"Nutty","달콤한 향":"Sweet","흙·나무 향":"Earthy, woody","스모키한 향":"Smoky","계피·생강 향":"Cinnamon, ginger","은은한 향":"Subtle",
  "단맛":"Sweet","고소함":"Nutty","새콤함":"Tangy","산뜻함":"Bright","부드러움":"Smooth","묵직함":"Full-bodied","깔끔함":"Clean","은은함":"Delicate","쌉쌀함":"Slightly bitter","떫은맛":"Astringent","텁텁함":"Dry",
@@ -2200,11 +2200,12 @@ const EN_RE=[
  [/^‘(.+?)’(?:은|는) 처음 보는 차예요\.\n어떤 종류에 가까운가요\?$/,(m,a)=>`I don't know ‘${a}’ yet.\nWhich type is it closest to?`],
  [/^다시 (.+)에 맞춘 가이드예요\.$/,(m,a)=>`Here's the guide for ${a} again.`],
  [/^(.+?)(?:을|를) 가장 맛있게 우리는 방법이에요\.\n준비되면 ‘우림 시작’을 눌러주세요\.$/,(m,a)=>`Here's how to brew ${a} at its best.\nTap ‘Start brewing’ when you're ready.`],
- [/^이어서 기록해볼까요\? 오늘의 차는 ‘(.+)’이에요\.$/,(m,a)=>`Shall we continue? Today's tea is ‘${a}’.`],
+ [/^(\d+)잔$/,(m,a)=>`${a} ${a==='1'?'cup':'cups'}`],
+ [/^이어서 기록해볼까요\? 오늘의 차는 ‘(.+)’(?:이에요|예요)\.$/,(m,a)=>`Shall we continue? Today's tea is ‘${a}’.`],
  [/^(녹차|백차|우롱차|홍차|보이차|허브차|기타) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea',기타:'other tea'})[a]}`],
  [/^(.+) 개완 우림 가이드$/,(m,a)=>`${a} gongfu guide`],
  [/^(.+) 우림 가이드$/,(m,a)=>`${a} brewing guide`],
- [/^(먼저 찻물 색부터 볼까요\?|찻물에 색이 우러나기 시작했어요\.)\n(.+?)(?:은|는) 보통 이런 색이에요\. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요\.$/,(m,a,b)=>`${a.startsWith('먼저')?'First, the color.':'The color is starting to come out.'}\n${EN_TYPE_LABEL[b]||b} usually looks like this. Send it if it matches, or adjust it.`],
+ [/^(먼저 찻물 색부터 볼까요\?|다 우러났어요\. 찻물 색부터 볼까요\?|찻물에 색이 우러나기 시작했어요\.)\n(.+?)(?:은|는) 보통 이런 색이에요\. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요\.$/,(m,a,b)=>`${a.startsWith('먼저')?'First, the color.':a.startsWith('다 우러')?'It\'s ready. Let\'s look at the color first.':'The color is starting to come out.'}\n${EN_TYPE_LABEL[b]||b} usually looks like this. Send it if it matches, or adjust it.`],
  [/^(찻물에 색이 우러나기 시작했어요\.\n)?지금 찻물 색은 어떤가요\? 보이는 색을 말로 알려주세요\.$/,(m,a)=>`${a?'The color is starting to come out.\n':''}What color is the tea? Describe what you see.`],
  [/^괜찮아요\. 이 중에 가까운 (향|맛)이 있나요\?\n여러 개 골라도 돼요\.$/,(m,a)=>`That's okay. Is any of these close to the ${a==='향'?'aroma':'taste'}?\nYou can pick more than one.`],
  [/^괜찮아요\. 이 중에 가까운 게 있을까요\?\n(.+)… 떠오르는 걸 말해주세요\.$/,(m,a)=>`That's okay. Is any of these close?\n${a.split(', ').map(x=>EN[x]||x).join(', ')}… say what comes to mind.`],
@@ -2212,7 +2213,7 @@ const EN_RE=[
  [/^(\d+)차( ✓)?$/,(m,a,b)=>`#${a}${b||''}`],
  [/^(\d+)년$/,(m,a)=>a],
  [/^(\d+)분(?: (\d+)초)?$/,(m,a,b)=>`${a} min${b?` ${b} s`:''}`],
- [/^(.+?)는 (.+?)가 알맞아요\. 끓인 물을 잠시 식혀서 부으면 돼요\.$/,(m,a,b)=>`For ${(EN_TYPE_LABEL[a]||a).toLowerCase()}, ${b} is right. Let boiled water cool a little.`],
+ [/^(.+?)는 (.+?)가 알맞아요\. 끓인 물을 잠시 식혀서 부으면 돼요\.$/,(m,a,b)=>`For ${(EN_TYPE_LABEL[a]||a).toLowerCase()}, ${b} is right. Let boiled water cool a little.`],[/^(.+?)는 (.+?)가 알맞아요\. 끓는 물을 바로 부으면 돼요\.$/,(m,a,b)=>`For ${(EN_TYPE_LABEL[a]||a).toLowerCase()}, ${b} is right. Pour it straight off the boil.`],
  [/^(.+?)는 (.+?) 정도 우려보세요\. 진하게 좋으면 조금 더 길게요\.$/,(m,a,b)=>`Brew ${(EN_TYPE_LABEL[a]||a).toLowerCase()} for about ${enTime(b)}. Longer if you like it strong.`],
  [/^떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요\.(?: (.+?)는 (.+?), (.+?)이 알맞아요\.)?$/,(m,a,b,c)=>`If it tastes bitter or astringent, lower the water temperature a bit or brew about 30 seconds shorter.${a?` ${EN_TYPE_LABEL[a]||a}: ${b}, ${enTime(c)}.`:''}`],
  [/^(맑은 |연한 |진한 )?(빨강|주황|노랑|초록|파랑|남색|보라)$/,(m,a,b)=>`${a?{'맑은 ':'pale ','연한 ':'light ','진한 ':'deep '}[a]:''}${EN_COLOR[b]}`],
@@ -2260,7 +2261,12 @@ function keptLabel(m,i){ if(m.fix) return `<span class="kept">${isEN()?'Changed 
   if(S.editMsg!==i) return `<button class="kept kept-btn" onclick="S.editMsg=${i};paintMsgs(true);setTimeout(()=>{ const e=document.querySelector('.fl-edit'); if(e) e.scrollIntoView({block:'center',behavior:'smooth'}); },80)">${lab} <u>${L('바꾸기')}</u></button>`;
   return `<div class="fl-edit"><p>${L('이 표현에 담긴 맛과 향을 골라주세요')}</p><div class="chips">${FKEYS.map(k=>`<button class="chip ${ks.includes(k)?'sel':''}" onclick="toggleMsgFl(${i},'${k}')"><i style="background:${FLAVORS[k].color}"></i>${isEN()?HOME_EN[k]:FLAVORS[k].label}</button>`).join('')}</div><button class="feelnext" onclick="S.editMsg=null;paintMsgs(true)">${L('다 골랐어요')}</button></div>`; }
 function toggleMsgFl(i,k){ const m=S.draft.chat[i]; const cur=msgFl(m).slice(); const j=cur.indexOf(k); j<0?cur.push(k):cur.splice(j,1); m.fl=cur; paintMsgs(true); }
-function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; syncSend(); sendMsg(t); }
+function sendInput(){ const el=$('#chatIn'); const t=el.value.trim(); if(!t) return; el.value=''; syncSend();
+  if(S.typing&&S.draft){ const d=S.draft;   // 봇이 대답하는 중에 보낸 말도 잃지 않는다
+    if(d.pendingMe&&flowAmend(t)) return;   // 내 말에 대한 대답을 기다리는 중 → 앞말과 합쳐 다시 묻는다
+    const m={who:'me',text:t,queued:true}; d.chat.push(m); (S.outbox||(S.outbox=[])).push(m); paintMsgs(); return; }   // 앱이 먼저 말하는 중 → 끝나면 바로 보낸다
+  sendMsg(t); }
+setInterval(()=>{ const d=S.draft, o=S.outbox; if(!o||!o.length||S.typing||!d||cur()!=='chat') return; const m=o.shift(), i=d.chat.indexOf(m); if(i>=0) d.chat.splice(i,1); sendMsg(m.text); },400);
 /* 말(또는 글)로 버튼을 대신하기: '네', '우림 시작할게요', '건너뛸게요', '이제 충분해요', '정리할게요'… */
 function textIntent(d,text){
   const raw=String(text).trim(), t=raw.replace(/\s/g,''), start=re=>re.test(t), W=d.stage==='wait'||d.stage==='wait2', e=raw.toLowerCase().replace(/[.!?,]/g,'').trim();
@@ -2361,7 +2367,7 @@ function deepAnswer(t){
     if(cur()==='chat'&&S.chatMode==='chat') paintMsgs(); },600);
 }
 /* 음성 대화: 한 번 누르면 챗봇이 말하고(소리) → 내 말을 듣고 → 다시 말하는 대화를 계속 이어간다.
-   처음 차 이름부터 끝까지 전부 말로. 마이크/음성 인식을 못 쓰는 환경이면 '시연용 목소리'로 대신한다 */
+   처음 차 이름부터 끝까지 전부 말로. 마이크/음성 인식을 못 쓰는 환경이면 '예시 목소리'로 대신한다 */
 const VOICE={on:false,demo:false,rec:null,phase:'idle',spoken:0,interim:'',tid:0};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const DEMO_SAY={tea:'오설록 제주 세작이요',teaOK:'네 맞아요',teaType:'녹차요',guide:'우림 시작할게요',color:'연한 연두색이에요',aroma:'비 온 뒤 숲길 같은 풀 향이 나요',
@@ -2379,7 +2385,7 @@ function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsO
   VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(liveWanted()){ const id=VOICE.tid; VOICE.live=true; VOICE.phase='thinking'; rerender(); startLive().then(ok=>{ if(VOICE.tid!==id||!VOICE.on) return; if(ok) return;   // 실시간 음성이 되면 그걸로, 안 되면 기본 음성 모드로
       VOICE.live=false; LIVE.on=false; liveGreeting(d); toast('실시간 음성 연결이 안 돼서\n기본 음성 대화로 할게요',true); VOICE.spoken=Math.max(0,d.chat.length-1); rerender(); voiceLoop(id); }); return; }
-  if(VOICE.demo) toast('마이크를 쓸 수 없어 시연용 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
+  if(VOICE.demo) toast('마이크를 쓸 수 없어 예시 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
 /* ===== 실시간 음성 (Gemini Live) =====
    마이크 소리를 그대로 AI 서버(/live)로 보내고, AI가 바로 소리로 대답한다 (클로드·GPT 음성 모드처럼).
    오간 말은 글자로 채팅에 남고, 기록은 AI가 update_record 도구로 채운다. 안 되면 기본 음성 모드로 */
@@ -2542,14 +2548,14 @@ function demoLine(d){ if(isEN()){ const D=DEMO_EN; if(d.stage==='wait'||d.stage=
   if(d.stage==='free'){ const i=d.demoFree=(d.demoFree||0); d.demoFree=i+1; return DEMO_SAY.free[Math.min(i,DEMO_SAY.free.length-1)]; }
   return DEMO_SAY[d.stage]||null; }
 function listenOnce(id){ return new Promise(res=>{ const d=S.draft;
-  if(VOICE.demo){ if(VOICE.demoUsed&&!window.TC_VOICE_FAST){ stopVoice(); toast('시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요'); return res(null); } setTimeout(()=>{ VOICE.demoUsed=true; res(vAlive(id)?demoLine(d):null); },window.TC_VOICE_FAST?250:2200); return; }
+  if(VOICE.demo){ if(VOICE.demoUsed&&!window.TC_VOICE_FAST){ stopVoice(); toast('예시 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요'); return res(null); } setTimeout(()=>{ VOICE.demoUsed=true; res(vAlive(id)?demoLine(d):null); },window.TC_VOICE_FAST?250:2200); return; }
   let got='', r; try{ r=new SR(); }catch(e){ VOICE.demo=true; return res(null); }
   VOICE.rec=r; r.lang=isEN()?'en-US':'ko-KR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=3; VOICE.alts=[];
   VOICE.heardAt=0; r.onresult=e=>{ if(!VOICE.heardAt) VOICE.heardAt=Date.now(); let fin='', mid=''; for(const x of e.results){ (x.isFinal?(fin+=x[0].transcript):(mid+=x[0].transcript)); if(x.isFinal&&x.length>1) VOICE.alts=[...x].slice(1).map(a=>a.transcript); } VOICE.interim=fin||mid; if(fin) got=fin; paintVoice(); };
-  r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='network'||e.error==='audio-capture'){ VOICE.demo=true; toast('마이크를 쓸 수 없어 시연용 목소리로 이어갈게요'); } };
+  r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='network'||e.error==='audio-capture'){ VOICE.demo=true; toast('마이크를 쓸 수 없어 예시 목소리로 이어갈게요'); } };
   let heard=false; r.onaudiostart=()=>{ heard=true; };
-  const t1=setTimeout(()=>{ if(!heard&&vAlive(id)){ VOICE.demo=true; toast('마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요'); try{ r.abort(); }catch(e){} } },3500);
-  const t2=setTimeout(()=>{ if(vAlive(id)&&!got&&!VOICE.interim){ const st=$('#vState'); if(st) st.textContent=L('잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요'); } },8000);
+  const t1=setTimeout(()=>{ if(!heard&&vAlive(id)){ VOICE.demo=true; toast('마이크 소리가 들어오지 않아 예시 목소리로 이어갈게요'); try{ r.abort(); }catch(e){} } },3500);
+  const t2=setTimeout(()=>{ if(vAlive(id)&&!got&&!VOICE.interim){ const st=$('#vState'); if(st) st.textContent=L('잘 안 들려요. 조금 더 가까이 말하거나, 정지 버튼을 누르고 글로 적어도 돼요'); } },8000);
   r.onend=()=>{ clearTimeout(t1); clearTimeout(t2); res(got.trim()||null); }; try{ r.start(); }catch(e){ res(null); } }); }
 /* 봇이 생각하는 동안 듣기: 내가 말하면 그 말을, 그 사이 대답이 오면(말하는 중이 아니면) null */
 function listenWhileBusy(id){ return new Promise(res=>{ let r, got='', mid='', done=false; const fin=v=>{ if(done) return; done=true; clearInterval(iv); res(v); };
@@ -2609,7 +2615,7 @@ async function voiceLoop(id){
 }
 function paintVoice(){ const d=S.draft; if(!d) return;
   const st=$('#vState'), hd=$('#vHeard');
-  if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'시연용 목소리로 대답하는 중…':'듣고 있어요'):(S.listening?'생각하는 중… 이어서 말해도 돼요':'생각하는 중…'));
+  if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'예시 목소리로 대답하는 중…':'듣고 있어요'):(S.listening?'생각하는 중… 이어서 말해도 돼요':'생각하는 중…'));
   if(hd) hd.textContent=VOICE.interim||''; }
 function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
@@ -2647,11 +2653,12 @@ function cmpAIText(c){ const en=isEN();
   if(!c.common.length) return '내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.';
   const a=c.common.slice(0,2).join(en?' & ':'·'), b=c.onlyMe[0];
   return en? `Both notes share ${a}.`+(b?` On top of that, you added your own words — ‘${esc(b)}’.`:' Your senses and the description point the same way.')
-           : `두 기록 모두 ${a}의 인상을 담고 있어요.`+(b?` 여기에 ‘${esc(b)}’처럼 나만의 표현이 더해졌어요.`:' 내 감각이 설명과 같은 쪽을 짚었어요.'); }
+           : `내 표현과 전문가 설명 모두 ${a}의 인상을 담고 있어요.`+(b?` 여기에 ‘${esc(b)}’처럼 나만의 표현이 더해졌어요.`:' 내 감각이 설명과 같은 쪽을 짚었어요.'); }
 function myExpression(d){
   if(d.mine) return d.mine;   // AI가 정리한 게 있으면 그걸로
   const rec=['aroma','taste'].map(k=>d.feel&&d.feel[k]).concat(d.afterText).filter(v=>v&&!NOT_ANSWER.test(String(v)));   // 기록된 향·맛·여운이 먼저
-  const mine=[...new Set(rec.concat((d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))&&!isQuestion(m.text||'')).map(m=>m.text)).map(t=>unfill(String(t).replace(/[.!?]+$/,''))))].filter(t=>t.length>=2&&t!=='잘 모르겠어요');
+  const said=d.aiFlow?[]:(d.chat||[]).filter(m=>m.who==='me'&&(!m.ans||['aroma','taste'].includes(m.ans))&&!isQuestion(m.text||'')).map(m=>m.text);   // AI 대화는 Gemini가 정리해 둔 칸만 쓴다 (질문·고치기 전 표현·'정정할게요' 같은 원문은 빼고)
+  const mine=[...new Set(rec.concat(said).map(t=>unfill(String(t).replace(/[.!?]+$/,''))))].filter(t=>t.length>=2&&t!=='잘 모르겠어요');
   if(mine.length) return mine.slice(0,6).map(x=>isEN()?(EN[x]||x):x).join(', ') + '.';
   const f=['aroma','taste'].map(k=>(d.feel||{})[k]).filter(v=>typeof v==='string'&&v&&v!=='잘 모르겠어요');
   if(f.length) return `${f.join(', ')}${josa(f[f.length-1],'이','가')} 먼저 느껴졌어요.`;
@@ -2754,6 +2761,7 @@ if(!PREF.voiceGender) PREF.voiceGender=PREF.aiVoice==='Umbriel'?'male':'female';
 if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
 Object.assign(EN,{
+ "이 기기에 기록을 저장하지 못했어요. 화면을 닫으면 사라질 수 있어요":"Couldn't save on this device. It may be lost when you close the page","달력에서 기간 고르기":"Pick dates on the calendar","이름 바꾸기":"Rename","다 우러났어요. 찻물 색부터 볼까요?":"It's ready. Let's look at the color first.",
  "차 포장의 글자가 잘 보이게 찍어 주세요":"Make the text on the package easy to read","찍기":"Shoot","앨범":"Album","카메라를 열 수 없어 휴대폰 카메라로 찍을게요":"Can't open the camera here, using the phone camera","사진을 찍지 못했어요":"Couldn't take the photo",
  "이 기간에는 찍은 찻방울이 없어요":"No drops in this period",
  "껍질째 우러난 상큼한 시트러스 향에 새콤달콤한 맛이 어우러지는, 산뜻하고 따뜻한 과일차예요.":"A bright, warm fruit tea: zesty citrus from the peel with a sweet-tart taste.",
@@ -2766,10 +2774,10 @@ Object.assign(EN,{
  "녹차":"Green tea","백차":"White tea","우롱차":"Oolong","홍차":"Black tea","보이차":"Pu-erh","허브차":"Herbal tea","기타":"Other",
  "기록을 그만할까요?":"Stop recording?","저장해두면 홈에서 이어서 기록할 수 있어요.":"If you save it, you can continue from Home.","저장하고 나가기":"Save and leave","저장하지 않고 나가기":"Leave without saving","계속 기록하기":"Keep recording",
  "우림이 끝났어요. 찻잔을 천천히 들어볼까요?":"Brewing's done. Slowly lift your cup.","보내기":"Send",
- "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
+ "감각 기록을 정리하고 있어요":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",
  "표현 읽는 중":"Reading","색 스며드는 중":"Coloring","정리 중":"Finishing",
  "내 감각과 설명을 함께 볼까요?":"Your senses vs. the description","같은 점과 다른 표현을 가볍게 살펴봐요.":"See what matches and what's different.","AI가 내 표현을 정리하고 있어요…":"AI is organizing your words…",
- "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","남성":"Male","여성":"Female","휴대폰":"Phone","AI 사용 한도에 걸려서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we're in automatic chat for now\nI'll let you know when it's back","AI 연결이 불안정해서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we're in automatic chat for now\nI'll let you know when it's back","AI 사용 한도에 걸려서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI 연결이 불안정해서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI가 다시 연결됐어요\n이제 다시 AI와 대화해요":"AI is back\nYou're chatting with AI again","대화 방식":"Chat mode","자동 대화는 AI 없이 정해진 대화로 빠르게 진행해요. 테스트할 때 편해요":"Auto chat skips AI and uses a prepared conversation — quick for testing","설정에서 자동 대화를 골랐어요\n정해진 대화로 빠르게 진행해요":"You chose auto chat in settings\nA prepared conversation keeps things quick","실시간 음성 대화 (실험)":"Real-time voice chat (beta)","말하면 바로 알아듣고 AI 목소리로 바로 대답해요. 안 되면 기본 음성 대화로 바뀌어요":"Understands as you speak and answers right away in an AI voice. Falls back to the standard voice chat if unavailable","실시간 음성":"Real-time voice","실시간 음성 연결이 안 돼서\n기본 음성 대화로 할게요":"Real-time voice isn't available\nso we'll use the standard voice chat","실시간 음성 연결이 끊겨서\n기본 음성 대화로 이어갈게요":"Real-time voice disconnected\nso we'll continue with the standard voice chat","고른 성별로 늘 말해요. 목소리 결은 대화마다 조금 다를 수 있어요":"Always speaks in the chosen gender. The exact voice may vary a little between chats","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
+ "오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up, so I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable, so I'll switch to the standard voice now","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 정해진 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the standard conversation","AI 연결이 불안정해서\n지금부터 정해진 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the standard conversation","음성 대화 목소리":"Voice for voice chat","AI 목소리는 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 휴대폰 목소리로 바뀌어요":"The AI voice has a daily limit. When it runs out, the phone's voice takes over","휴대폰 기본 목소리":"Phone's standard voice","들어보기":"Listen","오늘 쓸 수 있는 AI 대화를 다 써서\n이번에는 자동 대화로 진행할게요":"Today's AI chat limit is used up,\nso this time we'll use the automatic conversation","오늘 쓸 수 있는 AI 대화를 다 써서\n지금부터 자동 대화로 이어갈게요":"Today's AI chat limit is used up,\nso I'll continue with the automatic conversation","AI 연결이 불안정해서\n이번에는 자동 대화로 진행할게요":"The AI connection is unstable,\nso this time we'll use the automatic conversation","AI 연결이 불안정해서\n지금부터 자동 대화로 이어갈게요":"The AI connection is unstable,\nso I'll continue with the automatic conversation","오늘 쓸 수 있는 AI 목소리를 다 써서\n이번에는 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll use the standard voice this time","AI 목소리 연결이 불안정해서\n이번에는 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll use the standard voice this time","오늘 쓸 수 있는 AI 목소리를 다 써서\n지금부터 기본 목소리로 말할게요":"Today's AI voice limit is used up,\nso I'll switch to the standard voice now","AI 목소리 연결이 불안정해서\n지금부터 기본 목소리로 말할게요":"The AI voice connection is unstable,\nso I'll switch to the standard voice now","Gemini가 내 말을 듣고 대답하고 있어요":"Gemini is listening and replying to you","AI를 지금 쓸 수 없어 미리 정해둔 자동 대화로 진행 중이에요":"AI isn't available right now, so a prepared automatic conversation is running","AI 대화":"AI chat","자동 대화":"Auto chat","AI 목소리":"AI voice","기본 목소리":"Standard voice","AI 목소리 · 여성":"AI voice · female","AI 목소리 · 남성":"AI voice · male","남성":"Male","여성":"Female","휴대폰":"Phone","AI 사용 한도에 걸려서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we're in automatic chat for now\nI'll let you know when it's back","AI 연결이 불안정해서 지금은 자동 대화로 진행해요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we're in automatic chat for now\nI'll let you know when it's back","AI 사용 한도에 걸려서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"AI has hit its usage limit, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI 연결이 불안정해서 잠시 자동 대화로 이어가요\n다시 연결되면 알려드릴게요":"The AI connection is unstable, so we'll continue in automatic chat for a bit\nI'll let you know when it's back","AI가 다시 연결됐어요\n이제 다시 AI와 대화해요":"AI is back\nYou're chatting with AI again","대화 방식":"Chat mode","자동 대화는 AI 없이 정해진 질문으로 빠르게 기록해요":"Auto chat skips AI and uses a prepared conversation — quick for testing","설정에서 자동 대화를 골랐어요\n정해진 대화로 빠르게 진행해요":"You chose auto chat in settings\nA prepared conversation keeps things quick","실시간 음성 대화 (실험)":"Real-time voice chat (beta)","말하면 바로 알아듣고 AI 목소리로 바로 대답해요. 안 되면 기본 음성 대화로 바뀌어요":"Understands as you speak and answers right away in an AI voice. Falls back to the standard voice chat if unavailable","실시간 음성":"Real-time voice","실시간 음성 연결이 안 돼서\n기본 음성 대화로 할게요":"Real-time voice isn't available\nso we'll use the standard voice chat","실시간 음성 연결이 끊겨서\n기본 음성 대화로 이어갈게요":"Real-time voice disconnected\nso we'll continue with the standard voice chat","고른 성별로 늘 말해요. 목소리 결은 대화마다 조금 다를 수 있어요":"Always speaks in the chosen gender. The exact voice may vary a little between chats","나만의 표현":"Your own words","전문가 설명":"Expert notes","나의 기록":"My notes","공통점":"In common","차이점":"Differences","AI 해석":"AI reading",
  "채팅으로 돌아가 더 남기기":"Back to chat to add more","캔버스에 찻방울 찍기":"Place your drop on the canvas","오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.":"Where does today's tea belong? Tap to place it.",
  "별점":"Rating","저장하고 완료하기":"Save and finish","돌아가기":"Back","찻잎 1개":"1 leaf","찻잎 2개":"2 leaves","찻잎 3개":"3 leaves","사진 찍기 · 고르기":"Take or choose a photo",
  "사진 찍기":"Take a photo","앨범에서 고르기":"Choose from album","취소":"Cancel","사진 지우기":"Remove photo","캔버스에 오늘의 찻방울을 먼저 찍어주세요":"Place today's drop on the canvas first",
@@ -2783,24 +2791,24 @@ Object.assign(EN,{
  "하루를 누르거나, 시작 날과 끝 날을 차례로 눌러주세요 ·":"Tap one day, or a start and an end day ·","끝 날을 누르면 기간이 돼요 ·":"Tap an end day for a range ·","다시 누르면 새로 골라요 ·":"Tap again to start over ·",
  "풍미":"Flavors","고른 풍미가 모두 담긴 기록을 보여줘요.":"Shows entries that have all the chosen flavors.","보기":"Show","조건에 맞는 기록이 없어요.":"No entries match.","조건 지우기":"Clear filters",
  "꽃향":"Floral","과일향":"Fruity","시트러스":"Citrus","풀향":"Grassy","상쾌함":"Fresh","고소함":"Nutty","단맛":"Sweet","흙·나무향":"Earthy","스파이시":"Spicy","부드러움":"Smooth","떫은맛":"Astringent",
- "상세 기록":"Entry","담긴 풍미":"Flavors","찻물 색":"Tea color","캔버스 속 위치":"Place on canvas","위치 옮기기":"Move","기록 삭제":"Delete entry","저장":"Save","그날의 이야기":"That day","기분":"Mood","상황":"Setting","고른 이유":"Why this tea","마신 시간":"Drinking time","산지·빈티지":"Origin · vintage","온도·시간":"Temp · time","남긴 메모가 없어요.":"No notes.","대화 기록 보기 ›":"View conversation ›",
+ "상세 기록":"Entry","담긴 풍미":"Flavors","찻물 색":"Tea color","캔버스 속 위치":"Place on canvas","위치 옮기기":"Move","기록 삭제":"Delete entry","저장":"Save","그날의 이야기":"That day","기분":"Mood","상황":"Setting","고른 이유":"Why this tea","마신 시간":"Drinking time","산지·빈티지":"Origin · vintage","온도·시간":"Temp · time","남긴 말이 없어요.":"No notes.","대화 기록 보기 ›":"View conversation ›",
  "느낌이 달라졌다면 새 자리를 눌러주세요.":"If it feels different now, tap a new spot.","이 자리로 옮기기":"Move here","그대로 두기":"Keep it","찻방울을 옮겼어요":"Drop moved",
  "삭제하면 캔버스에서도 찻방울이 사라지고,":"Deleting removes the drop from your canvas,","다시 되돌릴 수 없어요.":"and can't be undone.","삭제하기":"Delete","기록을 삭제했어요":"Entry deleted",
  "나의 아카이브":"My archive","모인 찻방울":"Drops","차 종류":"Tea types","최근 기록":"Latest","설정":"Settings","대화 기록 설정":"Conversation","앱 설정":"App","알림 설정":"Notifications","계정":"Account","프로필 사진 바꾸기":"Change profile photo","사용자":"Guest",
  "대화 내용 함께 저장":"Save the conversation","끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요":"When off, only taste and aroma words are kept","확인":"OK","대화 언어":"Language","채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요":"The whole app, chat and voice use this language. Your entries stay.",
- "음성 대화에서 소리로 말하기":"Speak aloud in voice mode","끄면 챗봇의 말을 글로만 보여줘요":"When off, replies are shown as text only","목소리":"Voice","기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요":"We picked the most natural voice on this device","들어보기":"Listen",
+ "음성 대화에서 소리로 말하기":"Speak aloud in voice mode","끄면 대답을 글로만 보여줘요":"When off, replies are shown as text only","목소리":"Voice","기기에 있는 목소리 중 가장 자연스러운 걸 먼저 골라뒀어요":"We picked the most natural voice on this device","들어보기":"Listen",
  "우림이 끝나면 알려주기":"Notify when brewing ends","우림 타이머가 끝날 때 알림을 띄워요":"Show a notice when the timer ends","추천 알림 받기":"Get recommendations","나의 취향과 닮은 차를 알림으로 알려줘요":"Hear about teas like the ones you love",
  "닉네임":"Nickname","예: 차 좋아하는 사람":"e.g. Tea lover","설정을 저장했어요":"Settings saved","기본 프로필로 되돌렸어요":"Back to the default profile","사진을 불러오지 못했어요":"Couldn't load the photo",
  "알림":"Notifications","오늘":"Today","아직 알림이 없어요":"No notifications yet","차를 기록하면 지난 기록과":"Record a tea and we'll remind you","추천 차를 알려드릴게요.":"of past entries and suggest new teas.",
- "아직 담을 맛과 향이 없어요":"No taste or aroma yet","향이나 맛을 한 마디라도 내 말로 남기면":"Leave even one word about the aroma or taste,","그 표현이 색이 되어 찻방울에 물들어요.":"and it becomes a color in your drop.","채팅으로 돌아가 남기기":"Back to chat","색 없이 맑은 찻방울로 남기기":"Save as a clear drop",
+ "아직 담을 맛과 향이 없어요":"No taste or aroma yet","향이나 맛을 한마디라도 내 말로 남기면":"Leave even one word about the aroma or taste,","그 표현이 색이 되어 찻방울에 물들어요.":"and it becomes a color in your drop.","채팅으로 돌아가 남기기":"Back to chat","색 없이 맑은 찻방울로 남기기":"Save as a clear drop",
  "잠시 문제가 생겼어요":"Something went wrong","지금은 요청을 처리할 수 없어요.":"We can't handle that right now.","조금 후에 다시 시도해 주세요.":"Please try again shortly.","다시 시도하기":"Try again","잠시 문제가 생겼어요. 다시 시도해 주세요":"Something went wrong. Please try again",
  "아직 모인 찻방울이 없어요":"No drops yet","첫 차를 기록하면 이곳에 나만의 찻방울이 하나씩 물들어요.":"Record your first tea and your drops will color this canvas.","첫 기록 시작하기":"Record your first tea","아직 남긴 기록이 없어요. 첫 차를 기록해볼까요?":"No entries yet. Record your first tea?",
  "지우기":"Delete","저장해둔 기록 지우기":"Delete saved draft","기록을 저장해뒀어요":"Draft saved","기록을 지웠어요":"Draft deleted","저장해둔 기록을 지웠어요":"Saved draft deleted","이어할 기록을 찾지 못했어요":"Couldn't find the draft",
- "마이크를 쓸 수 없어 시연용 목소리로 진행해요":"No microphone here, so a demo voice will answer","TEA CANVAS를 앱으로 설치했어요":"TEA CANVAS installed",
+ "마이크를 쓸 수 없어 예시 목소리로 진행해요":"No microphone here, so a demo voice will answer","TEA CANVAS를 앱으로 설치했어요":"TEA CANVAS installed",
  "찻방울을 눌러 기록을 열어보세요":"Tap a drop to open its entry","이미지로 저장했어요":"Image saved","이미지를 저장하지 못했어요":"Couldn't save the image","진행 중인 우림 타이머가 없어요":"No brewing timer running","처음 상태로 되돌렸어요":"Reset done",
  "프로토타입 도구":"Prototype tools","팀원용 패널이에요.":"Team panel.","로 열고 닫아요.":"opens and closes it.","화면 바로가기":"Jump to screen","상태 바꾸기":"Change state","빈 캔버스로 보기":"Empty canvas","우림 타이머 바로 끝내기":"Finish timer now","처음 상태로 되돌리기":"Reset",
  "홈":"Home","기록(채팅)":"Record (chat)","기록 부족":"Not enough","찻방울 완성":"Drop","설명과 비교":"Compare","캔버스에 찍기":"Place","기록 완료":"Done","전체 대화":"Conversation","기록 목록":"Entries","오류":"Error",
- "차 이름 입력하기":"Tea name","내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.":"Your notes picked up something different from the expert. The same tea feels different to each person — that's the fun part.","여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.":"You've already captured the finish.\nWant to add a bit more? Pick only what you like.","한 줄 고치기":"Edit note","이미지로 저장":"Save as image","자리":"Position","오른쪽일수록 마시기 전 향이, 위쪽일수록 마신 뒤 맛이 좋았던 차예요.":"Further right means a better aroma before sipping; higher means a better taste after.","색":"Color","내가 말한 맛과 향이 색이 돼요. 차 종류나 찻물 색과는 상관없어요.":"The tastes and aromas you describe become colors — not the tea type or the liquor color.","크기":"Size","‘엄청’처럼 크게 느낀 맛은 크게, ‘살짝’ 느낀 맛은 작게 번져요.":"Strong notes (‘very’) spread large; faint ones (‘slightly’) stay small.","찻방울 하나":"One drop","차 한 잔의 기록이에요. 누르면 그 기록이 열려요.":"One cup of tea. Tap it to open the entry.","한 줄 코멘트 |":"Note |","한 줄 남기기":"Leave a note","· 사진도 함께 남길 수 있어요":"· you can add a photo too","+ 한 줄 남기기":"+ Leave a note","오늘의 차를 한 줄로 남겨보세요.":"Sum up today's tea in one line.","예: 비 오는 날 딱 좋았던 차":"e.g. Perfect for a rainy day","한 줄을 고쳤어요":"Note updated","대화에서 남긴 말":"From the conversation","음, 그렇군요.":"Mm, I see.","아, 좋네요.":"Oh, nice.","그 느낌 알 것 같아요.":"I think I know that feeling.","네, 천천히 즐겨요.":"Yes, take your time.","음, 좋은 한 모금이네요.":"Mm, a good sip.","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","시연용 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 시연용 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, ■를 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","시트러스·신맛":"Citrus·Sour","필터":"Filter","차 종류와 풍미로 기록을 골라봐요.":"Narrow entries by tea type and flavor.","· 고른 풍미가 모두 담긴 기록":"· entries with all picked flavors","이번에는 남긴 표현이 없어요.":"No words were left this time.","마신 차 종류":"Tea types","누르면 그 종류의 기록만 볼 수 있어요.":"Tap one to see only those entries.","닫기":"Close","숯불에 구운 듯한 고소한 로스팅 향과 바위에서 온 듯한 미네랄감, 묵직한 바디 뒤로 달큰한 여운이 남는 우롱차예요.":"A charcoal-roasted, nutty aroma with a rocky minerality and a full body, finishing long and sweet.","크랜베리를 닮은 새콤한 신맛과 붉은 베리 향이 또렷하고, 끝에 살짝 떫게 마무리되는 허브차예요.":"Bright cranberry-like tartness and red-berry aroma, finishing slightly dry.","볶은 보리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.":"Toasty roasted barley, mild and smooth, with a gentle sweetness.","꿀과 마른 나무를 닮은 달큰한 향에 부드럽고 순한 맛이 이어지는 허브차예요.":"Honey and dry wood on the nose, with a soft, mellow taste.","자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.":"Bright jasmine blossom first, backed by fresh green-tea grassiness and a soft sweetness.","곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.":"Finely ground leaves give a deep grassy, savory taste; after the soft foam, a pleasant bitterness and sweetness linger.","캔버스를 눌러 오늘의 찻방울 자리를 먼저 정해주세요":"Tap the canvas to place today's drop first","쓴·떫은맛":"Bitter·Astringent","이런 이미지로 저장돼요.":"This is the image you'll save.","다운로드":"Download","이미지를 만들지 못했어요":"Couldn't create the image","저장될 Tea Tag 이미지":"Tea Tag image preview","개완으로 우려요":"Brew gongfu-style","머그컵으로 우려요":"Brew in a mug","개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.":"Gongfu style: short, repeated infusions.\nTaste and note each one.","15 – 25초":"15 – 25 sec","찻잎 5 – 7g (개완 100ml)":"5 – 7 g leaves (100 ml gaiwan)","첫 물은 찻잎을 깨우듯 헹궈 버려주세요":"Rinse the leaves with the first pour","우릴 때마다 5 – 10초씩 늘려가요.":"Add 5 – 10 sec each infusion.","같은 잎으로 다섯 번 넘게 우려도 좋아요. 우림마다 달라지는 향을 비교해보세요.":"The same leaves can go five rounds or more. Compare how the aroma changes.","이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.":"You could say things like these.\nTap one to put it in the box, then tweak it to fit.","비 온 뒤 숲길 같아요":"Like a forest path after rain","구운 빵처럼 고소해요":"Nutty like toasted bread","끝에 꿀 같은 단맛이 남아요":"A honey-like sweetness at the end","혀가 살짝 조이는 느낌이에요":"My tongue tightens a little","입안이 시원하게 맑아져요":"It feels cool and clean","베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.":"Zesty bergamot citrus comes first, backed by black tea's mellow sweetness and a soft floral note.","청포도를 닮은 머스캣 향과 가벼운 꽃향이 산뜻하게 퍼지고, 맑고 가볍게 마무리되는 홍차예요.":"A muscat-grape aroma and light florals spread brightly, finishing clean and light.","몰트처럼 진하고 고소한 향에 묵직한 바디감, 기분 좋은 떫은맛이 이어지는 홍차예요.":"Rich, malty and nutty with a full body and a pleasant astringency.","난꽃을 닮은 맑은 꽃향에 크리미하고 매끄러운 질감, 삼킨 뒤 단맛이 길게 도는 우롱차예요.":"A clear orchid-like floral aroma, creamy smooth texture, and a long sweet finish.","꿀과 잘 익은 복숭아를 닮은 달콤한 향, 부드러운 과일 단맛이 오래 남는 우롱차예요.":"Sweet notes of honey and ripe peach, with a soft fruity sweetness that lingers.","볶은 현미의 구수함과 녹차의 산뜻한 풀향이 어우러진, 순하고 편안한 차예요.":"Toasty roasted rice meets fresh green-tea grassiness — mild and comforting.","사과를 닮은 달콤한 꽃향에 부드럽고 포근한 맛이 이어지는 허브차예요.":"A sweet, apple-like floral aroma with a soft, cozy taste.","입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.":"Cooling, crisp mint with a clean finish.","드래그해서 돌려보세요":"Drag to rotate",
+ "차 이름 입력하기":"Tea name","내 기록은 전문 설명과 다른 쪽을 짚었어요. 같은 차도 사람마다 다르게 느껴진다는 게 재미있는 점이에요.":"Your notes picked up something different from the expert. The same tea feels different to each person — that's the fun part.","여운까지 잘 남겨주셨어요.\n조금 더 남겨볼까요? 남기고 싶은 것만 골라보세요.":"You've already captured the finish.\nWant to add a bit more? Pick only what you like.","한 줄 고치기":"Edit note","이미지로 저장":"Save as image","자리":"Position","오른쪽일수록 마시기 전 향이, 위쪽일수록 마신 뒤 맛이 좋았던 차예요.":"Further right means a better aroma before sipping; higher means a better taste after.","색":"Color","내가 말한 맛과 향이 색이 돼요. 차 종류나 찻물 색과는 상관없어요.":"The tastes and aromas you describe become colors — not the tea type or the liquor color.","크기":"Size","‘엄청’처럼 크게 느낀 맛은 크게, ‘살짝’ 느낀 맛은 작게 번져요.":"Strong notes (‘very’) spread large; faint ones (‘slightly’) stay small.","찻방울 하나":"One drop","차 한 잔의 기록이에요. 누르면 그 기록이 열려요.":"One cup of tea. Tap it to open the entry.","한 줄 코멘트 |":"Note |","한 줄 남기기":"Leave a note","· 사진도 함께 남길 수 있어요":"· you can add a photo too","+ 한 줄 남기기":"+ Leave a note","오늘의 차를 한 줄로 남겨보세요.":"Sum up today's tea in one line.","예: 비 오는 날 딱 좋았던 차":"e.g. Perfect for a rainy day","한 줄을 고쳤어요":"Note updated","대화에서 남긴 말":"From the conversation","음, 그렇군요.":"Mm, I see.","아, 좋네요.":"Oh, nice.","그 느낌 알 것 같아요.":"I think I know that feeling.","네, 천천히 즐겨요.":"Yes, take your time.","음, 좋은 한 모금이네요.":"Mm, a good sip.","작성 중인 기록이 있어요":"You have a draft in progress","이어서 하기":"Continue","새로 시작하기":"Start new","예시 목소리는 한 번만 대신 대답해요. 마이크를 다시 누르면 이어가요":"The demo voice answers once. Tap the mic again to continue","작성 중인 기록을 지울까요?":"Delete this draft?","지우면 다시 이어할 수 없어요.":"You won't be able to continue it.","캔버스 읽는 법":"How to read the canvas","알겠어요":"Got it","표현이 막히면?":"Stuck for words?","차":"Tea","우림":"Brew","향·맛":"Aroma","마시기":"Sip","정리":"Wrap","기록 고치기":"Edit entry","기록 수정":"Edit entry","차 이름":"Tea name","브랜드":"Brand","없으면 비워두세요":"Leave empty if none","한 줄 코멘트":"Note","사진":"Photo","바꾸기":"Change","사진 넣기":"Add photo","메모":"Notes","기억하고 싶은 점":"Anything to remember","고친 내용 저장":"Save changes","고친 내용을 저장했어요":"Changes saved","눌러서 적기":"Tap to write","· 찻방울 색이 바뀌어요":"· changes the drop's colors","예: 집에서 혼자 마셔본 첫 차!":"e.g. My first tea at home!","예시":"Sample","예시 기록":"Sample entry","건너뛰기":"Skip","겹치는 풍미가 아직 없어요":"No shared flavors yet","느낀 풍미가 전문가 설명과 거의 같아요":"Your flavors match the expert notes closely","마이크 소리가 들어오지 않아 예시 목소리로 이어갈게요":"No sound from the mic, so the demo voice will continue","잘 안 들려요. 조금 더 가까이 말하거나, 정지 버튼을 누르고 글로 적어도 돼요":"I can't hear you well. Speak a little closer, or tap ■ and type instead",": 기록 초기화":": reset entries","찻잎 점수":"Rating","시트러스·신맛":"Citrus·Sour","필터":"Filter","차 종류와 풍미로 기록을 골라봐요.":"Narrow entries by tea type and flavor.","· 고른 풍미가 모두 담긴 기록":"· entries with all picked flavors","이번에는 남긴 표현이 없어요.":"No words were left this time.","마신 차 종류":"Tea types","누르면 그 종류의 기록만 볼 수 있어요.":"Tap one to see only those entries.","닫기":"Close","숯불에 구운 듯한 고소한 로스팅 향과 바위에서 온 듯한 미네랄감, 묵직한 바디 뒤로 달큰한 여운이 남는 우롱차예요.":"A charcoal-roasted, nutty aroma with a rocky minerality and a full body, finishing long and sweet.","크랜베리를 닮은 새콤한 신맛과 붉은 베리 향이 또렷하고, 끝에 살짝 떫게 마무리되는 허브차예요.":"Bright cranberry-like tartness and red-berry aroma, finishing slightly dry.","볶은 보리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.":"Toasty roasted barley, mild and smooth, with a gentle sweetness.","꿀과 마른 나무를 닮은 달큰한 향에 부드럽고 순한 맛이 이어지는 허브차예요.":"Honey and dry wood on the nose, with a soft, mellow taste.","자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.":"Bright jasmine blossom first, backed by fresh green-tea grassiness and a soft sweetness.","곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.":"Finely ground leaves give a deep grassy, savory taste; after the soft foam, a pleasant bitterness and sweetness linger.","캔버스를 눌러 오늘의 찻방울 자리를 먼저 정해주세요":"Tap the canvas to place today's drop first","쓴·떫은맛":"Bitter·Astringent","이런 이미지로 저장돼요.":"This is the image you'll save.","다운로드":"Download","이미지를 만들지 못했어요":"Couldn't create the image","저장될 Tea Tag 이미지":"Tea Tag image preview","개완으로 우려요":"Brew gongfu-style","머그컵으로 우려요":"Brew in a mug","개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.":"Gongfu style: short, repeated infusions.\nTaste and note each one.","15 – 25초":"15 – 25 sec","찻잎 5 – 7g (개완 100ml)":"5 – 7 g leaves (100 ml gaiwan)","첫 물은 찻잎을 깨우듯 헹궈 버려주세요":"Rinse the leaves with the first pour","우릴 때마다 5 – 10초씩 늘려가요.":"Add 5 – 10 sec each infusion.","같은 잎으로 다섯 번 넘게 우려도 좋아요. 우림마다 달라지는 향을 비교해보세요.":"The same leaves can go five rounds or more. Compare how the aroma changes.","이런 식으로 말해도 좋아요.\n누르면 입력칸에 들어가요. 내 느낌에 맞게 고쳐 보내세요.":"You could say things like these.\nTap one to put it in the box, then tweak it to fit.","비 온 뒤 숲길 같아요":"Like a forest path after rain","구운 빵처럼 고소해요":"Nutty like toasted bread","끝에 꿀 같은 단맛이 남아요":"A honey-like sweetness at the end","혀가 살짝 조이는 느낌이에요":"My tongue tightens a little","입안이 시원하게 맑아져요":"It feels cool and clean","베르가못의 상큼한 시트러스 향이 먼저 올라오고, 홍차의 달큰함과 은은한 꽃향이 뒤를 받쳐주는 차예요.":"Zesty bergamot citrus comes first, backed by black tea's mellow sweetness and a soft floral note.","청포도를 닮은 머스캣 향과 가벼운 꽃향이 산뜻하게 퍼지고, 맑고 가볍게 마무리되는 홍차예요.":"A muscat-grape aroma and light florals spread brightly, finishing clean and light.","몰트처럼 진하고 고소한 향에 묵직한 바디감, 기분 좋은 떫은맛이 이어지는 홍차예요.":"Rich, malty and nutty with a full body and a pleasant astringency.","난꽃을 닮은 맑은 꽃향에 크리미하고 매끄러운 질감, 삼킨 뒤 단맛이 길게 도는 우롱차예요.":"A clear orchid-like floral aroma, creamy smooth texture, and a long sweet finish.","꿀과 잘 익은 복숭아를 닮은 달콤한 향, 부드러운 과일 단맛이 오래 남는 우롱차예요.":"Sweet notes of honey and ripe peach, with a soft fruity sweetness that lingers.","볶은 현미의 구수함과 녹차의 산뜻한 풀향이 어우러진, 순하고 편안한 차예요.":"Toasty roasted rice meets fresh green-tea grassiness — mild and comforting.","사과를 닮은 달콤한 꽃향에 부드럽고 포근한 맛이 이어지는 허브차예요.":"A sweet, apple-like floral aroma with a soft, cozy taste.","입안이 시원해지는 청량한 민트 향에 깔끔한 끝맛이 남는 허브차예요.":"Cooling, crisp mint with a clean finish.","드래그해서 돌려보세요":"Drag to rotate",
  /* 예시 기록 · 추천 차 · 전문가 설명 */
  "제주 세작":"Jeju Sejak","철관음":"Tieguanyin","얼그레이":"Earl Grey","백모단":"White Peony","캐모마일":"Chamomile","숙차 보이":"Ripe Pu-erh","자스민 녹차":"Jasmine Green Tea","아쌈":"Assam","동방미인":"Oriental Beauty","페퍼민트":"Peppermint","우전":"Ujeon","불향이 묵직하게 남은 바위차":"A rock oolong with a deep roasty finish","머스캣 향이 산뜻했던 오후":"A bright afternoon of muscat notes","구운 듯 고소한 향":"Toasty aroma","묵직한 여운":"Heavy finish","청포도 같은 향":"Like green grapes","산뜻하고 가벼워요":"Bright and light","첫 잔은 불향이 세고, 세 번째부터 단맛이 올라왔다.":"Smoky at first; sweetness came through by the third cup.","우유 없이 마시는 게 더 좋았다. 향이 오래 남음.":"Better without milk. The aroma lingers.",
  "봉황단총":"Phoenix Dancong","대홍포":"Da Hong Pao","호지차":"Hojicha","현미녹차":"Genmaicha","센차":"Sencha","백호은침":"Silver Needle","다즐링":"Darjeeling","유자차":"Yuja tea",
@@ -2818,11 +2826,11 @@ EN_RE.push(
  [/^기록 (\d+)개 보기$/,(m,a)=>`Show ${a} entries`],
  [/^별점 (\d)\/3$/,(m,a)=>`Rating ${a}/3`],
  [/^음, (.+?)(?:이|가) 느껴지는군요\.$/,(m,a)=>`Mm, you're getting ${(EN[a]||a).toLowerCase()}.`],[/^아, (.+)\. 좋네요\.$/,(m,a)=>`Oh, ${(EN[a]||a).toLowerCase()}. Nice.`],[/^그 (.+), 저도 좋아해요\.$/,(m,a)=>`I love that ${(EN[a]||a).toLowerCase()} too.`],
- [/^‘(.+)’을 이어서 할까요\?$/,(m,a)=>`Continue ‘${EN[a]||a}’?`],[/^새로 시작하면 작성 중인 기록은 지워져요\.$/,()=>'Starting new deletes the draft.'],
+ [/^‘(.+)’(?:을|를) 이어서 할까요\?$/,(m,a)=>`Continue ‘${EN[a]||a}’?`],[/^새로 시작하면 작성 중인 기록은 지워져요\.$/,()=>'Starting new deletes the draft.'],
  [/^찻방울에는 가장 진한 (\d+)가지 색이 담겨요$/,(m,a)=>`The drop shows the ${a} strongest colors`],
  [/^나는 ‘(.+)’(?:이)?라고 표현했어요$/,(m,a)=>`You described it as ‘${a}’`],[/^전문가는 ‘(.+)’도 짚어요$/,(m,a)=>`The expert also notes ‘${EN[a]||a}’`],
  [/^(\d+)잔의 찻방울이 물든$/,(m,a)=>`${a} drops have colored`],
- [/^향도 맛도 좋았던 (\d+)잔을 모았어요\. (.+?) 풍미가 가장 진하게 담겼어요\. 좋은 기억은 주로 (.+?)에서 남았어요\.$/,(m,a,b,c)=>`${a} teas you loved, gathered. ${b.split(', ').map(x=>EN[x]||x).join(', ')} come through the most. Your best memories came mostly from ${(EN[c]||c).toLowerCase()}.`],
+ [/^향도 맛도 좋았던 (\d+)잔을 모았어요\. (.+?) 풍미가 가장 진하게 담겼어요\. 주로 (.+?)(?:을|를) 마실 때 좋았어요\.$/,(m,a,b,c)=>`${a} teas you loved, gathered. ${b.split(', ').map(x=>EN[x]||x).join(', ')} come through the most. You enjoyed it most with ${(EN[c]||c).toLowerCase()}.`],
  [/^향도 맛도 좋았던 (\d+)잔을 모았어요\.(.*)$/,(m,a)=>`${a} teas you loved, gathered.`],
  [/^(.+) 님$/,(m,a)=>`Hi, ${EN[a]||a}`],
  [/^(\d{4})년 (\d+)월$/,(m,a,b)=>new Date(+a,+b-1,1).toLocaleString('en',{month:'long',year:'numeric'})],
@@ -2841,7 +2849,7 @@ EN_RE.push(
  [/^예: 집에서 혼자 마셔본 첫 (.+)!$/,(m,a)=>`e.g. My first ${(EN[a]||a).toLowerCase()} at home!`],
  [/^(.+), (.+), (.+)\.$/,(m,a,b,c)=>[a,b,c].some(x=>EN[x])?`${[a,b,c].map(x=>EN[x]||x).join(', ')}.`:m],
  [/^(\d+) – (\d+)°C · (.+)$/,(m,a,b,c)=>`${a} – ${b}°C · ${enTime(c)}`],
- [/^두 기록 모두 (.+?)과 (.+?)의 인상을 담고 있어요\. .+$/,(m,a,b)=>`Both describe ${(EN[a]||a).toLowerCase()} and ${(EN[b]||b).toLowerCase()}. The expert names specific aromas; your notes focus on experience and mood.`],
+ [/^내 표현과 전문가 설명 모두 (.+?)과 (.+?)의 인상을 담고 있어요\. .+$/,(m,a,b)=>`Both describe ${(EN[a]||a).toLowerCase()} and ${(EN[b]||b).toLowerCase()}. The expert names specific aromas; your notes focus on experience and mood.`],
 );
 function trNode(n){ const v=n.nodeValue; if(!v||!/[가-힣]/.test(v)) return; const t=v.trim(), o=L(t); if(o&&o!==t) n.nodeValue=v.replace(t,o); }
 function trAttr(e){ ['placeholder','aria-label','title','alt'].forEach(a=>{ const v=e.getAttribute&&e.getAttribute(a); if(v&&/[가-힣]/.test(v)){ const o=L(v.trim()); if(o!==v.trim()) e.setAttribute(a,o); } }); }
@@ -2855,8 +2863,8 @@ function openSettings(k){
   const row=(key,label,desc)=>`<label class="pref"><span><b>${label}</b><small>${desc}</small></span><input type="checkbox" ${PREF[key]?'checked':''} onchange="PREF.${key}=this.checked;savePref()"></label>`;
   const body={chat:['대화 기록 설정',row('keepChat','대화 내용 함께 저장','끄면 맛·향 표현만 남기고 대화 전체는 저장하지 않아요')],
     app:['앱 설정',`<label class="pref col"><b>대화 언어</b><small>채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요</small>
-      <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();try{sessionStorage.setItem('tc.reopen','app')}catch(e){};location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label><label class="pref col"><b>대화 방식</b><small>자동 대화는 AI 없이 정해진 대화로 빠르게 진행해요. 테스트할 때 편해요</small>
-      <span class="vpick"><select id="prefChatAI" onchange="PREF.chatAI=this.value;savePref()"><option value="ai" ${aiChatPref()?'selected':''}>AI 대화</option><option value="auto" ${aiChatPref()?'':'selected'}>자동 대화</option></select></span></label>`+row('liveVoice','실시간 음성 대화 (실험)','말하면 바로 알아듣고 AI 목소리로 바로 대답해요. 안 되면 기본 음성 대화로 바뀌어요')+row('voiceSound','음성 대화에서 소리로 말하기','끄면 챗봇의 말을 글로만 보여줘요')+`<label class="pref col"><b>음성 대화 목소리</b><small>고른 성별로 늘 말해요. 목소리 결은 대화마다 조금 다를 수 있어요</small>
+      <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();try{sessionStorage.setItem('tc.reopen','app')}catch(e){};location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label><label class="pref col"><b>대화 방식</b><small>자동 대화는 AI 없이 정해진 질문으로 빠르게 기록해요</small>
+      <span class="vpick"><select id="prefChatAI" onchange="PREF.chatAI=this.value;savePref()"><option value="ai" ${aiChatPref()?'selected':''}>AI 대화</option><option value="auto" ${aiChatPref()?'':'selected'}>자동 대화</option></select></span></label>`+row('liveVoice','실시간 음성 대화 (실험)','말하면 바로 알아듣고 AI 목소리로 바로 대답해요. 안 되면 기본 음성 대화로 바뀌어요')+row('voiceSound','음성 대화에서 소리로 말하기','끄면 대답을 글로만 보여줘요')+`<label class="pref col"><b>음성 대화 목소리</b><small>고른 성별로 늘 말해요. 목소리 결은 대화마다 조금 다를 수 있어요</small>
       <span class="vpick"><select id="prefGender" onchange="PREF.voiceGender=this.value;savePref()"><option value="female" ${PREF.voiceGender!=='male'?'selected':''}>여성</option><option value="male" ${PREF.voiceGender==='male'?'selected':''}>남성</option></select><button class="pillbtn" onclick="event.preventDefault();previewAIVoice()">들어보기</button></span></label>`+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];

@@ -76,7 +76,7 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   down=true; await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);
   await say('오설록 달빛 걷기'); await p.waitForTimeout(800); m=await last(); ok(/처음 보는 차/.test(m.text),'AI 실패 → 예전처럼 종류를 물어봄');
   const tt=await p.evaluate(()=>{ const e=document.querySelector('#toast'); return e.classList.contains('show')?e.textContent:''; });
-  ok(/AI 사용 한도에 걸려서 지금은 자동 대화로/.test(tt),'처음 말부터 AI를 못 쓰면 바로 알림: '+tt.replace(/\n/,' '));
+  ok(/오늘 쓸 수 있는 AI를 다 써서 지금은 자동 대화로/.test(tt),'처음 말부터 AI를 못 쓰면 바로 알림: '+tt.replace(/\n/,' '));
   ok(await p.evaluate(()=>/자동 대화/.test(document.querySelector('#aiBadge').textContent)),'위 표시가 "자동 대화"로');
   await p.goto(FILE); await p.waitForTimeout(600); ok(await p.evaluate(()=>CHAT_AI.off>Date.now()),'다시 열어도 한도 상태를 기억 (기다리지 않고 바로 자동 대화)');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));

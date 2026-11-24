@@ -104,6 +104,12 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   let gotImg=false; R['(차 포장 사진']=q=>{ gotImg=/^data:image\/jpeg;base64,/.test(q.image||''); return {reply:'CHAGEE의 허니듀 멜론 우롱차네요. 우롱차로 기록할까요?',fill:{name:'허니듀 멜론 우롱',brand:'CHAGEE',type:'oolong'},step:'stay'}; };
   await E(()=>{ const c=document.createElement('canvas'); c.width=c.height=40; c.getContext('2d').fillRect(0,0,20,20); flowMsg('',null,c.toDataURL('image/jpeg',.8)); }); await p.waitForTimeout(1500);
   ok(gotImg&&await E(()=>S.draft.stage==='teaOK'&&S.draft.type==='oolong'&&S.draft.brand==='CHAGEE'&&S.draft.chat.some(m=>m.img)),'사진 → Gemini가 읽고 차 이름·브랜드·종류를 채워 종류 확인으로 (사진은 대화에 남음)');
+  // 봇이 말하는 중에 보낸 말도 잃지 않음: 줄 세웠다가 끝나면 보낸다
+  R['기다렸다']=()=>({reply:'네, 들었어요.',fill:{},step:'stay'});
+  await E(()=>{ S.typing=true; S.draft.pendingMe=null; document.querySelector('#chatIn').value='기다렸다 보낸 말'; sendInput(); });
+  ok(await E(()=>S.draft.chat.some(m=>m.queued&&m.text==='기다렸다 보낸 말')),'봇이 말하는 중에 보낸 말은 화면에 남고 줄을 선다');
+  await E(()=>{ S.typing=false; }); await p.waitForTimeout(2000);
+  ok(await E(()=>{ const c=S.draft.chat; const i=c.findIndex(m=>m.text==='기다렸다 보낸 말'); return i>=0&&!c[i].queued&&c.slice(i+1).some(m=>m.who==='bot'&&/들었어요/.test(m.text)); }),'봇이 끝나면 그 말을 보내고 대답을 받는다');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
