@@ -577,7 +577,7 @@ let SCALE=1;
 /* =========================================================
    DATA
    ========================================================= */
-/* 6대 다류 + 기타(보리차·우엉차 같은 곡물·뿌리 차) — 찻방울 기본 색은 우린 찻물 색. 자스민 같은 가향차는 녹차로 분류 */
+/* 6대 다류 + 기타(허브가 아닌 나머지: 과일차·곡물·뿌리 차 등) — 찻방울 기본 색은 우린 찻물 색. 자스민 같은 가향차는 녹차로 분류 */
 const ORDER = ['green','white','oolong','black','dark','herb','other'];
 const TEAS = {
   green:{label:'녹차', color:'#B5D07E', kw:['녹차','세작','우전','중작','센차','말차','현미녹차','green','자스민','쟈스민','재스민','jasmine','말리화','가향'],
@@ -610,11 +610,11 @@ const TEAS = {
     tip:'더 진한 향을 원한다면 1 – 2분 정도 조금 더 우려보세요.',
     expert:'은은한 꽃향과 부드러운 곡물 향이 이어지고, 끝에는 고소한 여운이 남는 차예요.',
     common:['은은함','부드러움','고소한 여운'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘꽃향’을 구체적으로 표현']},
-  other:{label:'기타', color:'#C9A47A', kw:['보리차','보리','우엉','옥수수','메밀','둥굴레','결명자','현미차','곡물','돼지감자','도라지','barley','burdock','corn tea'],
+  other:{label:'기타', color:'#C9A47A', kw:['보리차','보리','우엉','옥수수','메밀','둥굴레','결명자','현미차','곡물','돼지감자','도라지','유자','청귤','레몬','자몽','모과','대추','생강','오미자','매실','국화','꿀차','과일','barley','burdock','corn tea','fruit','citron','yuzu'],
     temp:'100°C', time:'5 – 10분', secs:360, amount:'티백 1개 또는 곡물 1 – 2 tbsp', how:['끓는 물을 부어 충분히 우려주세요','곡물·뿌리 차는 오래 우려도 쓰지 않아요.'],
     tip:'주전자에 넣고 끓이면 더 구수하게 즐길 수 있어요.',
-    expert:'볶은 곡물이나 뿌리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.',
-    common:['구수함','부드러움','은은한 단맛'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘구수함’을 구체적으로 표현']},
+    expert:'재료에 따라 과일의 상큼함이나 곡물·뿌리의 구수함이 살아나고, 부드럽고 편안하게 마시기 좋은 차예요.',
+    common:['부드러움','편안함','은은한 단맛'], diff:['나는 ‘포근함’으로 느낌','전문가는 ‘재료의 향’을 구체적으로 표현']},
 };
 
 /* 풍미 계열(차 플레이버 휠 기준) → 색. 사용자가 쓴 표현에 들어 있는 낱말로 찾는다 */
@@ -1147,7 +1147,7 @@ const REC_TEAS=[
   {name:'숙차 보이',type:'dark',fl:['earthy','sweet','soft'],note:'젖은 흙과 나무 향의 깊은 숙성차'},
   {name:'캐모마일',type:'herb',fl:['floral','sweet','soft'],note:'사과 같은 꽃향의 편안한 허브차'},
   {name:'페퍼민트',type:'herb',fl:['fresh','spicy'],note:'시원하고 깔끔한 민트 허브차'},
-  {name:'유자차',type:'herb',fl:['citrus','sweet','fresh'],note:'새콤달콤한 유자 향'},
+  {name:'유자차',type:'other',fl:['citrus','sweet','fresh'],note:'새콤달콤한 유자 향'},
 ];
 function ownHTML(words){ if(!words.length) return '';
   return `<div class="own">${words.length?`<span class="own-l">나만의 표현</span>${words.map(w=>`<q>${esc(w)}</q>`).join('')}`:''}</div>`; }
@@ -2021,7 +2021,7 @@ function bindAskColor(){
    대화 언어(한국어 / English): 기록은 한국어로 저장하고, 채팅에 보여주고 말할 때만 영어로 바꾼다.
    그래서 언어를 바꿔도 지난 기록과 분석은 그대로. 영어로 한 대답은 영어 낱말로도 풍미를 읽는다.
    ========================================================= */
-const EN_TYPE={green:'green tea',white:'white tea',oolong:'oolong',black:'black tea',dark:'pu-erh (dark tea)',herb:'herbal tea',other:'grain or other tea'};
+const EN_TYPE={green:'green tea',white:'white tea',oolong:'oolong',black:'black tea',dark:'pu-erh (dark tea)',herb:'herbal tea',other:'other tea (fruit, grain, root…)'};
 const EN_TYPE_LABEL={'녹차':'Green tea','백차':'White tea','우롱차':'Oolong','홍차':'Black tea','보이차':'Pu-erh','허브차':'Herbal tea','기타':'Other'};
 const EN={
  "반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작":"Hello! What tea are you having today?\nTell me its name, and the brand if you know it.\ne.g. Twinings Earl Grey",
@@ -2121,7 +2121,7 @@ const EN_RE=[
  [/^다시 (.+)에 맞춘 가이드예요\.$/,(m,a)=>`Here's the guide for ${a} again.`],
  [/^(.+?)(?:을|를) 가장 맛있게 우리는 방법이에요\.\n준비되면 ‘우림 시작’을 눌러주세요\.$/,(m,a)=>`Here's how to brew ${a} at its best.\nTap ‘Start brewing’ when you're ready.`],
  [/^이어서 기록해볼까요\? 오늘의 차는 ‘(.+)’이에요\.$/,(m,a)=>`Shall we continue? Today's tea is ‘${a}’.`],
- [/^(녹차|백차|우롱차|홍차|보이차|허브차|기타) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea',기타:'grain/other tea'})[a]}`],
+ [/^(녹차|백차|우롱차|홍차|보이차|허브차|기타) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea',기타:'other tea'})[a]}`],
  [/^(.+) 개완 우림 가이드$/,(m,a)=>`${a} gongfu guide`],
  [/^(.+) 우림 가이드$/,(m,a)=>`${a} brewing guide`],
  [/^(먼저 찻물 색부터 볼까요\?|찻물에 색이 우러나기 시작했어요\.)\n(.+?)(?:은|는) 보통 이런 색이에요\. 비슷하면 그대로 보내고, 다르면 움직여서 맞춰주세요\.$/,(m,a,b)=>`${a.startsWith('먼저')?'First, the color.':'The color is starting to come out.'}\n${EN_TYPE_LABEL[b]||b} usually looks like this. Send it if it matches, or adjust it.`],
@@ -2322,7 +2322,7 @@ function liveConnect(first){ return new Promise(res=>{ let ws, done=false; const
   try{ ws=new WebSocket(liveURL()); }catch(e){ return res(false); }
   LIVE.ws=ws; LIVE.closing=false; const t=setTimeout(()=>{ try{ ws.close(); }catch(e){} fin(false); },10000);
   ws.onmessage=e=>{ let j; try{ j=JSON.parse(typeof e.data==='string'?e.data:''); }catch(_){ return; } if(!j) return;
-    if(j.setupComplete&&!done){ LIVE.on=true; fin(true); VOICE.phase='listening'; S.listening=true; paintVoice(); paintBadge();
+    if(j.setupComplete&&!done){ LIVE.on=true; fin(true); if(first){ LIVE.capOff=false; liveCaptionStart(); } VOICE.phase='listening'; S.listening=true; paintVoice(); paintBadge();
       if(first){ const d=S.draft; if(d&&!d.chat.some(m=>m.who==='me')&&d.chat.length&&d.chat[d.chat.length-1].teaAsk){ d.chat.pop(); paintMsgs(); }   // 아직 아무 말도 안 했으면 화면의 첫인사는 지우고 AI가 소리로 인사(두 번 나오지 않게)
         liveEvent(liveIntro(),true); } return; }
     if(j.appError){ fin(false); return; }
@@ -2332,7 +2332,7 @@ function liveConnect(first){ return new Promise(res=>{ let ws, done=false; const
   ws.onerror=()=>{}; }); }
 function liveGreeting(d){ if(d&&d.stage==='tea'&&!d.chat.some(m=>m.teaAsk||m.who==='me')) d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }   // 실시간 음성이 안 되면 지웠던 첫인사를 되살린다
 function liveFallback(){ if(!VOICE.on) return; stopLive(); VOICE.live=false; liveGreeting(S.draft); toast('실시간 음성 연결이 끊겨서\n기본 음성 대화로 이어갈게요',true); const d=S.draft; if(d) VOICE.spoken=d.chat.length; VOICE.tid++; rerender(); voiceLoop(VOICE.tid); }
-function stopLive(){ LIVE.on=false; LIVE.closing=true; liveStopPlay(); try{ LIVE.ws&&LIVE.ws.close(); }catch(e){} LIVE.ws=null;
+function stopLive(){ LIVE.on=false; LIVE.closing=true; liveStopPlay(); try{ LIVE.capRec&&LIVE.capRec.abort(); }catch(e){} LIVE.capRec=null; LIVE.meMsg=null; LIVE.meEl=null; LIVE.botEl=null; try{ LIVE.ws&&LIVE.ws.close(); }catch(e){} LIVE.ws=null;
   try{ LIVE.mic&&LIVE.mic.getTracks().forEach(t=>t.stop()); }catch(e){} LIVE.mic=null; try{ LIVE.src&&LIVE.src.disconnect(); LIVE.node&&LIVE.node.disconnect(); }catch(e){} LIVE.src=LIVE.node=null; LIVE.inT=LIVE.outT=''; LIVE.botMsg=null; }
 /* 처음 연결했을 때: 지금까지의 기록 상태를 알려주고 먼저 말을 걸게 한다 */
 function liveIntro(){ const d=S.draft, f=flowFilled(d), got=Object.entries(f).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ');
@@ -2340,24 +2340,43 @@ function liveIntro(){ const d=S.draft, f=flowFilled(d), got=Object.entries(f).fi
   return `실시간 음성 대화를 시작해요. 차: ${d.name?((d.brand?d.brand+' ':'')+d.name+(d.type?' ('+TEAS[d.type].label+')':'')):'아직 모름'}. 지금 단계: ${liveStageKo(d.stage)}. 이미 기록한 것: ${got||'없음'}. 최근 대화: ${hist||'없음'}. 지금 단계에 맞게 짧게 먼저 말을 걸어 주세요.`; }
 const liveStageKo=st=>({tea:'차 이름 묻기',teaOK:'차 종류 확인',teaType:'차 종류 고르기',guide:'우림 가이드 보는 중',wait:'우리는 중',wait2:'우리는 중(색은 기록함)',color:'찻물 색',aroma:'향',taste:'맛',free:'마시며 자유롭게 이야기',after:'여운',more:'덧붙일 것 하나',done:'마무리'})[st]||st;
 function liveEvent(text,raw){ const w=LIVE.ws; if(!LIVE.on||!w||w.readyState!==1) return; w.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:raw?text:'[앱] '+text}]}],turnComplete:true}})); }
-function liveCommitMe(){ const d=S.draft, t=LIVE.inT.trim(); LIVE.inT=''; if(!d||t.length<1) return; const q=looksQuestion(t)?t.replace(/[.!~]+$/,'')+'?':t;
-  d.chat.push({who:'me',text:q,voice:true,...(matchFlavors(q).length?{}:{ans:'talk'})}); d.lastMeAt=Date.now(); d.voice.push(q); VOICE.interim=''; }   // 맛·향 표현이 없는 말은 찻방울 표현에서 뺀다
+function liveCommitMe(){ const d=S.draft, m=LIVE.meMsg, t=(LIVE.inT.trim()||(m&&m.text)||'').trim(); LIVE.inT=''; LIVE.meMsg=null; LIVE.meEl=null; LIVE.capFrom=LIVE.capLen; VOICE.interim='';
+  if(!d) return; if(t.length<1){ if(m){ const i=d.chat.indexOf(m); if(i>=0) d.chat.splice(i,1); paintMsgs(); } return; }
+  const q=looksQuestion(t)?t.replace(/[.!~]+$/,'')+'?':t, extra=matchFlavors(q).length?{}:{ans:'talk'};   // 맛·향 표현이 없는 말은 찻방울 표현에서 뺀다
+  if(m){ m.text=q; delete m.pending; Object.assign(m,extra); } else d.chat.push({who:'me',text:q,voice:true,...extra});
+  d.lastMeAt=Date.now(); d.voice.push(q); paintMsgs(); }
+/* 내가 말하는 동안 내 말을 채팅에 바로바로 보여준다 (클로드 음성 모드처럼). 처음엔 휴대폰 받아쓰기, AI가 알아들은 글자가 오면 그걸로 바꾼다 */
+function liveShowMe(t){ const d=S.draft; if(!d||!t) return; VOICE.interim=t;
+  if(!LIVE.meMsg){ LIVE.meMsg={who:'me',text:t,voice:true,pending:true}; d.chat.push(LIVE.meMsg); paintMsgs(); LIVE.meEl=liveLastEl('me'); }
+  else { LIVE.meMsg.text=t; liveSetText(LIVE.meEl,t); } }
+function liveLastEl(who){ const els=document.querySelectorAll('#msgs .msg.'+who); return els[els.length-1]||null; }
+function liveSetText(el,t){ if(!el) return paintMsgs(); const n=[...el.childNodes].reverse().find(x=>x.nodeType===3); if(n) n.nodeValue=L(t); else el.appendChild(document.createTextNode(L(t))); const v=$('#view'); if(v) v.scrollTop=v.scrollHeight; }
+/* 휴대폰 받아쓰기로 실시간 자막 (AI가 말하는 동안 들리는 건 메아리라 무시) */
+function liveCaptionStart(){ if(!SR||LIVE.capOff||!LIVE.on) return; let r; try{ r=new SR(); r.lang=isEN()?'en-US':'ko-KR'; r.continuous=true; r.interimResults=true; }catch(e){ LIVE.capOff=true; return; }
+  LIVE.capRec=r; LIVE.capFrom=0; LIVE.capLen=0;
+  r.onresult=e=>{ LIVE.capLen=e.results.length; if(LIVE.sources.length||LIVE.inT) return; let t=''; for(let i=LIVE.capFrom;i<e.results.length;i++) t+=e.results[i][0].transcript; t=t.trim();
+    const last=[...(S.draft?S.draft.chat:[])].reverse().find(m=>m.who==='bot'); if(t.length<2||(last&&!hasMyWords(t,last.text||''))) return; liveShowMe(t); VOICE.phase='listening'; paintVoice(); };
+  r.onerror=e=>{ if(['not-allowed','service-not-allowed','audio-capture','language-not-supported'].includes(e.error)) LIVE.capOff=true; };
+  r.onend=()=>{ if(LIVE.capRec===r) LIVE.capRec=null; if(LIVE.on&&!LIVE.capOff) setTimeout(liveCaptionStart,300); };
+  try{ r.start(); }catch(e){ LIVE.capOff=true; } }   // 맛·향 표현이 없는 말은 찻방울 표현에서 뺀다
 function liveMsg(j){ const d=S.draft; if(!d) return;
   if(j.sessionResumptionUpdate&&j.sessionResumptionUpdate.newHandle) LIVE.handle=j.sessionResumptionUpdate.newHandle;
   if(j.goAway){ const old=LIVE.ws; liveConnect(false).then(ok=>{ try{ old&&old!==LIVE.ws&&old.close(); }catch(e){} if(!ok) liveFallback(); }); return; }   // 연결 시간 끝나기 전에 이어 붙이기
-  if(j.toolCall){ const fc=j.toolCall.functionCalls||[]; const out=fc.map(f=>({id:f.id,name:f.name,response:liveTool(f.args||{})}));
-    try{ LIVE.ws.send(JSON.stringify({toolResponse:{functionResponses:out}})); }catch(e){} rerender(); return; }
+  if(j.toolCall){ j._st0=d.stage; const fc=j.toolCall.functionCalls||[]; const out=fc.map(f=>({id:f.id,name:f.name,response:liveTool(f.args||{})}));
+    try{ LIVE.ws.send(JSON.stringify({toolResponse:{functionResponses:out}})); }catch(e){} if(d.stage!==j._st0) rerender(); else { paintMsgs(); try{ paintTimer(); }catch(e){} }   /* 단계가 바뀔 때만 화면 전체(위 차 카드·타이머)를 다시 그린다 */ LIVE.botEl=liveLastEl('bot'); LIVE.meEl=LIVE.meMsg?liveLastEl('me'):null; return; }
   const sc=j.serverContent; if(!sc) return;
-  if(sc.inputTranscription&&sc.inputTranscription.text){ LIVE.inT+=sc.inputTranscription.text; VOICE.interim=LIVE.inT; VOICE.phase='listening'; paintVoice(); }
+  if(sc.inputTranscription&&sc.inputTranscription.text){ LIVE.inT+=sc.inputTranscription.text; liveShowMe(LIVE.inT.trim()); VOICE.phase='listening'; paintVoice(); }
   if(sc.interrupted){ liveStopPlay(); LIVE.drop=false; liveEndBot(); VOICE.phase='listening'; paintVoice(); }
   const parts=(sc.modelTurn&&sc.modelTurn.parts)||[], out=sc.outputTranscription&&sc.outputTranscription.text;
   if(parts.length||out){ if(LIVE.inT) liveCommitMe(); }
   parts.forEach(p=>{ if(p.inlineData&&p.inlineData.data&&!LIVE.drop){ livePlay(p.inlineData.data); VOICE.phase='speaking'; S.listening=false; } });
-  if(out){ LIVE.outT+=out; if(!LIVE.botMsg){ LIVE.botMsg={who:'bot',text:'',ai:true,live:true}; d.chat.push(LIVE.botMsg); } LIVE.botMsg.text=LIVE.outT.trim(); d.lastBotAt=Date.now(); }
-  if(parts.length||out) { paintMsgs(); paintVoice(); }
+  if(out){ LIVE.outT+=out; d.lastBotAt=Date.now();
+    if(!LIVE.botMsg){ LIVE.botMsg={who:'bot',text:LIVE.outT.trim(),ai:true,live:true}; d.chat.push(LIVE.botMsg); paintMsgs(); LIVE.botEl=liveLastEl('bot'); }
+    else { LIVE.botMsg.text=LIVE.outT.trim(); liveSetText(LIVE.botEl,LIVE.botMsg.text); } }   // 말이 붙어 나올 때 그 말풍선 글자만 바꾼다 (화면 전체를 다시 그리면 깜빡인다)
+  if(parts.length||out) paintVoice();
   if(sc.turnComplete){ LIVE.drop=false; if(LIVE.inT) liveCommitMe(); liveEndBot(); if(d.stage==='done') liveFinishWhenQuiet(); }
 }
-function liveEndBot(){ const d=S.draft, m=LIVE.botMsg; LIVE.botMsg=null; LIVE.outT=''; if(m&&d&&isAsk(d.stage)) m.ask=d.stage; if(m&&!m.text) { const i=d.chat.indexOf(m); if(i>=0) d.chat.splice(i,1); } paintMsgs(); }
+function liveEndBot(){ const d=S.draft, m=LIVE.botMsg; LIVE.botMsg=null; LIVE.botEl=null; LIVE.outT=''; if(m&&d&&isAsk(d.stage)) m.ask=d.stage; if(m&&!m.text) { const i=d.chat.indexOf(m); if(i>=0) d.chat.splice(i,1); } paintMsgs(); }
 function livePlay(b64){ const ctx=LIVE.ctx; if(!ctx) return; const bin=atob(b64), n=bin.length>>1; if(!n) return; const buf=ctx.createBuffer(1,n,24000), ch=buf.getChannelData(0);
   for(let i=0;i<n;i++){ let v=bin.charCodeAt(2*i)|(bin.charCodeAt(2*i+1)<<8); if(v>=32768) v-=65536; ch[i]=v/32768; }
   const s=ctx.createBufferSource(); s.buffer=buf; s.connect(ctx.destination); const t=Math.max(ctx.currentTime+0.04,LIVE.playT); s.start(t); LIVE.playT=t+buf.duration; LIVE.sources.push(s);

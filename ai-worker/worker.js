@@ -244,7 +244,7 @@ What to record (the app gives "want" and "next"):
   wait = the tea is still steeping: do NOT invite them to smell or taste yet, just keep chatting (the app will tell you when it's ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
 - If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
 - If want is tea: we don't know the tea yet. If the user mentions one, fill name (tea name only, no brand), brand (if any), type (one of the six types below) and about (one sentence on its base and main flavor notes), and in reply introduce it briefly and ask whether to record it as that type. If no tea is mentioned, respond and ask what tea they'll have.
-- If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb|other (blends: by the base tea leaf; herbs, flowers or fruit with no tea leaf = herb; grain or root teas like barley, burdock or corn tea = other). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
+- If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb|other (blends: by the base tea leaf; herb = herbal plants only, like chamomile, mint, rooibos, hibiscus or lavender; other = everything else without tea leaves: fruit teas like yuzu or green tangerine, grain or root teas like barley or burdock). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
   next = guide: once the type is settled, say briefly that you'll show how to brew it (the app shows the guide).
 - If next is brew (they're looking at the brewing guide): answer brewing questions and tell them to tap or say "start brewing" when ready.
 - Actions — when the user clearly means one of these by what they say (no button needed), set "action":
@@ -266,7 +266,7 @@ Reply with ONLY a JSON object:
   wait = 차가 아직 우러나는 중이야. 향이나 맛을 맡아보자/마셔보자고 하지 말고 (아직 덜 우러났어), 이야기만 이어가. 다 우러나면 앱이 알려줘 · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
 - 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
 - want가 tea면: 아직 무슨 차를 마실지 몰라. 사용자 말에 차가 나오면 fill.name(차 이름만, 브랜드 빼고), fill.brand(브랜드, 없으면 빼), fill.type(아래 teatype과 같은 6가지 중 하나), fill.about(이 차의 바탕 찻잎과 주된 향·맛을 한 문장, 60자 이내)을 넣고, reply에서 그 차를 짧게 소개한 뒤 그 종류로 기록할지 물어봐 (예: '…녹차로 기록할게요. 맞나요?'). 차가 안 나오면 그 말에 반응하고 어떤 차를 마실지 물어봐.
-- want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브·꽃·과일 차)·other(기타: 보리차·우엉차·옥수수차 같은 곡물·뿌리 차) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎 없이 허브·꽃·과일이면 herb, 곡물·뿌리면 other). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
+- want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브차: 캐모마일·민트·루이보스·히비스커스·라벤더 같은 허브만)·other(기타: 유자차·청귤차 같은 과일차, 보리차·우엉차 같은 곡물·뿌리 차 등 나머지 모두) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎 없이 허브만이면 herb, 그 밖은 other). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
   next가 guide면: 종류가 정해졌을 때 '이 차에 맞는 우림 방법을 보여드릴게요'처럼 짧게 이어가 (앱이 가이드를 보여줘).
 - 지금이 우림 가이드를 보는 중이면 (next가 brew): 우리는 법에 대한 질문에 답하고, 준비되면 '우림 시작'을 누르거나 말해 달라고 해.
 - 행동(action) — 사용자가 버튼을 누르지 않아도 말뜻이 분명히 아래와 같으면 "action"을 넣어:
@@ -313,7 +313,7 @@ Reply with ONLY a JSON object:
     maxTokens: 500, budgetMs: 10000,
     system: en => 'You identify teas from what the user typed. For a specific product, search the web to find it. Reply with ONLY a JSON object, no other text.',
     prompt: (b, en) => `Tea the user typed: "${str(b.text, 80)}"${b.brand ? ` (brand: ${str(b.brand, 40)})` : ''}
-Return JSON: {"found": true/false, "name": product name as commonly written${en ? '' : ' in Korean'}, "brand": brand or "", "type": one of ${TEA_TYPES.join('|')} (blends: by the base tea leaf; herbs/flowers/fruit with no tea leaf = herb; grain or root teas like barley or burdock = other), "about": ${en ? 'one short sentence (under 80 chars) on its base and main flavor notes' : '이 차의 바탕 찻잎과 주된 향·맛을 한 문장으로 (60자 이내, 해요체)'}}
+Return JSON: {"found": true/false, "name": product name as commonly written${en ? '' : ' in Korean'}, "brand": brand or "", "type": one of ${TEA_TYPES.join('|')} (blends: by the base tea leaf; herb = herbal plants only like chamomile, mint, rooibos, hibiscus; other = everything else without tea leaves: fruit teas, grain or root teas), "about": ${en ? 'one short sentence (under 80 chars) on its base and main flavor notes' : '이 차의 바탕 찻잎과 주된 향·맛을 한 문장으로 (60자 이내, 해요체)'}}
 The user may type a whole sentence (e.g. "I don't know the brand but it's rooibos") — take only the tea. A general tea (green tea, rooibos, chamomile, Earl Grey…) also counts as found: use its common name and describe it in general. Set found to false only if you cannot tell what tea it is.`,
     clean: (text) => {
       const m = String(text || '').match(/\{[\s\S]*\}/); if (!m) return null;
@@ -534,7 +534,7 @@ const LIVE_TOOL = {
       type: 'OBJECT',
       properties: {
         name: { type: 'STRING', description: 'tea name only, no brand' }, brand: { type: 'STRING' },
-        type: { type: 'STRING', enum: ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'], description: 'blends by base leaf; herbs/flowers/fruit = herb; grain/root teas like barley or burdock = other' },
+        type: { type: 'STRING', enum: ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'], description: 'blends by base leaf; herb = herbal plants only (chamomile, mint, rooibos, hibiscus); other = everything else without tea leaves (fruit teas like yuzu or green tangerine, grain/root teas like barley or burdock)' },
         about: { type: 'STRING', description: 'one short sentence on the tea' },
         color: { type: 'STRING' }, aroma: { type: 'STRING' }, taste: { type: 'STRING' }, after: { type: 'STRING' }, extra: { type: 'STRING' },
         mood: { type: 'STRING' }, scene: { type: 'STRING' }, why: { type: 'STRING' }, origin: { type: 'STRING' }, temp: { type: 'STRING' }, time: { type: 'STRING' }, memo: { type: 'STRING' },
