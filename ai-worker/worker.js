@@ -46,7 +46,10 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
 5. 색은 찻물 색을 말할 때만. 고양이·컵 같은 다른 것의 색은 아니야.
 6. 차 종류는 바탕 찻잎으로 정해. 녹차·홍차 잎에 과일·꽃 향을 입힌 가향차·블렌드는 그 찻잎 종류야(기타 아님). 찻잎이 들어갔는지 확실하지 않으면 웹에서 확인하거나 사용자에게 물어봐.
 7. step과 record는 네 reply와 반드시 맞아야 해. reply에서 '홍차로 기록할게요'라고 하면 record.type도 black. 아직 묻고 있으면(확인 질문) 확정하지 마. reply에서 여운을 묻는다면 step은 finished_drinking이어야 해.
-8. flavors: 사용자가 방금 한 말이 차의 향·맛·느낌을 표현하면(비유·장면·기억 포함) 그 말이 떠올리게 하는 풍미 계열을 1~3개 골라 flavors에 넣어. 찻방울의 색이 돼. 계열: floral(꽃향)·fruity(과일향)·citrus(시트러스·신맛)·vegetal(풀향)·fresh(상쾌함)·nutty(고소함·곡물)·sweet(단맛)·earthy(흙·나무향)·spicy(스파이시)·soft(부드러움·포근함)·astringent(쓴·떫은맛). 예: '황금빛 보리밭 같아' → nutty, sweet / '비 온 뒤 숲길' → vegetal, earthy, fresh / '할머니 집 냄새' → earthy, soft. 잡담·질문이면 빈 배열.
+8. flavors: 찻방울의 색이 되는 풍미 계열. 사용자가 방금 한 말에 차의 냄새·맛·입안 느낌이 실제로 묘사돼 있을 때만, 그 묘사에 들어 있는 감각만 0~3개 골라. 계열: floral(꽃향)·fruity(과일향)·citrus(시트러스·신맛)·vegetal(풀향)·fresh(상쾌함)·nutty(고소함·곡물)·sweet(단맛)·earthy(흙·나무향)·spicy(스파이시)·soft(부드러움·포근함)·astringent(쓴·떫은맛).
+   - 비유·장면은 사용자가 그걸로 향이나 맛을 묘사할 때만 담아 (예: '비 온 뒤 숲길 같은 향' → vegetal, earthy / '꿀처럼 달아' → sweet / '황금빛 보리밭 같은 구수함' → nutty).
+   - 시간·장소·기억·기분·날씨·사람 이야기는 감각 묘사가 아니야 → 빈 배열 (예: '작년 겨울에 마셨던 기억이 떠올라', '마음이 편해져', '친구랑 마시던 생각나'). 네가 그 말에서 연상한 풍미를 덧붙이지 마.
+   - 확실하지 않으면 비워 둬. 비워 두는 게 틀린 색을 칠하는 것보다 나아. 사용자의 표현은 '나만의 표현'으로 그대로 남으니 억지로 풍미로 바꿀 필요가 없어.
 9. 천천히 마시는 중에는 찻방울이 풍성해지도록 도와줘. '지금 찻방울에 담긴 풍미'가 2가지 이하면, 아직 안 나온 쪽(향이 식으며 달라졌는지, 입안 느낌, 떠오르는 장면·기억 등)을 한 번에 하나만 가볍게 물어봐. 재촉하지 말고, 사용자가 그만하고 싶어 하면 따라가.
 10. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
 
@@ -114,7 +117,10 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 5. Color only when they describe the tea's color, not a cat's or a cup's.
 6. Type follows the base leaf: flavored or blended green/black teas are green/black, not other. If unsure whether it contains tea leaves, check the web or ask.
 7. step and record MUST match your reply. If you say "I'll record it as black tea", record.type is black. If you're still asking, don't confirm. If your reply asks about the aftertaste, step must be finished_drinking.
-8. flavors: when the message expresses how the tea smells/tastes/feels (metaphors, scenes, memories included), pick 1–3 flavor families it evokes; they become the drop's colors. Families: floral·fruity·citrus·vegetal (grassy)·fresh·nutty (grain, roasted)·sweet·earthy (wood, soil)·spicy·soft (smooth, cozy)·astringent (bitter, dry). e.g. "like a golden barley field" → nutty, sweet; "a forest path after rain" → vegetal, earthy, fresh. Empty for small talk or questions.
+8. flavors: the flavor families that become the drop's colors. Only when the user's message actually describes how the tea smells, tastes or feels in the mouth, pick 0–3 families for the senses that are described. Families: floral·fruity·citrus·vegetal (grassy)·fresh·nutty (grain, roasted)·sweet·earthy (wood, soil)·spicy·soft (smooth, cozy)·astringent (bitter, dry).
+   - Metaphors and scenes count only when they're used to describe the aroma or taste ("smells like a forest after rain" → vegetal, earthy; "sweet like honey" → sweet).
+   - Time, place, memories, mood, weather or people are not sensory descriptions → empty ("it reminds me of last winter", "I feel calm", "makes me think of my friend"). Never add flavors you merely associate with the words.
+   - If unsure, leave it empty; an empty list is better than a wrong color. Their words are kept as personal expressions anyway, so there's no need to force them into flavors.
 9. While they drink slowly, help the drop grow richer: if "flavors in the drop so far" has 2 or fewer, gently ask about one side not covered yet (how it changed as it cooled, mouthfeel, a scene or memory it brings up). One at a time, never pushy; follow them if they want to stop.
 10. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
 
@@ -631,7 +637,7 @@ const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + un
         mood: { type: 'STRING' }, scene: { type: 'STRING' }, why: { type: 'STRING' }, origin: { type: 'STRING' }, temp: { type: 'STRING' }, time: { type: 'STRING' }, memo: { type: 'STRING' },
         unknown: { type: 'ARRAY', items: { type: 'STRING' } },
         clear: { type: 'ARRAY', items: { type: 'STRING' }, description: 'record fields to erase so the user can say them again' },
-        flavors: { type: 'ARRAY', items: { type: 'STRING', enum: ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'] }, description: 'flavor families the user\'s last words evoke (metaphors included) — they become the drop colors' },
+        flavors: { type: 'ARRAY', items: { type: 'STRING', enum: ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'] }, description: 'only senses the user actually described (smell, taste, mouthfeel); empty for memories, mood, time or place; never add associations — empty is better than a wrong color' },
         requests: { type: 'ARRAY', items: { type: 'STRING', enum: ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide', 'pause_timer', 'resume_timer'] }, description: 'things the app should do now' },
         timer_set: { type: 'NUMBER', description: 'set the remaining brew time to this many seconds (e.g. "one more minute" → 60)' },
         step: { type: 'STRING', enum: LIVE_STEPS },

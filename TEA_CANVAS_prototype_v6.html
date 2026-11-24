@@ -237,7 +237,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid #E5E5E5}
 .cmtrow .box{position:relative}.cmtrow .box input{padding-right:46px}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
 .btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
-.typelist button.none{opacity:.45}.cvper{justify-content:center;margin:-6px 0 12px}.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.typelist button.none{opacity:.45}.cvper{justify-content:center;margin:-6px 0 12px}.cvcal{display:inline-flex;align-items:center;gap:5px}.cvcal svg{width:16px;height:16px}.fchip.on.cvcal svg *{stroke:#fff}.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
 .typelist .tb{width:34px;height:34px;flex:none;display:grid;place-items:center}.typelist .tb svg{width:100%;height:100%}.typelist b{font-weight:600}.typelist .muted{margin-left:auto}.typelist .chev{color:#AAA}
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
@@ -1094,7 +1094,7 @@ function canvasBox(id,{labels=true,cls='',help=false}={}){
 const recsAsc=()=>[...S.records].filter(r=>r.canvas).sort((a,b)=>(a.ts||0)-(b.ts||0));
 /* 캔버스 기간: 전체 · 1개월 · 3개월 · 올해 (기록 목록의 기간과 같은 기준) */
 const cvFrom=p=>{ const now=new Date(); return {all:0,'1m':now.getTime()-31*864e5,'3m':now.getTime()-92*864e5,'1y':new Date(now.getFullYear(),0,1).getTime()}[p]||0; };
-const cvRecs=()=>{ const f=cvFrom(S.cvPeriod||'all'); return recsAsc().filter(r=>(r.ts||0)>=f); };
+const cvRecs=()=>{ if(S.cvPeriod==='range'&&S.cvRange){ const {from,to}=S.cvRange; return recsAsc().filter(r=>{ const k=ymd(r.ts||0); return k>=from&&k<=to; }); } const f=cvFrom(S.cvPeriod||'all'); return recsAsc().filter(r=>(r.ts||0)>=f); };
 /* 겹칠수록 연하게: 주변에 겹치는 찻방울이 많을수록 그 방울을 연하게 그려, 아무리 쌓여도 캔버스가 탁하고 어두워지지 않게 */
 function cvAlpha(recs,base){ const R=R1(1)*2.2, A={};
   recs.forEach(r=>{ let w=0; recs.forEach(q=>{ if(q===r) return; const d=Math.hypot(q.canvas.x-r.canvas.x,q.canvas.y-r.canvas.y); if(d<R) w+=1-d/R; }); A[r.id]=Math.max(.5,base/(1+.3*w)); });
@@ -1116,9 +1116,9 @@ function matchFlavors(text){ const raw=String(text||''), t=raw.replace(/\s/g,'')
   return FKEYS.filter(k=>FLAVORS[k].kw.some(has)||(typeof FL_EN!=='undefined'&&FL_EN[k].some(w=>lo.includes(' '+w)&&!new RegExp('(no|not|without|hardly|barely)\\s+(any\\s+)?'+w).test(lo)))); }
 function collectExprs(d){
   const out=[], add=(t,fl)=>{ t=String(t||'').trim(); if(!t||t==='잘 모르겠어요'||out.some(o=>o.text===t)) return; out.push({text:t,fl:Array.isArray(fl)?fl:matchFlavors(t)}); };
-  const fm=d.flMap||{}; ['aroma','taste'].forEach(k=>{ const v=String((d.feel&&d.feel[k])||''); if(fm[v]) return add(v,fm[v]); v.split(', ').forEach(t=>add(t,fm[t])); }); // 찻물 색은 찻방울 색에 넣지 않는다 · fm: Gemini가 고른 풍미
+  const fm=d.flMap||{}; ['aroma','taste'].forEach(k=>{ const v=String((d.feel&&d.feel[k])||''); if(Array.isArray(fm[v])) return add(v,fm[v]); v.split(', ').forEach(t=>add(t,fm[t])); }); // 찻물 색은 찻방울 색에 넣지 않는다 · fm: Gemini가 고른 풍미
   (d.chat||[]).filter(m=>m.who==='me'&&!m.ans&&!m.fix).forEach(m=>add(m.text,m.fl));
-  if(d.afterText&&fm[d.afterText]) add(d.afterText,fm[d.afterText]);
+  if(d.afterText&&Array.isArray(fm[d.afterText])&&fm[d.afterText].length) add(d.afterText,fm[d.afterText]);
   if(d.useDeep!==false){ if(!d.aiFlow) add(d.deep.memo); Object.values(d.deep.brews||{}).forEach(b=>add(b.feel)); }
   return out;
 }
@@ -1268,10 +1268,10 @@ function activeChips(){ const f=S.filter, out=[];
   return out.length?`<div class="achips">${out.join('')}</div>`:''; }
 /* 기간: 1개월·3개월 같은 빠른 선택 + 달력에서 하루(한 번 누르기) 또는 며칠부터 며칠까지(두 번 누르기). 기록한 날엔 점 */
 const ymd=t=>{ const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-function openDateSheet(){ const f=S.filter, base=f.date==='range'&&f.from?new Date(f.from+'T00:00'):new Date();
-  S.cal={y:base.getFullYear(),m:base.getMonth(),a:f.date==='range'?f.from:'',b:f.date==='range'?f.to:''};
+function openDateSheet(target){ const cv=target==='cv', f=cv?{date:S.cvPeriod||'all',...(S.cvRange||{})}:S.filter, base=f.date==='range'&&f.from?new Date(f.from+'T00:00'):new Date();   // target 'cv': 캔버스 화면의 기간
+  S.cal={y:base.getFullYear(),m:base.getMonth(),a:f.date==='range'?f.from:'',b:f.date==='range'?f.to:'',cv};
   openSheet(`<div class="grab"></div><h1 class="t">기간</h1>
-    <div class="dpre">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${f.date===v?'on':''}" onclick="S.filter.date='${v}';closeSheet();rerender()">${t}</button>`).join('')}</div>
+    <div class="dpre">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${f.date===v?'on':''}" onclick="${cv?`S.cvPeriod='${v}'`:`S.filter.date='${v}'`};closeSheet();rerender()">${t}</button>`).join('')}</div>
     <div id="calBox">${calHTML()}</div>
     <button class="btn" id="calGo" onclick="applyRange()">${calBtn()}</button>`); }
 function calHTML(){ const c=S.cal, first=new Date(c.y,c.m,1), days=new Date(c.y,c.m+1,0).getDate(), lead=first.getDay(), today=ymd(Date.now());
@@ -1289,7 +1289,7 @@ function calPaint(){ $('#calBox').innerHTML=calHTML(); $('#calGo').textContent=c
 function calTap(k){ const c=S.cal; if(!c.a||c.b){ c.a=k; c.b=''; } else c.b=k; calPaint(); }
 function calMove(n){ const c=S.cal; c.m+=n; if(c.m<0){ c.m=11; c.y--; } if(c.m>11){ c.m=0; c.y++; } calPaint(); }
 function applyRange(){ const c=S.cal; if(!c.a) return toast('날짜를 골라주세요'); let a=c.a, b=c.b||c.a; if(a>b) [a,b]=[b,a];
-  Object.assign(S.filter,{date:'range',from:a,to:b}); closeSheet(); rerender(); }
+  if(c.cv){ S.cvPeriod='range'; S.cvRange={from:a,to:b}; } else Object.assign(S.filter,{date:'range',from:a,to:b}); closeSheet(); rerender(); }
 function openFlSheet(){ openSheet(`<div class="grab"></div><h1 class="t">필터</h1><p class="sub">차 종류와 풍미로 기록을 골라봐요.</p>
     <h3 class="sec" style="margin:16px 0 8px">차 종류</h3><div id="tySheet">${typeRow()}</div>
     <h3 class="sec" style="margin:16px 0 8px">풍미 <small class="muted" style="font-weight:400">· 고른 풍미가 모두 담긴 기록</small></h3><div id="flSheet">${flRow()}</div><div style="height:18px"></div><button class="btn" id="flGo" onclick="closeSheet()">${flBtn()}</button>`); }
@@ -1441,7 +1441,7 @@ canvas(p){
   const fav=favDrop();
   return `${seg}
   <h2 class="cv-q">${cvRecs().length}잔의 찻방울이 물든<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
-  <div class="flchips cvper">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${(S.cvPeriod||'all')===v?'on':''}" onclick="S.cvPeriod='${v}';rerender()">${t}</button>`).join('')}</div>
+  <div class="flchips cvper">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${(S.cvPeriod||'all')===v?'on':''}" onclick="S.cvPeriod='${v}';rerender()">${t}</button>`).join('')}<button class="fchip cvcal ${S.cvPeriod==='range'?'on':''}" onclick="openDateSheet('cv')" aria-label="달력에서 기간 고르기">${I.cal}${S.cvPeriod==='range'&&S.cvRange?`<span>${S.cvRange.from===S.cvRange.to?fmtD(S.cvRange.from):fmtD(S.cvRange.from)+' ~ '+fmtD(S.cvRange.to)}</span>`:''}</button></div>
   ${canvasBox('bigCv',{cls:'scrollable',help:true})}
   ${cvRecs().length?'':`<p class="cap" style="text-align:center;margin-top:8px">이 기간에는 찍은 찻방울이 없어요</p>`}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
@@ -1934,7 +1934,7 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     const step=flowStepOf(j), got=want==='extra'?true:!!(want&&f[want]&&!(f.unknown||[]).includes(want));
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(step==='finished_drinking'||step==='close') me.ans='nav'; else if((!j.sense||isQuestion(text))&&!(want==='after'&&got)) me.ans='talk'; }   // 질문·마무리 인사·잡담은 찻방울 표현에서 뺀다
     if(['tea','teaOK','teaType','guide'].includes(st)) me.ans='tea';
-    flowFlavors(d,me,f,j.flavors);
+    flowFlavors(d,me,f,j.flavors,!!j.step);   // 새 서버는 늘 step을 준다 = Gemini가 판단함
     const r=flowDecide(d,f,step,{requests:j.requests,clear:j.clear});   // Gemini의 판단을 앱에 적용 (실시간 음성과 같은 함수)
     if(r==='teaOK') { d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:['맞아요','다시 적을게요']}); return rerender(); }
     if(r==='teaType'){ d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:ORDER.map(k=>TEAS[k].label)}); return rerender(); }
@@ -1949,8 +1949,8 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     if(st==='teaOK'||st==='teaType'||st==='guide'){ d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:st==='guide'?['우림 시작 ▶','바로 마실게요']:st==='teaOK'?['맞아요','다시 적을게요']:ORDER.map(k=>TEAS[k].label)}); return paintMsgs(); }
     flowBot(d,j.reply); },Math.max(0,500-(Date.now()-t0)))); }
 /* Gemini가 비유·장면까지 읽어 고른 풍미 계열 → 이 말과 이번에 채운 향·맛·여운의 찻방울 색으로 */
-function flowFlavors(d,me,f,fl){ fl=(Array.isArray(fl)?fl:[]).filter(k=>FLAVORS[k]); if(!fl.length) return; const fm=d.flMap||(d.flMap={});
-  ['aroma','taste','after'].forEach(k=>{ if(f[k]) fm[String(f[k])]=fl; }); if(me&&me.ans!=='tea'&&me.ans!=='nav'){ me.fl=fl; if(me.ans==='talk') delete me.ans; } }
+function flowFlavors(d,me,f,fl,seen){ if(!seen) return; fl=(Array.isArray(fl)?fl:[]).filter(k=>FLAVORS[k]); const fm=d.flMap||(d.flMap={});   // seen: Gemini가 이 말을 읽고 판단함 → 빈 배열이어도 그 판단을 따른다 (앱의 낱말 사전으로 덧칠하지 않는다)
+  ['aroma','taste','after'].forEach(k=>{ if(f[k]) fm[String(f[k])]=fl; }); if(me&&me.ans!=='tea'&&me.ans!=='nav'){ me.fl=fl; if(fl.length&&me.ans==='talk') delete me.ans; } }
 /* Gemini가 우림 타이머를 바꿔 달라고 하면: 남은 시간 바꾸기(timer_set, 초) · 멈추기 · 다시 돌리기 */
 function flowTimer(j){ const t=S.timer, req=Array.isArray(j&&j.requests)?j.requests:[], n=Number(j&&j.timer_set); if(!t) return false; let ch=false;
   if(Number.isFinite(n)&&n>0){ const done=t.total-t.left; t.left=Math.round(n); t.total=done+t.left; t.running=true; ch=true; }
@@ -2458,7 +2458,7 @@ function liveFinishWhenQuiet(){ const d=S.draft, at=d&&d.tid; const tick=()=>{ i
 function liveTool(a){ const d=S.draft; if(!d) return {ok:false}; setBy('ai'); const f={};   // 실시간 음성의 update_record = 글 대화의 JSON과 같은 판단 → 같은 함수(flowDecide)로 적용
   ['name','brand','about','type','color','tone','aroma','taste','after','extra','mood','scene','why','origin','temp','time','memo'].forEach(k=>{ if(a[k]) f[k]=String(a[k]).slice(0,160); });
   if(Array.isArray(a.unknown)) f.unknown=a.unknown;
-  flowFlavors(d,[...d.chat].reverse().find(m=>m.who==='me'),a,a.flavors);
+  flowFlavors(d,[...d.chat].reverse().find(m=>m.who==='me'),a,a.flavors,Array.isArray(a.flavors));
   if(f.color&&!d.feel.colorHex&&d.stage==='color'&&S.ask&&S.ask.hd&&!colorFromWords(f.tone||f.color)) f.color=tcName(S.ask.hd[0],S.ask.hd[1]);   // '이 색 맞아' → 슬라이더의 색
   const r=flowDecide(d,f,flowStepOf(a),{requests:a.requests,clear:a.clear});
   if(r==='guide') showGuide(); else if(r==='brew') beginBrew(true); else if(r==='reguide') showGuide(true); else if(r==='guidecard'){ d.chat.push({who:'bot',guide:true,basic:!!d.basic,gongfu:!!d.gongfu,text:'우림 가이드를 다시 보여드릴게요.'}); }

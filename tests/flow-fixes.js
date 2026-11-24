@@ -87,6 +87,11 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['다시 돌려']=()=>({reply:'다시 돌릴게요.',fill:{},step:'stay',requests:['resume_timer']}); await say('다시 돌려줘');
   ok(await E(()=>S.timer.running===true),'"다시 돌려줘" → 타이머 다시');
   ok(await E(()=>{ const t=S.timer.left; liveTool({timer_set:90}); return S.timer.left===90; }),'음성도 timer_set → 남은 시간 바꿈');
+  // 풍미를 억지로 뽑지 않음: Gemini가 '감각 묘사 없음'(빈 flavors)이라 하면, 앱 낱말 사전으로 덧칠하지 않는다
+  await E(()=>{ const d=S.draft; d.stage='free'; S.timer=null; });
+  R['작년 겨울']=()=>({reply:'그때의 기억이 떠오르는군요.',fill:{memo:'작년 겨울의 기억'},step:'stay'}); await say('작년 겨울에 마셨던 기억이 떠올라');
+  R['마음이 편']=()=>({reply:'편안해지셨다니 좋네요.',fill:{mood:'편안함'},step:'stay'}); await say('따뜻하고 마음이 편안해져');
+  ok(await E(()=>{ const ms=S.draft.chat.filter(m=>m.who==='me'&&/작년 겨울|마음이 편안/.test(m.text)); return ms.length===2&&ms.every(m=>Array.isArray(m.fl)&&!m.fl.length); }),'기억·기분 이야기는 찻방울 색을 만들지 않음 ("따뜻·편안" 낱말 사전으로 덧칠 안 함)');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
