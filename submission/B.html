@@ -1706,7 +1706,9 @@ function parseTea(text){ text=String(text||'').replace(/(^|\s)[ㄱ-ㅎㅏ-ㅣ]+(
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
 function botSay(msg,delay=600){ const d=S.draft; S.typing=true; paintMsgs(); setTimeout(()=>{ S.typing=false; d.chat.push(typeof msg==='function'?msg():msg); if(cur()==='chat') rerender(); },delay); }
-function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=true; d.chat.push({who:'me',text:'',img:url,ans:'tea'});
+function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=true;
+  if(flowOn(d)&&['tea','teaOK','teaType'].includes(d.stage)) return flowMsg('',null,url);   // AI 대화: Gemini가 사진 속 글자·그림을 읽고 차를 찾는다
+  d.chat.push({who:'me',text:'',img:url,ans:'tea'});
   botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},700); }); }
 /* 자동 대화에서 차 종류를 확인하는 중: '아니야'는 아니라는 뜻으로, '응'은 맞다는 뜻으로, 종류 이름을 말하면 그 종류로. 차 이름으로 착각하지 않는다 */
 const TYPE_WORD={green:/녹차|그린티|green/i,white:/백차|white/i,oolong:/우롱|철관음|oolong/i,black:/홍차|black/i,dark:/보이|흑차|pu-?erh|puer/i,herb:/허브|herb/i,other:/기타|곡물|보리|우엉|옥수수|other/i};
@@ -1893,13 +1895,13 @@ const flowWant=d=>({tea:'tea',teaOK:'teatype',teaType:'teatype',color:'color',ar
 const flowNext=d=>({tea:'teatype',teaOK:'guide',teaType:'guide',guide:'brew',color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
 function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
   return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
-async function flowCall(event,message,voice,quiet){ const d=S.draft;
+async function flowCall(event,message,voice,quiet,img){ const d=S.draft;
   const screen=d.stage==='color'&&S.ask&&S.ask.hd?{color:tcName(S.ask.hd[0],S.ask.hd[1])}:null;   // 화면에 보이는 것(색 슬라이더에 맞춰진 색)도 AI에게 알려준다
-  const j=await aiCall('flow',{event,memory:appMemory(),message:message||'',stage:d.stage,want:flowWant(d),next:flowNext(d),about:d.about||'',drop:[...new Set(collectExprs(d).flatMap(e=>e.fl||[]))].map(k=>FLAVORS[k].label),guide:TEAS[d.type]?(g=>({temp:g.temp,time:g.time,gongfu:!!d.gongfu}))(guideOf(d)):null,filled:flowFilled(d),screen,...(voice?{voice}:{}),timer:S.timer?{left:S.timer.left,total:S.timer.total,running:S.timer.running}:null});
+  const j=await aiCall('flow',{event,...(img?{image:img}:{}),memory:appMemory(),message:message||'',stage:d.stage,want:flowWant(d),next:flowNext(d),about:d.about||'',drop:[...new Set(collectExprs(d).flatMap(e=>e.fl||[]))].map(k=>FLAVORS[k].label),guide:TEAS[d.type]?(g=>({temp:g.temp,time:g.time,gongfu:!!d.gongfu}))(guideOf(d)):null,filled:flowFilled(d),screen,...(voice?{voice}:{}),timer:S.timer?{left:S.timer.left,total:S.timer.total,running:S.timer.running}:null});
   if(j&&j.amended) return j;
   if(j&&typeof j.reply==='string'&&j.reply.trim()){ aiBackNote(); setBy('ai'); return j; } return quiet?null:aiFail(); }
-async function flowCallRetry(event,message,voice){ const t0=Date.now(); let j=await flowCall(event,message,voice,true);   // 금방 실패하면(붐빔) 한 번 더: 정해진 대화로 넘어가는 일을 줄인다
-  if(j&&j.amended) return j; if(!j&&AI_WHY!=='quota'&&Date.now()-t0<5000) j=await flowCall(event,message,voice); else if(!j) aiFail(); return j; }
+async function flowCallRetry(event,message,voice,img){ const t0=Date.now(); let j=await flowCall(event,message,voice,true,img);   // 금방 실패하면(붐빔) 한 번 더: 정해진 대화로 넘어가는 일을 줄인다
+  if(j&&j.amended) return j; if(!j&&AI_WHY!=='quota'&&Date.now()-t0<5000) j=await flowCall(event,message,voice,false,img); else if(!j) aiFail(); return j; }
 const NOT_ANSWER=/^(잘\s*)?(모르|몰라|모름|모르겠|글쎄|없|딱히)/;   // '모르겠어요'는 대답이 아니다 → 칸을 채우지 않는다
 const cleanBrand=b=>{ b=String(b||'').trim(); return /^[ㄱ-ㅎㅏ-ㅣ\s]+$|^(없음|모름|몰라|모르겠|없어|none|unknown|-)/i.test(b)?'':b; };   // 'ㅇㅇ' 같은 말은 브랜드가 아니다
 function flowApply(d,f){   // AI가 뽑은 것을 기록 칸에 채운다
@@ -1922,12 +1924,13 @@ function flowFinish(){ const d=S.draft, at=d.tid;   // 마지막 인사를 다 �
   const tick=()=>{ if(!S.draft||S.draft.tid!==at||cur()!=='chat') return; if(VOICE.on&&(VOICE.spoken<d.chat.length||VOICE.phase==='speaking')) return setTimeout(tick,400); if(VOICE.on) stopVoice(); else rerender(); };
   setTimeout(tick,600); }
 /* 내 말(또는 위젯으로 고른 대답 forced={k,extra}) → AI */
-function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.stage, want=flowWant(d), vo=VOICE.fromVoice||null;
-  const me={who:'me',text,...((forced&&forced.extra)||{})}; if(forced) me.ans=forced.k; if(vo) me.voice=true; d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
-  d.pendingMe=forced?null:me;   // 생각하는 동안 내가 이어서 말하면 이 말에 붙여 다시 묻는다
-  flowCallRetry('message',text,vo).then(j=>setTimeout(()=>{ if(j&&j.amended) return; if(d.pendingMe===me) d.pendingMe=null; if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
+function flowMsg(text,forced,img){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.stage, want=flowWant(d), vo=VOICE.fromVoice||null;   // img: 차 포장 사진(데이터 URL)
+  const me=img?{who:'me',text:'',img,ans:'tea'}:{who:'me',text,...((forced&&forced.extra)||{})}; if(forced) me.ans=forced.k; if(vo) me.voice=true; d.chat.push(me); d.lastMeAt=Date.now(); S.typing=true; paintMsgs();
+  d.pendingMe=forced||img?null:me;   // 생각하는 동안 내가 이어서 말하면 이 말에 붙여 다시 묻는다
+  flowCallRetry('message',img?'(차 포장 사진을 보냈어요)':text,vo,img).then(j=>setTimeout(()=>{ if(j&&j.amended) return; if(d.pendingMe===me) d.pendingMe=null; if(!S.draft||S.draft.tid!==at){ S.typing=false; return; } S.typing=false;
     if(j&&vo&&j.heard&&j.heard!==text){ me.raw=text; me.text=j.heard; text=j.heard; }   // 잘못 들린 말은 AI가 고친 문장으로 (원래 들린 말은 raw에)
     if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); paintBadge();   // AI가 안 되면 이 말은 정해진 흐름으로. AI가 다시 되면 다음 말부터 다시 AI
+      if(img){ d.chat.push(me); return botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},300); }   // AI가 안 되면 사진은 담기만
       if(forced) return answer(forced.k,text,forced.extra||{},true); return sendMsg(text,false,true); }
     const f=j.fill||{}; if(Array.isArray(j.unknown)) f.unknown=j.unknown;
     if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; f._slider=true; } }

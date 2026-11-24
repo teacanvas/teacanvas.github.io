@@ -70,6 +70,6 @@ const tea={name:'제주 세작',type:'녹차'};
   r=await post({mode:'question',question:'q'},'null'); ok(r.status===200,'내려받은 파일(file://)에서도 동작');
   r=await post({mode:'hack'}); ok(r.status===400,'모르는 모드 거절');
   r=await worker.fetch(new Request('https://w.test/',{method:'OPTIONS',headers:{Origin:'https://teacanvas.github.io'}}),env); ok(r.status===204,'사전 요청(OPTIONS) 응답');
-  r=await worker.fetch(new Request('https://w.test/',{method:'POST',headers:{Origin:'https://teacanvas.github.io'},body:'x'.repeat(50000)}),env); ok(r.status===413,'너무 큰 요청 거절');
+  r=await worker.fetch(new Request('https://w.test/',{method:'POST',headers:{Origin:'https://teacanvas.github.io'},body:'x'.repeat(500000)}),env); ok(r.status===413,'너무 큰 요청 거절');
   r=await worker.fetch(new Request('https://w.test/',{method:'POST',headers:{Origin:'https://teacanvas.github.io'},body:'{}'}),{}); ok(r.status===500,'키가 없으면 500');
   console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

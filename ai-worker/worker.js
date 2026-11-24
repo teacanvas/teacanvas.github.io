@@ -20,7 +20,7 @@
    실패하면 {error}와 함께 4xx/5xx → 앱은 정해진 대답으로 넘어간다. */
 
 const DEFAULT_ORIGINS = ['https://teacanvas.github.io', 'null', 'http://localhost', 'http://127.0.0.1'];
-const MAX_BODY = 40000;            // 요청 크기 상한 (글자)
+const MAX_BODY = 400000;            // 요청 크기 상한 (글자)
 const TEA_TYPES = ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'];   // other = 기타 (보리차·우엉차 같은 곡물·뿌리 차)
 const TYPE_KO = { green: '녹차', white: '백차', oolong: '우롱', black: '홍차', dark: '보이|흑차', herb: '허브', other: '기타' };
 const typeCode = v => { v = String(v || '').trim().toLowerCase(); if (TEA_TYPES.includes(v)) return v; return TEA_TYPES.find(k => new RegExp(TYPE_KO[k]).test(v)) || ''; };   // 'green' 또는 '녹차' → green
@@ -102,6 +102,8 @@ reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여�
 (여운을 들은 뒤) "아니 없어 이제 끝낼게" → step close, reply 다정한 작별 인사
 
 `;
+/* 차 포장 사진(앱이 720px JPEG로 줄여 보냄) → Gemini에 그림으로 */
+const photoOf = b => { const m = typeof b.image === 'string' && b.image.length < 380000 && b.image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/); return m ? { mime_type: m[1], data: m[2] } : null; };
 /* 사용자의 지난 기록 요약(앱이 보냄) → 한 줄씩. 지난 기록·취향에 대한 질문에 답할 수 있게 */
 const memLine = (b, en) => { const m = b.memory && typeof b.memory === 'object' ? b.memory : null; if (!m || !Array.isArray(m.records)) return '';
   const rows = m.records.slice(0, 30).map(r => [str(r.date, 12), str(r.name, 30) + (r.brand ? `(${str(r.brand, 20)})` : ''), str(r.type, 10), list(r.flavors, 4, 12).join('·'), str(r.pos, 30), r.stars ? '★' + (r.stars | 0) : '', r.comment ? `"${str(r.comment, 50)}"` : ''].filter(Boolean).join(' / '));
@@ -221,7 +223,7 @@ export default {
     if (tspec) {
       const en = body.lang === 'en';
       try {
-        const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs, ...(tspec.think ? { think: tspec.think } : {}), ...(tspec.hedgeMs ? { hedgeMs: tspec.hedgeMs } : {}) });
+        const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs, ...(tspec.think ? { think: tspec.think } : {}), ...(tspec.hedgeMs ? { hedgeMs: tspec.hedgeMs } : {}), image: photoOf(body) });
         const clean = tspec.clean(text, body);
         const res = clean ? out(clean) : out({ error: 'empty' }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res;
       } catch (e) { const res = out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res; }
@@ -287,7 +289,7 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
 /* ---------- 글 응답 + Google 검색 (대화·차 찾기) ---------- */
 // 검색 도구를 붙여 보내고, 그 모델이 검색을 못 쓰거나(400) 검색 한도가 차면(429) 검색 없이 다시 보낸다
 let TRACE = [];   // 어느 모델에서 얼마나 걸렸는지 (응답 머리말 X-AI-Trace로 확인용)
-async function geminiText(env, system, prompt, { search, maxTokens, budgetMs, think = 'minimal', hedgeMs = 2500 }) {
+async function geminiText(env, system, prompt, { search, maxTokens, budgetMs, think = 'minimal', hedgeMs = 2500, image = null }) {
   // 붐빌 때를 위한 '겹쳐 묻기': 첫 모델이 2.5초 안에 답이 없으면 다음 모델에도 같이 묻고, 먼저 온 답을 쓴다 (동시에 최대 2개)
   const deadline = Date.now() + budgetMs; TRACE = [];
   const models = [...new Set([...(env.GEMINI_MODEL ? env.GEMINI_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...FALLBACK_MODELS])];
@@ -297,7 +299,7 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs, th
     const level = think; for (const think of (noThink(a.m) ? [false] : [true, false])) {
       const gc = { maxOutputTokens: maxTokens, temperature: 0.7 };
       if (think) gc.thinkingConfig = thinkCfg(a.m, level);
-      const payload = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gc };
+      const payload = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }, ...(image ? [{ inline_data: image }] : [])] }], generationConfig: gc };   // image: 차 포장 사진
       if (a.tools) payload.tools = [{ google_search: {} }];
       const t0 = Date.now();
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(a.m)}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload), signal });
@@ -412,6 +414,7 @@ Reply with ONLY one JSON object, in this order:
         memLine(b, en),
         (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
         (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
+        photoOf(b) ? (en ? 'The user sent a photo of the tea (attached). Read the text on the package (English, Chinese, Japanese…) and the pictures, and work out which tea it is. If found, put name (natural Korean or English name; add the original in parentheses if useful), brand, type and about in record, say briefly in reply what you read, and ask whether to record it as that type. If it is unreadable, say so honestly and ask for the name.' : '사용자가 차 포장 사진을 보냈어 (첨부). 포장의 글자(영어·중국어·일본어 등)와 그림을 읽고 어떤 차인지 알아내. 알아내면 record에 name(자연스러운 한국어 이름, 필요하면 원어를 괄호로), brand, type, about를 넣고, reply에서 무엇을 읽었는지 짧게 말한 뒤 그 종류로 기록할지 물어봐. 잘 안 읽히면 솔직하게 말하고 이름을 물어봐.') : '',
         evText || ((en ? 'The user just said: ' : '사용자가 방금 한 말: ') + `"${str(b.message, 400)}"`)].filter(Boolean).join('\n');
     },
     clean: (text, b) => {

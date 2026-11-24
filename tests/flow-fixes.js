@@ -99,6 +99,11 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['우롱차였어']=()=>({reply:'우롱차로 고쳤어요.',fill:{type:'oolong',name:'동방미인'},step:'stay'}); await say('아 이거 사실 동방미인이라는 우롱차였어');
   ok(await E(()=>S.draft.type==='oolong'&&S.draft.name==='동방미인'),'기록 중 어느 단계에서든 차 이름·종류를 고침');
   ok(await E(()=>/지난 기록/.test(appMemoryText())&&/★|향 /.test(appMemoryText())),'실시간 음성에도 보낼 지난 기록 글');
+  // 사진으로 차 찾기: 사진을 Gemini에게 보내고, 읽어 낸 차로 종류 확인
+  await E(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await p.waitForTimeout(600); await E(()=>startRecord()); await p.waitForTimeout(300);
+  let gotImg=false; R['(차 포장 사진']=q=>{ gotImg=/^data:image\/jpeg;base64,/.test(q.image||''); return {reply:'CHAGEE의 허니듀 멜론 우롱차네요. 우롱차로 기록할까요?',fill:{name:'허니듀 멜론 우롱',brand:'CHAGEE',type:'oolong'},step:'stay'}; };
+  await E(()=>{ const c=document.createElement('canvas'); c.width=c.height=40; c.getContext('2d').fillRect(0,0,20,20); flowMsg('',null,c.toDataURL('image/jpeg',.8)); }); await p.waitForTimeout(1500);
+  ok(gotImg&&await E(()=>S.draft.stage==='teaOK'&&S.draft.type==='oolong'&&S.draft.brand==='CHAGEE'&&S.draft.chat.some(m=>m.img)),'사진 → Gemini가 읽고 차 이름·브랜드·종류를 채워 종류 확인으로 (사진은 대화에 남음)');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
