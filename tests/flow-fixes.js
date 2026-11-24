@@ -68,6 +68,12 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['숲길']=()=>({reply:'싱그러운 기분이네요.',fill:{},step:'stay',flavors:['vegetal','earthy','fresh'],sense:true}); await say('비 온 뒤 숲길 같아요');
   ok(await E(()=>{ const fl=new Set(collectExprs(S.draft).flatMap(e=>e.fl)); return fl.has('vegetal')&&fl.has('earthy')&&fl.has('fresh'); }),'"비 온 뒤 숲길" → Gemini가 고른 풍미(풀향·흙·상쾌함)가 찻방울에');
   ok(await E(()=>{ S.draft.stage='done'; backToChat(); return S.draft.stage==='more'&&/기록 마치고 정리하기/.test((document.querySelector('#chatEnd')||document.body).textContent); }),'정리 뒤 채팅으로 돌아오면 이어서 말할 수 있고, 끝내기 버튼이 보임');
+  // 위 표시: 방금 말을 실제로 누가 받았는지
+  ok(await E(()=>{ S.draft.stage='free'; S.draft.by='ai'; paintBadge(); return /AI 대화/.test(document.querySelector('#aiBadge').textContent); }),'AI가 받으면 위에 "AI 대화"');
+  ok(await E(()=>{ sendMsg('정해진 대화로 받기',false,true); return /자동 대화/.test(document.querySelector('#aiBadge').textContent); }),'정해진 대화가 받으면 연결돼 있어도 위에 "자동 대화"');
+  await p.waitForTimeout(900);
+  R['다시 AI']=()=>({reply:'네, 들었어요.',fill:{},step:'stay'}); await say('다시 AI가 받아줘');
+  ok(await E(()=>/AI 대화/.test(document.querySelector('#aiBadge').textContent)),'다음 말을 AI가 받으면 다시 "AI 대화"');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
