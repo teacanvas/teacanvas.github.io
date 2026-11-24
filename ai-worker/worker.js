@@ -523,7 +523,8 @@ const SPECS = {
    휴대폰 ↔ 이 Worker ↔ Gemini Live 를 웹소켓으로 잇는다. 키는 여기에만 있고,
    모델·말투·도구(기록 채우기) 설정도 여기서 정해 보낸다 (휴대폰이 보낸 setup은 무시).
    주소: /live?lang=ko&voice=Zephyr[&resume=핸들] */
-const LIVE_MODELS = ['gemini-3.1-flash-live-preview', 'gemini-2.5-flash-native-audio-latest'];
+// 모델마다 목소리 결이 달라 한 모델만 쓴다 (안 되면 앱이 기본 음성 대화로). 바꾸려면 GEMINI_LIVE_MODEL 변수
+const LIVE_MODELS = ['gemini-3.1-flash-live-preview'];
 const LIVE_VOICES = ['Zephyr', 'Umbriel', 'Aoede', 'Kore', 'Puck', 'Charon'];
 const LIVE_TOOL = {
   functionDeclarations: [{
@@ -576,6 +577,8 @@ async function liveProxy(req, env, okOrigin) {
     systemInstruction: { parts: [{ text: liveSystem(en) }] },
     tools: [LIVE_TOOL],
     inputAudioTranscription: {}, outputAudioTranscription: {},
+    // 말 시작 감지를 덜 예민하게: 스피커 소리·주변 소음을 내 말로 착각해 AI가 스스로 말을 끊지 않게
+    realtimeInputConfig: { automaticActivityDetection: { startOfSpeechSensitivity: 'START_SENSITIVITY_LOW', prefixPaddingMs: 200 } },
     contextWindowCompression: { slidingWindow: {} },
     sessionResumption: resume ? { handle: resume } : {},
   } });
