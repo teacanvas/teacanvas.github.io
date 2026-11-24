@@ -39,6 +39,21 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['치즈냥']=()=>({reply:'귀여운 고양이네요!',fill:{scene:'고양이와 함께'}});
   await say('우리 집 노란 치즈냥이가 옆에 있어'); ok(await E(()=>!S.draft.feel.color&&S.draft.stage==='wait'),'우리는 중 "노란 치즈냥이"는 찻물 색으로 기록하지 않음');
   R['슬라이더']=()=>({reply:'좋아요, 슬라이더로 골라 주세요.',fill:{},action:'ask_color'}); await say('색 슬라이더로 고를래'); ok((await st())==='color'&&await E(()=>!!document.querySelector('#askW.tc')),'"슬라이더로 고를래" → 색 슬라이더');
+  // 개완: 글자가 아니라 Gemini의 step으로 / 향 단계에서도 슬라이더 다시
+  await E(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await p.waitForTimeout(600); await E(()=>startRecord()); await p.waitForTimeout(300);
+  R['달빛']=()=>({reply:'녹차로 기록할게요.',fill:{name:'달빛 걷기',type:'green'},step:'confirm_tea'}); await say('오설록 달빛 걷기');
+  R['개완이 뭐']=()=>({reply:'개완은 뚜껑 있는 찻잔이에요.',fill:{},step:'stay'}); await say('개완이 뭐야?');
+  ok(await E(()=>S.draft.stage==='guide'&&!S.draft.gongfu),'"개완이 뭐야?"는 설명만 (개완 가이드로 바꾸지 않음)');
+  R['개완으로']=()=>({reply:'개완 가이드를 보여드릴게요.',fill:{},step:'guide_gongfu'}); await say('개완으로 우릴래');
+  ok(await E(()=>S.draft.gongfu===true),'step guide_gongfu → 개완 가이드');
+  R['머그컵']=()=>({reply:'그럼 기본 방법으로 보여드릴게요.',fill:{},step:'guide_basic'}); await say('그런 찻잔 없어 머그컵에 할게');
+  ok(await E(()=>S.draft.gongfu===false&&S.draft.stage==='guide'),'step guide_basic → 기본 가이드');
+  await E(()=>{ beginBrew(true); S.timer.left=0; S.draft.stage='aroma'; S.draft.feel.color='연두'; }); await p.waitForTimeout(200);
+  R['슬라이더 다시']=()=>({reply:'슬라이더를 다시 보여드릴게요.',fill:{},step:'show_color',action:'ask_color'}); await say('색 슬라이더 다시 보내줘');
+  ok(await E(()=>S.draft.stage==='color'&&!!document.querySelector('#askW.tc')),'향 단계에서도 "슬라이더 다시" → 색 슬라이더');
+  // AI가 안 될 때(정해진 대화): 색이 아닌 말을 색으로 저장하지 않음
+  ok(await E(()=>{ S.draft.feel.color=''; sendMsg('아니 개완 말고 그냥 티백으로 우릴거야',false,true); return S.draft.stage==='color'&&!S.draft.feel.color; }),'정해진 대화: 색이 아닌 말은 색으로 저장하지 않고 다시 물음');
+  await p.waitForTimeout(800);
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

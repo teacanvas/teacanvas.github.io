@@ -51,10 +51,12 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
 [step: 앱이 실행할 다음 동작 하나]
 stay = 그대로 대화 이어가기 (대부분)
 confirm_tea = 차 종류가 정해짐 → 앱이 우림 가이드를 보여줘 (record.type에 종류)
+guide_gongfu = 개완(뚜껑 있는 찻잔)으로 짧게 여러 번 우리겠다고 함 → 개완 가이드로 바꿔 보여줌 (개완이 뭐냐는 질문은 아님: 설명만 하고 stay)
+guide_basic = 개완 없이 머그컵·티백 등으로 그냥 우리겠다고 함 (개완 가이드를 보고 있거나 개완으로 우리는 중일 때) → 기본 가이드로 바꿔 보여줌
 start_brew = 지금 우리기 시작하자는 뜻 → 타이머 시작
 drink_now = 타이머 없이 바로 마시겠다/이미 우렸다는 뜻 → 바로 찻물 색으로
 brew_done = 타이머가 도는 중인데 벌써 다 우렸다는 뜻
-show_color = 지금 찻물 색을 묻거나 사용자가 색을 고르고 싶어 함 → 색 슬라이더 표시
+show_color = 지금 찻물 색을 묻거나 사용자가 색을 (다시) 고르고 싶어 함 → 색 슬라이더 표시. '슬라이더 다시 보여드릴게요'처럼 말했다면 반드시 이 step
 finished_drinking = 사용자가 다 마셨다/그만 마시겠다고 분명히 말함 → 여운을 물어. 맛있다·좋다 같은 감상이나 잡담은 아직 마시는 중이야(stay)
 close = 여운까지 듣고 더 남길 게 없어 작별 인사를 함 → 기록 정리
 
@@ -103,7 +105,7 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 8. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
 
 [step: the one next action for the app]
-stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · show_color = you're asking about the color now or they want to pick it → color slider · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
+stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · guide_gongfu = they want to brew gongfu style in a gaiwan → show the gaiwan guide (a question like "what's a gaiwan?" is not this: just explain, stay) · guide_basic = they'll just use a mug or teabag instead of a gaiwan → show the basic guide · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · show_color = you're asking about the color now or they want to pick it (again) → color slider; if you say you'll show the slider, this step is required · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
 
 Example: "yuzu tea" → type other (fruit, grain and root teas without tea leaves are other, not herb; herb = herbal flowers/leaves only).
 
@@ -337,7 +339,7 @@ How to talk:
       }[ev];
       const g = b.guide && typeof b.guide === 'object' ? b.guide : null;
       return [teaLine(b, en), b.about ? (en ? 'About this tea: ' : '이 차 정보: ') + str(b.about, 200) : '', timer,
-        g ? (en ? `Brewing guide shown in the app: water ${str(g.temp, 20)}, steep ${str(g.time, 20)}. When you mention temperature or time, match these.` : `앱의 우림 가이드: 물 ${str(g.temp, 20)}, 시간 ${str(g.time, 20)}. 온도·시간을 말할 땐 이 값과 맞춰.`) : '',
+        g ? (en ? `Brewing guide shown in the app${g.gongfu ? ' (gaiwan / gongfu style)' : ''}: water ${str(g.temp, 20)}, steep ${str(g.time, 20)}. When you mention temperature or time, match these.` : `앱의 우림 가이드${g.gongfu ? '(개완으로 짧게 여러 번)' : ''}: 물 ${str(g.temp, 20)}, 시간 ${str(g.time, 20)}. 온도·시간을 말할 땐 이 값과 맞춰.`) : '',
         (en ? 'Stage now: ' : '지금 단계: ') + (STAGE_TXT[str(b.stage, 10)] || ['-', '-'])[en ? 1 : 0] + ` (app hint — want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'})`,
         b.voice ? (en ? `The user's message came from speech recognition, so some words may be misheard${list(b.voice.alts, 3, 120).length ? ` (other guesses: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. Work out what they most likely meant from the conversation, the tea and flavor words, put the corrected sentence in "heard" (fix misheard words, drop fillers like uh/um, keep their meaning and wording, and add a question mark if it's a question — speech recognition never adds punctuation), and reply to that.` : `사용자 말은 음성 인식 결과라 잘못 들린 글자가 있을 수 있어${list(b.voice.alts, 3, 120).length ? ` (다른 후보: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. 대화 흐름·차 이름·맛 표현을 보고 원래 하려던 말을 추정해서 "heard"에 고친 문장을 넣고 (잘못 들린 말은 바로잡고, 어·음 같은 추임새는 빼고, 뜻과 말투는 그대로. 음성 인식은 문장부호를 안 붙이니 질문이면 물음표를 붙여), 그 뜻에 맞게 대답해. 물음표가 없어도 말끝(~야, ~나, ~까, ~지)과 흐름으로 질문인지 판단해. 뜻을 도저히 모르겠으면 짧게 되물어.`) : '',
         b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set record.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 record.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
@@ -356,7 +358,7 @@ How to talk:
       const type = typeCode(rec.type); if (type) fill.type = type;
       const unknown = Array.isArray(j.unknown) ? j.unknown.filter(k => KEYS.includes(k)) : [];
       unknown.forEach(k => { delete fill[k]; });   // '모르겠어'는 기록이 아니다
-      const STEPS = ['stay', 'confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'show_color', 'finished_drinking', 'close'];
+      const STEPS = ['stay', 'confirm_tea', 'guide_gongfu', 'guide_basic', 'start_brew', 'drink_now', 'brew_done', 'show_color', 'finished_drinking', 'close'];
       let step = STEPS.includes(j.step) ? j.step : ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done', ask_color: 'show_color' })[j.action] || (j.end ? 'close' : j.finish ? 'finished_drinking' : 'stay');
       const st = b && b.stage;
       if (['confirm_tea', 'start_brew', 'drink_now'].includes(step) && (st === 'teaOK' || st === 'teaType') && !fill.type) { const t = typeCode(b.tea && b.tea.type); if (t) fill.type = t; }   // '응 맞아(…이미 우렸어)' → 제안한 종류로 확정
@@ -585,7 +587,7 @@ const SPECS = {
 // 모델마다 목소리 결이 달라 한 모델만 쓴다 (안 되면 앱이 기본 음성 대화로). 바꾸려면 GEMINI_LIVE_MODEL 변수
 const LIVE_MODELS = ['gemini-3.1-flash-live-preview'];
 const LIVE_VOICES = ['Zephyr', 'Umbriel', 'Aoede', 'Kore', 'Puck', 'Charon'];
-const LIVE_STEPS = ['stay', 'confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'show_color', 'finished_drinking', 'close'];
+const LIVE_STEPS = ['stay', 'confirm_tea', 'guide_gongfu', 'guide_basic', 'start_brew', 'drink_now', 'brew_done', 'show_color', 'finished_drinking', 'close'];
 const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + unknown + step
   functionDeclarations: [{
     name: 'update_record',
