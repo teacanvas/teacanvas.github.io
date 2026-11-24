@@ -1874,7 +1874,7 @@ function talkAnswer(text,skip){ const d=S.draft, k=d.talkPending; d.talkPending=
 const LIVE={echo:0,on:false,ws:null,ctx:null,mic:null,node:null,src:null,sink:null,playT:0,sources:[],handle:'',inT:'',outT:'',botMsg:null,drop:false,closing:false,retried:0};
 const FLOW_STAGES=['tea','teaOK','teaType','guide','wait','color','wait2','aroma','taste','free','after','more'];
 const flowOn=d=>!!(d&&d.aiFlow&&chatAIOn()&&!LIVE.on);   // 실시간 음성 중에는 Live 모델이 대화를 맡는다
-const flowWant=d=>({tea:'tea',teaOK:'teatype',teaType:'teatype',color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
+const flowWant=d=>(d.stage==='wait'&&!d.feel.color?'color':'')||({tea:'tea',teaOK:'teatype',teaType:'teatype',color:'color',aroma:'aroma',taste:'taste',after:'after',more:'extra'})[d.stage]||'';
 const flowNext=d=>({tea:'teatype',teaOK:'guide',teaType:'guide',guide:'brew',color:brewDone()?'aroma':'wait',aroma:'taste',taste:'free',free:'after',after:'extra',more:'done'})[d.stage]||'wait';
 function flowFilled(d){ const f=d.feel||{}, dp=d.deep||{}, t=d.talk||{};
   return {color:f.color,aroma:f.aroma,taste:f.taste,after:d.afterText,mood:t.mood,scene:t.scene,why:t.why,origin:dp.origin,temp:dp.temp,time:dp.timeRaw||(dp.min?dp.min+'분':''),memo:dp.memo}; }
@@ -1921,6 +1921,8 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
       if(st==='guide'&&j.action==='drink_now'){ startDrink(); d.direct=true; S.timer=null; d.stage='color'; S.ask={hd:TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; return flowBot(d,j.reply); }
       d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:st==='guide'?['우림 시작 ▶','바로 마실게요']:st==='teaOK'?['맞아요','다시 적을게요']:ORDER.map(k=>TEAS[k].label)}); return paintMsgs(); }
     if(st==='more'&&(got||j.end)){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }
+    if(st==='wait'&&f.color){ d.stage=brewDone()?'aroma':'wait2'; S.ask={hd:null,sel:[]}; me.ans='color'; return flowBot(d,j.reply); }   // 우리는 중에 색을 말하면 바로 기록
+    if(st==='wait'&&j.action==='ask_color'&&!d.feel.color){ d.stage='color'; S.ask={hd:TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; return flowBot(d,j.reply); }   // AI가 색을 물으면 색 슬라이더도 같이
     if((st==='wait'||st==='wait2')&&j.action==='brew_done'&&S.timer&&S.timer.left>0){   // '다 우렸어' → '벌써 다 우렸어요'를 누른 것처럼: 타이머를 끝내고 색(또는 향)으로
       S.timer.left=0; S.timer.running=false; startDrink(); try{ paintTimer(); }catch(e){}
       d.stage=st==='wait'&&!d.feel.color?'color':'aroma'; S.ask={hd:d.stage==='color'&&TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; return flowBot(d,j.reply); }
@@ -2002,7 +2004,7 @@ function askWidget(st){
       <div class="tc-tl"><span>${L(L('맑게'))}</span><span>${L(L('진하게'))}</span></div>
       <div class="askrow"><button class="chip" onclick="answerColor('잘 모르겠어요')">${L('잘 모르겠어요')}</button><button class="feelnext" id="askSend" onclick="answerColor()" ${on?'':'hidden'}>${L(L('이 색으로 보내기 →'))}</button></div></div>`; }
   const f=FEEL[st], last=[...S.draft.chat].reverse().find(m=>m.ask===st)||{};
-  if(!last.opts) return `<div class="chips"><button class="chip" onclick="showOpts('${st}')">${L('잘 모르겠어요')}</button></div>`;
+  if(!last.opts) return flowOn(S.draft)||LIVE.on?'':`<div class="chips"><button class="chip" onclick="showOpts('${st}')">${L('잘 모르겠어요')}</button></div>`;   /* AI 대화에선 '잘 모르겠어요' 버튼 없이 AI가 말로 도와준다 */
   return `<div class="askw" id="askW"><div class="chips">${f.opts.map(o=>`<button class="chip ${a.sel.includes(o)?'sel':''}" onclick="answerMulti('${st}','${o}')">${L(o)}</button>`).join('')}</div>
     <div class="askrow"><span class="askhint">${a.sel.length?L(a.sel.length+'개 골랐어요'):L('떠오르면 직접 적어도 돼요')}</span><button class="feelnext" onclick="answerMulti('${st}','__send')" ${a.sel.length?'':'hidden'}>${L(L('보내기 →'))}</button></div></div>`;
 }

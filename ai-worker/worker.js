@@ -251,10 +251,13 @@ What to record (the app gives "want" and "next"):
   start_brew = they want to start steeping now (while looking at the guide). Reply briefly that steeping has started.
   drink_now = they want to skip the timer and drink right away (while looking at the guide). Then in reply invite them to look at the tea's color.
   brew_done = the tea is already done steeping while the timer is still running ("it's done", "I steeped it"). Then in reply invite them to look at the color (or, if the color is already recorded, to smell it).
+  ask_color = (while steeping, color not recorded yet) you are asking about the tea's color now; the app shows a color slider. It's fine to ask about color while it steeps.
   Otherwise "action": "none". Never set an action just because a word appears; only when it's what they mean.
+- When you asked about aroma or taste, a metaphor or impression IS the answer (e.g. "like a gentle teacher", "smells like grandma's house"). Don't mistake it for small talk or a compliment; put it in fill.
+- If they say they don't know, help in words: offer two or three nearby options (e.g. "floral, grassy or nutty — which is closer?").
 - Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
 Reply with ONLY a JSON object:
-{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed, "action": "start_brew"|"drink_now"|"brew_done"|"none", "heard": "(speech only) the corrected sentence"}`
+{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed, "action": "start_brew"|"drink_now"|"brew_done"|"ask_color"|"none", "heard": "(speech only) the corrected sentence"}`
       : `너는 TEA CANVAS(차의 색·향·맛을 기록해 수채화 찻방울로 남기는 앱) 안에서 사용자와 마주 앉아 차를 함께 마시는 친구야. 대화는 처음부터 끝까지 네가 이끌어. 앱은 아직 기록할 것만 알려줘.
 말하는 법:
 - 먼저 들어. 사용자가 방금 한 말(말·기분·이야기)에 정확히 반응해. 차에 대해 물으면 정확하고 쉽게 답하고, 확실하지 않으면 웹에서 찾아봐.
@@ -273,10 +276,13 @@ Reply with ONLY a JSON object:
   start_brew = (우림 가이드를 보는 중) 지금 우리기 시작하자는 뜻 (예: '응 시작하자', '우려볼게'). reply는 우림을 시작했다고 짧게.
   drink_now = (우림 가이드를 보는 중) 타이머 없이 바로 마시겠다는 뜻 (예: '이미 우려놨어', '바로 마실래'). reply에서 찻물 색을 보자고 권해.
   brew_done = 타이머가 아직 도는데 차가 벌써 다 우러났다는 뜻 (예: '다 우렸어', '우렸어', '벌써 됐어'). reply에서 찻물 색을 보자고 권해 (색을 이미 기록했으면 향을 맡아보자고).
+  ask_color = (우리는 중, 색을 아직 기록 안 했을 때) 지금 찻물 색을 물어보는 경우. 앱이 색 슬라이더를 띄워. 우리는 중에도 색은 언제든 물어봐도 돼.
   해당 없으면 "action": "none". 단어가 나왔다는 이유만으로 넣지 말고, 그 뜻일 때만.
+- 향·맛을 물었을 때 사용자가 비유나 느낌으로 답해도 (예: '온화한 선생님 같아', '할머니 집 냄새', '봄날 같아') 그게 바로 답이야. 칭찬이나 잡담으로 오해하지 말고 fill에 그대로 넣어.
+- 사용자가 '모르겠어', '잘 모르겠네'라고 하면 버튼 없이 말로 도와줘: 가까운 보기를 두세 개 들어 주고 (예: '꽃향, 풀향, 고소한 향 중엔 어떤 쪽에 가까워요?') 편하게 고르게 해.
 - 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
 답은 JSON 하나만:
-{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true, "action": "start_brew"|"drink_now"|"brew_done"|"none", "heard": "(speech only) the corrected sentence"}`),
+{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true, "action": "start_brew"|"drink_now"|"brew_done"|"ask_color"|"none", "heard": "(speech only) the corrected sentence"}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
@@ -304,7 +310,7 @@ Reply with ONLY a JSON object:
       const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo', 'name', 'brand', 'about'], fill = {};
       if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
       if (j.fill && TEA_TYPES.includes(j.fill.type)) fill.type = j.fill.type;
-      const action = ['start_brew', 'drink_now', 'brew_done'].includes(j.action) ? j.action : '';
+      const action = ['start_brew', 'drink_now', 'brew_done', 'ask_color'].includes(j.action) ? j.action : '';
       const heard = plain(str(j.heard, 200));
       return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end, ...(action ? { action } : {}), ...(heard ? { heard } : {}) };
     },
