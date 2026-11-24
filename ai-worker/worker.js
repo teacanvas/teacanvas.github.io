@@ -190,9 +190,12 @@ export default {
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
     const allowed = (env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : DEFAULT_ORIGINS);
-    const okOrigin = allowed.some(a => origin === a) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) && allowed.some(a => /^http:\/\/(localhost|127\.0\.0\.1)/.test(a));   // localhost는 포트만 달라도 되지만, localhost.다른사이트.com 같은 건 막는다
+    // 출처 확인은 기본으로 끈다: B.html을 폰의 파일 앱·메신저·드라이브 미리보기로 열면 출처가 제각각(content://, 미리보기 도메인)이라 막히고,
+    // 이 확인은 다른 사이트의 '브라우저'만 막을 뿐(주소는 앱 코드에 공개돼 있어 쉽게 우회됨) 실제 보호는 키를 서버에만 두는 것. 다시 켜려면 변수 STRICT_ORIGINS=1
+    const strict = env.STRICT_ORIGINS === '1';
+    const okOrigin = !strict || allowed.some(a => origin === a) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) && allowed.some(a => /^http:\/\/(localhost|127\.0\.0\.1)/.test(a));   // localhost는 포트만 달라도 되지만, localhost.다른사이트.com 같은 건 막는다
     const cors = {
-      'Access-Control-Allow-Origin': okOrigin ? origin : allowed[0],
+      'Access-Control-Allow-Origin': okOrigin ? (origin || '*') : allowed[0],
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',

@@ -66,7 +66,9 @@ const tea={name:'제주 세작',type:'녹차'};
     const t0=Date.now(); r=await post({mode:'chat',lang:'ko',message:'안녕'}); j=await r.json(); const ms=Date.now()-t0; globalThis.fetch=keep;
     ok(j.reply==='빠른 답'&&ms<4000,`첫 모델이 2.5초 안에 답이 없으면 다음 모델에도 물어 먼저 온 답을 씀 (${ms}ms)`); }
   status=500; r=await post({mode:'question',question:'q'}); ok(r.status===502,'Gemini 실패 → 502 (앱은 정해진 대답)'); status=200;
-  r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'허용 안 된 주소는 거절');
+  r=await post({mode:'question',question:'q'},'https://drive.usercontent.google.com'); ok(r.status!==403,'기본: 폰의 파일 앱·미리보기에서 연 B.html(낯선 출처)도 AI를 씀');
+  env.STRICT_ORIGINS='1'; r=await post({mode:'question',question:'q'},'https://evil.example'); ok(r.status===403,'STRICT_ORIGINS=1이면 허용 안 된 주소는 거절');
+  r=await post({mode:'question',question:'q'},'null'); ok(r.status!==403,'STRICT_ORIGINS=1이어도 파일로 연 앱(null)은 허용'); delete env.STRICT_ORIGINS;
   r=await post({mode:'question',question:'q'},'null'); ok(r.status===200,'내려받은 파일(file://)에서도 동작');
   r=await post({mode:'hack'}); ok(r.status===400,'모르는 모드 거절');
   r=await worker.fetch(new Request('https://w.test/',{method:'OPTIONS',headers:{Origin:'https://teacanvas.github.io'}}),env); ok(r.status===204,'사전 요청(OPTIONS) 응답');
