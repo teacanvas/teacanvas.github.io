@@ -243,6 +243,7 @@ How to talk:
 What to record (the app gives "want" and "next"):
 - want = the thing to record now (color = the tea's color in the cup, aroma, taste, after = aftertaste/how it changed as it cooled, extra = one optional detail). If the user's message gives it, put their own words in fill.<want> (short, as they said it).
 - When want gets filled (or when want is none and the user says they've finished drinking), react, then move on according to next:
+  (While drinking freely (next is after), don't ask about the aftertaste yet; that comes after they finish.)
   wait = the tea is still steeping: do NOT invite them to smell or taste yet, just keep chatting (the app will tell you when it's ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
 - If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
 - If want is tea: we don't know the tea yet. If the user mentions one, fill name (tea name only, no brand), brand (if any), type (one of the six types below) and about (one sentence on its base and main flavor notes), and in reply introduce it briefly and ask whether to record it as that type. If no tea is mentioned, respond and ask what tea they'll have.
@@ -256,7 +257,11 @@ What to record (the app gives "want" and "next"):
   ask_color = (while steeping, color not recorded yet) you are asking about the tea's color now; the app shows a color slider. It's fine to ask about color while it steeps.
   Otherwise "action": "none". Never set an action just because a word appears; only when it's what they mean.
 - When you asked about aroma or taste, a metaphor or impression IS the answer (e.g. "like a gentle teacher", "smells like grandma's house"). Don't mistake it for small talk or a compliment; put it in fill.
-- If they refine an earlier answer (e.g. after the taste question: "a bit bitter at the end"), put it in that same field (taste etc.). Fill after only when asked about the aftertaste.
+- If they refine an earlier answer (e.g. after the taste question: "a bit bitter at the end"), put it in that same field (taste etc.): when they ADD to it, merge with what's already recorded ("floral, honey at the end"); when they CORRECT it, replace it. Never ask again about a field that's already recorded. Fill after only when asked about the aftertaste.
+- Fill color only when the user describes the color of the tea in the cup (not a pet, a cup or other things). Whenever you fill color, also fill tone = just the plain color word with lightness (e.g. "pale yellow-green", "deep amber", "light brown").
+- Flavored teas made on tea leaves (e.g. a green tea scented with fruit or flowers) take the base leaf's type (green etc.), not other.
+- While confirming the type, if they also say they already brewed it or want to start now ("yes, and I already steeped it"), set fill.type AND action drink_now (or start_brew).
+- After the aftertaste is recorded: if next is extra, ask one light optional thing; if they say there's nothing more, say a warm goodbye with end true.
 - If they don't know the brand, set fill.brand to "none". Slang like "ㅇㅇ" is never a name or brand.
 - Never say you'll adjust the color slider (you can't move it).
 - If they say they don't know, leave fill empty and help in words: offer two or three nearby options (e.g. "floral, grassy or nutty — which is closer?").
@@ -273,6 +278,7 @@ Reply with ONLY a JSON object:
 기록할 것 (앱이 want와 next를 줘):
 - want = 지금 기록할 것 (color = 찻잔 속 찻물 색, aroma = 향, taste = 맛, after = 끝에 남는 여운이나 식으면서 달라진 점, extra = 덧붙일 한 가지). 사용자 말에 그게 있으면 fill.<want>에 사용자의 말 그대로 짧게 넣어.
 - want가 채워지면 (또는 want가 없고 사용자가 다 마셨다고 하면) 반응한 뒤 next에 따라 자연스럽게 이어가:
+  (마시며 이야기하는 중(next가 after)에는 여운을 미리 묻지 마. 여운은 다 마신 뒤에 물어.)
   wait = 차가 아직 우러나는 중이야. 향이나 맛을 맡아보자/마셔보자고 하지 말고 (아직 덜 우러났어), 이야기만 이어가. 다 우러나면 앱이 알려줘 · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
 - 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
 - want가 tea면: 아직 무슨 차를 마실지 몰라. 사용자 말에 차가 나오면 fill.name(차 이름만, 브랜드 빼고), fill.brand(브랜드, 없으면 빼), fill.type(아래 teatype과 같은 6가지 중 하나), fill.about(이 차의 바탕 찻잎과 주된 향·맛을 한 문장, 60자 이내)을 넣고, reply에서 그 차를 짧게 소개한 뒤 그 종류로 기록할지 물어봐 (예: '…녹차로 기록할게요. 맞나요?'). 차가 안 나오면 그 말에 반응하고 어떤 차를 마실지 물어봐.
@@ -280,13 +286,17 @@ Reply with ONLY a JSON object:
   next가 guide면: 종류가 정해졌을 때 '이 차에 맞는 우림 방법을 보여드릴게요'처럼 짧게 이어가 (앱이 가이드를 보여줘).
 - 지금이 우림 가이드를 보는 중이면 (next가 brew): 우리는 법에 대한 질문에 답하고, 준비되면 '우림 시작'을 누르거나 말해 달라고 해.
 - 행동(action) — 사용자가 버튼을 누르지 않아도 말뜻이 분명히 아래와 같으면 "action"을 넣어:
-  start_brew = (우림 가이드를 보는 중) 지금 우리기 시작하자는 뜻 (예: '응 시작하자', '우려볼게'). reply는 우림을 시작했다고 짧게.
-  drink_now = (우림 가이드를 보는 중) 타이머 없이 바로 마시겠다는 뜻 (예: '이미 우려놨어', '바로 마실래'). reply에서 찻물 색을 보자고 권해.
+  start_brew = (우림 가이드를 보거나 종류를 확인하는 중) 지금 우리기 시작하자는 뜻 (예: '응 시작하자', '우려볼게'). reply는 우림을 시작했다고 짧게.
+  drink_now = (우림 가이드를 보거나 종류를 확인하는 중) 타이머 없이 바로 마시겠다는 뜻 (예: '이미 우려놨어', '바로 마실래'). reply에서 찻물 색을 보자고 권해.
   brew_done = 타이머가 아직 도는데 차가 벌써 다 우러났다는 뜻 (예: '다 우렸어', '우렸어', '벌써 됐어'). reply에서 찻물 색을 보자고 권해 (색을 이미 기록했으면 향을 맡아보자고).
   ask_color = (우리는 중, 색을 아직 기록 안 했을 때) 지금 찻물 색을 물어보는 경우. 앱이 색 슬라이더를 띄워. 우리는 중에도 색은 언제든 물어봐도 돼.
   해당 없으면 "action": "none". 단어가 나왔다는 이유만으로 넣지 말고, 그 뜻일 때만.
 - 향·맛을 물었을 때 사용자가 비유나 느낌으로 답해도 (예: '온화한 선생님 같아', '할머니 집 냄새', '봄날 같아') 그게 바로 답이야. 칭찬이나 잡담으로 오해하지 말고 fill에 그대로 넣어.
-- 사용자가 앞에서 답한 걸 보충하거나 고치면 (예: 맛을 묻고 나서 '끝에 좀 씁쓸해') 그 칸(taste 등)에 다시 넣어. 여운(after)은 여운을 물었을 때만 넣어.
+- 사용자가 앞에서 답한 걸 보충하거나 고치면 (예: 맛을 묻고 나서 '끝에 좀 씁쓸해') 그 칸(taste 등)에 다시 넣어. 보충이면 이미 기록한 것과 합쳐서 (예: '은은한 꽃향, 끝에 꿀 향'), 고치면 새 말로 바꿔서. 이미 기록한 칸은 다시 묻지 마. 여운(after)은 여운을 물었을 때만 넣어.
+- fill.color는 사용자가 찻잔 속 찻물 색을 말할 때만 넣어 (고양이·컵 같은 다른 것의 색은 아니야). color를 넣을 때는 fill.tone에 진하기를 붙인 색 이름만 짧게 넣어 (예: '연한 연두', '진한 호박색', '연한 갈색').
+- 찻잎에 과일·꽃 향을 입힌 가향차(예: 배·꽃 향을 입힌 녹차 블렌드)는 바탕 찻잎 종류(녹차 등)로 정해. 기타가 아니야.
+- 종류를 확인하면서 '응 맞아, 근데 이미 우려놨어'처럼 이미 우렸다거나 바로 우리자고 하면 fill.type과 함께 action drink_now(또는 start_brew)를 넣어.
+- 여운(after)을 기록한 뒤 next가 extra면 가벼운 것 하나만 물어. 더 없다고 하면 다정하게 작별 인사하고 end를 true로.
 - 브랜드를 모른다고 하면 fill.brand에 '없음'을 넣어. 'ㅇㅇ', 'ㅋㅋ' 같은 말은 이름·브랜드가 아니야.
 - 색 슬라이더를 '맞춰 드릴게요' 같은 말은 하지 마 (네가 슬라이더를 움직일 수 없어).
 - 사용자가 '모르겠어', '잘 모르겠네'라고 하면 fill은 비워 두고, 버튼 없이 말로 도와줘: 가까운 보기를 두세 개 들어 주고 (예: '꽃향, 풀향, 고소한 향 중엔 어떤 쪽에 가까워요?') 편하게 고르게 해.
@@ -304,7 +314,9 @@ Reply with ONLY a JSON object:
         wrap: en ? 'The user says they have had enough. React warmly, then ask about the aftertaste (want is after).' : '사용자가 이제 충분히 마셨대. 다정하게 반응하고 끝에 남는 여운을 물어 줘 (want는 after).',
         idle: en ? 'The user has been quiet for a while. Say one gentle thing that fits this moment.' : '사용자가 한동안 조용해. 지금에 어울리는 말을 한 번 건네 줘.',
       }[ev];
+      const g = b.guide && typeof b.guide === 'object' ? b.guide : null;
       return [teaLine(b, en), b.about ? (en ? 'About this tea: ' : '이 차 정보: ') + str(b.about, 200) : '', timer,
+        g ? (en ? `Brewing guide shown in the app: water ${str(g.temp, 20)}, steep ${str(g.time, 20)}. When you mention temperature or time, match these.` : `앱의 우림 가이드: 물 ${str(g.temp, 20)}, 시간 ${str(g.time, 20)}. 온도·시간을 말할 땐 이 값과 맞춰.`) : '',
         `want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'}`,
         b.voice ? (en ? `The user's message came from speech recognition, so some words may be misheard${list(b.voice.alts, 3, 120).length ? ` (other guesses: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. Work out what they most likely meant from the conversation, the tea and flavor words, put the corrected sentence in "heard" (fix misheard words, drop fillers like uh/um, keep their meaning and wording, and add a question mark if it's a question — speech recognition never adds punctuation), and reply to that.` : `사용자 말은 음성 인식 결과라 잘못 들린 글자가 있을 수 있어${list(b.voice.alts, 3, 120).length ? ` (다른 후보: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. 대화 흐름·차 이름·맛 표현을 보고 원래 하려던 말을 추정해서 "heard"에 고친 문장을 넣고 (잘못 들린 말은 바로잡고, 어·음 같은 추임새는 빼고, 뜻과 말투는 그대로. 음성 인식은 문장부호를 안 붙이니 질문이면 물음표를 붙여), 그 뜻에 맞게 대답해. 물음표가 없어도 말끝(~야, ~나, ~까, ~지)과 흐름으로 질문인지 판단해. 뜻을 도저히 모르겠으면 짧게 되물어.`) : '',
         b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set fill.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 fill.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
@@ -317,7 +329,7 @@ Reply with ONLY a JSON object:
       let j = null; if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
       if (!j) { const t = plain(raw.replace(/```[a-z]*|```/g, '')).slice(0, 400); return t && !/^\{/.test(t) ? { reply: t, fill: {}, sense: false, finish: false, end: false } : null; }   // JSON이 깨지면 글만이라도
       const reply = plain(str(j.reply, 500)).slice(0, 400); if (!reply) return null;
-      const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo', 'name', 'brand', 'about'], fill = {};
+      const KEYS = ['color', 'tone', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo', 'name', 'brand', 'about'], fill = {};
       if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
       if (j.fill && TEA_TYPES.includes(j.fill.type)) fill.type = j.fill.type;
       const action = ['start_brew', 'drink_now', 'brew_done', 'ask_color'].includes(j.action) ? j.action : '';
@@ -448,15 +460,15 @@ const SPECS = {
         en ? `Return JSON:
 - expert: ${L.generic ? 'a 1–2 sentence expert-style description of THIS specific tea (under 110 chars). If you do not know this tea, return an empty string.' : 'return an empty string (keep the current one).'}
 - common: flavors both the user and the expert mention. Choose ONLY from this list: ${labels.join(', ')}. 0–4 items.
-- diff: 1–2 short sentences (under 60 chars each) about what only the user noticed or only the expert mentions.
-- ai: a warm 1–2 sentence reading (under 120 chars) of how the user's senses relate to the description.
+- diff: 1–2 short sentences (under 60 chars each) about what only the user noticed or only the expert mentions. Base it ONLY on the user's tea notes (color, aroma, taste, feel) and the expert text — never on weather, mood or small talk, and never invent points. Don't list a flavor as a difference if it is in common.
+- ai: a warm 1–2 sentence reading (under 120 chars) of how the user's senses relate to the description, grounded only in their tea notes and the expert text.
 - mine: one tidy line (under 90 chars) of the user's notes about how the tea looks, smells and tastes, joined with commas in their own words. Drop fillers (uh, um, like…), small talk and words the speech recognition obviously misheard. Never add impressions they didn't give. e.g. "nutty, gentle aroma, a little sweet and bitter".
 - own: 0–3 of the user's most personal, vivid phrases (images, memories, scenes — e.g. "like a forest path after rain"), taken from their expressions above; you may drop fillers but keep their words. Skip plain flavor words like "grassy" or "sweet".`
           : `JSON으로 답해:
 - expert: ${L.generic ? '이 차(이름 기준)에 대한 전문가식 설명 1~2문장, 90자 이내. 이 차를 잘 모르면 빈 문자열.' : '빈 문자열 (지금 설명을 그대로 쓴다).'}
 - common: 사용자와 전문가가 함께 짚은 풍미. 반드시 이 목록에서만 골라: ${labels.join(', ')}. 0~4개.
-- diff: 사용자만 느낀 것 또는 전문가만 말한 것, 짧은 문장 1~2개 (각 45자 이내, '~했어요' 체).
-- ai: 내 감각과 설명이 어떻게 닿아 있는지 다정한 해석 1~2문장, 100자 이내.
+- diff: 사용자만 느낀 것 또는 전문가만 말한 것, 짧은 문장 1~2개 (각 45자 이내, '~했어요' 체). 사용자의 차 표현(색·향·맛·느낌)과 전문가 설명만 근거로 해. 날씨·기분·잡담은 쓰지 말고, 없는 내용을 지어내지 마. common에 넣은 풍미는 차이점으로 쓰지 마.
+- ai: 내 감각과 설명이 어떻게 닿아 있는지 다정한 해석 1~2문장, 100자 이내. 사용자의 차 표현과 전문가 설명만 근거로 해.
 - mine: 사용자가 남긴 차의 색·향·맛·느낌 표현을 정리한 한 줄 (70자 이내). 추임새(어, 음, 아, 그, 막, 그냥, 이제…), 잡담, 음성 인식이 잘못 들은 말(뜻이 안 통하는 말)은 빼고, 사용자의 말을 살려 쉼표로 이어. 말끝('~가 나', '~이 있고', '~해')은 '은은한 냄새', '달큰한 맛'처럼 짧은 표현으로 다듬고, 차와 상관없는 말(뜨거워, 맛있어 같은 단순 반응은 하나만 남겨도 돼)은 줄여. 사용자가 하지 않은 표현은 절대 지어내지 마. 예: '고소하고 은은한 냄새, 살짝 달큰한 맛, 비 오는 날 같은 느낌'.
 - own: 사용자 표현 중 가장 그 사람다운 생생한 표현 0~3개 (장면·기억·비유, 예: '비 온 뒤 숲길 같은 향'). 위 사용자 표현에서 가져오되 추임새는 빼고, 말끝('~가 나', '~이 있고')과 띄어쓰기('달 크단'→'달큰한')는 다듬어. 뜻은 바꾸지 마. '풀향', '단맛'처럼 흔한 풍미 단어만 있는 건 빼.`,
       ].join('\n');
