@@ -3,7 +3,7 @@
 // B) thumbnail-phone.png  : A 위에 v5 홈 화면을 담은 폰
 // 사용법: node exhibit/make-thumbnail.js
 const {chromium}=require('playwright'); const path=require('path'); const fs=require('fs');
-const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'TEA_CANVAS_prototype_v5.html');
+const ROOT=path.join(__dirname,'..'), APP='file://'+path.join(ROOT,'old','TEA_CANVAS_prototype_v5.html');
 (async()=>{
   const b=await chromium.launch(); const errs=[];
   // 1) 캔버스 그림: 앱의 drawRec1 그대로

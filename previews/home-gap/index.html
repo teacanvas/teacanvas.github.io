@@ -36,7 +36,7 @@ const V=[['A','지금 그대로','',"비교용. 제목 위 30 · 회색~버튼 1
  ['I','D + 회색 문구 조금 크게','qt=72&nb=14&bb=44&ns=14',"회색 문구가 더 잘 읽혀요"],
  ['J','균형형','qt=72&nb=16&bb=52',"위아래가 비슷한 무게로"]];
 const g=document.getElementById('grid'); let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem('tc.homegap.fav')||'[]')); }catch(e){}
-g.innerHTML=V.map(([k,n,c,d])=>`<section class="item"><button class="star ${FAV.has(k)?'on':''}" data-k="${k}">${FAV.has(k)?'★':'☆'}</button><h2>${k}. ${n}</h2><p>${d}</p><div class="frame"><iframe src="../../TEA_CANVAS_prototype_v5.html?${c}" loading="lazy" title="${n}"></iframe></div></section>`).join('');
+g.innerHTML=V.map(([k,n,c,d])=>`<section class="item"><button class="star ${FAV.has(k)?'on':''}" data-k="${k}">${FAV.has(k)?'★':'☆'}</button><h2>${k}. ${n}</h2><p>${d}</p><div class="frame"><iframe src="../../old/TEA_CANVAS_prototype_v5.html?${c}" loading="lazy" title="${n}"></iframe></div></section>`).join('');
 function names(){ return V.filter(v=>FAV.has(v[0])).map(v=>v[0]+'. '+v[1]); }
 const box=document.createElement('div'); box.className='pickbox'; box.innerHTML='<b id="pc"></b><div class="pl" id="pl"></div><button id="cp">선택한 시안 복사하기</button><textarea id="ta" hidden readonly></textarea>'; document.body.appendChild(box);
 function up(){ const L=names(); document.getElementById('pc').textContent=L.length?`☆ ${L.length}개 골랐어요`:'마음에 드는 시안의 ☆을 눌러 골라주세요'; document.getElementById('pl').textContent=L.join('\n'); document.getElementById('cp').disabled=!L.length; }

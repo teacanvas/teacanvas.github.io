@@ -48,7 +48,7 @@
 | `tools/` | 시험·시연 도구 (`eval-flow.mjs` 정답지 시험, `sim.js` 사용자 시뮬레이터, `build-submission.py` 제출 파일) |
 | `submission/` | 과제 제출 파일 (B.html·B.zip 등, `tools/build-submission.py`로 생성) |
 | `exhibit/`, `previews/` | 전시물과 디자인 시안 |
-| `TEA_CANVAS_prototype*.html` (v6 아님) | 예전 버전 (기록용, 안 씀) |
+| `old/` | 예전 버전 (기록용, 안 씀) |
 
 ## 숨은 단축키 (전시·시연용)
 - `Ctrl + Alt + D`: 개발자 패널을 열어요. 모든 화면으로 바로 갈 수 있어요.
