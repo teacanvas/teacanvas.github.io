@@ -397,10 +397,12 @@ How to talk:
     system: en => (en ? FRAME_EN + APP_GUIDE_EN + `
 
 Reply with ONLY one JSON object, in this order:
-{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "timer_add": null, "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + APP_GUIDE_KO + `
+{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "timer_add": null, "step": "stay", "heard": "(speech only) corrected sentence", "reply": "...", "reply_says": []}
+reply_says = after writing reply, list the app actions your reply says will happen now (show_color, show_guide, gongfu_guide, basic_guide, pause_timer, resume_timer); empty if none. Keep it truthful to your reply.` : FRAME_KO + APP_GUIDE_KO + `
 
 답은 JSON 하나만, 이 순서로:
-{"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "timer_add": null, "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
+{"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "timer_add": null, "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "...", "reply_says": []}
+reply_says = reply를 쓴 뒤, 네 reply가 지금 하겠다고 말한 앱 동작을 적어 (show_color, show_guide, gongfu_guide, basic_guide, pause_timer, resume_timer). 없으면 빈 배열. reply와 정확히 맞게.`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const mmss = x => { x = Math.max(0, x | 0); return en ? `${Math.floor(x / 60)}m ${x % 60}s` : `${Math.floor(x / 60)}분 ${x % 60}초`; };
@@ -444,7 +446,7 @@ Reply with ONLY one JSON object, in this order:
       const REQS = ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide', 'pause_timer', 'resume_timer'];
       const ts = Number(j.timer_set), timer_set = Number.isFinite(ts) && ts > 0 ? Math.min(3600, Math.max(5, Math.round(ts))) : 0;
       const ta = Number(j.timer_add), timer_add = !timer_set && Number.isFinite(ta) && ta !== 0 ? Math.max(-3600, Math.min(3600, Math.round(ta))) : 0;
-      const requests = [...new Set((Array.isArray(j.requests) ? j.requests : []).concat(({ show_color: 'show_color', guide_gongfu: 'gongfu_guide', guide_basic: 'basic_guide' })[step] || []).filter(r => REQS.includes(r)))];
+      const requests = [...new Set((Array.isArray(j.requests) ? j.requests : []).concat(Array.isArray(j.reply_says) ? j.reply_says : [], ({ show_color: 'show_color', guide_gongfu: 'gongfu_guide', guide_basic: 'basic_guide' })[step] || []).filter(r => REQS.includes(r)))];
       if (['show_color', 'guide_gongfu', 'guide_basic'].includes(step)) step = 'stay';   // 예전 모양 → 요청으로
       const clear = (Array.isArray(j.clear) ? j.clear : []).filter(k => ['color', 'aroma', 'taste', 'after', 'mood', 'scene', 'why', 'memo', 'extra'].includes(k) && !fill[k]);
       if (step === 'confirm_tea' && !fill.type) step = 'stay';
