@@ -1759,7 +1759,12 @@ const FAQ=[
   [/감칠/, ()=>'감칠맛은 국물처럼 입안에 남는 깊은 맛이에요. 녹차, 특히 옥로나 말차에서 잘 느껴져요.'],
   [/표현|뭐라고|어떻게 말|모르겠/, ()=>'떠오르는 장면이나 기억으로 말해도 좋아요. “비 온 뒤 숲길 같아요”처럼요. 정답은 없어요.'],
 ];
-const isQuestion=t=>{ t=String(t).trim(); if(/^(how|what|why|when|where|which|can|should|is|does|do)\b/i.test(t)&&!matchFlavors(t).length) return true; if((/\?|？/.test(t)&&!(matchFlavors(t).length&&!/(왜|어떻게|무슨|뭐|몇|언제|어디|어떤|돼요|되나|할까|하나요|인가요|있나요|나요\?)/.test(t)))||/(알려줘|알려 ?주세요|궁금해요?)$/.test(t)) return true; return /^(왜|어떻게|무슨|뭐가|뭘|몇|언제|어디)/.test(t)&&/(나요|까요|가요|어요|죠|니|나|까)$/.test(t)&&!matchFlavors(t).length; };
+/* 물음표 없이 말해도 질문인지: 음성 인식은 문장부호를 안 붙이므로 말끝과 질문 단어로 본다 ('맛있어' 같은 말은 질문이 아님) */
+const looksQuestion=t=>{ t=String(t||'').trim().replace(/[.!~]+$/,''); if(!t||/[?？]$/.test(t)) return false;
+  if(/(이|가)\s?나요$/.test(t)) return false;   // '향이 나요'는 질문이 아님
+  if(/(나요|까요|ㄹ까|을까|를까|할까|인가요|인가|건가요|건가|는지|ㄴ지|은지|니|냐|냐고|래요|대요|죠|지요|맞아요|맞나|맞지|맞니|맞냐|아닌가|있어요\s*없어요|돼요|되나|되나요|어때|어때요|어떄|뭐야|뭐예요|뭐에요|누구야|어디야|언제야|몇이야)$/.test(t)) return true;
+  return /^(왜|어떻게|무슨|뭐|뭘|몇|언제|어디|어떤|누가|누구|얼마나)|(\s)(왜|어떻게|무슨|뭐|뭘|몇|언제|어디|어디서|어디에서|어떤|얼마나)(\s|$)/.test(t)&&!/(좋아|싫어|같아|나요\.)$/.test(t); };
+const isQuestion=t=>{ t=String(t).trim(); if(looksQuestion(t)&&!/^(아니|응|네)$/.test(t)) return true; if(/^(how|what|why|when|where|which|can|should|is|does|do)\b/i.test(t)&&!matchFlavors(t).length) return true; if((/\?|？/.test(t)&&!(matchFlavors(t).length&&!/(왜|어떻게|무슨|뭐|몇|언제|어디|어떤|돼요|되나|할까|하나요|인가요|있나요|나요\?)/.test(t)))||/(알려줘|알려 ?주세요|궁금해요?)$/.test(t)) return true; return /^(왜|어떻게|무슨|뭐가|뭘|몇|언제|어디)/.test(t)&&/(나요|까요|가요|어요|죠|니|나|까)$/.test(t)&&!matchFlavors(t).length; };
 const FAQ_EN=[[/bitter|astringent/,'쓴'],[/how many times|rebrew|re-steep|resteep/,'몇번'],[/caffeine|sleep|night/,'카페인'],[/temperature|temp|how hot|degrees/,'온도'],[/how long|minutes|time/,'얼마나'],[/how much|grams|amount/,'몇그램'],[/store|storage|keep/,'보관'],
   [/oolong/,'우롱'],[/pu-?erh|puer|dark tea/,'보이'],[/green tea/,'녹차'],[/black tea|milk/,'홍차'],[/white tea/,'백차'],[/herb|chamomile|mint/,'허브'],[/cool|cold down/,'식으'],[/weak aroma|can't smell|no aroma/,'향이 약'],[/colou?r/,'색이'],[/tea ?bag|loose/,'티백'],[/cold brew|iced|ice/,'냉침'],[/umami|savory/,'감칠'],[/describe|how to say|what to say/,'표현']];
 function faqAnswer(q){ if(/[a-z]/i.test(q)){ const lo=q.toLowerCase(); const hit=FAQ_EN.find(([re])=>re.test(lo)); if(hit) q=hit[1]; }
@@ -2363,7 +2368,8 @@ function listenWhileBusy(id){ return new Promise(res=>{ let r, got='', mid='', d
   const iv=setInterval(()=>{ if(!vAlive(id)||(!S.typing&&!mid)){ try{ r.abort(); }catch(e){} } },200);   // 대답이 왔는데 내가 말하던 중이 아니면 그만 듣는다
   try{ r.start(); }catch(e){ fin(null); } }); }
 /* 들은 말을 대화로 보내기 */
-async function takeHeard(d,heard){ d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; S.listening=false; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; VOICE.fromVoice={alts:VOICE.alts||[]}; sendMsg(heard); VOICE.fromVoice=null; d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
+async function takeHeard(d,heard){ if(looksQuestion(heard)) heard=heard.replace(/[.!~]+$/,'')+'?';   // 음성 인식은 물음표를 안 붙인다 → 질문처럼 들리면 붙인다
+  d.voice.push(heard); VOICE.interim=heard; VOICE.phase='thinking'; S.listening=false; paintVoice(); VOICE.spoken=Math.max(VOICE.spoken,d.chat.length); const n0=d.chat.length; VOICE.fromVoice={alts:VOICE.alts||[]}; sendMsg(heard); VOICE.fromVoice=null; d.chat.slice(n0).forEach(m=>{ if(m.who==='me') m.voice=true; });
   VOICE.spoken=Math.min(VOICE.spoken,d.chat.length); await new Promise(r=>setTimeout(r,500)); }
 /* 봇 목소리가 마이크로 다시 들어온 것(메아리)인지: 음성 인식은 '오설록의'를 '오설록에'처럼 조금 틀리게 듣기도 하므로
    글자가 똑같지 않아도, 들은 말의 두 글자 묶음이 봇이 한 말과 대부분(strict면 70%, 아니면 55%) 겹치면 메아리로 본다 */

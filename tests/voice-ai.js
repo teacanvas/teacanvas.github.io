@@ -29,5 +29,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   ok(mine.includes('첫말 둘째말')&&!mine.includes('첫말'),'이어서 한 말은 앞말과 합쳐 한 번에 다시 물음: '+JSON.stringify(mine.slice(-2)));
   ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='bot'&&m.text==='(AI) 첫말 둘째말')&&!S.draft.chat.some(m=>m.who==='bot'&&m.text==='(AI) 첫말')),'버린 요청의 대답은 나오지 않음');
   ok(await p.evaluate(()=>!S.draft.aiLost),'합쳐 다시 물은 건 AI 실패로 치지 않음');
+  await waitListen(); await p.evaluate(()=>__say('이거 어디서 나는 차야')); await p.waitForTimeout(1200);
+  ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='me'&&m.text==='이거 어디서 나는 차야?')),'물음표 없이 들린 질문에 물음표를 붙임');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();
