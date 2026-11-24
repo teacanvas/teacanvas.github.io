@@ -608,12 +608,12 @@ function liveSystem(en) {
     ? FRAME_EN + `
 [Real-time voice]
 You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, unknown and step are what you send with the update_record tool.
-Whenever something is recorded or step is not stay, call update_record FIRST, then speak. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
+Whenever something is recorded or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
 The user may speak casually or unclearly; work out what they mean from context.`
     : FRAME_KO + `
 [실시간 음성]
 실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·unknown·step은 update_record 도구로 보내는 값이야.
-기록할 것이 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
+기록할 것이 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
 사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
 }
 async function liveProxy(req, env, okOrigin) {
