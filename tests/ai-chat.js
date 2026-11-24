@@ -14,12 +14,12 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
     if(q.mode==='flow'){ if(q.event!=='message') return J({reply:`(AI:${q.event}) want=${q.want}`,fill:{}});
       const m=q.message||'', w=q.want, fill={}; let sense=/향|맛|색|고소/.test(m);
       if(w==='tea'&&/달빛/.test(m)) return J({reply:`‘달빛 걷기’를 찾아봤어요. 녹차에 배와 별사탕 향을 더한 블렌드예요. 녹차로 기록할게요. 맞나요?`,fill:{name:'달빛 걷기',brand:'오설록',type:'green',about:'녹차에 배와 별사탕 향을 더한 블렌드예요.'},sense:false});
-      if(w==='teatype'&&/녹차로/.test(m)) fill.type='green';
+      let step; if(w==='teatype'&&/녹차로/.test(m)){ fill.type='green'; step='confirm_tea'; }
       const action=q.stage==='guide'&&/시작하자/.test(m)?'start_brew':(q.stage==='wait'||q.stage==='wait2')&&/다 우렸/.test(m)?'brew_done':'none';
       if(w==='extra') fill.extra=m; else if(w&&KW[w]&&KW[w].test(m)) fill[w]=m;
       if(w==='color'&&q.screen&&/비슷|이대로/.test(m)) fill.color=q.screen.color;   // 진짜 AI처럼: 화면의 슬라이더 색에 동의하면 그 색
       if(/피곤/.test(m)) fill.mood='피곤함';
-      return J({reply:`(AI:${w||'-'}→${q.next}) ${m}`.slice(0,90),fill,sense,finish:/다 마셨/.test(m),end:w==='extra',action}); }
+      return J({reply:`(AI:${w||'-'}→${q.next}) ${m}`.slice(0,90),fill,sense,finish:/다 마셨/.test(m),end:w==='extra',action,...(step?{step}:{})}); }
     return r.fulfill({status:404,body:'{}'}); });
   await p.goto(FILE); await p.waitForTimeout(600);
   const say=async t=>{ await p.fill('#chatIn',t); await p.evaluate(()=>sendInput()); await p.waitForTimeout(1100); };

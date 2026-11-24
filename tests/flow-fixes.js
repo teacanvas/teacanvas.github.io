@@ -33,11 +33,18 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
 
   // 우리는 중: 잡담 속 색 단어는 찻물 색이 아님 / 슬라이더 요청
   await E(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await p.waitForTimeout(600); await E(()=>startRecord()); await p.waitForTimeout(300);
-  await say('오설록 달빛 걷기'); R['녹차야']=()=>({reply:'녹차로 기록할게요.',fill:{type:'green'}}); await say('녹차야');
+  await say('오설록 달빛 걷기'); R['녹차야']=()=>({reply:'녹차로 기록할게요.',fill:{type:'green'},step:'confirm_tea'}); await say('녹차야');
   ok((await st())==='guide','"녹차야" → AI가 종류를 정하면 가이드로');
   await E(()=>beginBrew(true)); await p.waitForTimeout(300);
   R['치즈냥']=()=>({reply:'귀여운 고양이네요!',fill:{scene:'고양이와 함께'}});
   await say('우리 집 노란 치즈냥이가 옆에 있어'); ok(await E(()=>!S.draft.feel.color&&S.draft.stage==='wait'),'우리는 중 "노란 치즈냥이"는 찻물 색으로 기록하지 않음');
   R['슬라이더']=()=>({reply:'좋아요, 슬라이더로 골라 주세요.',fill:{},action:'ask_color'}); await say('색 슬라이더로 고를래'); ok((await st())==='color'&&await E(()=>!!document.querySelector('#askW.tc')),'"슬라이더로 고를래" → 색 슬라이더');
+  // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
+  await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
+  ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
+  ok(await E(()=>{ liveTool({aroma:'잘 모르겠어',unknown:['aroma']}); return !S.draft.feel.aroma; }),'음성: 모른다고 한 칸(unknown)은 기록하지 않음');
+  ok(await E(()=>{ S.timer.left=0; liveTool({color:'연한 연두',tone:'연한 연두',aroma:'꽃향',taste:'단맛'}); return S.draft.stage==='free'&&S.draft.feel.taste==='단맛'; }),'음성: 한 번에 색·향·맛 → 자유 대화로');
+  ok(await E(()=>{ liveTool({step:'finished_drinking'}); return S.draft.stage==='after'; }),'음성: step finished_drinking → 여운');
+  ok(await E(()=>{ liveTool({after:'꿀 같은 여운',step:'close'}); return S.draft.stage==='done'&&S.draft.afterText==='꿀 같은 여운'; }),'음성: 여운 + step close → 기록 정리');
   ok(!errs.length,'페이지 오류 없음'+(errs.length?': '+errs.join(' | '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

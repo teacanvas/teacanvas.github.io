@@ -32,7 +32,7 @@ async function run(b,mode){
   say({serverContent:{inputTranscription:{text:' 세작 마실게요'}}}); await p.waitForTimeout(100);
   ok(/오설록 제주/.test(el1)&&await p.evaluate(()=>{ const e=document.querySelectorAll('#msgs .msg.me'); const x=e[e.length-1]; return x.dataset.keep==='1'&&/오설록 제주 세작 마실게요/.test(x.textContent); }),'내가 말하는 동안 내 말이 채팅에 바로바로 보이고, 같은 말풍선이 이어서 채워짐');
   say({toolCall:{functionCalls:[{id:'1',name:'update_record',args:{name:'제주 세작',brand:'오설록',type:'green',about:'싱그러운 녹차'}}]}}); await p.waitForTimeout(200);
-  let tr=got.filter(j=>j.toolResponse).pop(); ok(tr&&tr.toolResponse.functionResponses[0].response.want==='teatype'&&await p.evaluate(()=>S.draft.name==='제주 세작'&&S.draft.stage==='teaOK'),'AI가 기록 도구로 차 이름·종류를 채우고, 앱이 다음 할 일을 알려줌');
+  let tr=got.filter(j=>j.toolResponse).pop(); ok(tr&&tr.toolResponse.functionResponses[0].response.stage&&/종류/.test(tr.toolResponse.functionResponses[0].response.stage)&&await p.evaluate(()=>S.draft.name==='제주 세작'&&S.draft.stage==='teaOK'),'AI가 기록 도구로 차 이름·종류를 채우고, 앱이 다음 할 일을 알려줌');
   say({serverContent:{outputTranscription:{text:'녹차로 기록할까요?'},turnComplete:true}}); await p.waitForTimeout(300);
   ok(await p.evaluate(()=>S.draft.chat.some(m=>m.who==='me'&&m.text==='오설록 제주 세작 마실게요'&&m.voice)),'내 말도 채팅에 남음');
   say({serverContent:{inputTranscription:{text:'응 맞아'}}}); say({toolCall:{functionCalls:[{id:'2',name:'update_record',args:{action:'confirm_tea'}}]}}); await p.waitForTimeout(1200);
