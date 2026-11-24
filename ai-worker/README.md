@@ -53,3 +53,11 @@ node tests/ai-worker.mjs
 node tests/ai-fallback.js
 ```
 첫 번째는 Gemini를 가짜 응답으로 바꿔서 Worker를 확인해요. 두 번째는 앱이 AI 응답을 쓰는지, 실패하면 정해진 대답으로 넘어가는지 확인해요.
+
+## 시험용 서버 (선택)
+정답지 시험(`node tools/eval-flow.mjs`)을 앱과 다른 무료 한도로 돌리기 위한 두 번째 서버예요. 코드는 같고 Gemini 키만 달라요.
+1. https://aistudio.google.com 에서 **Get API key → Create API key → Create API key in new project**를 눌러요. 무료 한도는 프로젝트마다 따로라서, 같은 구글 계정이어도 새 프로젝트로 만들면 한도가 따로예요.
+2. GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에서 Name `GEMINI_TEST_KEY`, Secret에 1번의 키를 넣어요.
+3. 다음에 `ai-worker/`가 바뀌어 푸시되거나, **Actions → Deploy AI worker → Run workflow**를 누르면 `teacanvas-ai-test` 서버가 만들어지고 키가 들어가요.
+
+시험은 기본으로 이 서버로 보내요. 앱용 서버로 돌리려면 `TC_EP=https://teacanvas-ai.sehoon3554.workers.dev/ node tools/eval-flow.mjs`처럼 주소를 바꿔요.

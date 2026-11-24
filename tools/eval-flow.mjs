@@ -1,7 +1,7 @@
 // 대화 판단 정답지 시험: 실제 AI 서버(Gemini)에 사용자 테스트에서 나온 상황들을 보내고, 판단이 맞는지 채점한다.
 // 프롬프트·틀을 바꿀 때마다 돌려서 점수로 비교한다 (하나 고치다 다른 게 망가지는지 확인).
-// 사용법: node tools/eval-flow.mjs [반복 횟수=1]   ※ 한 번에 약 3분. 실제로 쓰는 중에는 돌리지 말 것 (같은 무료 한도를 쓴다)   (TC_EP로 서버 주소를 바꿀 수 있음)
-const EP = process.env.TC_EP || 'https://teacanvas-ai.sehoon3554.workers.dev/';
+// 사용법: node tools/eval-flow.mjs [반복 횟수=1]   ※ 한 번에 약 3분. 기본은 시험용 서버(따로 만든 키)로 보내서 앱의 무료 한도를 쓰지 않는다   (TC_EP로 서버 주소를 바꿀 수 있음)
+const EP = process.env.TC_EP || 'https://teacanvas-ai-test.sehoon3554.workers.dev/';   // 시험용 서버(시험용 키) — 앱의 무료 한도를 쓰지 않는다. 앱용 서버로 돌리려면 TC_EP=https://teacanvas-ai.sehoon3554.workers.dev/
 const REPEAT = +process.argv[2] || 1;
 const GREEN = { name: '달빛 걷기', brand: '오설록', type: '녹차' };
 const H = (...xs) => xs.map((t, i) => ({ who: i % 2 ? 'me' : 'bot', text: t }));
