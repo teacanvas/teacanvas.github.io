@@ -22,7 +22,7 @@ const CASES = [
   // 종류 확인
   { id: '확인+이미 우림', tea: GREEN, b: { stage: 'teaOK', want: 'teatype', next: 'guide', message: '응 맞아 근데 이미 우려놨어' }, ok: r => r.ui === 'drink_now' },
   { id: '종류 고침', tea: GREEN, b: { stage: 'teaOK', want: 'teatype', next: 'guide', message: '아니 홍차야' }, ok: r => r.set.type === 'black' },
-  { id: '종류 질문은 확정 아님', tea: GREEN, b: { stage: 'teaOK', want: 'teatype', next: 'guide', message: '블렌디드인데 허브차가 맞아?' }, ok: r => !r.set.type && /[?？]/.test(r.reply) },
+  { id: '종류 질문은 확정 아님', tea: GREEN, b: { stage: 'teaOK', want: 'teatype', next: 'guide', message: '블렌디드인데 허브차가 맞아?' }, ok: r => r.set.type !== 'herb' && r.reply.length > 10 },   // 바탕 찻잎을 설명하고 되묻거나, 정확한 종류(녹차)로 정해도 됨. 허브차로 잘못 정하면 안 됨
   // 가이드
   { id: '말로 우림 시작', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '응 이제 시작하자', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.ui === 'start_brew' },
   { id: '가이드 질문', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '물은 몇 도로 해?', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.ui !== 'start_brew' && /7\d|80/.test(r.reply) },
