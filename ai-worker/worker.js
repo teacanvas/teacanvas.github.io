@@ -40,6 +40,7 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    if (new URL(req.url).pathname === '/live') return liveProxy(req, env, okOrigin);   // 실시간 음성(Gemini Live) 중계
     if (req.method === 'GET') {   // 주소가 살아 있는지 확인용. ?models 를 붙이면 이 키로 쓸 수 있는 Flash 모델 이름을 보여준다
       if (new URL(req.url).searchParams.has('models') && env.GEMINI_API_KEY) {
         const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': env.GEMINI_API_KEY } });
@@ -516,3 +517,90 @@ const SPECS = {
     },
   },
 };
+
+
+/* ===================== 실시간 음성 (Gemini Live) =====================
+   휴대폰 ↔ 이 Worker ↔ Gemini Live 를 웹소켓으로 잇는다. 키는 여기에만 있고,
+   모델·말투·도구(기록 채우기) 설정도 여기서 정해 보낸다 (휴대폰이 보낸 setup은 무시).
+   주소: /live?lang=ko&voice=Zephyr[&resume=핸들] */
+const LIVE_MODELS = ['gemini-3.1-flash-live-preview', 'gemini-2.5-flash-native-audio-latest'];
+const LIVE_VOICES = ['Zephyr', 'Umbriel', 'Aoede', 'Kore', 'Puck', 'Charon'];
+const LIVE_TOOL = {
+  functionDeclarations: [{
+    name: 'update_record',
+    description: 'Fill the tea record or run an app action. Call it whenever the user gives something to record (tea name/type, color, aroma, taste, aftertaste, mood, place, why, origin, water temperature, steeping time, a note) or clearly means an action (start steeping, drink right away, steeping is already done, finished drinking, wrap up). The response tells you the current step and what to do next. Use the user\'s own words for color/aroma/taste.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        name: { type: 'STRING', description: 'tea name only, no brand' }, brand: { type: 'STRING' },
+        type: { type: 'STRING', enum: ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'], description: 'blends by base leaf; herbs/flowers/fruit = herb; grain/root teas like barley or burdock = other' },
+        about: { type: 'STRING', description: 'one short sentence on the tea' },
+        color: { type: 'STRING' }, aroma: { type: 'STRING' }, taste: { type: 'STRING' }, after: { type: 'STRING' }, extra: { type: 'STRING' },
+        mood: { type: 'STRING' }, scene: { type: 'STRING' }, why: { type: 'STRING' }, origin: { type: 'STRING' }, temp: { type: 'STRING' }, time: { type: 'STRING' }, memo: { type: 'STRING' },
+        action: { type: 'STRING', enum: ['confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'finish_drinking', 'end'], description: 'confirm_tea = user agreed with the tea name/type; start_brew = start steeping now; drink_now = skip the timer; brew_done = already steeped while the timer runs; finish_drinking = done drinking; end = close the record' },
+      },
+    },
+  }],
+};
+function liveSystem(en) {
+  return en
+    ? `You are a friend sitting with the user over a cup of tea in TEA CANVAS, an app that records how a tea looks, smells and tastes and turns it into a watercolor drop. You talk by voice in real time.
+Talk: listen first and respond to exactly what they said. Warm, calm, polite, short (1–2 sentences per turn). Ask one thing at a time. You can't taste or smell the tea yourself. Never say timer numbers. Answer questions about the tea simply and accurately.
+Flow (the app keeps the steps; you lead the conversation): tea name → confirm the type → steeping (chat while it steeps) → color → aroma → taste → drink and chat freely → aftertaste → one optional extra → close.
+Whenever the user gives something to record or means an action, call update_record. Its response says the current step, what to record now (want) and what's next; follow it naturally. Messages starting with [app] are events from the app (for example the tea finished steeping); react to them in your own words.
+The user may speak casually or unclearly; work out what they mean from context.`
+    : `너는 TEA CANVAS(차의 색·향·맛을 기록해 수채화 찻방울로 남기는 앱)에서 사용자와 마주 앉아 차를 마시는 친구야. 실시간 음성으로 대화해.
+말하기: 먼저 듣고, 방금 한 말에 정확히 반응해. 늘 다정한 존댓말(해요체), 차분하게, 한 번에 1~2문장으로 짧게. 질문은 한 번에 하나. 너는 차를 맛보거나 냄새 맡을 수 없어. 타이머 숫자는 말하지 마. 차에 대한 질문은 쉽고 정확하게 답해.
+흐름 (단계는 앱이 지키고, 대화는 네가 이끌어): 차 이름 → 종류 확인 → 우리기(우러나는 동안 이야기) → 찻물 색 → 향 → 맛 → 마시며 자유롭게 이야기 → 여운 → 덧붙일 것 하나 → 마무리.
+사용자가 기록할 것을 말하거나 앱 동작(우림 시작·바로 마시기·다 우렸음·다 마심 등)을 뜻하면 update_record를 불러. 그 응답에 지금 단계, 지금 기록할 것(want), 다음 할 일이 있으니 자연스럽게 따라가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
+사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
+}
+async function liveProxy(req, env, okOrigin) {
+  if ((req.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') return new Response('websocket only', { status: 426 });
+  if (!okOrigin) return new Response('origin', { status: 403 });
+  if (!env.GEMINI_API_KEY) return new Response('no key', { status: 500 });
+  const u = new URL(req.url), en = u.searchParams.get('lang') === 'en';
+  const voice = LIVE_VOICES.includes(u.searchParams.get('voice')) ? u.searchParams.get('voice') : 'Zephyr';
+  const resume = (u.searchParams.get('resume') || '').slice(0, 600);
+  const pair = new WebSocketPair(), [client, server] = Object.values(pair);
+  server.accept();
+  const pending = []; let up = null, ready = false, closed = false;
+  server.addEventListener('message', e => {   // 휴대폰 → Gemini: 소리·글·도구 응답만 (setup은 막는다). 준비 전이면 모아 둔다
+    try { const j = JSON.parse(typeof e.data === 'string' ? e.data : new TextDecoder().decode(e.data)); if (!j || j.setup || !(j.realtimeInput || j.clientContent || j.toolResponse)) return;
+      const t = JSON.stringify(j); if (ready && up) up.send(t); else if (pending.length < 200) pending.push(t); } catch (err) { /* 무시 */ }
+  });
+  server.addEventListener('close', () => { closed = true; try { up && up.close(1000, 'client closed'); } catch (e) {} });
+  const setupFor = model => JSON.stringify({ setup: {
+    model: `models/${model}`,
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
+    systemInstruction: { parts: [{ text: liveSystem(en) }] },
+    tools: [LIVE_TOOL],
+    inputAudioTranscription: {}, outputAudioTranscription: {},
+    contextWindowCompression: { slidingWindow: {} },
+    sessionResumption: resume ? { handle: resume } : {},
+  } });
+  // 모델을 차례로: 연결 → setup → setupComplete가 오면 그 모델로. 그 전에 끊기면 다음 모델
+  const open = model => new Promise(async res => {
+    let ws; try { const r = await fetch(`https://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${env.GEMINI_API_KEY}`, { headers: { Upgrade: 'websocket' } }); ws = r.webSocket; } catch (e) { return res(null); }
+    if (!ws) return res(null);
+    ws.accept(); let ok = false, why = '';
+    const t = setTimeout(() => { if (!ok) { try { ws.close(1000, 'slow'); } catch (e) {} res(null); } }, 8000);
+    ws.addEventListener('message', e => { if (ok) return; const txt = typeof e.data === 'string' ? e.data : new TextDecoder().decode(e.data);
+      if (/"setupComplete"/.test(txt)) { ok = true; clearTimeout(t); res({ ws, model }); } });
+    ws.addEventListener('close', e => { if (!ok) { clearTimeout(t); why = `${e.code} ${e.reason || ''}`; res({ fail: `${model} ${why}`.slice(0, 160) }); } });
+    ws.send(setupFor(model));
+  });
+  let lastWhy = '';
+  for (const m of [...(env.GEMINI_LIVE_MODEL ? [env.GEMINI_LIVE_MODEL] : []), ...LIVE_MODELS]) {
+    if (closed) break;
+    const r = await open(m); if (r && r.ws) { up = r.ws; server.send(JSON.stringify({ appInfo: { model: r.model, voice } })); break; } if (r && r.fail) lastWhy = r.fail;
+  }
+  if (!up) { try { server.send(JSON.stringify({ appError: 'upstream', detail: lastWhy })); server.close(1011, 'upstream'); } catch (e) {} return new Response(null, { status: 101, webSocket: client }); }
+  ready = true; server.send(JSON.stringify({ setupComplete: {} }));
+  while (pending.length) up.send(pending.shift());
+  up.addEventListener('message', e => { try { server.send(typeof e.data === 'string' ? e.data : new TextDecoder().decode(e.data)); } catch (err) { /* 닫힘 */ } });
+  const closeBoth = (code, why) => { try { server.close(code || 1000, String(why || '').slice(0, 120)); } catch (e) {} try { up.close(1000, 'bye'); } catch (e) {} };
+  up.addEventListener('close', e => closeBoth(e.code === 1005 || e.code === 1006 ? 1000 : e.code, e.reason));
+  up.addEventListener('error', () => closeBoth(1011, 'upstream error'));
+  return new Response(null, { status: 101, webSocket: client });
+}
