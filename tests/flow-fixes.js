@@ -63,6 +63,11 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['쌉싸름']=()=>({reply:'쌉싸름한 맛으로 담았어요.',fill:{taste:'쌉싸름한 맛'},step:'stay'}); await say('쌉싸름한 맛이야');
   ok(await E(()=>S.draft.stage==='free'&&S.draft.feel.taste==='쌉싸름한 맛'),'다시 말하면 기록하고 원래 자리(자유 대화)로');
   ok(await E(()=>{ liveTool({requests:['show_color']}); return S.draft.stage==='color'; }),'음성도 requests show_color → 색 슬라이더');
+  // 찻방울 풍미: 비유도 Gemini가 고른 풍미로 / 정리 뒤 다시 와도 끝낼 수 있음
+  await E(()=>{ const d=S.draft; d.stage='free'; S.ask={hd:null,sel:[]}; });
+  R['숲길']=()=>({reply:'싱그러운 기분이네요.',fill:{},step:'stay',flavors:['vegetal','earthy','fresh'],sense:true}); await say('비 온 뒤 숲길 같아요');
+  ok(await E(()=>{ const fl=new Set(collectExprs(S.draft).flatMap(e=>e.fl)); return fl.has('vegetal')&&fl.has('earthy')&&fl.has('fresh'); }),'"비 온 뒤 숲길" → Gemini가 고른 풍미(풀향·흙·상쾌함)가 찻방울에');
+  ok(await E(()=>{ S.draft.stage='done'; backToChat(); return S.draft.stage==='more'&&/기록 마치고 정리하기/.test((document.querySelector('#chatEnd')||document.body).textContent); }),'정리 뒤 채팅으로 돌아오면 이어서 말할 수 있고, 끝내기 버튼이 보임');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

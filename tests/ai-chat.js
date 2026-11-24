@@ -53,7 +53,8 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   await say('다 마셨어요'); await p.waitForTimeout(400); m=await last(); ok((await st())==='after'&&m.ai,'다 마셨다고 하면 AI가 마무리하며 여운을 물음');
   await say('끝에 단맛이 오래 남아요'); m=await last(); ok((await st())==='more'&&/after→extra/.test(m.text),'여운 → AI가 덧붙일 것 하나를 물음');
   await say('두 번 우렸어요'); await p.waitForTimeout(3200);
-  ok(await p.evaluate(()=>cur()!=='chat'&&/두 번/.test(S.draft.deep.memo||'')),'대답하면 AI가 인사하고 기록 정리로 (덧붙인 말은 메모에)');
+  ok(await p.evaluate(()=>cur()==='chat'&&S.draft.stage==='done'&&/두 번/.test(S.draft.deep.memo||'')&&/기록 마치고 정리하기/.test(document.querySelector('#chatEnd').textContent)),'대답하면 AI가 인사하고, 바로 넘어가지 않고 "기록 마치고 정리하기" 버튼 (덧붙인 말은 메모에)');
+  await p.click('#chatEnd .btn'); await p.waitForTimeout(800); ok(await p.evaluate(()=>cur()!=='chat'),'버튼을 누르면 기록 정리로');
   ok(seen.filter(q=>q.mode==='flow'&&q.event==='message').every(q=>'want' in q&&'next' in q&&'filled' in q),'AI에게 매번 단계·기록할 것·이미 기록한 것을 보냄');
   // 대화 도중 AI가 멈추면 → 그 자리부터 예전 흐름
   await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);

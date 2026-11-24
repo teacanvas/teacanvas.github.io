@@ -46,7 +46,9 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
 5. 색은 찻물 색을 말할 때만. 고양이·컵 같은 다른 것의 색은 아니야.
 6. 차 종류는 바탕 찻잎으로 정해. 녹차·홍차 잎에 과일·꽃 향을 입힌 가향차·블렌드는 그 찻잎 종류야(기타 아님). 찻잎이 들어갔는지 확실하지 않으면 웹에서 확인하거나 사용자에게 물어봐.
 7. step과 record는 네 reply와 반드시 맞아야 해. reply에서 '홍차로 기록할게요'라고 하면 record.type도 black. 아직 묻고 있으면(확인 질문) 확정하지 마. reply에서 여운을 묻는다면 step은 finished_drinking이어야 해.
-8. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
+8. flavors: 사용자가 방금 한 말이 차의 향·맛·느낌을 표현하면(비유·장면·기억 포함) 그 말이 떠올리게 하는 풍미 계열을 1~3개 골라 flavors에 넣어. 찻방울의 색이 돼. 계열: floral(꽃향)·fruity(과일향)·citrus(시트러스·신맛)·vegetal(풀향)·fresh(상쾌함)·nutty(고소함·곡물)·sweet(단맛)·earthy(흙·나무향)·spicy(스파이시)·soft(부드러움·포근함)·astringent(쓴·떫은맛). 예: '황금빛 보리밭 같아' → nutty, sweet / '비 온 뒤 숲길' → vegetal, earthy, fresh / '할머니 집 냄새' → earthy, soft. 잡담·질문이면 빈 배열.
+9. 천천히 마시는 중에는 찻방울이 풍성해지도록 도와줘. '지금 찻방울에 담긴 풍미'가 2가지 이하면, 아직 안 나온 쪽(향이 식으며 달라졌는지, 입안 느낌, 떠오르는 장면·기억 등)을 한 번에 하나만 가볍게 물어봐. 재촉하지 말고, 사용자가 그만하고 싶어 하면 따라가.
+10. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
 
 [step: 대화 흐름에서 다음으로 넘어가는 동작 하나]
 stay = 그대로 대화 이어가기 (대부분)
@@ -110,7 +112,9 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 5. Color only when they describe the tea's color, not a cat's or a cup's.
 6. Type follows the base leaf: flavored or blended green/black teas are green/black, not other. If unsure whether it contains tea leaves, check the web or ask.
 7. step and record MUST match your reply. If you say "I'll record it as black tea", record.type is black. If you're still asking, don't confirm. If your reply asks about the aftertaste, step must be finished_drinking.
-8. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
+8. flavors: when the message expresses how the tea smells/tastes/feels (metaphors, scenes, memories included), pick 1–3 flavor families it evokes; they become the drop's colors. Families: floral·fruity·citrus·vegetal (grassy)·fresh·nutty (grain, roasted)·sweet·earthy (wood, soil)·spicy·soft (smooth, cozy)·astringent (bitter, dry). e.g. "like a golden barley field" → nutty, sweet; "a forest path after rain" → vegetal, earthy, fresh. Empty for small talk or questions.
+9. While they drink slowly, help the drop grow richer: if "flavors in the drop so far" has 2 or fewer, gently ask about one side not covered yet (how it changed as it cooled, mouthfeel, a scene or memory it brings up). One at a time, never pushy; follow them if they want to stop.
+10. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
 
 [step: the one next move in the flow]
 stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
@@ -338,8 +342,8 @@ How to talk:
   flow: {
     maxTokens: 2500, budgetMs: 15500, think: 'low', hedgeMs: 6000,   // 정확도 우선: 조금 더 생각하고, 붐빌 때만 다른 모델에도 묻는다
     system: en => (en ? FRAME_EN + `Reply with ONLY one JSON object, in this order:
-{"understood": "...", "record": {changed fields only}, "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
-{"understood": "...", "record": {바뀐 칸만}, "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
+{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
+{"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
@@ -357,6 +361,7 @@ How to talk:
         (en ? 'Stage now: ' : '지금 단계: ') + (STAGE_TXT[str(b.stage, 10)] || ['-', '-'])[en ? 1 : 0] + ` (app hint — want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'})`,
         b.voice ? (en ? `The user's message came from speech recognition, so some words may be misheard${list(b.voice.alts, 3, 120).length ? ` (other guesses: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. Work out what they most likely meant from the conversation, the tea and flavor words, put the corrected sentence in "heard" (fix misheard words, drop fillers like uh/um, keep their meaning and wording, and add a question mark if it's a question — speech recognition never adds punctuation), and reply to that.` : `사용자 말은 음성 인식 결과라 잘못 들린 글자가 있을 수 있어${list(b.voice.alts, 3, 120).length ? ` (다른 후보: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. 대화 흐름·차 이름·맛 표현을 보고 원래 하려던 말을 추정해서 "heard"에 고친 문장을 넣고 (잘못 들린 말은 바로잡고, 어·음 같은 추임새는 빼고, 뜻과 말투는 그대로. 음성 인식은 문장부호를 안 붙이니 질문이면 물음표를 붙여), 그 뜻에 맞게 대답해. 물음표가 없어도 말끝(~야, ~나, ~까, ~지)과 흐름으로 질문인지 판단해. 뜻을 도저히 모르겠으면 짧게 되물어.`) : '',
         b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set record.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 record.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
+        Array.isArray(b.drop) ? (en ? 'Flavors in the drop so far: ' : '지금 찻방울에 담긴 풍미: ') + (list(b.drop, 11, 20).join(', ') || '-') + ` (${list(b.drop, 11, 20).length})` : '',
         (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
         (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
         evText || ((en ? 'The user just said: ' : '사용자가 방금 한 말: ') + `"${str(b.message, 400)}"`)].filter(Boolean).join('\n');
@@ -384,8 +389,10 @@ How to talk:
       if (step === 'drink_now' && (st === 'wait' || st === 'wait2')) step = 'brew_done';   // 우리는 중의 '이미 우렸어'는 다 우린 것과 같은 뜻
       const action = ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done' })[step] || (requests.includes('show_color') ? 'ask_color' : '');
       const heard = plain(str(j.heard, 200));
-      const sense = ['color', 'aroma', 'taste', 'after'].some(k => fill[k]);
-      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(requests.length ? { requests } : {}), ...(clear.length ? { clear } : {}), ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
+      const FLK = ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'];
+      const flavors = [...new Set((Array.isArray(j.flavors) ? j.flavors : []).filter(k => FLK.includes(k)))].slice(0, 4);
+      const sense = ['color', 'aroma', 'taste', 'after'].some(k => fill[k]) || flavors.length > 0;
+      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(requests.length ? { requests } : {}), ...(flavors.length ? { flavors } : {}), ...(clear.length ? { clear } : {}), ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
     },
   },
   identify: {
@@ -620,6 +627,7 @@ const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + un
         mood: { type: 'STRING' }, scene: { type: 'STRING' }, why: { type: 'STRING' }, origin: { type: 'STRING' }, temp: { type: 'STRING' }, time: { type: 'STRING' }, memo: { type: 'STRING' },
         unknown: { type: 'ARRAY', items: { type: 'STRING' } },
         clear: { type: 'ARRAY', items: { type: 'STRING' }, description: 'record fields to erase so the user can say them again' },
+        flavors: { type: 'ARRAY', items: { type: 'STRING', enum: ['floral', 'fruity', 'citrus', 'vegetal', 'fresh', 'nutty', 'sweet', 'earthy', 'spicy', 'soft', 'astringent'] }, description: 'flavor families the user\'s last words evoke (metaphors included) — they become the drop colors' },
         requests: { type: 'ARRAY', items: { type: 'STRING', enum: ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide'] }, description: 'things the app should do now' },
         step: { type: 'STRING', enum: LIVE_STEPS },
       },
@@ -630,13 +638,13 @@ function liveSystem(en) {
   return en
     ? FRAME_EN + `
 [Real-time voice]
-You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, clear, unknown, requests and step are what you send with the update_record tool.
-Whenever something is recorded, there are requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
+You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, flavors, clear, unknown, requests and step are what you send with the update_record tool.
+Whenever something is recorded, there are flavors, requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
 The user may speak casually or unclearly; work out what they mean from context.`
     : FRAME_KO + `
 [실시간 음성]
-실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·clear·unknown·requests·step은 update_record 도구로 보내는 값이야.
-기록할 것이 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
+실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·flavors·clear·unknown·requests·step은 update_record 도구로 보내는 값이야.
+기록할 것이나 flavors가 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
 사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
 }
 async function liveProxy(req, env, okOrigin) {
