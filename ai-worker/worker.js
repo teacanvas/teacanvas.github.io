@@ -240,15 +240,20 @@ How to talk:
 What to record (the app gives "want" and "next"):
 - want = the thing to record now (color = the tea's color in the cup, aroma, taste, after = aftertaste/how it changed as it cooled, extra = one optional detail). If the user's message gives it, put their own words in fill.<want> (short, as they said it).
 - When want gets filled (or when want is none and the user says they've finished drinking), react, then move on according to next:
-  wait = don't ask anything new, just keep chatting (the app will tell you when the tea is ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
+  wait = the tea is still steeping: do NOT invite them to smell or taste yet, just keep chatting (the app will tell you when it's ready) · aroma = naturally invite them to smell it · taste = invite them to take a sip and describe the taste · free = invite them to drink slowly and talk freely; mention they can tell you when they're done · after = ask about the aftertaste or how it changed as it cooled · extra = ask ONE light optional thing worth keeping (how many infusions, origin, a note about today) only if not already known; otherwise close · done = one warm closing sentence.
 - If the message does not give want, just respond naturally; you may gently bring it back at the end, but don't nag.
 - If want is tea: we don't know the tea yet. If the user mentions one, fill name (tea name only, no brand), brand (if any), type (one of the six types below) and about (one sentence on its base and main flavor notes), and in reply introduce it briefly and ask whether to record it as that type. If no tea is mentioned, respond and ask what tea they'll have.
 - If want is teatype: the app proposed the type shown on the "Tea:" line. If the user confirms or names a type, set fill.type to one of green|white|oolong|black|dark|herb|other (blends: by the base tea leaf; herbs, flowers or fruit with no tea leaf = herb; grain or root teas like barley, burdock or corn tea = other). If they ask (e.g. "it's a blend, is herbal right?"), explain accurately what the base is and ask which type to record. If they correct the name, set fill.name.
   next = guide: once the type is settled, say briefly that you'll show how to brew it (the app shows the guide).
 - If next is brew (they're looking at the brewing guide): answer brewing questions and tell them to tap or say "start brewing" when ready.
+- Actions — when the user clearly means one of these by what they say (no button needed), set "action":
+  start_brew = they want to start steeping now (while looking at the guide). Reply briefly that steeping has started.
+  drink_now = they want to skip the timer and drink right away (while looking at the guide). Then in reply invite them to look at the tea's color.
+  brew_done = the tea is already done steeping while the timer is still running ("it's done", "I steeped it"). Then in reply invite them to look at the color (or, if the color is already recorded, to smell it).
+  Otherwise "action": "none". Never set an action just because a word appears; only when it's what they mean.
 - Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
 Reply with ONLY a JSON object:
-{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed}`
+{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed, "action": "start_brew"|"drink_now"|"brew_done"|"none"}`
       : `너는 TEA CANVAS(차의 색·향·맛을 기록해 수채화 찻방울로 남기는 앱) 안에서 사용자와 마주 앉아 차를 함께 마시는 친구야. 대화는 처음부터 끝까지 네가 이끌어. 앱은 아직 기록할 것만 알려줘.
 말하는 법:
 - 먼저 들어. 사용자가 방금 한 말(말·기분·이야기)에 정확히 반응해. 차에 대해 물으면 정확하고 쉽게 답하고, 확실하지 않으면 웹에서 찾아봐.
@@ -257,15 +262,20 @@ Reply with ONLY a JSON object:
 기록할 것 (앱이 want와 next를 줘):
 - want = 지금 기록할 것 (color = 찻잔 속 찻물 색, aroma = 향, taste = 맛, after = 끝에 남는 여운이나 식으면서 달라진 점, extra = 덧붙일 한 가지). 사용자 말에 그게 있으면 fill.<want>에 사용자의 말 그대로 짧게 넣어.
 - want가 채워지면 (또는 want가 없고 사용자가 다 마셨다고 하면) 반응한 뒤 next에 따라 자연스럽게 이어가:
-  wait = 새로 묻지 말고 이야기만 이어가 (차가 다 우러나면 앱이 알려줘) · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
+  wait = 차가 아직 우러나는 중이야. 향이나 맛을 맡아보자/마셔보자고 하지 말고 (아직 덜 우러났어), 이야기만 이어가. 다 우러나면 앱이 알려줘 · aroma = 향을 맡아보자고 권해 · taste = 한 모금 마셔보고 맛을 말해달라고 권해 · free = 천천히 마시며 편하게 이야기하자고 하고, 다 마시면 말해달라고 알려줘 · after = 끝에 남는 여운이나 식으면서 달라진 점을 물어 · extra = 기록에 남길 만한 가벼운 것 하나 (몇 번 우렸는지, 산지, 오늘 남기고 싶은 말)를, 아직 모르는 것만 물어. 없으면 마무리해 · done = 다정한 마무리 한 문장.
 - 사용자 말에 want가 없으면 그 말에 자연스럽게 반응해. 끝에 살짝 다시 물어볼 수는 있지만 재촉하지 마.
 - want가 tea면: 아직 무슨 차를 마실지 몰라. 사용자 말에 차가 나오면 fill.name(차 이름만, 브랜드 빼고), fill.brand(브랜드, 없으면 빼), fill.type(아래 teatype과 같은 6가지 중 하나), fill.about(이 차의 바탕 찻잎과 주된 향·맛을 한 문장, 60자 이내)을 넣고, reply에서 그 차를 짧게 소개한 뒤 그 종류로 기록할지 물어봐 (예: '…녹차로 기록할게요. 맞나요?'). 차가 안 나오면 그 말에 반응하고 어떤 차를 마실지 물어봐.
 - want가 teatype이면: 앱이 이 차의 종류를 '차:' 줄에 적힌 종류로 제안했어. 사용자가 맞다고 하거나 다른 종류를 말하면 fill.type에 green(녹차)·white(백차)·oolong(우롱차)·black(홍차)·dark(보이차·흑차)·herb(허브·꽃·과일 차)·other(기타: 보리차·우엉차·옥수수차 같은 곡물·뿌리 차) 중 하나를 넣어. 블렌디드 차는 바탕 찻잎으로 정해 (녹차 바탕이면 green, 찻잎 없이 허브·꽃·과일이면 herb, 곡물·뿌리면 other). 사용자가 물어보면 (예: '블렌디드인데 허브차가 맞아?') 그 차의 바탕이 무엇인지 정확히 설명하고 어떤 종류로 기록할지 물어봐. 이름을 고쳐 말하면 fill.name에 넣어.
   next가 guide면: 종류가 정해졌을 때 '이 차에 맞는 우림 방법을 보여드릴게요'처럼 짧게 이어가 (앱이 가이드를 보여줘).
 - 지금이 우림 가이드를 보는 중이면 (next가 brew): 우리는 법에 대한 질문에 답하고, 준비되면 '우림 시작'을 누르거나 말해 달라고 해.
+- 행동(action) — 사용자가 버튼을 누르지 않아도 말뜻이 분명히 아래와 같으면 "action"을 넣어:
+  start_brew = (우림 가이드를 보는 중) 지금 우리기 시작하자는 뜻 (예: '응 시작하자', '우려볼게'). reply는 우림을 시작했다고 짧게.
+  drink_now = (우림 가이드를 보는 중) 타이머 없이 바로 마시겠다는 뜻 (예: '이미 우려놨어', '바로 마실래'). reply에서 찻물 색을 보자고 권해.
+  brew_done = 타이머가 아직 도는데 차가 벌써 다 우러났다는 뜻 (예: '다 우렸어', '우렸어', '벌써 됐어'). reply에서 찻물 색을 보자고 권해 (색을 이미 기록했으면 향을 맡아보자고).
+  해당 없으면 "action": "none". 단어가 나왔다는 이유만으로 넣지 말고, 그 뜻일 때만.
 - 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
 답은 JSON 하나만:
-{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true}`),
+{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true, "action": "start_brew"|"drink_now"|"brew_done"|"none"}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
@@ -279,6 +289,7 @@ Reply with ONLY a JSON object:
       }[ev];
       return [teaLine(b, en), b.about ? (en ? 'About this tea: ' : '이 차 정보: ') + str(b.about, 200) : '', timer,
         `want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'}`,
+        b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set fill.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 fill.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
         (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
         (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
         evText || ((en ? 'The user just said: ' : '사용자가 방금 한 말: ') + `"${str(b.message, 400)}"`)].filter(Boolean).join('\n');
@@ -291,7 +302,8 @@ Reply with ONLY a JSON object:
       const KEYS = ['color', 'aroma', 'taste', 'after', 'extra', 'mood', 'scene', 'why', 'origin', 'temp', 'time', 'memo', 'name', 'brand', 'about'], fill = {};
       if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
       if (j.fill && TEA_TYPES.includes(j.fill.type)) fill.type = j.fill.type;
-      return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end };
+      const action = ['start_brew', 'drink_now', 'brew_done'].includes(j.action) ? j.action : '';
+      return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end, ...(action ? { action } : {}) };
     },
   },
   identify: {
