@@ -15,7 +15,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
     const heard=q.voice?m.replace('재주','제주'):undefined;
     if(q.want==='tea') return J({reply:'(AI) 제주 세작을 찾아봤어요. 녹차로 기록할게요. 맞나요?',fill:{name:'제주 세작',brand:'오설록',type:'green'},heard});
     return J({reply:`(AI) ${m}`,fill:{},heard}); });
-  await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>{ startRecord(); }); await p.waitForTimeout(300); await p.evaluate(()=>toggleVoice());
+  await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>{ PREF.liveVoice=false; startRecord(); }); await p.waitForTimeout(300); await p.evaluate(()=>toggleVoice());   // 이 시험은 기본 음성 대화
   const waitListen=()=>p.waitForFunction(()=>!!window.__active,null,{timeout:6000});
   await waitListen(); await p.evaluate(()=>__say('오설록 재주 세작 마실게')); await p.waitForTimeout(1200);
   const me1=await p.evaluate(()=>S.draft.chat.find(m=>m.who==='me'));
