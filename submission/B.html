@@ -473,6 +473,7 @@ canvas.wcd.big{margin:14px auto}
 .vpanel .vstate{text-align:center;font-size:12.5px;color:#666;margin:0}
 .vpanel .heard{text-align:center;font-size:17px;font-weight:600;line-height:1.45;margin-top:4px;min-height:25px;color:#111}
 .vstop{position:absolute;right:22px;bottom:14px;width:46px;height:46px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
+.camview{position:absolute;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;animation:fade .2s}.camview video{flex:1;min-height:0;width:100%;object-fit:cover;background:#000}.cam-tip{position:absolute;top:18px;left:0;right:0;text-align:center;color:#fff;font-size:14px;opacity:.85;margin:0;padding:0 16px}.cambar{display:flex;justify-content:space-around;align-items:center;padding:18px 0 calc(26px + env(safe-area-inset-bottom))}.cambar button{background:none;border:0;color:#fff;font-size:16px;min-width:64px;min-height:44px}.cambar .cam-shot{width:70px;height:70px;min-width:70px;border-radius:50%;background:#fff;border:5px solid #8a8a8a;outline:3px solid #fff}
 .actmenu{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 14px;animation:fade .2s}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button.danger{color:#D6453D}.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
@@ -2758,6 +2759,7 @@ if(!PREF.voiceGender) PREF.voiceGender=PREF.aiVoice==='Umbriel'?'male':'female';
 if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
 Object.assign(EN,{
+ "차 포장의 글자가 잘 보이게 찍어 주세요":"Make the text on the package easy to read","찍기":"Shoot","앨범":"Album","카메라를 열 수 없어 휴대폰 카메라로 찍을게요":"Can't open the camera here, using the phone camera","사진을 찍지 못했어요":"Couldn't take the photo",
  "이 기간에는 찍은 찻방울이 없어요":"No drops in this period",
  "껍질째 우러난 상큼한 시트러스 향에 새콤달콤한 맛이 어우러지는, 산뜻하고 따뜻한 과일차예요.":"A bright, warm fruit tea: zesty citrus from the peel with a sweet-tart taste.",
  "볶은 뿌리의 구수하고 흙내음 섞인 향에 순하고 담백한 맛이 이어지는 차예요.":"Roasted root with a toasty, earthy aroma and a mild, clean taste.",
@@ -2865,7 +2867,20 @@ function openSettings(k){
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
     <div style="height:18px"></div><button class="btn" onclick="${k==='account'?"PREF.name=$('#prefName').value.trim();savePref();":''}closeSheet();rerender();toast('설정을 저장했어요')">확인</button>`); }
-function pickPhoto(cb,extra=[]){ actMenu([['사진 찍기',()=>pickFile(cb,true)],['앨범에서 고르기',()=>pickFile(cb,false)],...extra]); }
+function pickPhoto(cb,extra=[]){ actMenu([['사진 찍기',()=>openCamera(cb)],['앨범에서 고르기',()=>pickFile(cb,false)],...extra]); }
+/* 앱 안에서 바로 찍기: 카메라 앱으로 넘어가면 메모리가 부족한 폰에서 브라우저가 정리돼 사진을 잃는다
+   ("메모리가 부족해 이전 작업을 완료할 수 없음") → 화면 안 카메라로 찍는다. 안 되면 예전 방식(카메라 앱) */
+function openCamera(cb){ if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)) return pickFile(cb,true);
+  const w=document.createElement('div'); w.className='camview';
+  w.innerHTML=`<video playsinline autoplay muted></video><p class="cam-tip">${L('차 포장의 글자가 잘 보이게 찍어 주세요')}</p><div class="cambar"><button class="cam-x">${L('취소')}</button><button class="cam-shot" aria-label="${L('찍기')}"></button><button class="cam-alb">${L('앨범')}</button></div>`;
+  $('#sheetWrap').parentNode.appendChild(w); const v=w.querySelector('video'); let stream=null, gone=false;
+  const close=()=>{ gone=true; try{ stream&&stream.getTracks().forEach(t=>t.stop()); }catch(e){} w.remove(); };
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:1280}},audio:false})
+    .then(st=>{ if(gone){ st.getTracks().forEach(t=>t.stop()); return; } stream=st; v.srcObject=st; v.play&&v.play().catch(()=>{}); })
+    .catch(()=>{ if(gone) return; close(); toast('카메라를 열 수 없어 휴대폰 카메라로 찍을게요'); pickFile(cb,true); });
+  w.querySelector('.cam-x').onclick=close; w.querySelector('.cam-alb').onclick=()=>{ close(); pickFile(cb,false); };
+  w.querySelector('.cam-shot').onclick=()=>{ if(!v.videoWidth) return; const k=Math.min(1,720/Math.max(v.videoWidth,v.videoHeight)), c=document.createElement('canvas'); c.width=Math.round(v.videoWidth*k); c.height=Math.round(v.videoHeight*k);
+    c.getContext('2d').drawImage(v,0,0,c.width,c.height); let u=''; try{ u=c.toDataURL('image/jpeg',.82); }catch(e){} close(); if(u) cb(u); else toast('사진을 찍지 못했어요'); }; }
 /* 작은 선택 창(시트 위에 한 겹 더) */
 function actMenu(items){ const w=document.createElement('div'); w.className='actmenu'; w.innerHTML=`<div class="am">${items.map((x,i)=>`<button data-i="${i}" class="${x[2]||''}">${x[0]}</button>`).join('')}</div><button class="am-x">취소</button>`;
   w.onclick=e=>{ const b=e.target.closest('button'); if(e.target===w||b){ w.remove(); if(b&&b.dataset.i) items[+b.dataset.i][1](); } }; $('#sheetWrap').parentNode.appendChild(w); }
