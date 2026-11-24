@@ -1033,7 +1033,9 @@ function render(keepScroll){
   const fn=SCREENS[cur.name];
   try{
     if(!fn) throw new Error('없는 화면: '+cur.name);
+    const ci=$('#chatIn'), keep=ci&&cur.name==='chat'?{v:ci.value,f:document.activeElement===ci,a:ci.selectionStart,b:ci.selectionEnd}:null;   // 화면을 다시 그려도 치고 있던 글은 그대로 (앱이 슬라이더 등을 띄울 때 지워지지 않게)
     view.innerHTML=`<div class="scr scr-${cur.name} ${keepScroll?'':'in-'+NAV_DIR}">${fn(cur.params||{})}</div>`;
+    if(keep&&keep.v){ const n=$('#chatIn'); if(n){ n.value=keep.v; try{ syncSend(); }catch(e){} if(keep.f){ n.focus({preventScroll:true}); try{ n.setSelectionRange(keep.a,keep.b); }catch(e){} } } }
     view.scrollTop = keepScroll ? top : 0;
     const tab = cur.name in TAB_OF ? TAB_OF[cur.name] : 'home';
     document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));

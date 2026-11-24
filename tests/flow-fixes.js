@@ -74,6 +74,10 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.waitForTimeout(900);
   R['다시 AI']=()=>({reply:'네, 들었어요.',fill:{},step:'stay'}); await say('다시 AI가 받아줘');
   ok(await E(()=>/AI 대화/.test(document.querySelector('#aiBadge').textContent)),'다음 말을 AI가 받으면 다시 "AI 대화"');
+  // 치고 있던 글: 앱이 화면을 다시 그려도(슬라이더를 띄우는 등) 지워지지 않음
+  await p.fill('#chatIn','쓰고 있던 말'); await p.focus('#chatIn');
+  ok(await E(()=>{ S.draft.stage='color'; S.ask={hd:[.4,.3],sel:[]}; S.draft.chat.push({who:'bot',text:'찻물 색은 어때요?',ask:'color'}); rerender(); const i=document.querySelector('#chatIn'); return i.value==='쓰고 있던 말'&&document.activeElement===i&&!!document.querySelector('#askW.tc'); }),'슬라이더가 떠도 치고 있던 글과 커서는 그대로');
+  await p.fill('#chatIn','');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
