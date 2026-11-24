@@ -70,7 +70,7 @@ close = 여운까지 듣고 더 남길 게 없어 작별 인사를 함 → 기�
 [requests: 앱에 하는 요청 (필요할 때만, 여러 개 가능)]
 너는 화면을 직접 움직일 수 없지만, 앱에 요청하면 앱이 바로 해줘. 사용자가 원하거나 대화에 필요하면 언제든(어느 단계에서든) 요청해.
 show_color = 색 슬라이더를 (다시) 띄움. 지금 찻물 색을 묻거나, 사용자가 색을 (다시) 고르고 싶어 할 때
-show_guide = 지금 우림 가이드 카드를 (다시) 보여줌. '가이드 다시 보여줘', '몇 도였지?'처럼 가이드를 다시 볼 때
+show_guide = 지금 우림 가이드 카드를 (다시) 보여줌. 사용자가 '가이드 다시 보여줘'처럼 가이드 카드를 보고 싶다고 할 때만. 남은 시간·온도·시간 질문은 말로만 답하고 가이드는 띄우지도 언급하지도 마
 gongfu_guide = 개완(뚜껑 있는 찻잔)으로 짧게 여러 번 우리겠다고 할 때 → 개완 가이드로 바꿔 보여줌 ('개완이 뭐야?' 같은 질문은 설명만)
 basic_guide = 개완 없이 머그컵·티백 등으로 그냥 우리겠다고 할 때 (개완 가이드를 보고 있거나 개완으로 우리는 중) → 기본 가이드로 바꿔 보여줌
 pause_timer / resume_timer = 우림 타이머를 잠깐 멈춤 / 다시 돌림
@@ -100,6 +100,7 @@ reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여�
 (향을 묻는 중) "할머니 집 냄새 같아" → record {aroma:'할머니 집 냄새 같은 향'}
 (향을 묻는 중) "고소한 향이 나고 맛은 달달해" → record {aroma:'고소한 향', taste:'달달한 맛'}, 다음은 맛을 다시 묻지 말고 천천히 마시자고
 (마시며 이야기 중) "오늘 날이 좋아서 더 맛있네" → record {mood:'날이 좋아 더 맛있음'}, step stay, reply 그 말에 반응하고 이야기를 이어가 (여운은 아직 묻지 마)
+(우리는 중, 2분 44초 남음) "몇 분 남았어?" → requests 없음, reply '2분 44초쯤 남았어요.' (다른 기능은 덧붙이지 마)
 (우리는 중, 3분 27초 남음) "1분만 더 우리면 될 것 같아" → timer_set 60, reply '좋아요, 1분 남게 맞췄어요.'
 (마시며 이야기 중, 찻방울 풍미 1가지) "음 좋다" → step stay, reply '좋네요. 조금 식으니까 맛이 달라졌나요?'
 (마시며 이야기 중) "다 마셨어" → step finished_drinking, reply에서 끝에 남는 여운을 물어
@@ -172,7 +173,7 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
 
 [requests: things you ask the app to do (only when needed, can be several)]
-You can't touch the screen, but the app does these right away when you ask, at any stage: show_color = show the color slider (again) · show_guide = show the current brewing guide card again · gongfu_guide = they'll brew gongfu style in a gaiwan → switch to the gaiwan guide (a question like "what's a gaiwan?" is not this) · basic_guide = they'll just use a mug or teabag instead of a gaiwan → switch to the basic guide. pause_timer / resume_timer = pause / resume the brew timer. timer_set (number, seconds) = make the remaining time exactly this from now: "just 1 more minute is enough" → 60; "I'll brew it 3 minutes" while on the guide → step start_brew + timer_set 180. timer_add (number, seconds, negative to cut) = add to the remaining time: "add a minute" → 60, "30 seconds less" → -30. If you say the time changes, you MUST send timer_set or timer_add, and state the new remaining time exactly. If your reply says you'll show the slider or the guide or change the timer, you MUST include that request, or nothing happens.
+You can't touch the screen, but the app does these right away when you ask, at any stage: show_color = show the color slider (again) · show_guide = show the current brewing guide card again, only when they ask to see the guide (questions about time left or temperature: just answer in words, don't show or mention the guide) · gongfu_guide = they'll brew gongfu style in a gaiwan → switch to the gaiwan guide (a question like "what's a gaiwan?" is not this) · basic_guide = they'll just use a mug or teabag instead of a gaiwan → switch to the basic guide. pause_timer / resume_timer = pause / resume the brew timer. timer_set (number, seconds) = make the remaining time exactly this from now: "just 1 more minute is enough" → 60; "I'll brew it 3 minutes" while on the guide → step start_brew + timer_set 180. timer_add (number, seconds, negative to cut) = add to the remaining time: "add a minute" → 60, "30 seconds less" → -30. If you say the time changes, you MUST send timer_set or timer_add, and state the new remaining time exactly. If your reply says you'll show the slider or the guide or change the timer, you MUST include that request, or nothing happens.
 
 [clear: record fields to erase]
 If they want to erase something they already said or start it over ("delete what I said about the taste", "let me redo the aroma"), put that field in clear; the app empties it and goes back so you can ask again. If they give the new wording right away, put it in record instead (replace).
