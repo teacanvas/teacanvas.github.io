@@ -1962,6 +1962,7 @@ function appMemoryText(){ const m=appMemory(); return `[앱 정보] 사용자의
 /* Gemini가 우림 타이머를 바꿔 달라고 하면: 남은 시간 바꾸기(timer_set, 초) · 멈추기 · 다시 돌리기 */
 function flowTimer(j){ const t=S.timer, req=Array.isArray(j&&j.requests)?j.requests:[], n=Number(j&&j.timer_set); if(!t) return false; let ch=false;
   if(Number.isFinite(n)&&n>0){ const done=t.total-t.left; t.left=Math.round(n); t.total=done+t.left; t.running=true; ch=true; }
+  const add=Number(j&&j.timer_add); if(!(n>0)&&Number.isFinite(add)&&add){ const done=t.total-t.left; t.left=Math.max(5,Math.round(t.left+add)); t.total=done+t.left; t.running=true; ch=true; }   // '1분 늘려줘' → 더하기
   if(req.includes('pause_timer')&&t.left>0){ t.running=false; ch=true; } if(req.includes('resume_timer')&&t.left>0){ t.running=true; ch=true; }
   if(ch) try{ paintTimer(); }catch(e){} return ch; }
 /* Gemini의 다음 동작(step). 예전 모양(action·finish·end)으로 와도 같은 뜻으로 */

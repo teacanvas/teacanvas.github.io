@@ -8,7 +8,7 @@ const H = (...xs) => xs.map((t, i) => ({ who: i % 2 ? 'me' : 'bot', text: t }));
 const filled = (o = {}) => o;
 
 // 결과를 한 모양으로: {reply, set:{칸:값}, ui, finish, end}
-const norm = j => j ? ({ reply: j.reply || '', set: j.fill || j.set || {}, ui: j.action || j.ui || 'none', step: j.step || '', requests: j.requests || [], clear: j.clear || [], flavors: j.flavors || [], timer_set: j.timer_set || 0, finish: !!j.finish, end: !!j.end }) : null;
+const norm = j => j ? ({ reply: j.reply || '', set: j.fill || j.set || {}, ui: j.action || j.ui || 'none', step: j.step || '', requests: j.requests || [], clear: j.clear || [], flavors: j.flavors || [], timer_set: j.timer_set || 0, timer_add: j.timer_add || 0, finish: !!j.finish, end: !!j.end }) : null;
 const has = (r, k) => !!(r.set[k] && String(r.set[k]).trim());
 
 const CASES = [
@@ -51,6 +51,7 @@ const CASES = [
   { id: '보리밭 → 고소함', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '먼가 달큰해 황금빛 보리밭에 있는 거 같아', filled: { color: '연두색', aroma: '꽃향' } }, ok: r => r.flavors.includes('nutty') && r.flavors.includes('sweet') },
   { id: '풍미 적으면 더 물어봄', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '음 좋다', drop: ['단맛'], filled: { color: '연두색', taste: '단맛' } }, ok: r => /[?？]/.test(r.reply) && !r.finish },
   { id: '1분만 더 우리기', tea: GREEN, b: { stage: 'wait2', want: '', next: 'wait', message: '내가 볼땐 1분만 더 우리면 되겠는데 우림시간 바꿀 수 있어?', timer: { left: 207, total: 420, running: true }, filled: { color: '주황빛' } }, ok: r => r.timer_set >= 50 && r.timer_set <= 70 },
+  { id: '시간 늘려줘', tea: GREEN, b: { stage: 'wait2', want: '', next: 'wait', message: '우림 시간 2분 늘려줘', timer: { left: 100, total: 420, running: true }, filled: { color: '주황빛' } }, ok: r => r.timer_add >= 110 && r.timer_add <= 130 || r.timer_set >= 210 && r.timer_set <= 230 },
   { id: '남은 시간 물어보기', tea: GREEN, b: { stage: 'wait2', want: '', next: 'wait', message: '지금 우림 시간 몇분 남았어?', timer: { left: 203, total: 420, running: true }, filled: { color: '주황빛' } }, ok: r => /3\s*분/.test(r.reply) && !r.timer_set },
   { id: '3분만 우릴게', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '나는 3분만 우릴게 시작하자', guide: { temp: '80°C', time: '2 – 3분' } }, ok: r => r.ui === 'start_brew' && r.timer_set >= 170 && r.timer_set <= 190 },
   { id: '기억은 풍미 아님', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '작년 겨울에 마셨었는데 그때 겨울의 기억이 떠올라', drop: ['단맛', '꽃향'], filled: { color: '연두색', aroma: '꽃향', taste: '단맛' } }, ok: r => r.flavors.length === 0 },

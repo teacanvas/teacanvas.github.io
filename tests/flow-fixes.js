@@ -87,6 +87,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['다시 돌려']=()=>({reply:'다시 돌릴게요.',fill:{},step:'stay',requests:['resume_timer']}); await say('다시 돌려줘');
   ok(await E(()=>S.timer.running===true),'"다시 돌려줘" → 타이머 다시');
   ok(await E(()=>{ const t=S.timer.left; liveTool({timer_set:90}); return S.timer.left===90; }),'음성도 timer_set → 남은 시간 바꿈');
+  ok(await E(()=>{ const t=S.timer.left; liveTool({timer_add:60}); return S.timer.left===t+60; }),'timer_add → 남은 시간에 더하기 ("1분 늘려줘")');
   // 풍미를 억지로 뽑지 않음: Gemini가 '감각 묘사 없음'(빈 flavors)이라 하면, 앱 낱말 사전으로 덧칠하지 않는다
   await E(()=>{ const d=S.draft; d.stage='free'; S.timer=null; });
   R['작년 겨울']=()=>({reply:'그때의 기억이 떠오르는군요.',fill:{memo:'작년 겨울의 기억'},step:'stay'}); await say('작년 겨울에 마셨던 기억이 떠올라');
