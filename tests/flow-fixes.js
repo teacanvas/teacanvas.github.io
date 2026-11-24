@@ -92,6 +92,12 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   R['작년 겨울']=()=>({reply:'그때의 기억이 떠오르는군요.',fill:{memo:'작년 겨울의 기억'},step:'stay'}); await say('작년 겨울에 마셨던 기억이 떠올라');
   R['마음이 편']=()=>({reply:'편안해지셨다니 좋네요.',fill:{mood:'편안함'},step:'stay'}); await say('따뜻하고 마음이 편안해져');
   ok(await E(()=>{ const ms=S.draft.chat.filter(m=>m.who==='me'&&/작년 겨울|마음이 편안/.test(m.text)); return ms.length===2&&ms.every(m=>Array.isArray(m.fl)&&!m.fl.length); }),'기억·기분 이야기는 찻방울 색을 만들지 않음 ("따뜻·편안" 낱말 사전으로 덧칠 안 함)');
+  // 앱 전체를 Gemini가 알게: 지난 기록 요약을 보내고, 지금 기록의 차 정보는 어느 단계에서든 고칠 수 있음
+  let sent=null; R['지난번']=q=>{ sent=q.memory; return {reply:'지난번엔 철관음을 드셨어요.',fill:{},step:'stay'}; }; await say('내가 지난번에 마신 차가 뭐였지?');
+  ok(sent&&sent.total>0&&Array.isArray(sent.records)&&sent.records[0].name&&/향 .+·맛 /.test(sent.records.find(r=>r.pos).pos),'Gemini에게 지난 기록 요약(이름·종류·풍미·캔버스 위치·별점)을 보냄');
+  R['우롱차였어']=()=>({reply:'우롱차로 고쳤어요.',fill:{type:'oolong',name:'동방미인'},step:'stay'}); await say('아 이거 사실 동방미인이라는 우롱차였어');
+  ok(await E(()=>S.draft.type==='oolong'&&S.draft.name==='동방미인'),'기록 중 어느 단계에서든 차 이름·종류를 고침');
+  ok(await E(()=>/지난 기록/.test(appMemoryText())&&/★|향 /.test(appMemoryText())),'실시간 음성에도 보낼 지난 기록 글');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

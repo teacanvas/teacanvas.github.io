@@ -20,7 +20,7 @@
    실패하면 {error}와 함께 4xx/5xx → 앱은 정해진 대답으로 넘어간다. */
 
 const DEFAULT_ORIGINS = ['https://teacanvas.github.io', 'null', 'http://localhost', 'http://127.0.0.1'];
-const MAX_BODY = 24000;            // 요청 크기 상한 (글자)
+const MAX_BODY = 40000;            // 요청 크기 상한 (글자)
 const TEA_TYPES = ['green', 'white', 'oolong', 'black', 'dark', 'herb', 'other'];   // other = 기타 (보리차·우엉차 같은 곡물·뿌리 차)
 const TYPE_KO = { green: '녹차', white: '백차', oolong: '우롱', black: '홍차', dark: '보이|흑차', herb: '허브', other: '기타' };
 const typeCode = v => { v = String(v || '').trim().toLowerCase(); if (TEA_TYPES.includes(v)) return v; return TEA_TYPES.find(k => new RegExp(TYPE_KO[k]).test(v)) || ''; };   // 'green' 또는 '녹차' → green
@@ -41,7 +41,8 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
 [판단 원칙]
 1. 먼저 사용자가 방금 한 말의 뜻을 대화 흐름 속에서 파악해 understood에 한 줄로 적어.
 2. record에는 사용자가 실제로 말한 것만, 사용자의 말을 살려 짧게 넣어. 추측·질문·잡담·인사·맞장구('ㅇㅇ', '응')는 기록이 아니야. '모르겠어', '글쎄', '딱히'는 그 칸을 채우지 말고 unknown에 칸 이름을 넣어.
-3. 이미 기록된 칸에 덧붙이면 합친 전체 값을(예: '은은한 꽃향' + '끝에 꿀 향' → '은은한 꽃향, 끝에 꿀 향'), 고치면 새 값을 넣어.
+3. 지금 기록 중인 한 잔은 네가 바꿀 수 있어. 어느 단계에서든 사용자가 차 이름·브랜드·종류를 고치면('아 이거 우롱차였어', '이름이 동방미인이야') record.name·brand·type에 넣어. 앱에 바로 반영돼.
+   이미 기록된 칸에 덧붙이면 합친 전체 값을(예: '은은한 꽃향' + '끝에 꿀 향' → '은은한 꽃향, 끝에 꿀 향'), 고치면 새 값을 넣어.
 4. 한 말에 여러 칸이 들어 있으면 모두 기록해. 지금 묻는 칸이 아니어도 돼(예: 향을 물었는데 맛까지 말하면 aroma와 taste 둘 다). 단, after는 다 마신 뒤에만.
 5. 색은 찻물 색을 말할 때만. 고양이·컵 같은 다른 것의 색은 아니야.
 6. 차 종류는 바탕 찻잎으로 정해. 녹차·홍차 잎에 과일·꽃 향을 입힌 가향차·블렌드는 그 찻잎 종류야(기타 아님). 찻잎이 들어갔는지 확실하지 않으면 웹에서 확인하거나 사용자에게 물어봐.
@@ -97,6 +98,34 @@ reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여�
 (여운을 들은 뒤) "아니 없어 이제 끝낼게" → step close, reply 다정한 작별 인사
 
 `;
+/* 사용자의 지난 기록 요약(앱이 보냄) → 한 줄씩. 지난 기록·취향에 대한 질문에 답할 수 있게 */
+const memLine = (b, en) => { const m = b.memory && typeof b.memory === 'object' ? b.memory : null; if (!m || !Array.isArray(m.records)) return '';
+  const rows = m.records.slice(0, 30).map(r => [str(r.date, 12), str(r.name, 30) + (r.brand ? `(${str(r.brand, 20)})` : ''), str(r.type, 10), list(r.flavors, 4, 12).join('·'), str(r.pos, 30), r.stars ? '★' + (r.stars | 0) : '', r.comment ? `"${str(r.comment, 50)}"` : ''].filter(Boolean).join(' / '));
+  return (en ? `User's past records (${m.total | 0} total, newest first; date / tea / type / flavors / canvas: aroma·taste liking / stars / comment):\n` : `사용자의 지난 기록 (전체 ${m.total | 0}잔, 최근 순; 날짜 / 차 / 종류 / 풍미 / 캔버스: 향·맛 호감 / 별점 / 코멘트):\n`) + (rows.join('\n') || '-') + (m.fav ? (en ? `\nMy taste drop: ${str(m.fav, 80)}` : `\n나의 취향 찻방울: ${str(m.fav, 80)}`) : ''); };
+const APP_GUIDE_KO = `
+[앱 설명서: 사용자가 앱에 대해 물으면 이걸로 정확히 답해]
+- 아래 탭: Home(오늘의 3D 찻방울, '새로운 티 테이스팅 기록하기' 버튼) · Canvas · My.
+- 기록하는 흐름: 이 대화(차 이름·종류 → 우림 가이드·타이머 → 찻물 색 → 향 → 맛 → 천천히 마시며 이야기 → 여운) → '기록 마치고 정리하기' → 찻방울 완성(사용자 표현이 풍미 색으로 스며듦) → 비교 화면(이 차의 전문가 설명, 공통점·차이점, AI 해석, 나만의 표현) → 캔버스에 찍기 → 별점·한 줄 코멘트·사진 → 저장.
+- 찻방울: 한 잔의 기록. 사용자가 말한 향·맛 표현을 11가지 풍미 계열의 색으로 담은 수채화 방울이야. 많이 말한 풍미일수록 크게 번져.
+- 캔버스: 모든 기록을 한 장에 찍은 지도. 가로는 '마시기 전 향'(오른쪽일수록 향이 좋았음), 세로는 '마신 뒤 맛'(위쪽일수록 맛이 좋았음). 찍을 때 길게 누를수록 진하게 찍혀(그만큼 강한 인상). 위에 기간(전체·1개월·3개월·올해·달력)을 고를 수 있고, 방울을 누르면 그 기록이 열려.
+- 나의 취향 찻방울: 캔버스 오른쪽 위(향도 맛도 좋았던 차)의 풍미를 모아 만든 방울. 그 풍미로 닮은 차를 추천해. 누르면 다시 번져.
+- Canvas 탭의 '기록': 기록 목록. 이름 검색, 차 종류·풍미·기간 필터. 상세 기록에서 별점·코멘트·사진·풍미를 고치거나 기록을 지울 수 있어.
+- My: 프로필, 마신 차 종류(종류별 잔 수), 설정(AI 대화/자동 대화, 목소리 여자/남자, 실시간 음성 등).
+- 음성 모드: 입력칸 옆 마이크. 실시간 음성(Gemini Live)이나 기본 음성으로 같은 대화를 말로 해.
+- 지난 기록은 읽기만 할 수 있어. 고치고 싶다고 하면 Canvas → 기록 → 그 기록의 상세에서 직접 고칠 수 있다고 안내해. 지금 기록 중인 한 잔은 네가 record·clear·requests로 바꿀 수 있어.
+- 지난 기록을 물으면('지난번 홍차보다 어때?', '내가 좋아했던 차가 뭐였지?') '사용자의 지난 기록'을 보고 구체적으로 답해. 없는 기록을 지어내지 마.`;
+const APP_GUIDE_EN = `
+[App guide: answer questions about the app accurately with this]
+- Bottom tabs: Home (today's 3D drop, the "record a new tasting" button) · Canvas · My.
+- Recording flow: this conversation (tea name & type → brewing guide & timer → color → aroma → taste → drinking and chatting → aftertaste) → "finish and wrap up" → the drop forms (their words seep in as flavor colors) → compare screen (expert description, common points & differences, AI reading, personal expressions) → stamp it on the canvas → stars, a one-line comment, photo → save.
+- A drop is one cup's record: a watercolor drop colored by the 11 flavor families the user described; flavors mentioned more spread larger.
+- The canvas maps every record: x = aroma before drinking (right = liked the aroma), y = taste after drinking (up = liked the taste). Holding longer when stamping makes it darker (a stronger impression). A period (all, 1 month, 3 months, this year, calendar) can be chosen; tapping a drop opens that record.
+- "My taste drop": made from the flavors of records in the top-right (liked both aroma and taste); it recommends similar teas. Tap it to make it spread again.
+- Canvas tab "Records": the list, with name search and filters for type, flavor and period. In a record's detail they can edit stars, comment, photo and flavors, or delete it.
+- My: profile, tea types drunk (cups per type), settings (AI chat / scripted chat, female/male voice, live voice…).
+- Voice mode: the mic next to the input; the same conversation by voice (Gemini Live or basic voice).
+- Past records are read-only for you. If they want to change one, tell them they can edit it in Canvas → Records → that record's detail. The cup being recorded now you can change with record, clear and requests.
+- When they ask about past records ("how does this compare to the black tea last time?", "which tea did I like?"), answer concretely from "User's past records". Never invent records.`;
 const FRAME_EN = `You are a friend sitting with the user over a cup of tea inside TEA CANVAS. You lead the whole conversation.
 
 [What the app does]
@@ -112,7 +141,8 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 [Principles]
 1. First work out what the user meant in context; write it in "understood".
 2. Record only what the user actually said, briefly, in their words. Guesses, questions, small talk, greetings and fillers are not records. "I don't know" fills nothing; put that field name in "unknown".
-3. Adding to a recorded field → the merged full value; correcting → the new value.
+3. You may change the cup being recorded now: at any stage, if they correct the tea's name, brand or type ("oh, it's actually an oolong"), put it in record.name/brand/type; the app applies it right away.
+   Adding to a recorded field → the merged full value; correcting → the new value.
 4. If one message covers several fields, record them all, even ones you didn't ask about (except after, which comes only after they finish).
 5. Color only when they describe the tea's color, not a cat's or a cup's.
 6. Type follows the base leaf: flavored or blended green/black teas are green/black, not other. If unsure whether it contains tea leaves, check the web or ask.
@@ -349,8 +379,12 @@ How to talk:
   /* 대화 전체를 AI가 이끈다: 앱은 큰 단계와 '지금 채울 것(want)·그다음(next)'만 알려주고, AI가 듣고 말하고 기록할 것을 뽑는다 */
   flow: {
     maxTokens: 2500, budgetMs: 15500, think: 'low', hedgeMs: 6000,   // 정확도 우선: 조금 더 생각하고, 붐빌 때만 다른 모델에도 묻는다
-    system: en => (en ? FRAME_EN + `Reply with ONLY one JSON object, in this order:
-{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
+    system: en => (en ? FRAME_EN + APP_GUIDE_EN + `
+
+Reply with ONLY one JSON object, in this order:
+{"understood": "...", "record": {changed fields only}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + APP_GUIDE_KO + `
+
+답은 JSON 하나만, 이 순서로:
 {"understood": "...", "record": {바뀐 칸만}, "flavors": [], "clear": [], "unknown": [], "requests": [], "timer_set": null, "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
@@ -371,6 +405,7 @@ How to talk:
         b.voice ? (en ? `The user's message came from speech recognition, so some words may be misheard${list(b.voice.alts, 3, 120).length ? ` (other guesses: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. Work out what they most likely meant from the conversation, the tea and flavor words, put the corrected sentence in "heard" (fix misheard words, drop fillers like uh/um, keep their meaning and wording, and add a question mark if it's a question — speech recognition never adds punctuation), and reply to that.` : `사용자 말은 음성 인식 결과라 잘못 들린 글자가 있을 수 있어${list(b.voice.alts, 3, 120).length ? ` (다른 후보: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. 대화 흐름·차 이름·맛 표현을 보고 원래 하려던 말을 추정해서 "heard"에 고친 문장을 넣고 (잘못 들린 말은 바로잡고, 어·음 같은 추임새는 빼고, 뜻과 말투는 그대로. 음성 인식은 문장부호를 안 붙이니 질문이면 물음표를 붙여), 그 뜻에 맞게 대답해. 물음표가 없어도 말끝(~야, ~나, ~까, ~지)과 흐름으로 질문인지 판단해. 뜻을 도저히 모르겠으면 짧게 되물어.`) : '',
         b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set record.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 record.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
         Array.isArray(b.drop) ? (en ? 'Flavors in the drop so far: ' : '지금 찻방울에 담긴 풍미: ') + (list(b.drop, 11, 20).join(', ') || '-') + ` (${list(b.drop, 11, 20).length})` : '',
+        memLine(b, en),
         (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
         (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
         evText || ((en ? 'The user just said: ' : '사용자가 방금 한 말: ') + `"${str(b.message, 400)}"`)].filter(Boolean).join('\n');
@@ -647,15 +682,17 @@ const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + un
 };
 function liveSystem(en) {
   return en
-    ? FRAME_EN + `
+    ? FRAME_EN + APP_GUIDE_EN + `
+
 [Real-time voice]
 You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, flavors, clear, unknown, requests and step are what you send with the update_record tool.
-Whenever something is recorded, there are flavors, requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
+Whenever something is recorded, there are flavors, requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded, what's empty and the remaining brew time; continue from that. If you need the remaining time or the record state, or they ask ("how long is left?"), don't guess: call update_record with just step stay to check, then answer. Past records were given at the start as "[앱 정보]". Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
 The user may speak casually or unclearly; work out what they mean from context.`
-    : FRAME_KO + `
+    : FRAME_KO + APP_GUIDE_KO + `
+
 [실시간 음성]
 실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·flavors·clear·unknown·requests·step은 update_record 도구로 보내는 값이야.
-기록할 것이나 flavors가 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
+기록할 것이나 flavors가 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸, 남은 우림 시간이 오니 거기서 이어가. 남은 시간·지금 기록 상태가 궁금하거나 사용자가 물으면(예: '몇 분 남았어?') 추측하지 말고 update_record를 step stay만 넣어 불러 확인한 뒤 답해. 지난 기록은 대화 처음에 '[앱 정보]'로 알려줬어. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
 사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
 }
 async function liveProxy(req, env, okOrigin) {
