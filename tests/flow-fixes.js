@@ -18,7 +18,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
 
   R['달빛']=()=>({reply:'‘달빛 걷기’는 녹차 블렌드예요. 녹차로 기록할까요?',fill:{name:'달빛 걷기',brand:'오설록',type:'green'}});
   await say('오설록 달빛 걷기'); ok((await st())==='teaOK','차 찾기 → 종류 확인');
-  R['우려놨어']=()=>({reply:'좋아요, 그럼 찻물 색부터 볼까요?',fill:{},action:'drink_now'});   // AI가 type을 빠뜨려도
+  R['우려놨어']=()=>({reply:'좋아요, 그럼 찻물 색부터 볼까요?',fill:{type:'green'},action:'drink_now'});
   await say('응 맞아. 근데 이미 우려놨어'); ok((await st())==='color'&&await E(()=>S.draft.type==='green'&&!S.timer&&!!document.querySelector('#askW.tc')),'"응 맞아, 근데 이미 우려놨어" → 종류 확인 + 바로 색(슬라이더)');
   ok(await E(()=>!/잘 모르겠어요/.test(document.querySelector('#askW').textContent)),'AI 대화의 색 슬라이더에 "잘 모르겠어요" 버튼 없음');
   R['연두색']=()=>({reply:'맑은 연두색이군요. 향은 어때요?',fill:{color:'맑은 연두색',tone:'연한 연두',aroma:'풀향',taste:'단맛'},sense:true});
@@ -27,17 +27,17 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   ok(await E(()=>{ const a=colorFromWords('연한 갈색'), c=colorFromWords('진한 갈색'); return a&&c&&a[1]<c[1]; }),'"연한 갈색"은 "진한 갈색"보다 연하게');
   R['다 마셨']=()=>({reply:'잘 마셨어요. 끝에 남는 여운은 어땠어요?',fill:{},finish:true});
   await say('다 마셨어'); ok((await st())==='after','다 마셨다 → 여운 묻기');
-  R['꿀 같은']=()=>({reply:'꿀 같은 여운까지 담았어요. 오늘 함께해서 즐거웠어요.',fill:{after:'꿀 같은 단맛이 남아'}});
+  R['꿀 같은']=()=>({reply:'꿀 같은 여운까지 담았어요. 오늘 함께해서 즐거웠어요.',fill:{after:'꿀 같은 단맛이 남아'},end:true});
   await say('꿀 같은 단맛이 오래 남아'); ok(await E(()=>S.draft.afterText==='꿀 같은 단맛이 남아'),'여운 기록');
-  await p.waitForTimeout(3000); ok(await E(()=>S.draft&&S.draft.stage==='done'||cur()!=='chat'),'여운 뒤 AI가 작별 인사하면 기록 정리로 (멈추지 않음)');
+  await p.waitForTimeout(3000); ok(await E(()=>S.draft&&S.draft.stage==='done'||cur()!=='chat'),'여운 뒤 AI가 마무리(close)하면 기록 정리로 (멈추지 않음)');
 
   // 우리는 중: 잡담 속 색 단어는 찻물 색이 아님 / 슬라이더 요청
   await E(()=>{ try{ localStorage.clear(); }catch(e){} }); await p.reload(); await p.waitForTimeout(600); await E(()=>startRecord()); await p.waitForTimeout(300);
-  await say('오설록 달빛 걷기'); await say('녹차야');
-  ok((await st())==='guide','"녹차야" → AI가 type을 안 줘도 가이드로');
+  await say('오설록 달빛 걷기'); R['녹차야']=()=>({reply:'녹차로 기록할게요.',fill:{type:'green'}}); await say('녹차야');
+  ok((await st())==='guide','"녹차야" → AI가 종류를 정하면 가이드로');
   await E(()=>beginBrew(true)); await p.waitForTimeout(300);
-  R['치즈냥']=()=>({reply:'귀여운 고양이네요!',fill:{color:'노란색'}});
+  R['치즈냥']=()=>({reply:'귀여운 고양이네요!',fill:{scene:'고양이와 함께'}});
   await say('우리 집 노란 치즈냥이가 옆에 있어'); ok(await E(()=>!S.draft.feel.color&&S.draft.stage==='wait'),'우리는 중 "노란 치즈냥이"는 찻물 색으로 기록하지 않음');
-  await say('색 슬라이더로 고를래'); ok((await st())==='color'&&await E(()=>!!document.querySelector('#askW.tc')),'"슬라이더로 고를래" → 색 슬라이더');
+  R['슬라이더']=()=>({reply:'좋아요, 슬라이더로 골라 주세요.',fill:{},action:'ask_color'}); await say('색 슬라이더로 고를래'); ok((await st())==='color'&&await E(()=>!!document.querySelector('#askW.tc')),'"슬라이더로 고를래" → 색 슬라이더');
   ok(!errs.length,'페이지 오류 없음'+(errs.length?': '+errs.join(' | '):''));
   await b.close(); console.log(fails?`\n실패 ${fails}개`:'\n모두 통과'); process.exit(fails?1:0); })();

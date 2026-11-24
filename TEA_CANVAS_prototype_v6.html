@@ -1697,10 +1697,6 @@ function teaPhoto(){ const d=S.draft; pickPhoto(url=>{ d.photoData=url; d.photo=
   botSay({who:'bot',text:'사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?',teaAsk:true},700); }); }
 /* 자동 대화에서 차 종류를 확인하는 중: '아니야'는 아니라는 뜻으로, '응'은 맞다는 뜻으로, 종류 이름을 말하면 그 종류로. 차 이름으로 착각하지 않는다 */
 const TYPE_WORD={green:/녹차|그린티|green/i,white:/백차|white/i,oolong:/우롱|철관음|oolong/i,black:/홍차|black/i,dark:/보이|흑차|pu-?erh|puer/i,herb:/허브|herb/i,other:/기타|곡물|보리|우엉|옥수수|other/i};
-function typeFromWords(d,text,reply,st){ const t=String(text).replace(/\s/g,'');   // AI가 종류를 안 줘도: 내 말('허브차야')이나 확인('응 맞아…'), AI 대답('기타로 기록할게요')에서
-  const k=ORDER.find(k=>new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:으로|로|야|이야|예요|이에요|요|이지|지|$)','i').test(t)&&!new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:가|이)?아니','i').test(t)); if(k) return k;
-  if(st==='teaOK'&&TEAS[d.type]&&/^(응|웅|네|넹|예|그래|맞아|맞아요|맞습|맞네|ㅇㅇ|오케이|ok|yes|좋아)/i.test(t)&&!/(아니|아냐|아닌|틀렸|틀려|다른)/.test(t)&&!isQuestion(text)) return d.type;
-  const r=String(reply||''); if(/[?？]/.test(r)) return ''; return ORDER.find(k=>new RegExp(TEAS[k].label+'\\s*(?:으로|로)\\s*(?:기록|할게|담을게|적을게|정할게|해둘게)').test(r))||''; }
 function teaConfirmIntent(d,text){ const t=String(text).replace(/\s/g,''), no=/(아니|아냐|아닌|틀렸|틀려|틀린|별로|다른|^노$|^no\b)/i.test(t), yes=!no&&/^(응|웅|네|넹|예|어|그래|맞|ㅇㅇ|오케이|ok|yes|좋아)/i.test(t);
   const chosen=ORDER.find(k=>new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:으로|로|야|이야|예요|이에요|요|이지|지|$)','i').test(t)&&!new RegExp('(?:'+TYPE_WORD[k].source+')(?:차)?(?:가|이)?아니','i').test(t));   // '허브차야', '기타로 해줘'는 그 종류로. '녹차 아니야'는 고른 게 아니다
   const pick=k=>()=>{ d.chat.push({who:'me',text,ans:'tea'}); d.type=k; showGuide(); };
@@ -1917,7 +1913,6 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
     if(!j){ const i=d.chat.lastIndexOf(me); if(i>=0) d.chat.splice(i,1); paintBadge();   // AI가 안 되면 이 말은 정해진 흐름으로. AI가 다시 되면 다음 말부터 다시 AI
       if(forced) return answer(forced.k,text,forced.extra||{},true); return sendMsg(text,false,true); }
     const f=j.fill||{}; if(forced){ f[forced.k]=text; if(forced.k==='color'&&forced.extra&&forced.extra.color){ d.feel.colorHex=forced.extra.color; f._slider=true; } }
-    if((st==='wait'||st==='wait2'||st==='guide')&&f.color&&!/(색|빛|물|우러|우려|찻|진해|진하|연해|연하|맑|투명|color)/i.test(text)) delete f.color;   // 우리는 중 잡담('노란 치즈냥이')은 찻물 색이 아니다
     flowApply(d,f); const got=want==='extra'?true:!!(want&&f[want]);
     if(!forced){ if(got&&isAsk(want)) me.ans=want; else if(j.finish) me.ans='nav'; else if((!j.sense||isQuestion(text))&&!(want==='after'&&got)) me.ans='talk'; }   // 질문·마무리 인사·잡담은 찻방울 표현에서 뺀다   // 색·향·맛 대답은 그 칸에, 잡담은 찻방울 표현에서 뺀다
     if(st==='tea'){ me.ans='tea';   // 차 이름: AI가 말 속에서 차를 찾아 소개하고 종류를 확인한다. 차가 없으면 그냥 대화
@@ -1926,7 +1921,6 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
       d.chat.push({who:'bot',text:j.reply,ai:true,teaAsk:true}); return paintMsgs(); }
     if(st==='teaOK'||st==='teaType'||st==='guide'){ me.ans='tea';   // 차 종류 확인·우림 가이드: 대화로 묻고 답하고, 정해지면 가이드로
       if(f.name) d.name=f.name; if('brand' in f) d.brand=cleanBrand(f.brand);
-      if(st!=='guide'&&!TEAS[f.type]){ const k=typeFromWords(d,text,j.reply,st); if(k) f.type=k; }
       if(st!=='guide'&&TEAS[f.type]){ d.type=f.type;
         if(j.action==='drink_now'){ startDrink(); d.direct=true; S.timer=null; d.stage='color'; S.ask={hd:TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; flowBot(d,j.reply); return rerender(); }
         d.chat.push({who:'bot',text:j.reply,ai:true});   // '응 맞아, 근데 이미 우려놨어' → 확인하고 바로 색부터
@@ -1938,10 +1932,9 @@ function flowMsg(text,forced){ const d=S.draft, at=d.tid, t0=Date.now(), st=d.st
       if(st==='guide'&&!d.gongfu&&/개완|공부차|gongfu|gaiwan/i.test(text)){ d.gongfu=true; d.basic=false; d.chat.push({who:'bot',text:j.reply,ai:true}); return showGuide(true); }   // 가이드 보다가 '개완으로 할게' → 개완 가이드로
       d.chat.push({who:'bot',text:j.reply,ai:true,tea:true,chips:st==='guide'?['우림 시작 ▶','바로 마실게요']:st==='teaOK'?['맞아요','다시 적을게요']:ORDER.map(k=>TEAS[k].label)}); return paintMsgs(); }
     if(st==='more'&&(got||j.end)){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }
-    if(st==='after'&&(j.end||(got&&(j.finish||(!/[?？]/.test(j.reply)&&/(즐거웠|좋은 시간|정리할게|정리해 드릴|다음에|또 만나|또 뵈|안녕|마무리할게|마칠게|기록을 마)/.test(j.reply)))))){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }   // 여운까지 듣고 AI가 더 묻지 않으면(작별 인사) 정리로
-    if((st==='wait'||st==='color')&&!d.feel.color&&(/슬라이더|색\s*(을|를)?\s*(고르|골라|고를|선택|맞춰|맞출)/.test(text)||(st==='wait'&&/(찻물|색)/.test(j.reply)&&/[?？]/.test(j.reply)&&!f.color))){ d.stage='color'; S.ask={hd:(S.ask&&S.ask.hd)||(TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null),sel:[]}; return flowBot(d,j.reply); }   // 색을 고르고 싶다거나 AI가 색을 물으면 슬라이더를 같이
+    if(st==='after'&&j.end){ d.stage='done'; flowBot(d,j.reply); return flowFinish(); }   // 여운까지 듣고 AI가 더 묻지 않으면(작별 인사) 정리로
+    if((st==='wait'||st==='wait2'||st==='color')&&j.action==='ask_color'&&!f.color){ d.stage='color'; S.ask={hd:(S.ask&&S.ask.hd)||(TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null),sel:[]}; return flowBot(d,j.reply); }   // 색을 고르고 싶다거나 AI가 색을 물으면 슬라이더를 같이
     if(st==='wait'&&f.color){ d.stage=brewDone()?'aroma':'wait2'; S.ask={hd:null,sel:[]}; me.ans='color'; return flowBot(d,j.reply); }   // 우리는 중에 색을 말하면 바로 기록
-    if(st==='wait'&&j.action==='ask_color'&&!d.feel.color){ d.stage='color'; S.ask={hd:TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; return flowBot(d,j.reply); }   // AI가 색을 물으면 색 슬라이더도 같이
     if((st==='wait'||st==='wait2')&&j.action==='brew_done'&&S.timer&&S.timer.left>0){   // '다 우렸어' → '벌써 다 우렸어요'를 누른 것처럼: 타이머를 끝내고 색(또는 향)으로
       S.timer.left=0; S.timer.running=false; startDrink(); try{ paintTimer(); }catch(e){}
       d.stage=st==='wait'&&!d.feel.color?'color':'aroma'; S.ask={hd:d.stage==='color'&&TC_GUESS[d.type]?[...TC_GUESS[d.type]]:null,sel:[]}; return flowBot(d,j.reply); }
@@ -2231,12 +2224,11 @@ function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String
   if(h===null) return null; let v=/(연한|맑은|옅은|투명|흐린)/.test(t)?.24:/(진한|짙은|깊은|어두운)/.test(t)?.8:.5; if(/분홍|핑크/.test(t)) v=Math.min(v,.4); return [h,v]; }
 function sendMsg(text,isChip,legacy){   // legacy: AI가 안 돼서 이번 말만 정해진 흐름으로
   const d=S.draft; if(S.typing) return;
-  if(!isChip){ const go=textIntent(d,text); if(go) return go(); }
-  if(!legacy&&flowOn(d)&&(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType'||(d.stage==='guide'&&!/^(우림\s*)?시작/.test(text.trim())))) return flowMsg(text);   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
+  if(!legacy&&flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI 대화: 무엇이든 Gemini가 듣고 판단한다 (아래 글자 규칙은 AI가 안 될 때만)
+  if(!isChip){ const go=textIntent(d,text); if(go) return go(); }   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
   if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
   if(d.stage==='color'&&S.ask&&S.ask.hd&&/^(비슷|이대로|그대로|맞아|맞네|응|네|예|좋아|그거|그 색)/.test(text.trim())&&!colorFromWords(text)){ const a=S.ask, c=tcColor(a.hd[0],a.hd[1]); d.feel.colorHD=a.hd; d.feel.colorHex=c; const nm=tcName(a.hd[0],a.hd[1]); answer('color',text,{color:c}); d.feel.color=nm; return; }   // 보이는 색에 동의 → 그 색을 보낸 것처럼
-  if(!legacy&&flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI가 이끄는 대화: 무엇이든 AI가 듣고 대답한다
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending&&!chatAIOn()) return talkAnswer(text);
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending){ const k=d.talkPending; d.talkPending=null; d.planI=(d.planI||0)+1; (d.talk||(d.talk={}))[k]=text; return aiTalk({who:'me',text,ans:'talk',talk:k},text,()=>{ paintMsgs(); talkNext(1100); }); }

@@ -261,6 +261,8 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 [step: the one next action for the app]
 stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · show_color = you're asking about the color now or they want to pick it → color slider · finished_drinking = they finished or want to stop drinking → ask the aftertaste · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
 
+Example: "yuzu tea" → type other (fruit, grain and root teas without tea leaves are other, not herb; herb = herbal flowers/leaves only).
+
 [How to talk]
 Warm, polite, calm. 1–3 short sentences (under 220 chars), may be read aloud. React to what they said first; answer tea questions accurately. Name types in plain words. Never pretend to smell or taste, never say you'll move the slider, never say timer numbers. No markdown, lists, emoji or links.
 
@@ -306,6 +308,7 @@ close = 여운까지 듣고 더 남길 게 없어 작별 인사를 함 → 기�
 - 마크다운·목록·이모지·링크 금지.
 
 [예시]
+(차 이름을 묻는 중) "유자차 마실래" → record {name:'유자차', type:'other'} (찻잎 없는 과일·곡물·뿌리 차는 허브차가 아니라 기타. 허브차는 꽃·잎 허브만)
 (차 이름을 묻는 중) "녹차티백 ㅇㅇ" → record {name:'녹차 티백', brand:'없음', type:'green', about:'…'}, step stay, reply '녹차 티백이군요. 녹차로 기록할까요?'
 (종류 확인 중, 제안: 녹차) "응 맞아 근데 이미 우려놨어" → record {type:'green'}, step drink_now, reply '좋아요, 그럼 찻물 색부터 볼까요?'
 (종류 확인 중, 제안: 녹차) "아니 홍차야" → record {type:'black'}, step confirm_tea, reply '홍차로 기록할게요. 우림 방법을 보여드릴게요.'
@@ -356,6 +359,7 @@ close = 여운까지 듣고 더 남길 게 없어 작별 인사를 함 → 기�
       const st = b && b.stage;
       if (['confirm_tea', 'start_brew', 'drink_now'].includes(step) && (st === 'teaOK' || st === 'teaType') && !fill.type) { const t = typeCode(b.tea && b.tea.type); if (t) fill.type = t; }   // '응 맞아(…이미 우렸어)' → 제안한 종류로 확정
       if (step === 'confirm_tea' && !fill.type) step = 'stay';
+      if (step === 'drink_now' && (st === 'wait' || st === 'wait2')) step = 'brew_done';   // 우리는 중의 '이미 우렸어'는 다 우린 것과 같은 뜻
       const action = ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done', show_color: 'ask_color' })[step] || '';
       const heard = plain(str(j.heard, 200));
       const sense = ['color', 'aroma', 'taste', 'after'].some(k => fill[k]);

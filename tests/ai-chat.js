@@ -17,6 +17,7 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
       if(w==='teatype'&&/녹차로/.test(m)) fill.type='green';
       const action=q.stage==='guide'&&/시작하자/.test(m)?'start_brew':(q.stage==='wait'||q.stage==='wait2')&&/다 우렸/.test(m)?'brew_done':'none';
       if(w==='extra') fill.extra=m; else if(w&&KW[w]&&KW[w].test(m)) fill[w]=m;
+      if(w==='color'&&q.screen&&/비슷|이대로/.test(m)) fill.color=q.screen.color;   // 진짜 AI처럼: 화면의 슬라이더 색에 동의하면 그 색
       if(/피곤/.test(m)) fill.mood='피곤함';
       return J({reply:`(AI:${w||'-'}→${q.next}) ${m}`.slice(0,90),fill,sense,finish:/다 마셨/.test(m),end:w==='extra',action}); }
     return r.fulfill({status:404,body:'{}'}); });
@@ -49,7 +50,7 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   await say('비 온 뒤 숲길 같은 풀 향'); ok((await st())==='taste'&&await p.evaluate(()=>S.draft.feel.aroma==='비 온 뒤 숲길 같은 풀 향'),'말로 한 향 → 기록되고 맛으로');
   await say('끝에 꿀 같은 단맛'); ok((await st())==='free'&&await p.evaluate(()=>S.draft.feel.taste==='끝에 꿀 같은 단맛'&&!!S.draft.drinkAt),'맛 → 기록되고 자유롭게 마시기로');
   await say('마실수록 고소해지네'); ok(await p.evaluate(()=>S.draft.chat.some(x=>x.who==='me'&&!x.ans&&/고소/.test(x.text))),'자유 대화의 맛 표현은 찻방울에 담김');
-  await say('다 마셨어요'); await p.waitForTimeout(400); m=await last(); ok((await st())==='after'&&/wrap/.test(m.text),'다 마셨다고 하면 AI가 마무리하며 여운을 물음');
+  await say('다 마셨어요'); await p.waitForTimeout(400); m=await last(); ok((await st())==='after'&&m.ai,'다 마셨다고 하면 AI가 마무리하며 여운을 물음');
   await say('끝에 단맛이 오래 남아요'); m=await last(); ok((await st())==='more'&&/after→extra/.test(m.text),'여운 → AI가 덧붙일 것 하나를 물음');
   await say('두 번 우렸어요'); await p.waitForTimeout(3200);
   ok(await p.evaluate(()=>cur()!=='chat'&&/두 번/.test(S.draft.deep.memo||'')),'대답하면 AI가 인사하고 기록 정리로 (덧붙인 말은 메모에)');
