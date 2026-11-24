@@ -181,7 +181,7 @@ export default {
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
     const allowed = (env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : DEFAULT_ORIGINS);
-    const okOrigin = allowed.some(a => origin === a || (a.startsWith('http://localhost') && origin.startsWith('http://localhost')) || (a.startsWith('http://127.0.0.1') && origin.startsWith('http://127.0.0.1')));
+    const okOrigin = allowed.some(a => origin === a) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) && allowed.some(a => /^http:\/\/(localhost|127\.0\.0\.1)/.test(a));   // localhost는 포트만 달라도 되지만, localhost.다른사이트.com 같은 건 막는다
     const cors = {
       'Access-Control-Allow-Origin': okOrigin ? origin : allowed[0],
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
