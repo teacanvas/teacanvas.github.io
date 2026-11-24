@@ -264,7 +264,7 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) 
       const left = deadline - Date.now();
       if (!a || left < 1200) { if (!running) finish(false, new Error((a ? 'timeout; last ' : '') + last)); return; }
       running++; const ctl = new AbortController(); ctls.add(ctl);
-      const cap = setTimeout(() => ctl.abort(), Math.min(6000, left - 300));
+      const cap = setTimeout(() => ctl.abort(), left - 300);   // 붐빌 때 느린 답도 마감까지 기다린다 (2.5초 뒤엔 다른 모델도 같이 시도)
       let hedge = setTimeout(() => { hedge = null; if (!done && running < 2) launch(); }, 2500);
       attempt(a, ctl.signal).then(t => finish(true, t)).catch(e => {
         if (e && e.name === 'AbortError') { if (!done) TRACE.push(tag(a, 'timeout')); last = `${a.m} timeout`; }

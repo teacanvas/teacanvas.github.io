@@ -1,6 +1,6 @@
 // 대화 판단 정답지 시험: 실제 AI 서버(Gemini)에 사용자 테스트에서 나온 상황들을 보내고, 판단이 맞는지 채점한다.
 // 프롬프트·틀을 바꿀 때마다 돌려서 점수로 비교한다 (하나 고치다 다른 게 망가지는지 확인).
-// 사용법: node tools/eval-flow.mjs [반복 횟수=1]   (TC_EP로 서버 주소를 바꿀 수 있음)
+// 사용법: node tools/eval-flow.mjs [반복 횟수=1]   ※ 한 번에 약 3분. 실제로 쓰는 중에는 돌리지 말 것 (같은 무료 한도를 쓴다)   (TC_EP로 서버 주소를 바꿀 수 있음)
 const EP = process.env.TC_EP || 'https://teacanvas-ai.sehoon3554.workers.dev/';
 const REPEAT = +process.argv[2] || 1;
 const GREEN = { name: '달빛 걷기', brand: '오설록', type: '녹차' };
@@ -69,8 +69,11 @@ async function call(c) {
 }
 
 const rows = []; let pass = 0, total = 0, ms = [];
-for (let k = 0; k < REPEAT; k++) for (let i = 0; i < CASES.length; i += 3) {
-  const batch = CASES.slice(i, i + 3);
+// 무료 한도(모델별 분당 약 15번)를 넘지 않게 하나씩, 5초 간격으로 보낸다. 시험이 한도를 다 쓰면 실제 사용자의 대화가 자동 대화로 떨어진다
+const GAP = +process.env.TC_GAP || 5000;
+for (let k = 0; k < REPEAT; k++) for (let i = 0; i < CASES.length; i += 1) {
+  if (i || k) await new Promise(s => setTimeout(s, GAP));
+  const batch = CASES.slice(i, i + 1);
   const res = await Promise.all(batch.map(call));
   batch.forEach((c, n) => { const x = res[n]; total++;
     if (x.err) { rows.push(`  ! ${c.id}: 서버 오류 ${x.err}`); return; }
