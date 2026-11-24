@@ -253,7 +253,7 @@ What to record (the app gives "want" and "next"):
   Otherwise "action": "none". Never set an action just because a word appears; only when it's what they mean.
 - Also pick up details mentioned anywhere: mood, scene (where/with whom), why (why this tea), origin, temp (water temperature), time (steeping time), memo (anything worth remembering).
 Reply with ONLY a JSON object:
-{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed, "action": "start_brew"|"drink_now"|"brew_done"|"none"}`
+{"reply": "...", "fill": {only keys you found}, "sense": true if the user's message describes how the tea looks/smells/tastes/feels, "finish": true if the user says they've finished drinking or want to wrap up, "end": true if want is extra and the record can now be closed, "action": "start_brew"|"drink_now"|"brew_done"|"none", "heard": "(speech only) the corrected sentence"}`
       : `너는 TEA CANVAS(차의 색·향·맛을 기록해 수채화 찻방울로 남기는 앱) 안에서 사용자와 마주 앉아 차를 함께 마시는 친구야. 대화는 처음부터 끝까지 네가 이끌어. 앱은 아직 기록할 것만 알려줘.
 말하는 법:
 - 먼저 들어. 사용자가 방금 한 말(말·기분·이야기)에 정확히 반응해. 차에 대해 물으면 정확하고 쉽게 답하고, 확실하지 않으면 웹에서 찾아봐.
@@ -275,7 +275,7 @@ Reply with ONLY a JSON object:
   해당 없으면 "action": "none". 단어가 나왔다는 이유만으로 넣지 말고, 그 뜻일 때만.
 - 대화 어디서든 나온 것도 챙겨: mood(기분), scene(어디서·누구와), why(이 차를 고른 이유), origin(산지), temp(물 온도), time(우린 시간), memo(남길 만한 이야기).
 답은 JSON 하나만:
-{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true, "action": "start_brew"|"drink_now"|"brew_done"|"none"}`),
+{"reply": "...", "fill": {찾은 것만}, "sense": 사용자 말이 차의 색·향·맛·느낌을 표현하면 true, "finish": 사용자가 다 마셨다거나 마무리하자고 하면 true, "end": want가 extra이고 이제 기록을 닫아도 되면 true, "action": "start_brew"|"drink_now"|"brew_done"|"none", "heard": "(speech only) the corrected sentence"}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
@@ -289,6 +289,7 @@ Reply with ONLY a JSON object:
       }[ev];
       return [teaLine(b, en), b.about ? (en ? 'About this tea: ' : '이 차 정보: ') + str(b.about, 200) : '', timer,
         `want: ${str(b.want, 10) || 'none'} / next: ${str(b.next, 10) || 'none'}`,
+        b.voice ? (en ? `The user's message came from speech recognition, so some words may be misheard${list(b.voice.alts, 3, 120).length ? ` (other guesses: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. Work out what they most likely meant from the conversation, the tea and flavor words, put the corrected sentence in "heard" (fix misheard words, drop fillers like uh/um, keep their meaning and wording), and reply to that.` : `사용자 말은 음성 인식 결과라 잘못 들린 글자가 있을 수 있어${list(b.voice.alts, 3, 120).length ? ` (다른 후보: ${list(b.voice.alts, 3, 120).join(' / ')})` : ''}. 대화 흐름·차 이름·맛 표현을 보고 원래 하려던 말을 추정해서 "heard"에 고친 문장을 넣고 (잘못 들린 말은 바로잡고, 어·음 같은 추임새는 빼고, 뜻과 말투는 그대로), 그 뜻에 맞게 대답해. 뜻을 도저히 모르겠으면 짧게 되물어.`) : '',
         b.screen && b.screen.color ? (en ? `On screen: a color slider set to "${str(b.screen.color, 20)}". If the user agrees with it ("similar", "like this"), set fill.color to "${str(b.screen.color, 20)}".` : `화면: 찻물 색 슬라이더가 '${str(b.screen.color, 20)}'(으)로 맞춰져 있어. 사용자가 비슷하다·이대로라고 하면 fill.color에 '${str(b.screen.color, 20)}'을 넣어.`) : '',
         (en ? 'Already recorded: ' : '이미 기록한 것: ') + (Object.entries(f).filter(([k, v]) => v).map(([k, v]) => `${k}=${str(v, 60)}`).join(', ') || '-'),
         (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '',
@@ -303,7 +304,8 @@ Reply with ONLY a JSON object:
       if (j.fill && typeof j.fill === 'object') for (const k of KEYS) { const v = str(j.fill[k], 120); if (v) fill[k] = v; }
       if (j.fill && TEA_TYPES.includes(j.fill.type)) fill.type = j.fill.type;
       const action = ['start_brew', 'drink_now', 'brew_done'].includes(j.action) ? j.action : '';
-      return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end, ...(action ? { action } : {}) };
+      const heard = plain(str(j.heard, 200));
+      return { reply, fill, sense: !!j.sense, finish: !!j.finish, end: !!j.end, ...(action ? { action } : {}), ...(heard ? { heard } : {}) };
     },
   },
   identify: {
