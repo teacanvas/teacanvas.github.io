@@ -48,17 +48,25 @@ mood 기분 · scene 어디서·누구와 · why 이 차를 고른 이유 · ori
 7. step과 record는 네 reply와 반드시 맞아야 해. reply에서 '홍차로 기록할게요'라고 하면 record.type도 black. 아직 묻고 있으면(확인 질문) 확정하지 마. reply에서 여운을 묻는다면 step은 finished_drinking이어야 해.
 8. 다음에 무엇을 할지는 지금 단계와 빈 칸을 보고 네가 정해. 이미 채운 칸은 다시 묻지 마. 질문은 한 번에 하나만. 차가 아직 우러나는 중이면 향·맛을 권하지 말고 이야기를 이어가(색은 언제든 물어도 돼).
 
-[step: 앱이 실행할 다음 동작 하나]
+[step: 대화 흐름에서 다음으로 넘어가는 동작 하나]
 stay = 그대로 대화 이어가기 (대부분)
 confirm_tea = 차 종류가 정해짐 → 앱이 우림 가이드를 보여줘 (record.type에 종류)
-guide_gongfu = 개완(뚜껑 있는 찻잔)으로 짧게 여러 번 우리겠다고 함 → 개완 가이드로 바꿔 보여줌 (개완이 뭐냐는 질문은 아님: 설명만 하고 stay)
-guide_basic = 개완 없이 머그컵·티백 등으로 그냥 우리겠다고 함 (개완 가이드를 보고 있거나 개완으로 우리는 중일 때) → 기본 가이드로 바꿔 보여줌
 start_brew = 지금 우리기 시작하자는 뜻 → 타이머 시작
 drink_now = 타이머 없이 바로 마시겠다/이미 우렸다는 뜻 → 바로 찻물 색으로
 brew_done = 타이머가 도는 중인데 벌써 다 우렸다는 뜻
-show_color = 지금 찻물 색을 묻거나 사용자가 색을 (다시) 고르고 싶어 함 → 색 슬라이더 표시. '슬라이더 다시 보여드릴게요'처럼 말했다면 반드시 이 step
 finished_drinking = 사용자가 다 마셨다/그만 마시겠다고 분명히 말함 → 여운을 물어. 맛있다·좋다 같은 감상이나 잡담은 아직 마시는 중이야(stay)
 close = 여운까지 듣고 더 남길 게 없어 작별 인사를 함 → 기록 정리
+
+[requests: 앱에 하는 요청 (필요할 때만, 여러 개 가능)]
+너는 화면을 직접 움직일 수 없지만, 앱에 요청하면 앱이 바로 해줘. 사용자가 원하거나 대화에 필요하면 언제든(어느 단계에서든) 요청해.
+show_color = 색 슬라이더를 (다시) 띄움. 지금 찻물 색을 묻거나, 사용자가 색을 (다시) 고르고 싶어 할 때
+show_guide = 지금 우림 가이드 카드를 (다시) 보여줌. '가이드 다시 보여줘', '몇 도였지?'처럼 가이드를 다시 볼 때
+gongfu_guide = 개완(뚜껑 있는 찻잔)으로 짧게 여러 번 우리겠다고 할 때 → 개완 가이드로 바꿔 보여줌 ('개완이 뭐야?' 같은 질문은 설명만)
+basic_guide = 개완 없이 머그컵·티백 등으로 그냥 우리겠다고 할 때 (개완 가이드를 보고 있거나 개완으로 우리는 중) → 기본 가이드로 바꿔 보여줌
+reply에서 '슬라이더 다시 보여드릴게요', '가이드 다시 보여드릴게요'처럼 말했다면 그 요청을 꼭 넣어. 말만 하고 요청을 빼면 화면에 안 나와.
+
+[clear: 지울 기록 칸]
+사용자가 이미 말한 기록을 지우거나 처음부터 다시 말하고 싶다고 하면 (예: '아까 맛 표현 지워줘', '향 다시 말할게') 그 칸 이름을 clear에 넣어. 앱이 그 칸을 비우고 다시 물을 수 있게 그 단계로 돌아가. 새 표현을 바로 함께 말했으면 clear 대신 record에 새 값을 넣어(바꾸기).
 
 [말하는 법]
 - 다정한 존댓말(해요체). 사용자가 반말해도 바꾸지 마. 1~3문장, 160자 이내(소리 내 읽을 수 있어).
@@ -104,8 +112,14 @@ mood · scene (where, with whom) · why (why this tea) · origin · temp · time
 7. step and record MUST match your reply. If you say "I'll record it as black tea", record.type is black. If you're still asking, don't confirm. If your reply asks about the aftertaste, step must be finished_drinking.
 8. Decide what to do next from the current stage and empty fields. Never re-ask a recorded field. One question at a time. While the tea is still steeping, don't invite them to smell or taste (asking about color is fine).
 
-[step: the one next action for the app]
-stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · guide_gongfu = they want to brew gongfu style in a gaiwan → show the gaiwan guide (a question like "what's a gaiwan?" is not this: just explain, stay) · guide_basic = they'll just use a mug or teabag instead of a gaiwan → show the basic guide · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · show_color = you're asking about the color now or they want to pick it (again) → color slider; if you say you'll show the slider, this step is required · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
+[step: the one next move in the flow]
+stay = keep talking (most turns) · confirm_tea = type settled → app shows the brewing guide (put it in record.type) · start_brew = they want to start steeping now · drink_now = skip the timer / already brewed → go to color · brew_done = already done while the timer runs · finished_drinking = they clearly say they finished or want to stop drinking → ask the aftertaste (compliments like "it's so good" or small talk mean they're still drinking: stay) · close = after the aftertaste, nothing more to add → warm goodbye, wrap up
+
+[requests: things you ask the app to do (only when needed, can be several)]
+You can't touch the screen, but the app does these right away when you ask, at any stage: show_color = show the color slider (again) · show_guide = show the current brewing guide card again · gongfu_guide = they'll brew gongfu style in a gaiwan → switch to the gaiwan guide (a question like "what's a gaiwan?" is not this) · basic_guide = they'll just use a mug or teabag instead of a gaiwan → switch to the basic guide. If your reply says you'll show the slider or the guide, you MUST include that request, or nothing appears.
+
+[clear: record fields to erase]
+If they want to erase something they already said or start it over ("delete what I said about the taste", "let me redo the aroma"), put that field in clear; the app empties it and goes back so you can ask again. If they give the new wording right away, put it in record instead (replace).
 
 Example: "yuzu tea" → type other (fruit, grain and root teas without tea leaves are other, not herb; herb = herbal flowers/leaves only).
 
@@ -161,7 +175,7 @@ export default {
     if (tspec) {
       const en = body.lang === 'en';
       try {
-        const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs });
+        const text = await geminiText(env, tspec.system(en, body), tspec.prompt(body, en), { search: true, maxTokens: tspec.maxTokens, budgetMs: tspec.budgetMs, ...(tspec.think ? { think: tspec.think } : {}), ...(tspec.hedgeMs ? { hedgeMs: tspec.hedgeMs } : {}) });
         const clean = tspec.clean(text, body);
         const res = clean ? out(clean) : out({ error: 'empty' }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res;
       } catch (e) { const res = out({ error: 'upstream', detail: String(e && e.message || e).slice(0, 200) }, 502); res.headers.set('X-AI-Trace', TRACE.join(' ')); return res; }
@@ -188,7 +202,7 @@ const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemi
 const NO_THINK_CFG = new Set();      // 생각 끄기 설정을 거절한 모델 (다음 요청부터 바로 설정 없이)
 // 3.x 모델과 '최신' 별칭은 생각 끄기(thinkingBudget 0)를 거절(400)한다 → 대신 '생각 최소(thinkingLevel minimal)'로 빨리 답하게. 그것도 거절하면 설정 없이
 const noThink = m => NO_THINK_CFG.has(m);
-const thinkCfg = m => /^gemini-3|latest$/.test(m) ? { thinkingLevel: 'minimal' } : { thinkingBudget: 0 };
+const thinkCfg = (m, level = 'minimal') => /^gemini-3|latest$/.test(m) ? { thinkingLevel: level } : { thinkingBudget: level === 'minimal' ? 0 : 1024 };   // 대화 판단(flow)은 'low'로 조금 더 생각
 let SEARCH_OFF_UNTIL = 0;           // 검색 한도가 차면(429) 잠시 검색 없이 (매번 거절당하며 시간 쓰지 않게)
 async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
   const deadline = Date.now() + budgetMs;
@@ -227,16 +241,16 @@ async function gemini(env, system, prompt, schema, maxTokens, budgetMs) {
 /* ---------- 글 응답 + Google 검색 (대화·차 찾기) ---------- */
 // 검색 도구를 붙여 보내고, 그 모델이 검색을 못 쓰거나(400) 검색 한도가 차면(429) 검색 없이 다시 보낸다
 let TRACE = [];   // 어느 모델에서 얼마나 걸렸는지 (응답 머리말 X-AI-Trace로 확인용)
-async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) {
+async function geminiText(env, system, prompt, { search, maxTokens, budgetMs, think = 'minimal', hedgeMs = 2500 }) {
   // 붐빌 때를 위한 '겹쳐 묻기': 첫 모델이 2.5초 안에 답이 없으면 다음 모델에도 같이 묻고, 먼저 온 답을 쓴다 (동시에 최대 2개)
   const deadline = Date.now() + budgetMs; TRACE = [];
   const models = [...new Set([...(env.GEMINI_MODEL ? env.GEMINI_MODEL.split(',').map(s => s.trim()).filter(Boolean) : []), ...FALLBACK_MODELS])];
   const queue = []; for (const m of models) { if (search) queue.push({ m, tools: true }); queue.push({ m, tools: false }); }
   const tag = (a, x) => `${a.m.replace('gemini-', '')}${a.tools ? '+s' : ''}:${x}`;
   const attempt = async (a, signal) => {
-    for (const think of (noThink(a.m) ? [false] : [true, false])) {
+    const level = think; for (const think of (noThink(a.m) ? [false] : [true, false])) {
       const gc = { maxOutputTokens: maxTokens, temperature: 0.7 };
-      if (think) gc.thinkingConfig = thinkCfg(a.m);
+      if (think) gc.thinkingConfig = thinkCfg(a.m, level);
       const payload = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: gc };
       if (a.tools) payload.tools = [{ google_search: {} }];
       const t0 = Date.now();
@@ -265,7 +279,7 @@ async function geminiText(env, system, prompt, { search, maxTokens, budgetMs }) 
       if (!a || left < 1200) { if (!running) finish(false, new Error((a ? 'timeout; last ' : '') + last)); return; }
       running++; const ctl = new AbortController(); ctls.add(ctl);
       const cap = setTimeout(() => ctl.abort(), left - 300);   // 붐빌 때 느린 답도 마감까지 기다린다 (2.5초 뒤엔 다른 모델도 같이 시도)
-      let hedge = setTimeout(() => { hedge = null; if (!done && running < 2) launch(); }, 2500);
+      let hedge = setTimeout(() => { hedge = null; if (!done && running < 2) launch(); }, hedgeMs);
       attempt(a, ctl.signal).then(t => finish(true, t)).catch(e => {
         if (e && e.name === 'AbortError') { if (!done) TRACE.push(tag(a, 'timeout')); last = `${a.m} timeout`; }
         else last = String(e && e.message || e);
@@ -322,10 +336,10 @@ How to talk:
   },
   /* 대화 전체를 AI가 이끈다: 앱은 큰 단계와 '지금 채울 것(want)·그다음(next)'만 알려주고, AI가 듣고 말하고 기록할 것을 뽑는다 */
   flow: {
-    maxTokens: 700, budgetMs: 9500,
+    maxTokens: 2500, budgetMs: 15500, think: 'low', hedgeMs: 6000,   // 정확도 우선: 조금 더 생각하고, 붐빌 때만 다른 모델에도 묻는다
     system: en => (en ? FRAME_EN + `Reply with ONLY one JSON object, in this order:
-{"understood": "...", "record": {changed fields only}, "unknown": [], "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
-{"understood": "...", "record": {바뀐 칸만}, "unknown": [], "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
+{"understood": "...", "record": {changed fields only}, "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(speech only) corrected sentence", "reply": "..."}` : FRAME_KO + `답은 JSON 하나만, 이 순서로:
+{"understood": "...", "record": {바뀐 칸만}, "clear": [], "unknown": [], "requests": [], "step": "stay", "heard": "(음성일 때만) 고친 문장", "reply": "..."}`),
     prompt: (b, en) => {
       const t = b.timer, f = b.filled && typeof b.filled === 'object' ? b.filled : {};
       const timer = t && t.total ? (t.left > 0 ? (en ? 'The tea is still steeping.' : '차가 아직 우러나는 중이야.') : (en ? 'The tea is ready.' : '차가 다 우러났어.')) : '';
@@ -362,12 +376,16 @@ How to talk:
       let step = STEPS.includes(j.step) ? j.step : ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done', ask_color: 'show_color' })[j.action] || (j.end ? 'close' : j.finish ? 'finished_drinking' : 'stay');
       const st = b && b.stage;
       if (['confirm_tea', 'start_brew', 'drink_now'].includes(step) && (st === 'teaOK' || st === 'teaType') && !fill.type) { const t = typeCode(b.tea && b.tea.type); if (t) fill.type = t; }   // '응 맞아(…이미 우렸어)' → 제안한 종류로 확정
+      const REQS = ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide'];
+      const requests = [...new Set((Array.isArray(j.requests) ? j.requests : []).concat(({ show_color: 'show_color', guide_gongfu: 'gongfu_guide', guide_basic: 'basic_guide' })[step] || []).filter(r => REQS.includes(r)))];
+      if (['show_color', 'guide_gongfu', 'guide_basic'].includes(step)) step = 'stay';   // 예전 모양 → 요청으로
+      const clear = (Array.isArray(j.clear) ? j.clear : []).filter(k => ['color', 'aroma', 'taste', 'after', 'mood', 'scene', 'why', 'memo', 'extra'].includes(k) && !fill[k]);
       if (step === 'confirm_tea' && !fill.type) step = 'stay';
       if (step === 'drink_now' && (st === 'wait' || st === 'wait2')) step = 'brew_done';   // 우리는 중의 '이미 우렸어'는 다 우린 것과 같은 뜻
-      const action = ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done', show_color: 'ask_color' })[step] || '';
+      const action = ({ start_brew: 'start_brew', drink_now: 'drink_now', brew_done: 'brew_done' })[step] || (requests.includes('show_color') ? 'ask_color' : '');
       const heard = plain(str(j.heard, 200));
       const sense = ['color', 'aroma', 'taste', 'after'].some(k => fill[k]);
-      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
+      return { reply, fill, sense, finish: step === 'finished_drinking', end: step === 'close', step, ...(requests.length ? { requests } : {}), ...(clear.length ? { clear } : {}), ...(unknown.length ? { unknown } : {}), ...(action ? { action } : {}), ...(heard && heard !== '(음성일 때만) 고친 문장' ? { heard } : {}) };
     },
   },
   identify: {
@@ -587,7 +605,7 @@ const SPECS = {
 // 모델마다 목소리 결이 달라 한 모델만 쓴다 (안 되면 앱이 기본 음성 대화로). 바꾸려면 GEMINI_LIVE_MODEL 변수
 const LIVE_MODELS = ['gemini-3.1-flash-live-preview'];
 const LIVE_VOICES = ['Zephyr', 'Umbriel', 'Aoede', 'Kore', 'Puck', 'Charon'];
-const LIVE_STEPS = ['stay', 'confirm_tea', 'guide_gongfu', 'guide_basic', 'start_brew', 'drink_now', 'brew_done', 'show_color', 'finished_drinking', 'close'];
+const LIVE_STEPS = ['stay', 'confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'finished_drinking', 'close'];
 const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + unknown + step
   functionDeclarations: [{
     name: 'update_record',
@@ -601,6 +619,8 @@ const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + un
         aroma: { type: 'STRING' }, taste: { type: 'STRING' }, after: { type: 'STRING' }, extra: { type: 'STRING' },
         mood: { type: 'STRING' }, scene: { type: 'STRING' }, why: { type: 'STRING' }, origin: { type: 'STRING' }, temp: { type: 'STRING' }, time: { type: 'STRING' }, memo: { type: 'STRING' },
         unknown: { type: 'ARRAY', items: { type: 'STRING' } },
+        clear: { type: 'ARRAY', items: { type: 'STRING' }, description: 'record fields to erase so the user can say them again' },
+        requests: { type: 'ARRAY', items: { type: 'STRING', enum: ['show_color', 'show_guide', 'gongfu_guide', 'basic_guide'] }, description: 'things the app should do now' },
         step: { type: 'STRING', enum: LIVE_STEPS },
       },
     },
@@ -610,13 +630,13 @@ function liveSystem(en) {
   return en
     ? FRAME_EN + `
 [Real-time voice]
-You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, unknown and step are what you send with the update_record tool.
-Whenever something is recorded or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
+You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, clear, unknown, requests and step are what you send with the update_record tool.
+Whenever something is recorded, there are requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded and what's empty; continue from that. Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
 The user may speak casually or unclearly; work out what they mean from context.`
     : FRAME_KO + `
 [실시간 음성]
-실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·unknown·step은 update_record 도구로 보내는 값이야.
-기록할 것이 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
+실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·clear·unknown·requests·step은 update_record 도구로 보내는 값이야.
+기록할 것이 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸이 오니 거기서 이어가. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
 사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
 }
 async function liveProxy(req, env, okOrigin) {

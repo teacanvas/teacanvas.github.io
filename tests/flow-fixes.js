@@ -54,6 +54,15 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   // AI가 안 될 때(정해진 대화): 색이 아닌 말을 색으로 저장하지 않음
   ok(await E(()=>{ S.draft.feel.color=''; sendMsg('아니 개완 말고 그냥 티백으로 우릴거야',false,true); return S.draft.stage==='color'&&!S.draft.feel.color; }),'정해진 대화: 색이 아닌 말은 색으로 저장하지 않고 다시 물음');
   await p.waitForTimeout(800);
+  // Gemini가 앱에 요청: 가이드 다시 / 기록 지우고 다시
+  await E(()=>{ const d=S.draft; d.stage='free'; d.feel.color='연두'; d.feel.aroma='꽃향'; d.feel.taste='단맛'; S.timer={total:120,left:0,running:false}; });
+  R['가이드 다시']=()=>({reply:'우림 가이드를 다시 보여드릴게요.',fill:{},step:'stay',requests:['show_guide']}); await say('가이드 다시 보여줘');
+  ok(await E(()=>S.draft.stage==='free'&&S.draft.chat[S.draft.chat.length-1].guide===true),'requests show_guide → 가이드 카드를 다시 (단계는 그대로)');
+  R['맛 표현 지워']=()=>({reply:'맛 기록을 지웠어요. 다시 맛을 말해 주세요.',fill:{},step:'stay',clear:['taste']}); await say('아까 맛 표현 지워줘');
+  ok(await E(()=>S.draft.stage==='taste'&&!S.draft.feel.taste&&S.draft.feel.aroma==='꽃향'),'clear taste → 맛만 지우고 맛 단계로 돌아가 다시 물음');
+  R['쌉싸름']=()=>({reply:'쌉싸름한 맛으로 담았어요.',fill:{taste:'쌉싸름한 맛'},step:'stay'}); await say('쌉싸름한 맛이야');
+  ok(await E(()=>S.draft.stage==='free'&&S.draft.feel.taste==='쌉싸름한 맛'),'다시 말하면 기록하고 원래 자리(자유 대화)로');
+  ok(await E(()=>{ liveTool({requests:['show_color']}); return S.draft.stage==='color'; }),'음성도 requests show_color → 색 슬라이더');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

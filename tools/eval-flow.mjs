@@ -8,7 +8,7 @@ const H = (...xs) => xs.map((t, i) => ({ who: i % 2 ? 'me' : 'bot', text: t }));
 const filled = (o = {}) => o;
 
 // 결과를 한 모양으로: {reply, set:{칸:값}, ui, finish, end}
-const norm = j => j ? ({ reply: j.reply || '', set: j.fill || j.set || {}, ui: j.action || j.ui || 'none', step: j.step || '', finish: !!j.finish, end: !!j.end }) : null;
+const norm = j => j ? ({ reply: j.reply || '', set: j.fill || j.set || {}, ui: j.action || j.ui || 'none', step: j.step || '', requests: j.requests || [], clear: j.clear || [], finish: !!j.finish, end: !!j.end }) : null;
 const has = (r, k) => !!(r.set[k] && String(r.set[k]).trim());
 
 const CASES = [
@@ -26,9 +26,9 @@ const CASES = [
   // 가이드
   { id: '말로 우림 시작', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '응 이제 시작하자', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.ui === 'start_brew' },
   { id: '가이드 질문', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '물은 몇 도로 해?', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.ui !== 'start_brew' && /7\d|80/.test(r.reply) },
-  { id: '개완 질문은 설명만', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '개완이 뭐야?', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.ui === 'none' || r.ui === 'stay' },
-  { id: '개완 없음 → 기본 가이드', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '그런 찻잔 없는데. 머그컵에 할게', guide: { temp: '80°C', time: '15 – 25초', gongfu: true } }, ok: r => r.step === 'guide_basic' },
-  { id: '개완으로 할게', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '나 개완 있어 개완으로 우릴래', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.step === 'guide_gongfu' },
+  { id: '개완 질문은 설명만', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '개완이 뭐야?', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => !r.requests.includes('gongfu_guide') && r.ui !== 'start_brew' },
+  { id: '개완 없음 → 기본 가이드', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '그런 찻잔 없는데. 머그컵에 할게', guide: { temp: '80°C', time: '15 – 25초', gongfu: true } }, ok: r => r.requests.includes('basic_guide') },
+  { id: '개완으로 할게', tea: GREEN, b: { stage: 'guide', want: '', next: 'brew', message: '나 개완 있어 개완으로 우릴래', guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.requests.includes('gongfu_guide') },
   // 우리는 중
   { id: '치즈냥이는 색 아님', tea: GREEN, b: { stage: 'wait', want: '', next: 'wait', message: '우리 집 노란 치즈냥이가 옆에 있어', timer: { left: 60, total: 120 } }, ok: r => !has(r, 'color') },
   { id: '다 우렸어', tea: GREEN, b: { stage: 'wait', want: '', next: 'wait', message: '벌써 다 우렸어', timer: { left: 60, total: 120 } }, ok: r => r.ui === 'brew_done' },
@@ -44,6 +44,9 @@ const CASES = [
   { id: '질문은 향 아님', tea: GREEN, b: { stage: 'aroma', want: 'aroma', next: 'taste', message: '이거 어디서 만든 차야?', filled: { color: '연두색' } }, ok: r => !has(r, 'aroma') && r.reply.length > 5 },
   { id: '향 보충은 합치기', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '아 그리고 향에서 끝에 꿀 향도 나', filled: { color: '연두색', aroma: '은은한 꽃향' } }, ok: r => /꽃/.test(r.set.aroma || '') && /꿀/.test(r.set.aroma || '') },
   { id: '슬라이더 다시', tea: GREEN, b: { stage: 'aroma', want: 'aroma', next: 'taste', message: '색 슬라이더 다시 보내줘', filled: { color: '연두색' } }, ok: r => r.ui === 'ask_color' },
+  { id: '가이드 다시', tea: GREEN, b: { stage: 'wait', want: '', next: 'wait', message: '아까 그 우림 가이드 다시 보여줄래?', timer: { left: 60, total: 120 }, guide: { temp: '70 – 80°C', time: '2분' } }, ok: r => r.requests.includes('show_guide') },
+  { id: '맛 지우기', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '아까 말한 맛 표현 지우고 다시 말할래', filled: { color: '연두색', aroma: '꽃향', taste: '단맛' } }, ok: r => r.clear.includes('taste') && !r.finish },
+  { id: '맛 바꾸기', tea: GREEN, b: { stage: 'free', want: '', next: 'after', message: '아 맛은 단맛 말고 쌉싸름한 맛으로 바꿔줘', filled: { color: '연두색', aroma: '꽃향', taste: '단맛' } }, ok: r => /쌉/.test(r.set.taste || '') },
   // 맛
   { id: '맛', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '쌉싸름한데 끝에 단맛이 있어', filled: { color: '연두색', aroma: '꽃향' } }, ok: r => /쌉/.test(r.set.taste || '') },
   { id: '달콤하게 나요=맛·향', tea: GREEN, b: { stage: 'taste', want: 'taste', next: 'free', message: '배 향이 달콤하게 나요', filled: { color: '연두색', aroma: '꽃향' } }, ok: r => !/좋은 질문/.test(r.reply) },
