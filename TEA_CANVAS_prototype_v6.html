@@ -196,6 +196,11 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .chip.dark{background:#111;color:#fff}
 .msg.sys{align-self:center;background:none;font-size:12px;color:var(--g2);padding:2px}
 .chatfoot{position:sticky;bottom:0;background:#fff;padding:10px 0 4px;margin-top:auto}
+/* 사파리 + 큰 화면(휴대폰 틀을 transform으로 키우고 줄임): 사파리는 이 틀 안의 sticky 위치를 잘못 계산해 입력칸이 화면 중간에 뜬다
+   → 입력칸을 틀(.phone, transform이 있어 fixed의 기준이 됨) 바닥의 하단 탭 바로 위에 붙이고, 그 높이만큼 대화 아래에 여백 */
+html.safari:not(.mob) .scr-chat .chatfoot{position:fixed;left:22px;right:22px;bottom:60px;z-index:5;margin:0}
+html.safari:not(.mob) .scr-chat{padding-bottom:calc(var(--cfh,110px) + 8px)}
+html.safari:not(.mob) .stickfoot{position:static;background:none}   /* 같은 이유로: 아래에 붙는 버튼은 내용 끝에 그대로 */
 .inrow{display:flex;align-items:center;background:var(--g0);border-radius:26px;padding:5px 5px 5px 18px;margin-bottom:10px}
 .inrow input{flex:1;font-size:14.5px;min-width:0}
 .send{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;flex-shrink:0}
@@ -535,6 +540,7 @@ canvas.wcd.big{margin:14px auto}
   addEventListener('focusin',e=>{ if(typing(e.target)){ R._kbFocusOnly=true; R.classList.add('kb'); setTimeout(()=>{ R._kbFocusOnly=false; upd(); },700); } });   // 키보드가 올라오는 동안엔 우선 숨기고, 다 올라온 뒤엔 높이로 판단
   addEventListener('focusout',()=>setTimeout(()=>{ if(!typing(document.activeElement)) R.classList.remove('kb'); },60));
   (window.visualViewport||window).addEventListener('resize',upd); })();</script>
+<script>(function(){ const R=document.documentElement; if(/^((?!chrome|chromium|crios|fxios|edg|opr|android).)*safari/i.test(navigator.userAgent)) R.classList.add('safari'); })();</script>
 <script>(function(){ const R=document.documentElement, f=()=>{ const coarse=matchMedia('(pointer:coarse)').matches; R.classList.toggle('mob', innerWidth<=700 || (coarse && Math.min(screen.width,screen.height)<=520)); }; f(); addEventListener('resize',f); })();</script>
 </head>
 <body>
@@ -1523,7 +1529,8 @@ error(p){
 const AFTER = {
   my(){ const c=$('#avCv'); if(!c) return; const f=favDrop(); animFav1(c,f?f.all:[{k:'floral',c:FLAVORS.floral.color,w:.8},{k:'sweet',c:FLAVORS.sweet.color,w:.6},{k:'vegetal',c:FLAVORS.vegetal.color,w:.5}],f?f.drop.id:'avatar',.1,.3); },
   home(){ mountHomeDrop($('#homeDrop')); },
-  chat(){ seedChat(); paintMsgs(); if(VOICE.on){ startVoiceWash($('#vwash')); paintVoice(); } },
+  chat(){ seedChat(); paintMsgs(); if(VOICE.on){ startVoiceWash($('#vwash')); paintVoice(); }
+    { const cf=$('.chatfoot'), v=$('#view'); if(cf&&v&&document.documentElement.classList.contains('safari')&&window.ResizeObserver){ const set=()=>{ const end=v.scrollTop+v.clientHeight>=v.scrollHeight-60; v.style.setProperty('--cfh',cf.offsetHeight+'px'); if(end) v.scrollTop=v.scrollHeight; }; set(); new ResizeObserver(set).observe(cf); } } },   // 사파리: 입력칸 높이만큼 대화 아래 여백
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('analyzing',{},{replace:true}); },1600); },
   analyzing(){ runInfusion(); },
   canvas(p){
