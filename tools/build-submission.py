@@ -12,7 +12,7 @@ ic=uri('assets/icons/icon-192.png','image/png')
 s=s.replace('href="assets/icons/icon-192.png"','href="%s"'%ic).replace('href="assets/icons/apple-touch-icon.png"','href="%s"'%ic)
 a="if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});"
 assert a in s; s=s.replace(a,'')
-a="(()=>{ try{ if(!localStorage.getItem('teacanvas.v6.fresh14')){"
+a="(()=>{ try{ if(!localStorage.getItem('teacanvas.v6.fresh15')){"
 assert a in s
 s=s.replace(a,"(()=>{ try{ if(!sessionStorage.getItem('tc.reopen')){   /* 전시용: 열 때마다 처음 상태로 */",1)
 assert not re.search(r'["\'(]assets/',s)

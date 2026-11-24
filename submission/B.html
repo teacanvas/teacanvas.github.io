@@ -730,7 +730,7 @@ function baseSeeds(){
 /* 기록 저장: 관람객 기록이 한 캔버스에 계속 모이도록 localStorage에 쌓는다 */
 /* ?sample=many 이면 찻방울이 많은 캔버스(따로 저장). 저장 이름을 v5로 바꿔, 예전 버전에서 남긴 기록 없이 예시만으로 시작한다 */
 /* 처음 받았을 때 모습으로 한 번 되돌리기: 그동안 만든 기록·설정을 지우고 예시 13개로 시작 */
-(()=>{ try{ if(!sessionStorage.getItem('tc.reopen')){   /* 전시용: 열 때마다 처음 상태로 */ Object.keys(localStorage).filter(k=>k.startsWith('teacanvas.v6.')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('teacanvas.v6.fresh14','1'); localStorage.setItem('teacanvas.v6.seed11','1'); } }catch(e){} })();
+(()=>{ try{ if(!sessionStorage.getItem('tc.reopen')){   /* 전시용: 열 때마다 처음 상태로 */ Object.keys(localStorage).filter(k=>k.startsWith('teacanvas.v6.')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('teacanvas.v6.fresh15','1'); localStorage.setItem('teacanvas.v6.seed11','1'); } }catch(e){} })();
 const SAMPLE=(()=>{ try{ return new URLSearchParams(location.search).get('sample')==='many'?'many':''; }catch(e){ return ''; } })();
 const STORE_KEY=SAMPLE?'teacanvas.v6.many':'teacanvas.v6.records';
 function loadRecords(){
