@@ -237,7 +237,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid #E5E5E5}
 .cmtrow .box{position:relative}.cmtrow .box input{padding-right:46px}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
 .btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
-.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.typelist button.none{opacity:.45}.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
 .typelist .tb{width:34px;height:34px;flex:none;display:grid;place-items:center}.typelist .tb svg{width:100%;height:100%}.typelist b{font-weight:600}.typelist .muted{margin-left:auto}.typelist .chev{color:#AAA}
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
@@ -968,7 +968,7 @@ function paintDrops(root=document){
   });
 }
 const TYPE_EN={green:['green','sencha','matcha','gyokuro','jasmine','genmaicha','hojicha','longjing','dragonwell'],white:['white','silverneedle','whitepeony','baimudan','shoumei'],oolong:['oolong','tieguanyin','orientalbeauty','dahongpao','milkoolong','phoenix'],
-  black:['black','earlgrey','darjeeling','assam','ceylon','breakfast','lapsang','keemun','chai'],dark:['puer','pu-erh','puerh','pu\'er','dark','shou','sheng'],herb:['herb','herbal','chamomile','peppermint','mint','rooibos','hibiscus','lavender','lemonbalm','barley','tisane'],other:['barley','burdock','corn','grain']};
+  black:['black','earlgrey','darjeeling','assam','ceylon','breakfast','lapsang','keemun','chai'],dark:['puer','pu-erh','puerh','pu\'er','dark','shou','sheng'],herb:['herb','herbal','chamomile','peppermint','mint','rooibos','hibiscus','lavender','lemonbalm','tisane'],other:['barley','burdock','corn','grain','yuzu','citron','fruit','tangerine','buckwheat']};
 function findType(text){
   const t=text.toLowerCase().replace(/\s/g,'');
   for(const k of ORDER){ if(TEAS[k].kw.some(w=>t.includes(w.toLowerCase()))) return k; }
@@ -1150,6 +1150,7 @@ const REC_TEAS=[
   {name:'캐모마일',type:'herb',fl:['floral','sweet','soft'],note:'사과 같은 꽃향의 편안한 허브차'},
   {name:'페퍼민트',type:'herb',fl:['fresh','spicy'],note:'시원하고 깔끔한 민트 허브차'},
   {name:'유자차',type:'other',fl:['citrus','sweet','fresh'],note:'새콤달콤한 유자 향'},
+  {name:'보리차',type:'other',fl:['nutty','soft','sweet'],note:'볶은 보리의 구수하고 순한 맛'},
 ];
 function ownHTML(words){ if(!words.length) return '';
   return `<div class="own">${words.length?`<span class="own-l">나만의 표현</span>${words.map(w=>`<q>${esc(w)}</q>`).join('')}`:''}</div>`; }
@@ -1223,7 +1224,7 @@ async function saveTagImage(id,noPhoto){ const r=(id&&S.records.find(x=>x.id===i
 /* My의 '차 종류': 종류별 잔 수, 누르면 그 종류 기록만 */
 function openTypeSheet(){ const n=k=>S.records.filter(r=>r.type===k).length;
   openSheet(`<div class="grab"></div><h1 class="t">마신 차 종류</h1><p class="sub">누르면 그 종류의 기록만 볼 수 있어요.</p>
-    <div class="typelist">${ORDER.filter(k=>n(k)).map(k=>`<button onclick="showType('${k}')"><span class="tb">${teabag(k)}</span><b>${TEAS[k].label}</b><span class="muted">${n(k)}잔</span><span class="chev">›</span></button>`).join('')}</div>
+    <div class="typelist">${ORDER.map(k=>n(k)?`<button onclick="showType('${k}')"><span class="tb">${teabag(k)}</span><b>${TEAS[k].label}</b><span class="muted">${n(k)}잔</span><span class="chev">›</span></button>`:`<button class="none" onclick="toast('아직 ${TEAS[k].label} 기록이 없어요')"><span class="tb">${teabag(k)}</span><b>${TEAS[k].label}</b><span class="muted">0잔</span><span class="chev"></span></button>`).join('')}</div>
     <div style="height:10px"></div><button class="link" onclick="closeSheet()">닫기</button>`); }
 function showType(k){ closeSheet(); S.filter={q:'',type:k,date:'all',fl:[],from:'',to:''}; go('canvas',{tab:'list'},{reset:true}); }
 function resetFilter(){ S.filter={q:'',date:'all',fl:[],from:'',to:''}; rerender(); }
@@ -1742,7 +1743,7 @@ const AI_TIMEOUT=9000, AI_TIMEOUT_LONG=15000;  // 이 시간 안에 대답이 �
 const FAQ=[
   [/떫|쓴|쓰다|씁쓸/, t=>`떫거나 쓰게 느껴지면 물 온도를 조금 낮추거나, 우리는 시간을 30초쯤 줄여보세요.${t?` ${t.label}는 ${t.temp}, ${t.time}이 알맞아요.`:''}`],
   [/몇 ?번|여러 ?번|다시 우려|재탕/, ()=>'잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.'],
-  [/카페인|잠|밤에/, ()=>'녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차가 편해요.'],
+  [/카페인|잠|밤에/, ()=>'녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차나 보리차·유자차 같은 기타 차가 편해요.'],
   [/온도|몇 ?도|뜨거/, t=>t?`${t.label}는 ${t.temp}가 알맞아요. 끓인 물을 잠시 식혀서 부으면 돼요.`:'차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.'],
   [/얼마나|시간|몇 ?분/, t=>t?`${t.label}는 ${t.time} 정도 우려보세요. 진하게 좋으면 조금 더 길게요.`:'보통 2~5분이에요. 처음엔 짧게, 맛을 보며 늘려보세요.'],
   [/몇 ?그램|양|얼마나 넣/, ()=>'찻잎은 물 150~200ml에 2~3g(티스푼 하나 정도)이 알맞아요.'],
@@ -2129,7 +2130,7 @@ const EN={
  "남겨둘게요.\n더 남기고 싶은 게 있나요? 없으면 정리할게요.":"Saved.\nAnything else? If not, I'll wrap up.",
  "좋은 질문이에요. 지금은 정확히 답하기 어려워요.\n마시면서 느낀 점을 계속 들려주세요.":"Good question. I can't answer that exactly right now.\nKeep telling me what you notice.",
  "잎차는 보통 3~5번까지 우릴 수 있어요. 우릴수록 향은 가벼워지고 맛은 부드러워지니, 차수마다 달라지는 걸 비교해보세요.":"Loose-leaf tea can usually be brewed 3–5 times. Each infusion gets lighter and smoother, so compare them.",
- "녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차가 편해요.":"Green, black, oolong and pu-erh teas have caffeine. Late at night, an herbal tea like chamomile is easier.",
+ "녹차·홍차·우롱차·보이차에는 카페인이 있어요. 늦은 밤이라면 캐모마일 같은 허브차나 보리차·유자차 같은 기타 차가 편해요.":"Green, black, oolong and pu-erh teas have caffeine. Late at night, an herbal tea like chamomile, or another caffeine-free tea like barley or yuzu, is easier.",
  "차마다 달라요. 녹차는 70~80°C, 홍차·보이차는 90°C 이상이 좋아요.":"It depends. Green tea likes 70–80°C; black and pu-erh like 90°C or more.",
  "보통 2~5분이에요. 처음엔 짧게, 맛을 보며 늘려보세요.":"Usually 2–5 minutes. Start short and extend as you taste.",
  "찻잎은 물 150~200ml에 2~3g(티스푼 하나 정도)이 알맞아요.":"About 2–3 g of leaves (a teaspoon) for 150–200 ml of water.",
@@ -2600,6 +2601,9 @@ const EXPERT_BY_NAME=[
   {re:/대홍포|da\s*hong\s*pao/i,fl:['nutty','earthy','sweet'],text:'숯불에 구운 듯한 고소한 로스팅 향과 바위에서 온 듯한 미네랄감, 묵직한 바디 뒤로 달큰한 여운이 남는 우롱차예요.'},
   {re:/히비스커스|hibiscus/i,fl:['citrus','fruity','floral'],text:'크랜베리를 닮은 새콤한 신맛과 붉은 베리 향이 또렷하고, 끝에 살짝 떫게 마무리되는 허브차예요.'},
   {re:/보리차|barley/i,fl:['nutty','soft','sweet'],text:'볶은 보리의 구수한 향에 순하고 부드러운 맛, 은은한 단맛이 남는 차예요.'},
+  {re:/유자|청귤|citron|yuzu/i,fl:['citrus','sweet','fresh'],text:'껍질째 우러난 상큼한 시트러스 향에 새콤달콤한 맛이 어우러지는, 산뜻하고 따뜻한 과일차예요.'},
+  {re:/우엉|burdock/i,fl:['earthy','nutty','soft'],text:'볶은 뿌리의 구수하고 흙내음 섞인 향에 순하고 담백한 맛이 이어지는 차예요.'},
+  {re:/옥수수|corn\s*tea/i,fl:['nutty','sweet','soft'],text:'볶은 옥수수의 고소하고 달큰한 향에 부드럽고 순한 맛이 남는 차예요.'},
   {re:/루이보스|rooibos/i,fl:['sweet','earthy','soft'],text:'꿀과 마른 나무를 닮은 달큰한 향에 부드럽고 순한 맛이 이어지는 허브차예요.'},
   {re:/자스민|쟈스민|재스민|jasmine/i,fl:['floral','vegetal','sweet'],text:'자스민 꽃의 화사한 향이 먼저 퍼지고, 녹차의 산뜻한 풀향과 은은한 단맛이 받쳐주는 차예요.'},
   {re:/말차|matcha/i,fl:['vegetal','sweet','soft','astringent'],text:'곱게 간 찻잎이라 진한 풀향과 감칠맛이 있고, 부드러운 거품 뒤로 쌉싸름함과 단맛이 함께 남는 차예요.'},
@@ -2722,10 +2726,14 @@ if(!PREF.voiceGender) PREF.voiceGender=PREF.aiVoice==='Umbriel'?'male':'female';
 if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
 Object.assign(EN,{
+ "껍질째 우러난 상큼한 시트러스 향에 새콤달콤한 맛이 어우러지는, 산뜻하고 따뜻한 과일차예요.":"A bright, warm fruit tea: zesty citrus from the peel with a sweet-tart taste.",
+ "볶은 뿌리의 구수하고 흙내음 섞인 향에 순하고 담백한 맛이 이어지는 차예요.":"Roasted root with a toasty, earthy aroma and a mild, clean taste.",
+ "볶은 옥수수의 고소하고 달큰한 향에 부드럽고 순한 맛이 남는 차예요.":"Roasted corn with a nutty, sweet aroma and a soft, mild finish.",
+ "볶은 보리의 구수하고 순한 맛":"Toasty, mild roasted barley","보리차":"Barley tea",
  "내가 마신 차가 쌓일수록, 나의 취향이 선명해져요":"The more tea you drink, the clearer your taste becomes","화면을 직접 눌러 오늘의 차를 기록해보세요":"Tap the screen to record today's tea",
  "오늘의 차,":"Today's tea,","어떤 색들이 담겨 있나요?":"what colors does it hold?","맛과 향을 기록해서 색으로 보관해요":"Record taste and aroma, keep them as color","새로운 차 기록하기":"Record a new tea",
  "그만하기":"Quit","뒤로":"Back","음성 끝내기":"End voice","말로 하기":"Speak",
- "녹차":"Green tea","백차":"White tea","우롱차":"Oolong","홍차":"Black tea","보이차":"Pu-erh","허브차":"Herbal tea",
+ "녹차":"Green tea","백차":"White tea","우롱차":"Oolong","홍차":"Black tea","보이차":"Pu-erh","허브차":"Herbal tea","기타":"Other",
  "기록을 그만할까요?":"Stop recording?","저장해두면 홈에서 이어서 기록할 수 있어요.":"If you save it, you can continue from Home.","저장하고 나가기":"Save and leave","저장하지 않고 나가기":"Leave without saving","계속 기록하기":"Keep recording",
  "우림이 끝났어요. 찻잔을 천천히 들어볼까요?":"Brewing's done. Slowly lift your cup.","보내기":"Send",
  "감각 기록을 정리하는 중":"Organizing your notes","찻방울을 완성하고 있어요":"Making your tea drop","내가 남긴 표현이 하나씩 찻방울에 스며들어요.":"Your words soak into the drop, one by one.",

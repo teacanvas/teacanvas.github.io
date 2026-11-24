@@ -1,5 +1,5 @@
 /* TEA CANVAS 오프라인 저장: 한 번 열면 앱 화면·사진·글꼴을 저장해 두고, 인터넷이 끊겨도 열린다 */
-const CACHE='teacanvas-v6-70';
+const CACHE='teacanvas-v6-71';
 const SHELL=['./TEA_CANVAS_prototype_v6.html','./manifest.webmanifest','./assets/icons/icon-192.png','./assets/icons/icon-512.png',
   './assets/photos/s1.jpg','./assets/photos/s2.jpg','./assets/photos/s4.jpg','./assets/photos/s8.jpg','./assets/voice/zephyr.m4a','./assets/voice/umbriel.m4a'];
 self.addEventListener('install',e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())); });
