@@ -546,7 +546,6 @@ canvas.wcd.big{margin:14px auto}
 </head>
 <body>
 <div class="stage" id="stage">
-<header class="ex-top"><div class="ex-logo">TEA CANVAS</div><p class="ex-line">내가 마신 차가 쌓일수록, 나의 취향이 선명해져요</p></header>
 <div class="phone-wrap" id="phoneWrap">
 <div class="phone" id="phone">
   <header class="appbar">
@@ -3263,7 +3262,7 @@ function fitPhone(){
   st.style.setProperty('--ex-line-size',Math.max(14,Math.min(24,H*.012))+'px');
   st.style.setProperty('--hint',Math.max(13,Math.min(20,H*.0105))+'px');
   st.style.setProperty('--gap',Math.max(18,Math.min(56,H*.028))+'px');
-  const chrome=$('.ex-top').offsetHeight+$('.ex-bottom').offsetHeight+parseFloat(getComputedStyle(st).getPropertyValue('--gap'))*2+48+18;
+  const top=$('.ex-top'), chrome=(top?top.offsetHeight:0)+$('.ex-bottom').offsetHeight+parseFloat(getComputedStyle(st).getPropertyValue('--gap'))*2+48+18;
   SCALE=Math.max(.5,Math.min(1.8,(H-chrome)/852,(W-48)/393));
   wrap.style.width=393*SCALE+'px'; wrap.style.height=852*SCALE+'px';
   p.style.transform=`scale(${SCALE})`;
