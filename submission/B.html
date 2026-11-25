@@ -2516,7 +2516,7 @@ const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Sulafat:'data:audio/mp4;base
 /* 고를 수 있는 목소리: 모두 차분한 결 (같은 문장으로 녹음해 속도·높낮이 변화를 재서 골랐다). [Gemini 이름, 보이는 이름, 성별] */
 /* 실시간 음성 목소리: 설정의 성별 안에서 차분한 목소리들 (같은 문장으로 녹음해 속도·높낮이 변화를 재서 골랐다).
    음성 모드의 '다른 목소리로 바꾸기'를 누르면 이 안에서 다른 목소리로 바뀌고, 마지막으로 고른 목소리를 다음에도 쓴다 */
-const VOICE_POOL={female:['Sulafat'],male:['Umbriel','Algieba','Charon']};   // 여성은 설정 '들어보기'의 Sulafat만 (다른 여성 목소리는 별로라는 피드백). 같은 목소리도 연결마다 결이 조금씩 달라서 ↻로 다시 뽑을 수 있다
+const VOICE_POOL={female:['Sulafat'],male:['Umbriel']};   // 설정 '들어보기'의 목소리만 (여성 Sulafat · 남성 Umbriel. 다른 목소리는 별로·힘이 세다는 피드백). 같은 목소리도 연결마다 결이 조금씩 달라서 ↻로 다시 뽑을 수 있다
 const liveVoiceName=()=>{ const g=PREF.voiceGender==='male'?'male':'female'; return VOICE_POOL[g].includes(PREF.voice)?PREF.voice:VOICE_POOL[g][0]; };   // 여성은 차분하고 따뜻한 Sulafat (예전 Zephyr는 밝고 텐션이 높게 들릴 때가 있었다)
 /* 기본 음성 대화의 AI 목소리(하루 한도가 아주 작음)는 꺼 둔다. 숨은 설정 PREF.ttsAI=true일 때만 쓴다 (설정 화면에는 없음) */
 const aiVoice=()=>PREF.ttsAI?liveVoiceName():'device', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
