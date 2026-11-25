@@ -556,6 +556,19 @@ const VOICE = en => en
 
 /* ---------- 모드별 설정 ---------- */
 const SPECS = {
+  /* 실시간 음성에서 받아 적은 내 말 고치기: 음성 인식이 잘못 들은 낱말을 대화 흐름·차 이름으로 바로잡아, 채팅 기록에 바른 문장으로 남긴다 */
+  heard: {
+    maxTokens: 900,
+    system: en => en
+      ? 'You fix speech-recognition transcripts of what the user said in a tea-tasting app conversation. For each item, return the sentence the user most likely said: fix misheard words using the conversation, the tea name and tea/app words (e.g. brewing guide, Darjeeling, Earl Grey), drop fillers (uh, um), add a question mark if it is a question. Keep their meaning, wording and casual tone; do not paraphrase or add anything. If it already looks right or you are unsure, return it unchanged. Write tea names in the language the user speaks (Korean names in Korean).'
+      : '차 기록 앱에서 사용자가 말한 것을 음성 인식으로 받아 적은 문장을 고쳐. 각 문장마다 사용자가 실제로 했을 말을 돌려줘: 대화 흐름, 차 이름, 차·앱 낱말(우림 가이드, 다즐링, 얼그레이, 찻물, 개완 등)을 보고 잘못 들린 낱말을 바로잡고, 어·음 같은 추임새는 빼고, 질문이면 물음표를 붙여. 뜻·말투(반말 등)·표현은 그대로 두고, 바꿔 말하거나 덧붙이지 마. 이미 맞거나 확실하지 않으면 그대로 돌려줘. 차 이름은 한국어로 말했으면 한국어로 써 (예: dazzling → 다즐링).',
+    prompt: (b, en) => {
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 12).map(x => ({ id: str(x && x.id, 20), text: str(x && x.text, 300) })).filter(x => x.id && x.text);
+      return [teaLine(b, en), (en ? 'Conversation so far:\n' : '지금까지 대화:\n') + (historyText(b, en) || '-'), '', (en ? 'Fix these (id: text):' : '고칠 문장 (id: 문장):'), ...items.map(x => `${x.id}: ${x.text}`)].join('\n');
+    },
+    schema: { type: 'OBJECT', properties: { items: { type: 'ARRAY', items: { type: 'OBJECT', properties: { id: { type: 'STRING' }, text: { type: 'STRING' } }, required: ['id', 'text'] } } }, required: ['items'] },
+    clean: j => { const items = (j && Array.isArray(j.items) ? j.items : []).map(x => ({ id: str(x && x.id, 20), text: plain(str(x && x.text, 300)) })).filter(x => x.id && x.text); return items.length ? { items } : null; },
+  },
   question: {
     maxTokens: 300,
     system: en => VOICE(en) + (en

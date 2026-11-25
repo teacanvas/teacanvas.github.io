@@ -10,6 +10,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.route(EP,async r=>{ const q=JSON.parse(r.request().postData()||'{}'); const J=o=>r.fulfill({contentType:'application/json',body:JSON.stringify(o)});
     if(q.mode==='flow'){ if(q.event!=='message') return J({reply:`(AI:${q.event})`,fill:{}}); const k=Object.keys(R).find(k=>q.message.includes(k)); return J(Object.assign({reply:'음, 그렇군요.',fill:{}},k?R[k](q):{})); }
     if(q.mode==='chat') return J({reply:'네',finish:false});
+    if(q.mode==='heard') return J({items:q.items.map(x=>({id:x.id,text:x.text.replace('dazzling 얼굴의','다즐링, 얼그레이').replace('어린 가이드','우림 가이드')}))});
     return r.fulfill({status:404,body:'{}'}); });
   await p.goto(FILE); await p.waitForTimeout(600);
   const say=async t=>{ await p.fill('#chatIn',t); await p.evaluate(()=>sendInput()); await p.waitForTimeout(1100); };
@@ -110,6 +111,10 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   ok(await E(()=>S.draft.chat.some(m=>m.queued&&m.text==='기다렸다 보낸 말')),'봇이 말하는 중에 보낸 말은 화면에 남고 줄을 선다');
   await E(()=>{ S.typing=false; }); await p.waitForTimeout(2000);
   ok(await E(()=>{ const c=S.draft.chat; const i=c.findIndex(m=>m.text==='기다렸다 보낸 말'); return i>=0&&!c[i].queued&&c.slice(i+1).some(m=>m.who==='bot'&&/들었어요/.test(m.text)); }),'봇이 끝나면 그 말을 보내고 대답을 받는다');
+  // 실시간 음성에서 잘못 들린 내 말은 잠시 뒤 바른 문장으로 바뀌고, 들린 그대로는 raw에 남는다
+  await E(()=>{ const m1={who:'me',text:'dazzling 얼굴의 갖고 있어',voice:true}, m2={who:'me',text:'어린 가이드 안 보내줬는데',voice:true}; S.draft.chat.push(m1,m2); heardFix(m1); heardFix(m2); });
+  await p.waitForTimeout(3500);
+  ok(await E(()=>{ const c=S.draft.chat; const a=c.find(m=>m.raw==='dazzling 얼굴의 갖고 있어'), b=c.find(m=>m.raw==='어린 가이드 안 보내줬는데'); return a&&a.text==='다즐링, 얼그레이 갖고 있어'&&b&&b.text==='우림 가이드 안 보내줬는데'; }),'음성으로 잘못 들린 말 → 바른 문장으로 고쳐 채팅 기록에 (원래 들린 말은 따로 보관)');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');
