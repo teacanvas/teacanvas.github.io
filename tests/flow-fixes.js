@@ -115,6 +115,8 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await E(()=>{ const m1={who:'me',text:'dazzling 얼굴의 갖고 있어',voice:true}, m2={who:'me',text:'어린 가이드 안 보내줬는데',voice:true}; S.draft.chat.push(m1,m2); heardFix(m1); heardFix(m2); });
   await p.waitForTimeout(3500);
   ok(await E(()=>{ const c=S.draft.chat; const a=c.find(m=>m.raw==='dazzling 얼굴의 갖고 있어'), b=c.find(m=>m.raw==='어린 가이드 안 보내줬는데'); return a&&a.text==='다즐링, 얼그레이 갖고 있어'&&b&&b.text==='우림 가이드 안 보내줬는데'; }),'음성으로 잘못 들린 말 → 바른 문장으로 고쳐 채팅 기록에 (원래 들린 말은 따로 보관)');
+  // 목소리: 사용자가 고른 목록 안에서만 ↻로 바뀐다
+  ok(await E(()=>{ PREF.voiceGender='male'; PREF.voice=''; const a=liveVoiceName(); const seen=new Set([a]); for(let i=0;i<20;i++){ nextVoice(); seen.add(liveVoiceName()); } PREF.voiceGender='female'; PREF.voice=''; return a==='Zubenelgenubi'&&[...seen].every(v=>VOICE_POOL.male.includes(v))&&seen.size>2&&liveVoiceName()==='Sulafat'; }),'목소리: 기본(여성 Sulafat·남성 Zubenelgenubi), ↻는 고른 목록 안에서만');
   // 실시간 음성: 같은 판단(update_record의 record·unknown·step)이 같은 함수로 적용되는지
   await E(()=>{ S.draft.stage='wait'; S.draft.feel={}; S.timer={total:120,left:60,running:true}; });
   ok(await E(()=>{ liveTool({step:'show_color'}); return S.draft.stage==='color'; }),'음성: step show_color → 색 단계(슬라이더)');

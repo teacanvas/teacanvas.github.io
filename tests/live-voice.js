@@ -53,7 +53,7 @@ async function run(b,mode){
   await p.evaluate(()=>{ const h=LIVE.node.port.onmessage; h({data:{b:new Int16Array(1600).buffer,r:.4}}); LIVE.sources=[]; }); await p.waitForTimeout(200);
   ok(audioIn>n0,'AI가 말하는 중에도 내가 크게 말하면 보냄 (끼어들기)');
   await p.evaluate(()=>stopVoice()); await p.waitForTimeout(200); ok(await p.evaluate(()=>!LIVE.on&&!LIVE.mic),'음성 끝내기 → 연결과 마이크를 닫음');
-  ok(await p.evaluate(()=>{ PREF.voiceGender='male'; const m=/voice=Umbriel/.test(liveURL()); PREF.voiceGender='female'; return m&&/voice=Sulafat/.test(liveURL()); }),'설정한 성별대로 목소리 (남성 Umbriel · 여성 Sulafat)');
+  ok(await p.evaluate(()=>{ PREF.voiceGender='male'; const m=/voice=Zubenelgenubi/.test(liveURL()); PREF.voiceGender='female'; return m&&/voice=Sulafat/.test(liveURL()); }),'설정한 성별대로 목소리 (남성 Zubenelgenubi · 여성 Sulafat)');
   ok(await p.evaluate(()=>{ PREF.voiceGender='male'; const a=voiceScore({name:'ko-kr-x-jun-network'})>voiceScore({name:'ko-kr-x-ism-network'}); PREF.voiceGender='female'; const b=voiceScore({name:'Google 한국의 SunHi'})>voiceScore({name:'Microsoft InJoon'}); return a&&b; }),'기본 음성 대화도 휴대폰 목소리 중 그 성별을 먼저 고름');
   ok(!errs.length,'화면 오류 없음'+(errs.length?': '+errs.join(' / '):'')); await p.close(); }
 (async()=>{ const b=await chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--autoplay-policy=no-user-gesture-required']});
