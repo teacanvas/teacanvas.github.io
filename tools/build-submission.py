@@ -6,7 +6,7 @@ ROOT=os.path.join(os.path.dirname(__file__),'..'); os.chdir(ROOT)
 s=open('TEA_CANVAS_prototype_v6.html').read()
 def uri(p,mt): return 'data:%s;base64,%s'%(mt,base64.b64encode(open(p,'rb').read()).decode())
 for n in ['s1','s2','s4','s8']: s=s.replace('"assets/photos/%s.jpg"'%n,'"%s"'%uri('assets/photos/%s.jpg'%n,'image/jpeg'))
-for n in ['zephyr','umbriel']: s=s.replace("'assets/voice/%s.m4a'"%n,"'%s'"%uri('assets/voice/%s.m4a'%n,'audio/mp4'))   # 목소리 들어보기용 소리
+for n in ['sulafat','zephyr','umbriel']: s=s.replace("'assets/voice/%s.m4a'"%n,"'%s'"%uri('assets/voice/%s.m4a'%n,'audio/mp4'))   # 목소리 들어보기용 소리
 s=s.replace('<link rel="manifest" href="manifest.webmanifest">','')
 ic=uri('assets/icons/icon-192.png','image/png')
 s=s.replace('href="assets/icons/icon-192.png"','href="%s"'%ic).replace('href="assets/icons/apple-touch-icon.png"','href="%s"'%ic)

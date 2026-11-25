@@ -2507,12 +2507,12 @@ const vAlive=id=>VOICE.on&&VOICE.tid===id&&cur()==='chat'&&S.draft;
 function speakLine(m){ let t=L(m.text||''); if(m.guide){ const d=S.draft, g=guideOf(d,m); t+=isEN()?` Water ${g.temp}, brew for ${enTime(g.time)}.`:` 물 온도는 ${g.temp}, 우리는 시간은 ${g.time}예요.`; }
   return t.replace(/[–-]/g,'에서 ').replace(/°C/g,'도').replace(/[·…]/g,', ').replace(/\n/g,' '); }
 let SPEAK_ID=0;
-/* AI 목소리(Gemini TTS, 여성 Zephyr · 남성 Umbriel): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
+/* AI 목소리(Gemini TTS, 여성 Sulafat · 남성 Umbriel): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
    안 되면(인터넷·한도·시간 초과) 휴대폰 목소리로 */
 /* 목소리는 늘 같은 모델(3.8 Flash TTS)로만 만든다: 모델이 바뀌면 같은 이름이어도 목소리 결이 달라지므로, 이 모델이 안 되면 다른 AI 목소리 대신 휴대폰 목소리로 */
-const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Zephyr:'assets/voice/zephyr.m4a',Umbriel:'assets/voice/umbriel.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
+const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Sulafat:'assets/voice/sulafat.m4a',Zephyr:'assets/voice/zephyr.m4a',Umbriel:'assets/voice/umbriel.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
 /* 설정은 성별(여성·남성)만: 실시간 음성은 그 성별의 AI 목소리, 기본 음성 대화는 휴대폰 목소리 중 그 성별에 가까운 것 (목소리 결은 조금씩 달라도 성별은 늘 같게) */
-const liveVoiceName=()=>PREF.voiceGender==='male'?'Umbriel':'Zephyr';
+const liveVoiceName=()=>PREF.voiceGender==='male'?'Umbriel':'Sulafat';   // 여성은 차분하고 따뜻한 Sulafat (예전 Zephyr는 밝고 텐션이 높게 들릴 때가 있었다)
 /* 기본 음성 대화의 AI 목소리(하루 한도가 아주 작음)는 꺼 둔다. 숨은 설정 PREF.ttsAI=true일 때만 쓴다 (설정 화면에는 없음) */
 const aiVoice=()=>PREF.ttsAI?liveVoiceName():'device', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
 /* AI 목소리를 못 쓰면 음성 모드마다 한 번 위에 알린다 (처음부터인지, 쓰다가 바뀐 건지) */

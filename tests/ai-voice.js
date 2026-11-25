@@ -12,7 +12,7 @@ function wav(ms){ const rate=8000, n=Math.round(rate*ms/1000), b=Buffer.alloc(44
     if(mode==='slow') await new Promise(x=>setTimeout(x,3000)); return r.fulfill({status:200,headers:{'Content-Type':'audio/wav','X-TTS-Model':'gemini-3.8-flash-tts','Access-Control-Expose-Headers':'X-TTS-Model'},body:wav(600)}); });
   await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>{ PREF.ttsAI=true; PREF.liveVoice=false; });
   let t=await p.evaluate(async()=>{ const t0=Date.now(); await speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?'); return {ms:Date.now()-t0,src:AUDIO&&AUDIO.src}; });
-  ok(calls===1&&last.mode==='speak'&&last.voice==='Zephyr','AI 목소리 요청 (기본: 여성 Zephyr)'); ok(/^blob:/.test(t.src)&&t.ms>=500&&t.ms<4000,`받은 소리를 끝까지 틀고 끝남 (${t.ms}ms)`);
+  ok(calls===1&&last.mode==='speak'&&last.voice==='Sulafat','AI 목소리 요청 (기본: 여성 Sulafat, 차분한 목소리)'); ok(/^blob:/.test(t.src)&&t.ms>=500&&t.ms<4000,`받은 소리를 끝까지 틀고 끝남 (${t.ms}ms)`);
   await p.evaluate(()=>speak('안녕하세요. 오늘은 어떤 차를 마셔볼까요?')); ok(calls===1,'같은 문장은 다시 요청하지 않음');
   await p.evaluate(()=>speak('두 번째 문장이에요.')); ok(last.pin==='gemini-3.8-flash-tts','목소리는 늘 같은 모델로만 만듦 (목소리 결이 바뀌지 않게)');
   await p.evaluate(()=>{ PREF.ttsAI=false; }); const c0=calls; await p.evaluate(()=>speak('기본 목소리로.')); ok(calls===c0,'AI 목소리(기본 음성 대화용)를 끄면 부르지 않음'); await p.evaluate(()=>{ PREF.ttsAI=true; PREF.liveVoice=false; });

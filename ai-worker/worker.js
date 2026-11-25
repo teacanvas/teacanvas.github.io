@@ -485,7 +485,7 @@ const TTS_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini
 async function speakGemini(env, b) {
   const text = str(b.text, 400);
   if (!text) throw new Error('no text');
-  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Zephyr';
+  const voice = /^[A-Za-z]{2,20}$/.test(b.voice || '') ? b.voice : 'Sulafat';
   // 말투 지시문을 앞에 붙이면 가벼운 목소리 모델은 그 지시문까지 소리 내 읽는다 → 읽을 글만 보낸다
   // pin: 같은 대화에서는 처음 쓴 모델만 쓴다(모델마다 목소리 결이 달라 말할 때마다 바뀌지 않게). 그 모델이 안 되면 오류 → 앱은 휴대폰 목소리로
   const pin = /^gemini-[a-z0-9.\-]+-tts$/.test(b.pin || '') ? b.pin : '';
@@ -691,7 +691,7 @@ const SPECS = {
    주소: /live?lang=ko&voice=Zephyr[&resume=핸들] */
 // 모델마다 목소리 결이 달라 한 모델만 쓴다 (안 되면 앱이 기본 음성 대화로). 바꾸려면 GEMINI_LIVE_MODEL 변수
 const LIVE_MODELS = ['gemini-3.1-flash-live-preview'];
-const LIVE_VOICES = ['Zephyr', 'Umbriel', 'Aoede', 'Kore', 'Puck', 'Charon'];
+const LIVE_VOICES = ['Sulafat', 'Umbriel', 'Vindemiatrix', 'Achernar', 'Zephyr', 'Aoede', 'Kore', 'Charon'];   // 기본: 여성 Sulafat(차분·따뜻), 남성 Umbriel(느긋)
 const LIVE_STEPS = ['stay', 'confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'finished_drinking', 'close'];
 const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + unknown + step
   functionDeclarations: [{
@@ -721,12 +721,14 @@ function liveSystem(en) {
     ? FRAME_EN + APP_GUIDE_EN + `
 
 [Real-time voice]
+Voice: calm, soft and relaxed, a little slow, low and steady. No excited exclamations, high energy or exaggerated intonation; like a quiet conversation over a cup of tea.
 You talk by voice in real time: 1–2 short sentences per turn. In the examples above, "reply" is what you say aloud; record, flavors, clear, unknown, requests and step are what you send with the update_record tool.
 Whenever something is recorded, there are flavors, requests or clear, or step is not stay, call update_record FIRST, then speak. When they name a tea, always send type (your best guess) and about together with name and brand, then ask whether to record it as that type. Its response gives the current stage, what's recorded, what's empty and the remaining brew time; continue from that. If you need the remaining time or the record state, or they ask ("how long is left?"), don't guess: call update_record with just step stay to check, then answer. Past records were given at the start as "[앱 정보]". Messages starting with [app] are app events (e.g. the tea finished steeping); pass them on in your own words.
 The user may speak casually or unclearly; work out what they mean from context.`
     : FRAME_KO + APP_GUIDE_KO + `
 
 [실시간 음성]
+목소리: 차분하고 부드럽고 편안하게, 조금 천천히, 낮고 안정된 톤으로 말해. 들뜬 감탄이나 높은 텐션, 과장된 억양은 쓰지 마. 차 한 잔을 앞에 둔 조용한 대화처럼.
 실시간 음성으로 대화해. 한 번에 1~2문장으로 짧게. 위 예시의 reply는 네가 소리 내 할 말이고, record·flavors·clear·unknown·requests·step은 update_record 도구로 보내는 값이야.
 기록할 것이나 flavors가 있거나 requests·clear가 있거나 step이 stay가 아니면 말하기 전에 먼저 update_record를 불러. 차 이름을 들으면 name·brand와 함께 type(가장 그럴듯한 종류)과 about(한 문장)도 꼭 같이 보내고, 그 종류로 기록할지 물어. 그 응답에 지금 단계, 기록된 것, 아직 빈 칸, 남은 우림 시간이 오니 거기서 이어가. 남은 시간·지금 기록 상태가 궁금하거나 사용자가 물으면(예: '몇 분 남았어?') 추측하지 말고 update_record를 step stay만 넣어 불러 확인한 뒤 답해. 지난 기록은 대화 처음에 '[앱 정보]'로 알려줬어. '[앱]'으로 시작하는 말은 앱이 알려주는 일(예: 차가 다 우러남)이야. 네 말로 자연스럽게 전해.
 사용자가 대충 말하거나 발음이 불분명해도 맥락으로 뜻을 알아들어.`;
@@ -736,7 +738,7 @@ async function liveProxy(req, env, okOrigin) {
   if (!okOrigin) return new Response('origin', { status: 403 });
   if (!env.GEMINI_API_KEY) return new Response('no key', { status: 500 });
   const u = new URL(req.url), en = u.searchParams.get('lang') === 'en';
-  const voice = LIVE_VOICES.includes(u.searchParams.get('voice')) ? u.searchParams.get('voice') : 'Zephyr';
+  const voice = LIVE_VOICES.includes(u.searchParams.get('voice')) ? u.searchParams.get('voice') : 'Sulafat';
   const resume = (u.searchParams.get('resume') || '').slice(0, 600);
   const pair = new WebSocketPair(), [client, server] = Object.values(pair);
   server.accept();
