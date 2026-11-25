@@ -483,8 +483,7 @@ canvas.wcd.big{margin:14px auto}
 .actmenu .am{background:#fff;border-radius:14px;overflow:hidden}.actmenu button{display:block;width:100%;height:54px;font-size:16px;background:#fff}
 .actmenu .am button.danger{color:#111;font-weight:700}.actmenu .am button+button{border-top:1px solid var(--g0)}.actmenu .am-x{margin-top:8px;border-radius:14px;font-weight:700}
 .vmark{display:inline-flex;vertical-align:-3px;margin-right:4px;color:#111}.vmark svg{width:15px;height:15px}
-.vlist{display:flex;flex-direction:column;gap:8px;margin:14px 0 6px}.vrow{display:flex;align-items:center;gap:10px;background:var(--g0);border-radius:14px;padding:6px 8px 6px 6px;border:1.5px solid transparent}.vrow.on{border-color:#111;background:#fff}.vrow .vname{flex:1;display:flex;align-items:baseline;gap:8px;text-align:left;padding:10px 10px;background:none;border:0}.vrow .vname b{font-size:15px}.vrow .vname small{font-size:12px;color:var(--g2)}.vrow .pillbtn{margin:0;flex-shrink:0}
-.vvoice{position:absolute;left:22px;bottom:22px;z-index:2;background:rgba(255,255,255,.85);border:1px solid #DADADA;border-radius:16px;padding:6px 12px;font-size:12.5px;color:#333}
+.vvoice{position:absolute;left:22px;bottom:14px;z-index:2;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.9);border:1px solid #DADADA;display:grid;place-items:center}.vvoice svg{width:22px;height:22px}.vvoice svg *{stroke:#333}
 .vpick,.pref .vpick{display:flex;flex-direction:row;gap:8px;align-items:center;margin-top:10px;width:100%}.vpick select{width:100%}.vpick select,.efld select{flex:1;min-width:0;height:44px;border-radius:22px;background:var(--g0) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23737373' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 16px center;padding:0 40px 0 16px;font-size:14px;text-align:left;-webkit-appearance:none;appearance:none;border:0;color:#111;font-family:inherit}.vpick .pillbtn{margin:0;padding:6px 12px;flex-shrink:0}
 .sec-row{display:flex;align-items:center;justify-content:space-between}.sec-row .pillbtn{margin:12px 0 0;padding:4px 12px}
 .rate{display:flex;align-items:center;gap:14px;margin-top:14px}.rate .sec{margin:0}.rate .stars{margin:0}
@@ -1340,7 +1339,7 @@ chat(){
   <div id="msgs"></div>
   <div class="chatfoot ${VOICE.on?'voicing':''}">
     <div class="vpanel" id="vPanel" onclick="tapInterrupt()"><canvas id="vwash"></canvas><div class="vtext"><p class="vstate" id="vState"></p><p class="heard" id="vHeard"></p></div>
-      <button class="vvoice" onclick="event.stopPropagation();openVoicePicker()">목소리</button><button class="vstop" onclick="stopVoice()" aria-label="음성 끝내기">${I.stop}</button></div>
+      ${VOICE.live?`<button class="vvoice" onclick="event.stopPropagation();nextVoice()" aria-label="다른 목소리로 바꾸기" title="다른 목소리로 바꾸기">${I.refresh}</button>`:''}<button class="vstop" onclick="stopVoice()" aria-label="음성 끝내기">${I.stop}</button></div>
     <div class="inrow"><input id="chatIn" placeholder="느낀 그대로 적어보세요" oninput="syncSend()" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendInput()">
       <button class="send" id="sendBtn" onclick="sendOrVoice()" aria-label="말로 하기">${I.mic}</button></div>
     <div id="chatEnd">${chatEndHTML(d)}</div>
@@ -2209,7 +2208,6 @@ const EN_RE=[
  [/^‘(.+?)’(?:은|는) 처음 보는 차예요\.\n어떤 종류에 가까운가요\?$/,(m,a)=>`I don't know ‘${a}’ yet.\nWhich type is it closest to?`],
  [/^다시 (.+)에 맞춘 가이드예요\.$/,(m,a)=>`Here's the guide for ${a} again.`],
  [/^(.+?)(?:을|를) 가장 맛있게 우리는 방법이에요\.\n준비되면 ‘우림 시작’을 눌러주세요\.$/,(m,a)=>`Here's how to brew ${a} at its best.\nTap ‘Start brewing’ when you're ready.`],
- [/^(.+ 목소리)로 바꿨어요$/,(m,a)=>`Switched to the ${(EN[a]||a).toLowerCase()} voice`],
  [/^(\d+)잔$/,(m,a)=>`${a} ${a==='1'?'cup':'cups'}`],
  [/^이어서 기록해볼까요\? 오늘의 차는 ‘(.+)’(?:이에요|예요)\.$/,(m,a)=>`Shall we continue? Today's tea is ‘${a}’.`],
  [/^(녹차|백차|우롱차|홍차|보이차|허브차|기타) 일반$/,(m,a)=>`General ${({녹차:'green tea',백차:'white tea',우롱차:'oolong',홍차:'black tea',보이차:'pu-erh',허브차:'herbal tea',기타:'other tea'})[a]}`],
@@ -2513,11 +2511,13 @@ let SPEAK_ID=0;
 /* AI 목소리(Gemini TTS, 여성 Sulafat · 남성 Umbriel): 중간 서버에 글을 보내 사람 같은 목소리를 받아 튼다.
    안 되면(인터넷·한도·시간 초과) 휴대폰 목소리로 */
 /* 목소리는 늘 같은 모델(3.8 Flash TTS)로만 만든다: 모델이 바뀌면 같은 이름이어도 목소리 결이 달라지므로, 이 모델이 안 되면 다른 AI 목소리 대신 휴대폰 목소리로 */
-const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Sulafat:'assets/voice/sulafat.m4a',Vindemiatrix:'assets/voice/vindemiatrix.m4a',Achernar:'assets/voice/achernar.m4a',Umbriel:'assets/voice/umbriel.m4a',Algieba:'assets/voice/algieba.m4a',Charon:'assets/voice/charon.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
+const TTS_MODEL='gemini-3.8-flash-tts', VOICE_CLIP={Sulafat:'assets/voice/sulafat.m4a',Umbriel:'assets/voice/umbriel.m4a'};   // 들어보기용으로 미리 만든 목소리 (누르면 바로 나오게)
 /* 설정은 성별(여성·남성)만: 실시간 음성은 그 성별의 AI 목소리, 기본 음성 대화는 휴대폰 목소리 중 그 성별에 가까운 것 (목소리 결은 조금씩 달라도 성별은 늘 같게) */
 /* 고를 수 있는 목소리: 모두 차분한 결 (같은 문장으로 녹음해 속도·높낮이 변화를 재서 골랐다). [Gemini 이름, 보이는 이름, 성별] */
-const VOICES=[['Sulafat','따뜻한 목소리','female'],['Vindemiatrix','온화한 목소리','female'],['Achernar','부드러운 목소리','female'],['Umbriel','느긋한 목소리','male'],['Algieba','매끄러운 목소리','male'],['Charon','낮고 차분한 목소리','male']];
-const liveVoiceName=()=>{ const v=VOICES.find(x=>x[0]===PREF.voice); return v?v[0]:PREF.voiceGender==='male'?'Umbriel':'Sulafat'; };   // 여성은 차분하고 따뜻한 Sulafat (예전 Zephyr는 밝고 텐션이 높게 들릴 때가 있었다)
+/* 실시간 음성 목소리: 설정의 성별 안에서 차분한 목소리들 (같은 문장으로 녹음해 속도·높낮이 변화를 재서 골랐다).
+   음성 모드의 '다른 목소리로 바꾸기'를 누르면 이 안에서 다른 목소리로 바뀌고, 마지막으로 고른 목소리를 다음에도 쓴다 */
+const VOICE_POOL={female:['Sulafat','Vindemiatrix','Achernar'],male:['Umbriel','Algieba','Charon']};
+const liveVoiceName=()=>{ const g=PREF.voiceGender==='male'?'male':'female'; return VOICE_POOL[g].includes(PREF.voice)?PREF.voice:VOICE_POOL[g][0]; };   // 여성은 차분하고 따뜻한 Sulafat (예전 Zephyr는 밝고 텐션이 높게 들릴 때가 있었다)
 /* 기본 음성 대화의 AI 목소리(하루 한도가 아주 작음)는 꺼 둔다. 숨은 설정 PREF.ttsAI=true일 때만 쓴다 (설정 화면에는 없음) */
 const aiVoice=()=>PREF.ttsAI?liveVoiceName():'device', TTS_CACHE=new Map(); let AUDIO=null, TTS_CTL=null, TTS_FAILS=0, TTS_OFF_UNTIL=0, TTS_WHY='';
 /* AI 목소리를 못 쓰면 음성 모드마다 한 번 위에 알린다 (처음부터인지, 쓰다가 바뀐 건지) */
@@ -2558,16 +2558,12 @@ const VOICE_RATE=v=>v&&/Google/i.test(v.name)?1.05:v&&/Natural|Neural/i.test(v.n
 function sayParts(t){ t=String(t).replace(/[‘’“”"'「」]/g,'').replace(/\([^)]*\)/g,'').replace(/[~→]/g,' ').replace(/\s+/g,' ').trim();
   return (t.match(/[^.!?？。]+[.!?？。]*/g)||[t]).map(x=>x.trim()).filter(Boolean).flatMap(x=>x.length>42?x.split(/(?<=[,，])\s*/).filter(Boolean):[x]); }
 try{ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }catch(e){}
-function setVoice(id){ const v=VOICES.find(x=>x[0]===id); if(!v) return; const was=liveVoiceName(); PREF.voice=v[0]; PREF.voiceGender=v[2]; savePref();
-  if(was!==v[0]&&LIVE.on&&LIVE.ws) liveSwitchVoice(); }
-function openVoicePicker(){ const cur=liveVoiceName();
-  openSheet(`<div class="grab"></div><h1 class="t">목소리 고르기</h1><p class="sub">들어보고 마음에 드는 목소리를 골라요. 대화는 그대로 이어져요.</p>
-    <div class="vlist">${VOICES.map(v=>`<div class="vrow ${v[0]===cur?'on':''}"><button class="vname" onclick="setVoice('${v[0]}');closeSheet();toast('${v[1]}로 바꿨어요')"><b>${v[1]}</b><small>${v[2]==='female'?'여성':'남성'}</small></button><button class="pillbtn" onclick="previewAIVoice('${v[0]}')">들어보기</button></div>`).join('')}</div>
-    <button class="link" onclick="hush();closeSheet()">닫기</button>`); }
+function nextVoice(){ const g=PREF.voiceGender==='male'?'male':'female', cur=liveVoiceName(), pool=VOICE_POOL[g].filter(v=>v!==cur);   // 같은 성별의 다른 목소리로 (마음에 들 때까지 눌러 보기)
+  PREF.voice=pool[Math.floor(Math.random()*pool.length)]; savePref(); toast('다른 목소리로 바꿀게요'); if(LIVE.on&&LIVE.ws) liveSwitchVoice(); }
 function liveSwitchVoice(){ const old=LIVE.ws, d=S.draft; liveStopPlay();   // 이어 붙이기(세션 재개)로 다시 연결: 대화 내용은 그대로, 목소리만 바뀐다
   const hadHandle=!!LIVE.handle; liveConnect(false).then(ok=>{ try{ if(old&&old!==LIVE.ws){ old.onclose=null; old.close(); } }catch(e){} if(!ok) return liveFallback();
     if(!hadHandle&&d){ try{ LIVE.ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:appMemoryText()+'\n[앱 정보] 지금까지 대화:\n'+d.chat.filter(m=>m.text&&(m.who==='me'||m.who==='bot')).slice(-16).map(m=>(m.who==='me'?'사용자: ':'너: ')+m.text).join('\n')}]}],turnComplete:false}})); }catch(e){} }
-    liveEvent('사용자가 목소리를 바꿨어요. 새 목소리로 한 문장만 짧게 인사하고, 하던 이야기를 이어가 주세요.'); }); }
+    liveEvent('사용자가 다른 목소리로 바꿨어요. 새 목소리로 한 문장만 짧게 말하고, 하던 이야기를 이어가 주세요.'); }); }
 function previewAIVoice(id){ hush(); const v=id||liveVoiceName(), clip=!isEN()&&PREF.liveVoice!==false&&VOICE_CLIP[v];
   if(clip){ try{ if(!AUDIO) AUDIO=new Audio(); AUDIO.src=clip; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} return; }   // AI 목소리: 미리 만든 소리를 바로 튼다
   const was=PREF.voiceSound; PREF.voiceSound=true; const my=++SPEAK_ID; new Promise(res=>{ const fin=()=>{ if(!fin.done){ fin.done=true; res(); } }; speakDevice(isEN()?'Hello. What tea shall we have today?':'반가워요. 오늘은 어떤 차를 마셔볼까요?',my,fin); }).then(()=>PREF.voiceSound=was); }
@@ -2791,7 +2787,7 @@ if(!PREF.voiceGender) PREF.voiceGender=PREF.aiVoice==='Umbriel'?'male':'female';
 if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
 Object.assign(EN,{
- "목소리":"Voice","목소리 고르기":"Choose a voice","들어보고 마음에 드는 목소리를 골라요. 대화는 그대로 이어져요.":"Listen and pick the voice you like. The conversation carries on.","따뜻한 목소리":"Warm","온화한 목소리":"Gentle","부드러운 목소리":"Soft","느긋한 목소리":"Easygoing","매끄러운 목소리":"Smooth","낮고 차분한 목소리":"Low and calm","여성":"Female","남성":"Male",
+ "다른 목소리로 바꿀게요":"Switching to another voice","다른 목소리로 바꾸기":"Switch to another voice",
  "이 기기에 기록을 저장하지 못했어요. 화면을 닫으면 사라질 수 있어요":"Couldn't save on this device. It may be lost when you close the page","달력에서 기간 고르기":"Pick dates on the calendar","이름 바꾸기":"Rename","다 우러났어요. 찻물 색부터 볼까요?":"It's ready. Let's look at the color first.",
  "차 포장의 글자가 잘 보이게 찍어 주세요":"Make the text on the package easy to read","찍기":"Shoot","앨범":"Album","카메라를 열 수 없어 휴대폰 카메라로 찍을게요":"Can't open the camera here, using the phone camera","사진을 찍지 못했어요":"Couldn't take the photo",
  "이 기간에는 찍은 찻방울이 없어요":"No drops in this period",
@@ -2896,7 +2892,7 @@ function openSettings(k){
     app:['앱 설정',`<label class="pref col"><b>대화 언어</b><small>채팅과 음성 대화를 이 언어로 해요. 기록은 그대로 남아요</small>
       <span class="vpick"><select id="prefLang" onchange="PREF.lang=this.value;PREF.voiceName='';savePref();try{sessionStorage.setItem('tc.reopen','app')}catch(e){};location.reload()"><option value="ko" ${PREF.lang!=='en'?'selected':''}>한국어</option><option value="en" ${PREF.lang==='en'?'selected':''}>English</option></select></span></label><label class="pref col"><b>대화 방식</b><small>자동 대화는 AI 없이 정해진 질문으로 빠르게 기록해요</small>
       <span class="vpick"><select id="prefChatAI" onchange="PREF.chatAI=this.value;savePref()"><option value="ai" ${aiChatPref()?'selected':''}>AI 대화</option><option value="auto" ${aiChatPref()?'':'selected'}>자동 대화</option></select></span></label>`+row('liveVoice','실시간 음성 대화 (실험)','말하면 바로 알아듣고 AI 목소리로 바로 대답해요. 안 되면 기본 음성 대화로 바뀌어요')+row('voiceSound','음성 대화에서 소리로 말하기','끄면 대답을 글로만 보여줘요')+`<label class="pref col"><b>음성 대화 목소리</b><small>고른 성별로 늘 말해요. 목소리 결은 대화마다 조금 다를 수 있어요</small>
-      <span class="vpick"><select id="prefVoice" onchange="setVoice(this.value)">${['female','male'].map(g=>`<optgroup label="${g==='female'?'여성':'남성'}">${VOICES.filter(v=>v[2]===g).map(v=>`<option value="${v[0]}" ${liveVoiceName()===v[0]?'selected':''}>${v[1]}</option>`).join('')}</optgroup>`).join('')}</select><button class="pillbtn" onclick="event.preventDefault();previewAIVoice($('#prefVoice').value)">들어보기</button></span></label>`+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
+      <span class="vpick"><select id="prefGender" onchange="PREF.voiceGender=this.value;savePref()"><option value="female" ${PREF.voiceGender!=='male'?'selected':''}>여성</option><option value="male" ${PREF.voiceGender==='male'?'selected':''}>남성</option></select><button class="pillbtn" onclick="event.preventDefault();previewAIVoice(VOICE_POOL[$('#prefGender').value][0])">들어보기</button></span></label>`+row('timerToast','우림이 끝나면 알려주기','우림 타이머가 끝날 때 알림을 띄워요')],
     noti:['알림 설정',row('recNoti','추천 알림 받기','나의 취향과 닮은 차를 알림으로 알려줘요')],
     account:['계정',`<label class="pref col"><b>닉네임</b><input class="pill-in sm" id="prefName" maxlength="12" placeholder="예: 차 좋아하는 사람" value="${esc(PREF.name)}"></label>`]}[k];
   openSheet(`<div class="grab"></div><h1 class="t" style="margin-top:14px">${body[0]}</h1><div style="margin-top:14px">${body[1]}</div>
