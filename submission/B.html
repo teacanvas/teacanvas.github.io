@@ -2437,10 +2437,18 @@ function liveIntro(){ const d=S.draft, f=flowFilled(d), got=Object.entries(f).fi
   return `실시간 음성 대화를 시작해요. 차: ${d.name?((d.brand?d.brand+' ':'')+d.name+(d.type?' ('+TEAS[d.type].label+')':'')):'아직 모름'}. 지금 단계: ${liveStageKo(d.stage)}. 이미 기록한 것: ${got||'없음'}. 최근 대화: ${hist||'없음'}. 지금 단계에 맞게 짧게 먼저 말을 걸어 주세요.`; }
 const liveStageKo=st=>({tea:'차 이름 묻기',teaOK:'차 종류 확인',teaType:'차 종류 고르기',guide:'우림 가이드 보는 중',wait:'우리는 중',wait2:'우리는 중(색은 기록함)',color:'찻물 색',aroma:'향',taste:'맛',free:'마시며 자유롭게 이야기',after:'여운',more:'덧붙일 것 하나',done:'마무리'})[st]||st;
 function liveEvent(text,raw){ const w=LIVE.ws; if(!LIVE.on||!w||w.readyState!==1) return; w.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:raw?text:'[앱] '+text}]}],turnComplete:true}})); }
+/* 실시간 음성에서 받아 적은 내 말 바로잡기: 몇 마디씩 모아 한 번에 Gemini에게 보내고(한도 아끼기), 고친 문장으로 바꾼다. 들린 그대로는 raw에 */
+const HEARD={q:[],t:null,n:0};
+function heardFix(m){ if(!m||!AI_ENDPOINT||!aiChatPref()) return; m.hid=m.hid||'h'+(++HEARD.n); HEARD.q.push(m); clearTimeout(HEARD.t); HEARD.t=setTimeout(heardFlush,HEARD.q.length>=4?300:2500); }
+async function heardFlush(){ clearTimeout(HEARD.t); const ms=HEARD.q.splice(0); if(!ms.length) return; const d=S.draft;
+  const j=await aiCall('heard',{items:ms.map(m=>({id:m.hid,text:m.raw||m.text}))}).catch(()=>null); if(!j||!Array.isArray(j.items)) return;
+  let ch=false; j.items.forEach(x=>{ const m=ms.find(m=>m.hid===x.id); const t=String(x.text||'').trim(); if(!m||!t||t===m.text) return; if(!m.raw) m.raw=m.text; m.text=t; ch=true; });
+  if(ch&&d&&S.draft===d&&cur()==='chat') paintMsgs(true); }
 function liveCommitMe(){ const d=S.draft, m=LIVE.meMsg, t=(LIVE.inT.trim()||(m&&m.text)||'').trim(); LIVE.inT=''; LIVE.meMsg=null; LIVE.meEl=null; LIVE.capFrom=LIVE.capLen; VOICE.interim='';
   if(!d) return; if(t.length<1){ if(m){ const i=d.chat.indexOf(m); if(i>=0) d.chat.splice(i,1); paintMsgs(); } return; }
   const q=looksQuestion(t)?t.replace(/[.!~]+$/,'')+'?':t, extra=matchFlavors(q).length?{}:{ans:'talk'};   // 맛·향 표현이 없는 말은 찻방울 표현에서 뺀다
-  if(m){ m.text=q; delete m.pending; Object.assign(m,extra); } else d.chat.push({who:'me',text:q,voice:true,...extra});
+  let mm=m; if(m){ m.text=q; delete m.pending; Object.assign(m,extra); } else d.chat.push(mm={who:'me',text:q,voice:true,...extra});
+  heardFix(mm);   // 음성 인식이 잘못 들은 말은 잠시 뒤 Gemini가 바로잡아 채팅 기록에 바른 문장으로 남긴다
   d.lastMeAt=Date.now(); d.voice.push(q); paintMsgs(); }
 /* 내가 말하는 동안 내 말을 채팅에 바로바로 보여준다 (클로드 음성 모드처럼). 처음엔 휴대폰 받아쓰기, AI가 알아들은 글자가 오면 그걸로 바꾼다 */
 function liveShowMe(t){ const d=S.draft; if(!d||!t) return; VOICE.interim=t;
@@ -2624,7 +2632,7 @@ function paintVoice(){ const d=S.draft; if(!d) return;
   const st=$('#vState'), hd=$('#vHeard');
   if(st) st.textContent=L(VOICE.phase==='speaking'?(!VOICE.demo&&SR?'대답하는 중… 말하거나 화면을 눌러 끊을 수 있어요':'대답하는 중…'):VOICE.phase==='listening'?(VOICE.demo?'예시 목소리로 대답하는 중…':'듣고 있어요'):(S.listening?'생각하는 중… 이어서 말해도 돼요':'생각하는 중…'));
   if(hd) hd.textContent=VOICE.interim||''; }
-function finishChat(force){ if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
+function finishChat(force){ heardFlush(); if(VOICE.on) stopVoice(); S.listening=false; stopTimer();
   if(!force&&S.draft&&!collectExprs(S.draft).length){ go('thin'); return; } if(S.draft){ S.draft.useDeep=true; if(S.draft.drinkAt) S.draft.endAt=Date.now(); } go('organizing'); }
 
 /* compare helpers */
