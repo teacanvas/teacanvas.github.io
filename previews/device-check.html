@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEA CANVAS 기기 점검</title>
+<style>
+:root{--ink:#111;--g0:#F4F4F4;--g2:#737373;--line:#E5E5E5}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 20px 60px}h1{font-size:26px;margin:0 0 6px}p.sub{color:var(--g2);margin:0 0 22px;line-height:1.6}
+.row{display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;font-size:16px}
+.row b{font-weight:700}.row span{color:var(--g2);text-align:right;word-break:break-all}.ok{color:#111!important;font-weight:700}.bad{color:#B00!important;font-weight:700}
+button{border:0;background:#111;color:#fff;border-radius:26px;height:52px;padding:0 22px;font-size:16px;font-weight:700;margin:6px 8px 6px 0}
+#touch{height:120px;border:2px dashed #BDBDBD;border-radius:14px;display:grid;place-items:center;color:var(--g2);margin:14px 0;font-size:16px;user-select:none}
+textarea{width:100%;height:140px;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;background:var(--g0)}
+</style></head><body><main>
+<h1>TEA CANVAS 기기 점검</h1>
+<p class="sub">전시용 기기(스탠바이미 등)의 브라우저에서 이 페이지를 열고, 아래 버튼을 차례로 눌러 주세요. 마지막에 나온 결과를 사진으로 찍어 보내 주시면 돼요.</p>
+<div id="rows"></div>
+<div id="touch">여기를 손가락으로 눌러 보세요</div>
+<button id="mic">마이크 확인</button><button id="ai">AI 연결 확인</button><button id="voice">실시간 음성 연결 확인</button>
+<p class="sub" style="margin-top:18px">결과 (사진으로 찍거나 복사해서 보내 주세요)</p>
+<textarea id="out" readonly></textarea>
+</main><script>
+const EP='https://teacanvas-ai.sehoon3554.workers.dev/', R={};
+const rows=document.getElementById('rows');
+function set(k,label,v,ok){ R[k]=v; let el=document.getElementById('r-'+k); if(!el){ el=document.createElement('div'); el.className='row'; el.id='r-'+k; rows.appendChild(el); }
+  el.innerHTML=`<b>${label}</b><span class="${ok===true?'ok':ok===false?'bad':''}">${v}</span>`; out(); }
+function out(){ document.getElementById('out').value=Object.entries(R).map(([k,v])=>k+': '+v).join('\n'); }
+const ua=navigator.userAgent, cv=(ua.match(/Chrome\/(\d+)/)||[])[1];
+set('browser','브라우저',(/Web0S|webOS/i.test(ua)?'webOS · ':'')+(cv?'Chrome '+cv:ua.slice(0,80)),cv?+cv>=105:null);
+set('screen','화면 (CSS 픽셀 · 배율)',`${innerWidth}×${innerHeight} · ×${devicePixelRatio} · 화면 ${screen.width}×${screen.height}`,true);
+set('pointer','터치 판단',matchMedia('(pointer:coarse)').matches?'터치 화면':'마우스 화면',null);
+let ls=false; try{ localStorage.setItem('tc.check','1'); ls=localStorage.getItem('tc.check')==='1'; localStorage.removeItem('tc.check'); }catch(e){}
+set('storage','기록 저장 (localStorage)',ls?'됨':'안 됨 — 기록이 남지 않아요',ls);
+set('has','최신 CSS (:has)',CSS.supports&&CSS.supports('selector(:has(a))')?'됨':'안 됨',CSS.supports&&CSS.supports('selector(:has(a))'));
+set('sr','음성 인식 (기본 음성 모드)',(window.SpeechRecognition||window.webkitSpeechRecognition)?'있음':'없음 — 기본 음성 모드 불가',!!(window.SpeechRecognition||window.webkitSpeechRecognition));
+set('tts','휴대폰 목소리 (speechSynthesis)','speechSynthesis' in window?'있음':'없음','speechSynthesis' in window);
+set('ws','WebSocket · AudioWorklet',('WebSocket' in window?'WS 있음':'WS 없음')+' · '+(window.AudioWorkletNode?'Worklet 있음':'Worklet 없음'),'WebSocket' in window&&!!window.AudioWorkletNode);
+let taps=0; document.getElementById('touch').addEventListener('pointerdown',e=>{ taps++; set('tap','터치 입력',`${e.pointerType||'?'} · ${taps}번 눌림`,true); });
+document.getElementById('mic').onclick=async()=>{ set('mic','마이크','확인 중…',null);
+  try{ const s=await navigator.mediaDevices.getUserMedia({audio:true}); const t=s.getAudioTracks()[0]; set('mic','마이크','됨 · '+(t&&t.label||'이름 없음'),true); s.getTracks().forEach(x=>x.stop()); }
+  catch(e){ set('mic','마이크','안 됨 — '+e.name+(navigator.mediaDevices?'':' (mediaDevices 없음)'),false); } };
+document.getElementById('ai').onclick=async()=>{ set('ai','AI 대화 연결','확인 중…',null); const t0=Date.now();
+  try{ const r=await fetch(EP,{method:'GET'}); set('ai','AI 대화 연결',r.ok?'됨 · '+(Date.now()-t0)+'ms':'안 됨 — '+r.status,r.ok); }catch(e){ set('ai','AI 대화 연결','안 됨 — '+e.message,false); } };
+document.getElementById('voice').onclick=()=>{ set('live','실시간 음성 연결','확인 중…',null); let done=false;
+  try{ const ws=new WebSocket(EP.replace(/^http/,'ws')+'live?lang=ko&voice=Sulafat'); const fin=(v,ok)=>{ if(done) return; done=true; try{ ws.close(); }catch(e){} set('live','실시간 음성 연결',v,ok); };
+    ws.onmessage=async e=>{ const t=typeof e.data==='string'?e.data:await e.data.text(); if(/setupComplete/.test(t)) fin('됨',true); };
+    ws.onclose=e=>fin('끊김 — '+e.code,false); setTimeout(()=>fin('시간 초과',false),12000); }catch(e){ set('live','실시간 음성 연결','안 됨 — '+e.message,false); } };
+</script></body></html>

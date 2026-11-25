@@ -3263,7 +3263,7 @@ function fitPhone(){
   st.style.setProperty('--hint',Math.max(13,Math.min(20,H*.0105))+'px');
   st.style.setProperty('--gap',Math.max(18,Math.min(56,H*.028))+'px');
   const top=$('.ex-top'), chrome=(top?top.offsetHeight:0)+$('.ex-bottom').offsetHeight+parseFloat(getComputedStyle(st).getPropertyValue('--gap'))*2+48+18;
-  SCALE=Math.max(.5,Math.min(1.8,(H-chrome)/852,(W-48)/393));
+  SCALE=Math.max(.5,Math.min(4,(H-chrome)/852,(W-48)/393));   // 큰 화면(스탠바이미 2 Max 4K 등)에서도 화면 높이에 맞게 키운다
   wrap.style.width=393*SCALE+'px'; wrap.style.height=852*SCALE+'px';
   p.style.transform=`scale(${SCALE})`;
 }
