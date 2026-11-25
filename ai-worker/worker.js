@@ -691,7 +691,7 @@ const SPECS = {
    주소: /live?lang=ko&voice=Zephyr[&resume=핸들] */
 // 모델마다 목소리 결이 달라 한 모델만 쓴다 (안 되면 앱이 기본 음성 대화로). 바꾸려면 GEMINI_LIVE_MODEL 변수
 const LIVE_MODELS = ['gemini-3.1-flash-live-preview'];
-const LIVE_VOICES = ['Sulafat', 'Vindemiatrix', 'Achernar', 'Umbriel', 'Algieba', 'Charon', 'Zephyr', 'Aoede', 'Kore'];   // 기본: 여성 Sulafat(차분·따뜻), 남성 Umbriel(느긋)
+const LIVE_VOICES = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Umbriel', 'Algieba', 'Despina', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Achird', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager', 'Sulafat'];   // Gemini 목소리 30가지 (앱은 고른 하나만 쓴다)   // 기본: 여성 Sulafat(차분·따뜻), 남성 Umbriel(느긋)
 const LIVE_STEPS = ['stay', 'confirm_tea', 'start_brew', 'drink_now', 'brew_done', 'finished_drinking', 'close'];
 const LIVE_TOOL = {   // 글 대화의 JSON과 같은 모양: record 칸들 + unknown + step
   functionDeclarations: [{
