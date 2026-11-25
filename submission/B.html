@@ -1036,6 +1036,7 @@ function goTab(tab,force){ if(!force&&recording()) return askQuit(tab); closeShe
 function rerender(){ render(true); }
 function backToChat(){ NAV_DIR='back'; const d=S.draft; if(d&&d.stage==='done'){ d.stage='more'; d.chat.push({who:'bot',text:'좋아요, 더 남기고 싶은 걸 편하게 말해 주세요.\n다 되면 아래 ‘기록 마치고 정리하기’를 눌러 주세요.'}); } const i=S.stack.map(x=>x.name).lastIndexOf('chat'); if(i<0) return back(); S.stack=S.stack.slice(0,i+1); render(); }
 function render(keepScroll){
+  if(!keepScroll) stopPreview();   // 다른 화면으로 가면 들어보기 소리도 멈춘다
   const view=$('#view'); const top=view.scrollTop;
   const cur=S.stack[S.stack.length-1];
   const fn=SCREENS[cur.name];
@@ -2564,7 +2565,9 @@ function liveSwitchVoice(){ const old=LIVE.ws, d=S.draft; liveStopPlay();   // �
   const hadHandle=!!LIVE.handle; liveConnect(false).then(ok=>{ try{ if(old&&old!==LIVE.ws){ old.onclose=null; old.close(); } }catch(e){} if(!ok) return liveFallback();
     if(!hadHandle&&d){ try{ LIVE.ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:appMemoryText()+'\n[앱 정보] 지금까지 대화:\n'+d.chat.filter(m=>m.text&&(m.who==='me'||m.who==='bot')).slice(-16).map(m=>(m.who==='me'?'사용자: ':'너: ')+m.text).join('\n')}]}],turnComplete:false}})); }catch(e){} }
     liveEvent('사용자가 다른 목소리로 바꿨어요. 새 목소리로 한 문장만 짧게 말하고, 하던 이야기를 이어가 주세요.'); }); }
-function previewAIVoice(id){ hush(); const v=id||liveVoiceName(), clip=!isEN()&&PREF.liveVoice!==false&&VOICE_CLIP[v];
+let PREVIEWING=false;   // '들어보기' 소리가 나는 중 (설정을 닫거나 화면을 옮기면 멈춘다)
+function stopPreview(){ if(!PREVIEWING) return; PREVIEWING=false; hush(); }
+function previewAIVoice(id){ hush(); PREVIEWING=true; const v=id||liveVoiceName(), clip=!isEN()&&PREF.liveVoice!==false&&VOICE_CLIP[v];
   if(clip){ try{ if(!AUDIO) AUDIO=new Audio(); AUDIO.src=clip; const p=AUDIO.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} return; }   // AI 목소리: 미리 만든 소리를 바로 튼다
   const was=PREF.voiceSound; PREF.voiceSound=true; const my=++SPEAK_ID; new Promise(res=>{ const fin=()=>{ if(!fin.done){ fin.done=true; res(); } }; speakDevice(isEN()?'Hello. What tea shall we have today?':'반가워요. 오늘은 어떤 차를 마셔볼까요?',my,fin); }).then(()=>PREF.voiceSound=was); }
 const DEMO_EN={tea:'Twinings Earl Grey',teaOK:'Yes, that\'s right',teaType:'Black tea',guide:'Start brewing',color:'A deep amber color',aroma:'It smells like bergamot and a bit of flowers',taste:'Bright at first, with a slightly sweet finish',after:'The finish lasts quite long',more:'Let\'s wrap up',deep:'Not sure',
@@ -3187,7 +3190,7 @@ function fitIn(box,grow=true){ if(!box) return; const els=[...box.querySelectorA
   els.forEach(e=>{ const over=box.scrollHeight-box.clientHeight; if(over<=0) return; const [,mn]=e.dataset.fit.split(',').map(Number), now=e.dataset.fit.endsWith(',h')?e.offsetHeight:e.offsetWidth; set(e,Math.max(mn,Math.floor(now-over)));  }); }
 function fitScreen(){ fitIn($('#view')); if($('#sheetWrap').classList.contains('open')) fitIn($('#sheet')); }
 addEventListener('resize',()=>{ clearTimeout(fitScreen.t); fitScreen.t=setTimeout(fitScreen,120); });
-function closeSheet(){ $('#sheetWrap').classList.remove('open'); const sh=$('#sheet'); if(sh){ sh.style.transform=''; sh.style.transition=''; } }
+function closeSheet(){ stopPreview(); $('#sheetWrap').classList.remove('open'); const sh=$('#sheet'); if(sh){ sh.style.transform=''; sh.style.transition=''; } }
 /* 시트 위쪽(손잡이)을 잡고 끌어내리면 닫힌다 */
 (function(){ let y0=null, dy=0, t0=0; const sh=()=>$('#sheet');
   addEventListener('pointerdown',e=>{ const el=sh(); if(!el||!$('#sheetWrap').classList.contains('open')||!el.contains(e.target)) return;
