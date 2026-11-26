@@ -1374,7 +1374,7 @@ home(){
   const sel=S.homeColor||'floral';
   return `<div class="home hp">
     <canvas class="hp-cv" id="hpCv"></canvas>
-    <p class="hp-top">꾹 눌러서 기록을 시작하세요</p>
+    <p class="hp-top">꾹 눌러서<br>기록을 시작하세요</p>
     <div class="hp-mid"><button class="hp-spot fg${FG.v}" id="hpSpot" aria-label="꾹 눌러서 기록 시작"><span class="hp-shadow"></span>${FG.v==='4'?'<span class="hp-wave"></span>':''}${FINGERS[FG.v]||FINGERS[1]}</button><p class="hp-say" id="hpSay">여기를 꾹 누르세요</p></div>
     ${(()=>{ const v=loadLive()||loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="askDropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
     <div class="hp-palw at-start" id="hpPalW"><div class="hp-pal pl${PL.v}" id="hpPal">${FKEYS.map(k=>`<button class="${sel===k?'on':''}" data-k="${k}" onclick="homePaint('${k}')" aria-pressed="${sel===k}" aria-label="${FLAVORS[k].label}"><span class="pt">${paintIcon(k)}</span><span>${HOME_EN[k]}</span></button>`).join('')}</div></div>
@@ -3306,18 +3306,18 @@ function mountHomePaper(){
   const cv=$('#hpCv'), spot=$('#hpSpot'), home=cv&&cv.parentElement; if(!cv||!spot) return;
   const dpr=Math.min(2,devicePixelRatio||1); cv.width=Math.round(home.clientWidth*dpr); cv.height=Math.round(home.clientHeight*dpr);
   const x=cv.getContext('2d'), HOLD=1000, FILL=1, Wd=cv.width, Hd=cv.height, diag=Math.hypot(Wd,Hd), C=HS_CFG[HS.v]||HS_CFG.C, mn=Math.min(Wd,Hd);
-  /* 물이 번지듯: 같은 모양이 커지는 게 아니라, 작은 물방울 번짐 수십 개가 가운데에서 바깥으로 차례로 피어난다.
-     방향마다 번지는 빠르기가 달라(어느 쪽은 먼저, 어느 쪽은 늦게) 가장자리가 고르지 않게 앞으로 나아가고, 바깥으로 갈수록 느려진다 */
+  /* 물이 번지듯: 누른 자리 한 곳에서 시작해, 그 자리에서 뻗어 나가는 번짐 갈래 수십 개가 방향마다 다른 빠르기로 바깥으로 밀려 나간다.
+     갈래는 늘 가운데와 이어져 있어(따로 떨어진 점이 생기지 않게) 하나의 물이 가장자리만 고르지 않게 퍼지고, 바깥으로 갈수록 느려진다 */
   const rnd=WC.rng(Math.floor(Math.random()*1e6)), ph=[rnd()*6.28,rnd()*6.28,rnd()*6.28];
-  const spd=a=>.78+.16*Math.sin(a*2+ph[0])+.1*Math.sin(a*3+ph[1])+.07*Math.sin(a*5+ph[2]);
-  const mkDrops=n=>{ const D=[{a:0,f:0,s:.36,t0:0,w:1,sd:0}]; for(let i=1;i<n;i++){ const a=rnd()*6.28, f=.08+.92*Math.sqrt(rnd()); D.push({a,f:f*spd(a),s:(.27+.2*rnd())*(1-.25*f),t0:Math.max(0,Math.pow(f,1.3)*.8+(rnd()-.5)*.1),w:.45+.4*(1-f),sd:1+i%9}); } return D; };
-  const BIG=mkDrops(56), HINT=mkDrops(12);
+  const spd=a=>.8+.14*Math.sin(a*2+ph[0])+.1*Math.sin(a*3+ph[1])+.06*Math.sin(a*5+ph[2]);
+  const mkDrops=n=>{ const D=[]; for(let i=0;i<n;i++){ const a=i/n*6.28+(rnd()-.5)*.5, sp=spd(a); D.push({a,f:(.62+.38*rnd())*sp,v:.75+.5*rnd()*sp,s:.2+.14*rnd(),w:.55+.35*rnd(),sd:1+i%9}); } return D; };
+  const BIG=mkDrops(30), HINT=mkDrops(12);
   const sm=v=>v<=0?0:v>=1?1:v*v*(3-2*v);
-  const drawDrops=(list,reach,e,am,k,c,cx,cy)=>{
-    { const cr=reach*.62*Math.pow(sm(Math.min(1,e*1.05)),.9); if(cr>0){ const D=cr*2.6; x.globalAlpha=C.aw*am*.85; x.drawImage(cvWash(240,k,c,977).frame(.5+(CV_SPREAD-.5)*Math.min(1,e*1.3)),cx-D/2,cy-D/2*1.1,D,D*1.1); } }   // 안쪽은 이어진 물(가장자리만 방울들이 불규칙하게)
-    list.forEach(d=>{ const lp=Math.min(1,Math.max(0,(e-d.t0)/.32)); if(lp<=0) return;
-      const rr=reach*d.s*(.3+.7*sm(lp)), dist=reach*d.f*(.86+.14*lp), px=cx+Math.cos(d.a)*dist, py=cy+Math.sin(d.a)*dist*1.1, D=rr*2.6;
-      x.globalAlpha=C.aw*am*d.w*Math.min(1,lp*2.2); x.drawImage(cvWash(200,k,c,401+d.sd*53).frame(.45+(CV_SPREAD-.45)*lp),px-D/2,py-D/2,D,D); }); };
+  const drawDrops=(list,reach,e,am,k,c,cx,cy)=>{ if(e<=0) return;
+    list.forEach(d=>{ const lp=1-Math.pow(1-Math.min(1,e*d.v),1.6);   // 처음엔 빨리, 멀어질수록 느리게
+      const dist=reach*d.f*.72*lp, rr=reach*d.s*(.35+.65*lp)+dist*.55, px=cx+Math.cos(d.a)*dist, py=cy+Math.sin(d.a)*dist*1.1, D=rr*2.6;
+      x.globalAlpha=C.aw*am*d.w*Math.min(1,.3+lp); x.drawImage(cvWash(200,k,c,401+d.sd*53).frame(.45+(CV_SPREAD-.45)*lp),px-D/2,py-D/2,D,D); });
+    for(const [sc,al,sd] of [[1,.75,977],[.6,.6,983]]){ const cr=reach*sc*(.12+.5*Math.pow(e,.7)), D=cr*2.6; x.globalAlpha=C.aw*am*al; x.drawImage(cvWash(240,k,c,sd).frame(.5+(CV_SPREAD-.5)*Math.min(1,e*1.3)),cx-D/2,cy-D/2*1.1,D,D*1.1); } };   // 누른 자리가 가장 진하게(가운데가 비어 보이지 않게)
   let t0=0, u=0, f=0, holding=false, fill=0, raf=0, hint=0;
   const centre=()=>{ const r=spot.getBoundingClientRect(), b=cv.getBoundingClientRect(); return [(r.left+r.width/2-b.left)/b.width*Wd,(r.top+r.height/2-b.top)/b.height*Hd]; };
   const fingerPhase=()=>{ const fg=spot.querySelector('.hp-finger'), an=fg&&fg.getAnimations?fg.getAnimations()[0]:null; return an&&an.currentTime!=null?(an.currentTime%2400)/2400:null; };
