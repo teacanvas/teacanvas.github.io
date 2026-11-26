@@ -1,0 +1,99 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>번짐 실험실</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F1F1F1;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:1500px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;margin:0 0 6px}p.sub{color:#666;margin:0 0 16px;line-height:1.65;font-size:14px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 22px}.bar button{border:1px solid #D6D6D6;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.bar button.on{background:#111;color:#fff;border-color:#111}.bar i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}
+.card{width:250px}.ph{position:relative;width:250px;height:470px;border-radius:24px;overflow:hidden;background:#FAF8F4;border:6px solid #111;cursor:pointer}
+.ph canvas{position:absolute;inset:0;width:100%;height:100%}
+.ph .fg{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-10px 0 0 -15px;opacity:.55;pointer-events:none}
+.card h2{font-size:15px;margin:10px 0 3px}.card p{font-size:12.5px;color:#555;margin:0;line-height:1.5}.tag{display:inline-block;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:1px 8px;margin-right:6px}
+.refs{margin-top:40px;font-size:13px;color:#555;line-height:1.8}.refs a{color:#333}
+</style></head><body><main>
+<h1>번짐 실험실 · 물이 종이에 스며드는 10가지 방식</h1>
+<p class="sub">실제 물·물감이 종이에 퍼지는 원리(아래 참고 자료)를 하나씩 살려 만든 시안이에요. 모두 누른 자리 한 곳에서 시작해요.<br>
+화면을 누르고 있으면 그동안 번지고(앱처럼 1초면 다 차요), 떼면 다시 마르는 장면부터 되풀이해요. 아무것도 안 하면 저절로 되풀이해요.</p>
+<div class="bar" id="bar"></div>
+<div class="grid" id="grid"></div>
+<div class="refs"><b>참고한 원리</b><br>
+· 퍼지는 거리는 시간의 제곱근에 비례: 처음엔 빠르고 점점 느려짐 (Lucas–Washburn, <a href="https://en.wikipedia.org/wiki/Washburn%27s_equation" target="_blank">위키백과</a>)<br>
+· 종이는 섬유가 고르지 않은 다공성 매질이라 번짐 앞쪽이 고르지 않음 (Chu &amp; Tai, MoXi, SIGGRAPH 2005, <a href="https://history.siggraph.org/?p=113877" target="_blank">링크</a>)<br>
+· 마르면서 물이 가장자리로 흘러 색이 테두리에 모임 = 커피링 (Deegan 외, Nature 1997, <a href="https://www.nature.com/articles/39827" target="_blank">링크</a>)<br>
+· 수채화의 가장자리 진해짐·백런(꽃 모양 번짐)·과립 (Curtis 외, Computer-Generated Watercolor, SIGGRAPH 1997, <a href="https://grail.cs.washington.edu/projects/watercolor/paper_tiny.pdf" target="_blank">PDF</a>)<br>
+· 반투명한 층을 여러 겹 쌓아 번짐을 표현 (Tyler Hobbs, <a href="https://www.tylerxhobbs.com/words/a-guide-to-simulating-watercolor-paint-with-generative-art" target="_blank">글</a>)</div>
+</main>
+<script id="fs" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2 res; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
+float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7))+seed*13.7)*43758.5453); }
+float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
+float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }
+float fib(vec2 p){ /* 한지 섬유: 여러 방향으로 길쭉한 결 */ float s=0.; for(int i=0;i<3;i++){ float a=float(i)*2.1+seed; vec2 q=mat2(cos(a),-sin(a),sin(a),cos(a))*p; s+=n(vec2(q.x*2.,q.y*26.)); } return s/3.; }
+void main(){
+  vec2 uv=gl_FragCoord.xy/res.x, c=vec2(.5,res.y/res.x*.5);
+  vec2 p=uv-c; float d=length(p), ang=atan(p.y,p.x);
+  float paper=fbm(uv*38.)*.6+fbm(uv*140.)*.4;                 // 종이 결
+  float T=clamp(t,0.,1.), R=.62*sqrt(T);                     // Washburn: r ∝ √t
+  float irr=(fbm(uv*5.+seed)-.5)*.16+(fbm(uv*14.+seed*2.)-.5)*.05;   // 섬유가 고르지 않아 앞쪽이 울퉁불퉁
+  float soft=.018, edgeK=.35, base=.55, gran=.12, halo=0.;
+  if(mode==1){ edgeK=1.1; base=.32; }                                            // 커피링
+  if(mode==2){ halo=1.; }                                                        // 물 먼저
+  if(mode==3){ irr*=.6; soft=.09; edgeK=.12; base=.6; }                          // 젖은 종이
+  if(mode==4){ irr+= (fib(uv*9.)-.5)*.11; soft=.01; }                            // 한지 섬유
+  if(mode==5){ float fr=pow(abs(sin(ang*7.+fbm(vec2(ang*2.,seed))*6.)),3.)*.09*T; irr-=fr; irr+=(fbm(vec2(ang*9.,d*20.)+seed)-.5)*.05; } // 갈래
+  if(mode==8){ gran=.75; }                                                        // 과립
+  if(mode==9){ vec2 w=vec2(fbm(uv*4.+seed),fbm(uv*4.+seed+3.)); irr+=(fbm(uv*3.+w*2.5)-.5)*.14; }   // 흐름 결
+  float dd=d+irr*(.4+.6*T);
+  float wet=smoothstep(R,R-soft-.004,dd);
+  float Rp=halo>0.?R*.82:R, pig=smoothstep(Rp,Rp-soft*1.5-.01,dd);
+  float ring=exp(-pow((Rp-dd)/(.022+soft*.6),2.))*pig;          // 가장자리에 색이 모임
+  float dens=pig*(base+.25*(1.-smoothstep(0.,Rp+.001,dd)))+edgeK*ring*(.4+.6*T);
+  if(mode==3) dens=pig*(.25+.55*(1.-smoothstep(0.,Rp+.05,dd)))+.1*ring;
+  if(mode==6&&T>.45){ float b=smoothstep(.45,1.,T); float cb=fbm(uv*9.+seed*3.); float inner=smoothstep(Rp*.62,Rp*.62-.02,dd+ (cb-.5)*.12); float bedge=exp(-pow((Rp*.62-dd-(cb-.5)*.12)/.012,2.)); dens=dens*(1.-.55*inner*b)+.5*bedge*b*pig; }   // 꽃 피움(백런)
+  if(mode==7){ for(int k=1;k<4;k++){ float rk=.62*sqrt(T*float(k)/4.); dens+=.22*exp(-pow((rk-dd)/.006,2.))*pig; } }   // 물자국 층
+  dens*=mix(1.,.45+1.2*paper,gran);
+  dens*=dry;
+  vec3 bg=vec3(.98,.972,.957)*(1.-.035*paper);
+  float hl=halo*wet*(1.-pig);                                      // 물만 먼저 닿은 자리: 살짝 어두운 젖은 자국
+  bg*=1.-.05*hl;
+  vec3 o=bg*mix(vec3(1.),col,clamp(dens,0.,1.));
+  gl_FragColor=vec4(o,1.);
+}
+</script>
+<script>
+const V=[['1','모세관 번짐','기본. 처음엔 빠르고 점점 느려지며(√시간), 종이 섬유 때문에 앞쪽이 울퉁불퉁하게 나아가요.'],
+['2','커피링','물이 가장자리로 흘러 색이 테두리에 모여요. 안은 옅고 테두리가 진해요.'],
+['3','물 먼저, 색은 뒤에','젖은 자국이 먼저 퍼지고 색이 한 박자 늦게 따라와요.'],
+['4','젖은 종이 위','종이가 젖어 있어 경계가 깃털처럼 아주 부드럽게 흐려져요.'],
+['5','한지 섬유','섬유 결을 따라 가장자리가 털처럼 가늘게 번져요.'],
+['6','갈래 번짐','물이 잘 스미는 길을 따라 몇 갈래가 먼저 뻗어 나가요.'],
+['7','꽃 피움(백런)','다 퍼질 즈음 안쪽에 물이 다시 밀려 꽃잎 같은 테두리가 생겨요.'],
+['8','물자국 층','번지다 머문 자리마다 옅은 물자국 선이 남아요.'],
+['9','과립','물감 알갱이가 종이 결 홈에 가라앉아 입자가 보여요.'],
+['10','흐름 결','안쪽에 물이 흐른 결이 남아 움직임이 느껴져요.']];
+const COLORS=[['#E9A9C6','Floral'],['#F2946A','Fruity'],['#96C46A','Grassy'],['#79C3BC','Fresh'],['#E5B04F','Sweet'],['#A87A4E','Nutty']];
+const FG='<svg class="fg" viewBox="0 0 256 256" fill="#A6A6A6"><path d="M60,76a56,56,0,0,1,112,0,4,4,0,0,1-8,0,48,48,0,0,0-96,0,4,4,0,1,1-8,0Zm136,48a23.88,23.88,0,0,0-16.07,6.19A24,24,0,0,0,140,114.13V76a24,24,0,0,0-48,0v94L80.74,151.94A24,24,0,0,0,39.22,176l29.32,50a4,4,0,0,0,6.9-4L46.13,172a16,16,0,0,1,27.72-16l.07.12,18.68,30A4,4,0,0,0,100,184V76a16,16,0,0,1,32,0v68a4,4,0,0,0,8,0V132a16,16,0,0,1,32,0v20a4,4,0,0,0,8,0v-4a16,16,0,0,1,32,0v36c0,22.66-7.51,38.06-7.58,38.21a4,4,0,0,0,1.79,5.37A4,4,0,0,0,208,228a4,4,0,0,0,3.58-2.21c.34-.69,8.42-17.13,8.42-41.79V148A24,24,0,0,0,196,124Z"/></svg>';
+let color=COLORS[0][0], speed=1;
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+function bar(){ document.getElementById('bar').innerHTML=COLORS.map(([c,t])=>`<button class="${c===color?'on':''}" onclick="color='${c}';bar()"><i style="background:${c}"></i>${t}</button>`).join('')+`<span style="width:12px"></span><button class="${speed===1?'on':''}" onclick="speed=1;bar()">1초 (앱과 같이)</button><button class="${speed===3?'on':''}" onclick="speed=3;bar()">3초 (천천히 보기)</button>`; }
+bar();
+const grid=document.getElementById('grid');
+grid.innerHTML=V.map(([k,t,d],i)=>`<div class="card"><div class="ph" id="ph${i}"><canvas></canvas>${FG}</div><h2><span class="tag">${k}</span>${t}</h2><p>${d}</p></div>`).join('');
+const src=document.getElementById('fs').textContent;
+V.forEach((v,i)=>{ const ph=document.getElementById('ph'+i), cv=ph.querySelector('canvas'), dpr=Math.min(2,devicePixelRatio||1);
+  cv.width=250*dpr; cv.height=470*dpr; const g=cv.getContext('webgl',{preserveDrawingBuffer:true}); if(!g){ ph.insertAdjacentHTML('beforeend','<p style="position:absolute;top:40%;width:100%;text-align:center">WebGL을 쓸 수 없어요</p>'); return; }
+  const sh=(t,s)=>{ const o=g.createShader(t); g.shaderSource(o,s); g.compileShader(o); if(!g.getShaderParameter(o,g.COMPILE_STATUS)) console.error(g.getShaderInfoLog(o)); return o; };
+  const pr=g.createProgram(); g.attachShader(pr,sh(g.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}')); g.attachShader(pr,sh(g.FRAGMENT_SHADER,src)); g.linkProgram(pr); g.useProgram(pr);
+  const b=g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER,b); g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW); const al=g.getAttribLocation(pr,'a'); g.enableVertexAttribArray(al); g.vertexAttribPointer(al,2,g.FLOAT,false,0,0);
+  const U=n=>g.getUniformLocation(pr,n); g.uniform2f(U('res'),cv.width,cv.height); g.uniform1i(U('mode'),i); g.uniform1f(U('seed'),1.3+i*.71);
+  let held=false, prog=0, last=performance.now(), auto=0, dry=1;
+  ph.onpointerdown=e=>{ e.preventDefault(); held=true; if(prog>=1||dry<1){ prog=0; dry=1; } ph.setPointerCapture(e.pointerId); };
+  ph.onpointerup=ph.onpointercancel=()=>{ held=false; };
+  (function loop(now){ const dt=(now-last)/1000; last=now;
+    if(held){ prog=Math.min(1.25,prog+dt/speed); auto=0; }
+    else { auto+=dt; const A=auto%(speed+3.2);   // 0.6초 쉼 → 번짐 → 1.6초 머묾 → 1초 마름
+      if(A<.6){ prog=0; dry=1; } else if(A<.6+speed){ prog=(A-.6)/speed; dry=1; } else if(A<2.2+speed){ prog=Math.min(1.25,1+(A-.6-speed)*.15); } else { dry=Math.max(0,1-(A-2.2-speed)); } }
+    g.uniform1f(U('t'),prog); g.uniform1f(U('dry'),dry); g.uniform3fv(U('col'),hex(color)); g.drawArrays(g.TRIANGLE_STRIP,0,4); requestAnimationFrame(loop); })(last);
+});
+</script></body></html>
