@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>첫 화면 손가락·물감 시안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F4F4F4;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;margin:0 0 6px}p.sub{color:#737373;margin:0 0 22px;line-height:1.6;font-size:14px}
+.grid{display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+.card{width:236px}.frame{width:236px;height:511px;border-radius:26px;border:6px solid #111;overflow:hidden;background:#fff;position:relative}
+.frame iframe{width:393px;height:852px;border:0;transform:scale(.57);transform-origin:0 0;position:absolute;left:0;top:0}
+.card h2{font-size:16px;margin:12px 0 4px}.card p{font-size:13px;color:#555;margin:0;line-height:1.5}
+.card .tag{display:inline-block;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:2px 8px;margin-right:6px}
+.colors{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.colors button{border:1px solid #DDD;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.colors button.on{background:#111;color:#fff;border-color:#111}
+</style></head><body><main>
+<h1>첫 화면 손가락 · 물감 시안</h1>
+<p class="sub">모두 실제 앱 첫 화면이에요. 손가락 시안은 물감 1번으로, 물감 시안은 손가락 1번으로 보여요. 직접 눌러 볼 수도 있어요.<br>마음에 드는 번호를 알려 주세요(예: "손가락 2, 물감 3").</p>
+<h2 style="margin:8px 0 14px">손가락</h2><div class="grid" id="gf"></div><h2 style="margin:40px 0 14px">물감</h2><div class="grid" id="gp"></div>
+</main><script>
+const card=(src,k,t,d)=>`<div class="card"><div class="frame"><iframe src="../TEA_CANVAS_prototype_v6.html?${src}" title="${t}"></iframe></div><h2><span class="tag">${k}</span>${t}</h2><p>${d}</p></div>`;
+document.getElementById('gf').innerHTML=[['1','검지 하나','손톱과 마디만 그린 가는 선 검지'],['2','검지 실루엣','까맣게 채운 검지 하나'],['3','검지를 편 손','검지를 펴고 나머지는 접은 손'],['4','가는 검지 + 물결','누를 때마다 손끝에서 동그란 물결이 퍼져요']].map(([k,t,d])=>card('fg='+k,k,t,d)).join('');
+document.getElementById('gp').innerHTML=[['1','작은 원','지금보다 작은 원. 고르면 간격을 두고 검은 테두리'],['2','짜 놓은 물감','튜브에서 짜 놓은 한 덩이, 윤기와 뾰족한 꼭지'],['3','짜 놓은 줄','튜브에서 구불구불 짜 놓은 물감 줄'],['4','물감 접시','하얀 팔레트 칸에 고인 물감'],['5','고체 물감','수채 고체 물감 칸']].map(([k,t,d])=>card('pl='+k,k,t,d)).join('');
+</script></body></html>
