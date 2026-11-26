@@ -367,16 +367,17 @@ canvas.wcd.big{margin:14px auto}
 .hp-say{font-size:14px;color:#737373;margin-top:6px;min-height:20px}
 /* 꾹 누르는 표시: 손가락과 그 아래 원그림자(누를수록 그림자가 작고 진해진다). 손가락 시안 ?fg=1~4 */
 .hp-spot{position:relative;width:130px;height:130px;display:grid;place-items:center;background:none;border:0;touch-action:none;-webkit-touch-callout:none;cursor:pointer}
-.hp-shadow{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.2) 0,rgba(0,0,0,.08) 45%,rgba(0,0,0,0) 70%);animation:hpShadow 1.8s ease-in-out infinite}
-.hp-finger{position:relative;width:64px;height:64px;transform-origin:50% 20%;animation:hpPress 1.8s ease-in-out infinite}
+.hp-shadow{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.2) 0,rgba(0,0,0,.08) 45%,rgba(0,0,0,0) 70%);animation:hpShadow 2.4s ease-in infinite}
+.hp-finger{position:relative;width:64px;height:64px;transform-origin:50% 20%;animation:hpPress 2.4s ease-in infinite}
 .hp-spot.fg1 .hp-finger,.hp-spot.fg2 .hp-finger{margin-top:56px}   /* 아래에서 올라온 손가락: 손끝이 그림자 한가운데 */
 .hp-spot.fg3 .hp-finger{margin-top:56px;margin-left:12px}   /* 검지를 편 손: 손끝이 그림자 한가운데 */
 .hp-spot.fg4 .hp-finger{margin-top:50px}
-.hp-spot.fg6 .hp-finger{width:54px;height:54px;top:15px;left:2px}   /* 손끝(탭 표시 안쪽)이 그림자 한가운데 */
+.hp-spot.fg5 .hp-finger,.hp-spot.fg6 .hp-finger{width:54px;height:54px;top:15px;left:2px;transform-origin:45% 25%}   /* 손끝(탭 표시 안쪽)이 그림자 한가운데 */
 .hp-spot.fg4 .hp-wave{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:1.5px solid rgba(0,0,0,.25);animation:hpWave 1.8s ease-out infinite}
-.hp.holding .hp-finger{animation:none;transform:translateY(3px) scale(.96)}.hp.holding .hp-shadow{animation:none;transform:scale(.7);opacity:1}.hp.holding .hp-wave{animation:none;opacity:0}
-@keyframes hpPress{0%,100%{transform:translateY(-4px)}45%,60%{transform:translateY(3px) scale(.97)}}
-@keyframes hpShadow{0%,100%{transform:scale(1.15);opacity:.55}45%,60%{transform:scale(.75);opacity:1}}
+.hp.holding .hp-finger{animation:none;transform:scale(.86)}.hp.holding .hp-shadow{animation:none;transform:scale(.7);opacity:1}.hp.holding .hp-wave{animation:none;opacity:0}
+/* 꾹 누르는 느낌: 떠 있을 땐 크게 → 눌리면 작게, 눌린 채로 오래 머물렀다가 → 천천히 뗀다 */
+@keyframes hpPress{0%,100%{transform:scale(1.12)}18%{transform:scale(.88);animation-timing-function:linear}72%{transform:scale(.86);animation-timing-function:ease-out}}
+@keyframes hpShadow{0%,100%{transform:scale(1.3);opacity:.45}18%{transform:scale(.72);opacity:1;animation-timing-function:linear}72%{transform:scale(.7);opacity:1;animation-timing-function:ease-out}}
 @keyframes hpWave{0%,40%{transform:scale(.4);opacity:0}55%{opacity:.8}100%{transform:scale(1.2);opacity:0}}
 /* 물감 줄. 시안 ?pl=1~5: 1 작은 원 · 2 짜 놓은 물감 · 3 짜 놓은 줄 · 4 물감 접시 · 5 고체 물감 */
 .hp-pal button{flex:0 0 auto;width:62px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:10px;background:none;border:0;font:inherit;color:#555;cursor:pointer;padding:6px 0 2px}
@@ -3264,10 +3265,11 @@ function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button')
 const HS=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('hs')||'C').toUpperCase(),demo:q.get('hsdemo')==='1'}; }catch(e){ return {v:'B',demo:false}; } })();
 try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]) S.homeColor=hc; }catch(e){}
 /* 첫 화면 시안: 손가락 ?fg=1~4, 물감 ?pl=1~5 */
-const FG=(()=>{ try{ return {v:(new URLSearchParams(location.search).get('fg')||'6').replace(/[^1-6]/g,'')||'6'}; }catch(e){ return {v:'6'}; } })();
+const FG=(()=>{ try{ return {v:(new URLSearchParams(location.search).get('fg')||'5').replace(/[^1-6]/g,'')||'5'}; }catch(e){ return {v:'5'}; } })();
 const PL=(()=>{ try{ return {v:(new URLSearchParams(location.search).get('pl')||'1').replace(/[^1-5]/g,'')||'1'}; }catch(e){ return {v:'1'}; } })();
 const FGS='fill="none" stroke="#111" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"';
 const FINGERS={
+  5:`<svg class="hp-finger" viewBox="0 0 256 256" fill="#111"><path d="M58,76a58,58,0,0,1,116,0,6,6,0,0,1-12,0,46,46,0,0,0-92,0,6,6,0,0,1-12,0Zm138,46a25.87,25.87,0,0,0-14.59,4.49A26,26,0,0,0,142,110.1V76a26,26,0,0,0-52,0v87l-7.53-12.1a26,26,0,0,0-45,26.13l29.32,50A6,6,0,0,0,77.16,221L47.87,171a14,14,0,0,1,24.25-14,1,1,0,0,0,.1.17l18.68,30A6,6,0,0,0,102,184V76a14,14,0,0,1,28,0v68a6,6,0,0,0,12,0V132a14,14,0,0,1,28,0v20a6,6,0,0,0,12,0v-4a14,14,0,0,1,28,0v36c0,22.13-7.3,37.18-7.37,37.32a6,6,0,0,0,2.69,8A5.83,5.83,0,0,0,208,230a6,6,0,0,0,5.38-3.32c.35-.7,8.63-17.55,8.63-42.68V148A26,26,0,0,0,196,122Z"/></svg>`,   // Phosphor Icons 'hand-tap' light (MIT 라이선스)
   6:`<svg class="hp-finger" viewBox="0 0 256 256" fill="#111"><path d="M56,76a60,60,0,0,1,120,0,8,8,0,0,1-16,0,44,44,0,0,0-88,0,8,8,0,1,1-16,0Zm140,44a27.9,27.9,0,0,0-13.36,3.39A28,28,0,0,0,144,106.7V76a28,28,0,0,0-56,0v80l-3.82-6.13a28,28,0,0,0-48.41,28.17l29.32,50A8,8,0,1,0,78.89,220L49.6,170a12,12,0,1,1,20.78-12l.14.23,18.68,30A8,8,0,0,0,104,184V76a12,12,0,0,1,24,0v68a8,8,0,1,0,16,0V132a12,12,0,0,1,24,0v20a8,8,0,0,0,16,0v-4a12,12,0,0,1,24,0v36c0,21.61-7.1,36.3-7.16,36.42a8,8,0,0,0,3.58,10.73A7.9,7.9,0,0,0,208,232a8,8,0,0,0,7.16-4.42c.37-.73,8.85-18,8.85-43.58V148A28,28,0,0,0,196,120Z"/></svg>`,   // Phosphor Icons 'hand-tap' (MIT 라이선스)
   1:`<svg class="hp-finger" viewBox="0 0 64 64" ${FGS}><path d="M24 62V12a8 8 0 0 1 16 0v50"/><path d="M27.5 13.5a4.5 4.5 0 0 1 9 0v3.5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" stroke-width="1.3"/><path d="M28 34q4 1.6 8 0M28 46q4 1.6 8 0" stroke-width="1.2" opacity=".6"/></svg>`,   // 검지 하나(손톱·마디)
   2:`<svg class="hp-finger" viewBox="0 0 64 64"><path d="M23 64V13a9 9 0 0 1 18 0v51z" fill="#111"/><path d="M27.5 14a4.5 4.5 0 0 1 9 0v3.5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" fill="#fff" opacity=".9"/></svg>`,   // 검지 실루엣(채움)
