@@ -225,9 +225,9 @@ html.safari:not(.mob) .stickfoot{position:static;background:none}   /* 같은 �
 .opt .chev{color:#888;font-size:18px}
 .cmp{display:flex;gap:12px;align-items:center;background:var(--g0);border-radius:var(--r-card);padding:14px 14px 14px 0;margin-top:10px}
 .cmp .lb{display:flex;align-items:center;gap:9px;width:96px;flex-shrink:0;justify-content:center;text-align:center;font-size:14px;font-weight:700;border-right:1px solid #DDD;align-self:stretch}
-.cmp .bd{font-size:13px;line-height:1.6;flex:1;text-align:center;word-break:keep-all}.cmp .bd.chips{justify-content:center}
+.cmp .bd{font-size:13px;line-height:1.6;flex:1;text-align:left;word-break:keep-all}.cmp .bd.chips{justify-content:flex-start}
 .cmp .bd ul{list-style:none}
-.cmp .mycolor{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--g2);margin-bottom:4px}
+.cmp .mycolor{display:flex;align-items:center;justify-content:flex-start;gap:6px;font-size:12px;color:var(--g2);margin-bottom:4px}
 .cmp .bd li::before{content:"·";margin-right:6px}
 /* ---------- done / tag ---------- */
 .wave{height:120px;position:relative;margin:4px 0 10px;overflow:hidden}
@@ -242,7 +242,7 @@ html.safari:not(.mob) .stickfoot{position:static;background:none}   /* 같은 �
 .tagprev{display:block;width:min(100%,260px);margin:14px auto 18px;border-radius:12px;border:1px solid #E5E5E5}
 .cmtrow .box{position:relative}.cmtrow .box input{padding-right:46px}.cmtn{position:absolute;right:12px;bottom:6px;font-size:10.5px;color:#9A9A9A;pointer-events:none}
 .btn:focus-visible,.bigbtn:focus-visible,.chip.dark:focus-visible,#sendBtn:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 5px #111}
-.typelist button.none{opacity:.45}.cvper{justify-content:center;margin:10px 0 14px}.cvcal{display:inline-flex;align-items:center;gap:5px}.cvcal svg{width:16px;height:16px}.fchip.on.cvcal svg *{stroke:#fff}.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.typelist button.none{opacity:.45}.cvhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 2px 12px}.cvhead h2{font-size:21px;font-weight:700;letter-spacing:-.4px}.cvhead h2 small{display:block;font-size:12.5px;font-weight:500;color:#A6A6A6;letter-spacing:0;margin-top:4px}.cvhead .cvcal{height:36px;padding:0 12px}.cvcal{display:inline-flex;align-items:center;gap:5px}.cvcal svg{width:16px;height:16px}.fchip.on.cvcal svg *{stroke:#fff}.typelist{display:flex;flex-direction:column;gap:7px;margin-top:16px}.typelist button{display:flex;align-items:center;gap:12px;background:var(--g0);border:0;border-radius:12px;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
 .typelist .tb{width:34px;height:34px;flex:none;display:grid;place-items:center}.typelist .tb svg{width:100%;height:100%}.typelist b{font-weight:600}.typelist .muted{margin-left:auto}.typelist .chev{color:#AAA}
 .tagcard .nm{font-size:18px;font-weight:700;margin-top:4px}
 .tagcard .meta{font-size:12.5px;color:var(--g2)}
@@ -351,6 +351,27 @@ canvas.wcd.big{margin:14px auto}
 .home-note{font-size:12.5px;color:#A6A6A6;text-align:center;margin:0 26px 12px}
 .home-drop{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;overflow:visible}
 .scr-home{height:100%;min-height:0;overflow:hidden}
+/* 첫 화면(캔버스 종이) */
+.home.hp{position:relative;background:#FAF8F4;align-items:center;user-select:none;-webkit-user-select:none}
+.hp-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hp>*:not(.hp-cv){position:relative;z-index:1}
+.hp-top{font-size:22px;font-weight:700;letter-spacing:-.5px;margin-top:min(56px,6dvh);text-align:center}
+.hp-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
+.hp-spot{position:relative;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:none;border:0;touch-action:none;-webkit-touch-callout:none;cursor:pointer}
+.hp-ring{position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(0,0,0,.28);animation:hpPulse 2.2s ease-in-out infinite}
+.hp-finger{animation:hpBlink 1.6s ease-in-out infinite}
+.hp.holding .hp-finger,.hp.holding .hp-ring{animation:none;opacity:.25}
+@keyframes hpBlink{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(4px)}}
+@keyframes hpPulse{0%,100%{transform:scale(.92);opacity:.5}50%{transform:scale(1.04);opacity:1}}
+.hp-say{font-size:14px;color:#737373;margin-top:6px;min-height:20px}
+.hp-pal{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;width:100%;padding:4px 10px 2px}
+.hp-pal button{flex:0 0 auto;width:calc((100% - 10px)/6);display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;font:inherit;color:#555;cursor:pointer;padding:4px 0}
+.hp-pal i{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);transition:transform .2s}
+.hp-pal span{font-size:11px;line-height:1.2;text-align:center;word-break:keep-all}
+.hp-pal button.on i{transform:scale(1.12);box-shadow:0 0 0 2px #FAF8F4,0 0 0 3.5px #111}.hp-pal button.on span{color:#111;font-weight:700}
+.hp-note{font-size:12px;color:#A6A6A6;text-align:center;margin:6px 0 14px;min-height:18px}.hp-note button{font:inherit;color:#555;text-decoration:underline;background:none;border:0}
+.hp .resume{margin-bottom:8px}
+.qrow{margin-top:10px}.qrow .pill-in{margin-top:8px}
 .home-drop canvas.d3{display:block}
 .home-drop canvas.hw-paper{pointer-events:none} /* 커진 번짐이 아래 버튼 클릭을 가리지 않게 */
 .home .resume,.home .bigbtn{position:relative;z-index:1}
@@ -430,9 +451,9 @@ canvas.wcd.big{margin:14px auto}
 .dpre{display:flex;gap:8px;justify-content:center;margin-top:16px}.dpre .fchip{height:36px;padding:0 16px;font-size:14px;border-radius:18px}
 .cal{margin:14px 0 14px}.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.cal-h b{font-size:15px}.cal-h button{width:36px;height:36px;font-size:22px;color:#555}
 .cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}.cal-w span{font-size:11.5px;color:#999;padding:4px 0}
-.cal-g button{position:relative;height:40px;font-size:14px;border-radius:20px;color:#222}.cal-g button:disabled{color:#CFCFCF}
+.cal-g{row-gap:4px}.cal-g button{position:relative;height:40px;font-size:14px;color:#222;background:none;padding:0}.cal-g button>span{display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin:0 auto;border-radius:50%}.cal-g button:disabled{color:#CFCFCF}
 .cal-g button.today{font-weight:800}.cal-g button.has::after,.cal-tip i{content:'';position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#9A9A9A}
-.cal-g button.mid{background:var(--g0);border-radius:0}.cal-g button.pick{background:#111;color:#fff}.cal-g button.pick::after{background:#fff}
+/* 기간 띠: 칸 사이가 끊기지 않게 이어 칠하고, 줄의 처음·끝은 둥글게 */.cal-g button.mid{background:var(--g0)}.cal-g button.lo{background:linear-gradient(90deg,transparent 50%,var(--g0) 50%)}.cal-g button.hi{background:linear-gradient(90deg,var(--g0) 50%,transparent 50%)}.cal-g button.mid.rs{border-radius:20px 0 0 20px}.cal-g button.mid.re{border-radius:0 20px 20px 0}.cal-g button.mid.rs.re{border-radius:20px}.cal-g button.lo.re,.cal-g button.hi.rs{background:none}.cal-g button.pick>span{background:#111;color:#fff}.cal-g button.pick::after{background:#fff}
 .cal-tip{font-size:11.5px;color:#999;text-align:center;margin-top:8px}.cal-tip i{position:relative;display:inline-block;left:auto;bottom:auto;margin:0 2px 1px 0;vertical-align:middle}
 .fchip{height:29px;padding:0 12px;border-radius:15px;font-size:12.5px;border:1px solid #DCDCDC;color:#444;transition:background .15s,color .15s}
 .fchip.on{background:#111;border-color:#111;color:#fff}
@@ -987,6 +1008,7 @@ function toast(msg,top){ if(!top&&S&&S.draft&&cur()==='chat'&&$('#msgs')){ const
   const el=$('#toast');el.textContent=L(msg);el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),top?4200:2200);}   // top: 기록 중에도 채팅 대신 위에 띄운다
 
 const I = {
+  finger:'<svg class="hp-finger" width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 24V9.5a2.5 2.5 0 0 1 5 0V21l0-4.5a2.5 2.5 0 0 1 5 0V22l0-3a2.5 2.5 0 0 1 5 0v3.5l0-1.5a2.5 2.5 0 0 1 5 0V29c0 6-4 10-10 10h-2.5c-3.5 0-5.6-1.4-7.5-4l-5.3-7.4a2.6 2.6 0 0 1 4-3.3L17 26.5"/></svg>',
   back:'<svg width="10" height="14" viewBox="0 0 10 14"><path d="M7.5 1.5 2 7l5.5 5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   cam:'<svg width="30" height="24" viewBox="0 0 30 24"><rect x="9" y="0" width="8" height="3" fill="#000"/><rect x="0" y="4" width="30" height="20" fill="#000"/><circle cx="15" cy="14" r="5.5" fill="none" stroke="#fff" stroke-width="1.6"/></svg>',
   up:'<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 14V2M3 7l5-5 5 5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1108,7 +1130,8 @@ function cvAlpha(recs,base){ const R=R1(1)*2.2, A={};
   recs.forEach(r=>{ let w=0; recs.forEach(q=>{ if(q===r) return; const d=Math.hypot(q.canvas.x-r.canvas.x,q.canvas.y-r.canvas.y); if(d<R) w+=1-d/R; }); A[r.id]=Math.max(.5,base/(1+.3*w)); });
   return A; }
 /* 가운데 가로·세로 기준선(글자 없이). 설명은 캔버스 아래 한 줄 */
-function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.08)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke(); x.restore(); }
+function axes(x,px){ x.save(); x.strokeStyle='rgba(0,0,0,.08)'; x.lineWidth=Math.max(1,px/420); x.beginPath(); x.moveTo(px/2,0); x.lineTo(px/2,px); x.moveTo(0,px/2); x.lineTo(px,px/2); x.stroke();
+  /* 축 이름은 한 글자씩: 가로 끝 '향', 세로 끝 '맛' */ const fs=Math.round(px/26); x.fillStyle='rgba(0,0,0,.38)'; x.font=`600 ${fs}px Pretendard,-apple-system,sans-serif`; x.textBaseline='bottom'; x.textAlign='right'; x.fillText(L('향'),px-fs*.5,px/2-fs*.35); x.textAlign='left'; x.textBaseline='top'; x.fillText(L('맛'),px/2+fs*.45,fs*.4); x.restore(); }
 
 const posText=c=>c?`마시기 전 향은 ${c.x>=.5?'좋았고':'아쉬웠고'}, 마신 뒤 맛은 ${c.y<.5?'좋았어요':'아쉬웠어요'}.`:'';
 const flChips=fl=>`<div class="chips fl">${(fl||[]).map(f=>`<span class="chip"><i style="background:${FLAVORS[f.k].color}"></i>${FLAVORS[f.k].label}</span>`).join('')}</div>`;
@@ -1286,8 +1309,9 @@ function calHTML(){ const c=S.cal, first=new Date(c.y,c.m,1), days=new Date(c.y,
   const has=new Set(S.records.map(r=>ymd(r.ts||0))), lo=c.a&&c.b?(c.a<c.b?c.a:c.b):c.a, hi=c.a&&c.b?(c.a<c.b?c.b:c.a):c.a;
   let cells=''; for(let i=0;i<lead;i++) cells+='<span></span>';
   for(let d=1;d<=days;d++){ const k=`${c.y}-${String(c.m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`, fut=k>today;
-    const cls=[k===lo||k===hi?'pick':'',lo&&hi&&k>lo&&k<hi?'mid':'',k===today?'today':'',has.has(k)?'has':''].join(' ');
-    cells+=`<button class="${cls}" ${fut?'disabled':''} onclick="calTap('${k}')">${d}</button>`; }
+    const col=(lead+d-1)%7, band=lo&&hi&&lo!==hi;
+    const cls=[k===lo||k===hi?'pick':'',band&&k>lo&&k<hi?'mid':'',band&&k===lo?'lo':'',band&&k===hi?'hi':'',col===0||d===1?'rs':'',col===6||d===days?'re':'',k===today?'today':'',has.has(k)?'has':''].join(' ');
+    cells+=`<button class="${cls}" ${fut?'disabled':''} onclick="calTap('${k}')"><span>${d}</span></button>`; }
   return `<div class="cal"><div class="cal-h"><button onclick="calMove(-1)" aria-label="이전 달">‹</button><b>${c.y}년 ${c.m+1}월</b><button onclick="calMove(1)" aria-label="다음 달">›</button></div>
     <div class="cal-w">${'일월화수목금토'.split('').map(x=>`<span>${x}</span>`).join('')}</div><div class="cal-g">${cells}</div>
     <p class="cal-tip">${!c.a?'하루를 누르거나, 시작 날과 끝 날을 차례로 눌러주세요':!c.b?'끝 날을 누르면 기간이 돼요':'다시 누르면 새로 골라요'}<br><i></i> 기록한 날</p></div>`; }
@@ -1319,12 +1343,15 @@ const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ co
 const SCREENS = {
 
 home(){
-  return `<div class="home">
-    <h1 class="home-q ${HQ}" style="margin-top:min(${HL.qt}px,4.5dvh)">${/split/.test(HQ)?'<em>오늘의 차,</em>어떤 색들이 담겨 있나요?':'오늘의 차,<br>어떤 색들이 담겨 있나요?'}</h1>
-    <div class="home-drop" id="homeDrop"></div>
+  /* 첫 화면: 캔버스 종이 위에서 가운데를 꾹 누르면 물감이 번지며 기록이 시작된다. 아래 물감을 고르면 대화 없이 바로 캔버스에 찍는다 */
+  const sel=S.homeFl||[];
+  return `<div class="home hp">
+    <canvas class="hp-cv" id="hpCv"></canvas>
+    <p class="hp-top">${sel.length?'꾹 눌러서 바로 캔버스에 찍으세요':'꾹 눌러서 기록을 시작하세요'}</p>
+    <div class="hp-mid"><button class="hp-spot" id="hpSpot" aria-label="꾹 눌러서 기록 시작"><span class="hp-ring"></span>${I.finger}</button><p class="hp-say" id="hpSay">여기를 꾹 누르세요</p></div>
     ${(()=>{ const v=loadLive()||loadPaused(); return v?`<div class="resume"><button onclick="resumeRecord()">작성 중인 ‘${esc(v.draft.name||'새 기록')}’ 이어하기 →</button><button class="x" onclick="askDropPaused()" aria-label="저장해둔 기록 지우기">지우기</button></div>`:''; })()}
-    <p class="home-note" style="margin-bottom:${HL.nb}px;font-size:${HL.ns}px">맛과 향을 기록해서 색으로 보관해요</p>
-    <button class="bigbtn" style="margin-bottom:min(${HL.bb}px,3.5dvh)" onclick="startRecord()"><span>새로운 차 기록하기</span><i>${I.arrow}</i></button>
+    <div class="hp-pal" id="hpPal">${FKEYS.map(k=>`<button class="${sel.includes(k)?'on':''}" onclick="homePaint('${k}')" aria-pressed="${sel.includes(k)}"><i style="background:${FLAVORS[k].color}"></i><span>${FLAVORS[k].label}</span></button>`).join('')}</div>
+    <p class="hp-note">${sel.length?`<button onclick="S.homeFl=[];rerender()">고른 물감 지우기</button>`:'물감을 고르면 대화 없이 바로 찍을 수 있어요'}</p>
   </div>`;
 },
 
@@ -1448,8 +1475,7 @@ canvas(p){
   }
   const fav=favDrop();
   return `${seg}
-  <h2 class="cv-q">${cvRecs().length}잔의 찻방울이 물든<br>나의 TEA CANVAS<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2>
-  <div class="flchips cvper">${Object.entries(DATE_LB).map(([v,t])=>`<button class="fchip ${(S.cvPeriod||'all')===v?'on':''}" onclick="S.cvPeriod='${v}';rerender()">${t}</button>`).join('')}<button class="fchip cvcal ${S.cvPeriod==='range'?'on':''}" onclick="openDateSheet('cv')" aria-label="달력에서 기간 고르기">${I.cal}${S.cvPeriod==='range'&&S.cvRange?`<span>${S.cvRange.from===S.cvRange.to?fmtD(S.cvRange.from):fmtD(S.cvRange.from)+' ~ '+fmtD(S.cvRange.to)}</span>`:''}</button></div>
+  <div class="cvhead"><h2>나만의 캔버스<small>찻방울을 누르면 그 기록을 볼 수 있어요</small></h2><button class="fchip cvcal ${(S.cvPeriod||'all')!=='all'?'on':''}" onclick="openDateSheet('cv')" aria-label="기간 고르기">${I.cal}${(S.cvPeriod||'all')==='all'?'':`<span>${S.cvPeriod==='range'&&S.cvRange?(S.cvRange.from===S.cvRange.to?fmtD(S.cvRange.from):fmtD(S.cvRange.from)+' ~ '+fmtD(S.cvRange.to)):DATE_LB[S.cvPeriod]}</span>`}</button></div>
   ${canvasBox('bigCv',{cls:'scrollable',help:true})}
   ${cvRecs().length?'':`<p class="cap" style="text-align:center;margin-top:8px">이 기간에는 찍은 찻방울이 없어요</p>`}
   <section class="fav1"><h2 class="cv-q sm">나의 취향 찻방울</h2>
@@ -1529,7 +1555,7 @@ error(p){
 /* after-render hooks */
 const AFTER = {
   my(){ const c=$('#avCv'); if(!c) return; const f=favDrop(); animFav1(c,f?f.all:[{k:'floral',c:FLAVORS.floral.color,w:.8},{k:'sweet',c:FLAVORS.sweet.color,w:.6},{k:'vegetal',c:FLAVORS.vegetal.color,w:.5}],f?f.drop.id:'avatar',.1,.3); },
-  home(){ mountHomeDrop($('#homeDrop')); },
+  home(){ mountHomePaper(); },
   chat(){ seedChat(); paintMsgs(); if(VOICE.on){ startVoiceWash($('#vwash')); paintVoice(); }
     { const cf=$('.chatfoot'), v=$('#view'); if(cf&&v&&document.documentElement.classList.contains('safari')&&window.ResizeObserver){ const set=()=>{ const end=v.scrollTop+v.clientHeight>=v.scrollHeight-60; v.style.setProperty('--cfh',cf.offsetHeight+'px'); if(end) v.scrollTop=v.scrollHeight; }; set(); new ResizeObserver(set).observe(cf); } } },   // 사파리: 입력칸 높이만큼 대화 아래 여백
   organizing(){ const at=S.stack.length; setTimeout(()=>{ if(S.stack.length===at && cur()==='organizing') go('analyzing',{},{replace:true}); },1600); },
@@ -2699,23 +2725,25 @@ function openCanvasSheet(){
   openSheet(`<div class="grab"></div>
     <h1 class="t ht">캔버스에 찻방울 찍기<button class="help" onclick="openCanvasHelp(true)" aria-label="캔버스 읽는 법">?</button></h1>
     <p class="sub">오늘의 차는 어디쯤일까요? 눌러서 찍어주세요.</p>
+    ${d.quick?`<div class="qrow"><div class="center-chips">${flChips(d.flavors.map(f=>({k:f.k})))}</div><input id="qName" class="pill-in sm" maxlength="20" placeholder="차 이름 (적지 않아도 돼요)" value="${esc(d.name)}" oninput="S.draft.name=this.value.trim()"></div>`:''}
     <div class="pickfit" data-fit="600,140,w">${canvasBox('pickCv',{cls:'tapcv'})}</div>
     <div class="rate"><h3 class="sec">별점</h3><div class="stars" id="starRow">${[1,2,3].map(i=>`<button class="${i<=d.stars?'on':''}" onclick="setStars(${i})" aria-label="찻잎 ${i}개">${LEAF}</button>`).join('')}</div></div>
     <h3 class="sec" style="margin:14px 0 0">한 줄 남기기 <small class="muted" style="font-weight:400">· 사진도 함께 남길 수 있어요</small></h3>
-    <div class="cmtrow"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 집에서 혼자 마셔본 첫 ${esc(TEAS[d.type].label)}!" value="${esc(d.comment)}" oninput="S.draft.comment=this.value; const n=$('#cmtN'); if(n) n.textContent=this.value.length+'/40'"><span class="cmtn" id="cmtN">${(d.comment||"").length}/40</span></div><button class="addphoto sq" id="photoBtn" onclick="togglePhoto()" aria-label="사진 찍기 · 고르기">${photoBtnHTML(d)}</button></div>
+    <div class="cmtrow"><div class="box"><input id="cmt" maxlength="40" placeholder="예: 비 오는 날 딱 좋았던 차" value="${esc(d.comment)}" oninput="S.draft.comment=this.value; const n=$('#cmtN'); if(n) n.textContent=this.value.length+'/40'"><span class="cmtn" id="cmtN">${(d.comment||"").length}/40</span></div><button class="addphoto sq" id="photoBtn" onclick="togglePhoto()" aria-label="사진 찍기 · 고르기">${photoBtnHTML(d)}</button></div>
     <div style="height:16px"></div>
     <button class="btn ${d.canvas?'':'off'}" id="saveBtn" onclick="saveRecord()">저장하고 완료하기</button>
-    <button class="link" onclick="closeSheet()">돌아가기</button>`);
+    <button class="link" onclick="closeSheet();${d.quick?'S.draft=null':''}">돌아가기</button>`);
   bindPick($('#pickCv'));
 }
 function bindPick(cv,d=S.draft,drop=draftDrop(d),skip=null,drag=false){
   const others=recsAsc().filter(r=>r.id!==skip), ctx=cv.getContext('2d'), bg=document.createElement('canvas');
   const px=pxFor(cv.clientWidth); cv.width=cv.height=bg.width=bg.height=px;
   const b=bg.getContext('2d'); b.fillStyle=CANVAS_BG; b.fillRect(0,0,px,px); axes(b,px);
-  others.forEach(r=>drawRec1(b,recFlav(r),r.canvas.x*px,r.canvas.y*px,R1(px),r.id,CV_SPREAD,.25));
+  others.forEach(r=>drawRec1(b,recFlav(r),r.canvas.x*px,r.canvas.y*px,R1(px),r.id,CV_SPREAD,.12));   // 이전 방울은 아주 옅게
   const L=dropFlav(drop), sid=dropSid(drop);
   let prog=1, holding=false, raf=0, t0=0, last=0;
-  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas) drawRec1(ctx,L,d.canvas.x*px,d.canvas.y*px,R1(px),sid,prog*(CV_SPREAD+1.4),.88); };
+  const frame=()=>{ ctx.drawImage(bg,0,0); if(d.canvas){ const cx=d.canvas.x*px, cy=d.canvas.y*px, R=R1(px); drawRec1(ctx,L,cx,cy,R,sid,prog*(CV_SPREAD+1.4),.95);
+    /* 방금 찍은 방울: 점선 고리로 강조 */ ctx.save(); ctx.globalAlpha=Math.min(1,prog*2); ctx.strokeStyle='rgba(0,0,0,.55)'; ctx.lineWidth=Math.max(1.5,px/260); ctx.setLineDash([px/80,px/100]); ctx.beginPath(); ctx.arc(cx,cy,R*(1.15+.15*(1-prog)),0,Math.PI*2); ctx.stroke(); ctx.restore(); } };
   const loop=now=>{
     if(!cv.isConnected){ raf=0; return; }
     last=now; prog=Math.min(1,(now-t0)/1500); frame();
@@ -2788,7 +2816,7 @@ const PREF=(()=>{ try{ return Object.assign({liveVoice:true,keepChat:true,voiceS
 if(!PREF.voiceGender) PREF.voiceGender=PREF.aiVoice==='Umbriel'?'male':'female';
 if(!PREF.voiceV2){ PREF.aiVoice='device'; PREF.voiceV2=true; try{ localStorage.setItem(PREF_KEY,JSON.stringify(PREF)); }catch(e){} }   // 기본은 휴대폰 목소리 (AI 목소리는 하루 한도가 작아 자꾸 바뀌므로, 설정에서 고를 때만)
 /* 앱 전체 영어: 화면에 나타나는 한국어 글자를 사전으로 바꾼다(새로 그려지는 화면·시트·알림까지 자동으로). 언어를 바꾸면 다시 불러온다 */
-Object.assign(EN,{
+Object.assign(EN,{"꾹 눌러서 기록을 시작하세요":"Press and hold to start","꾹 눌러서 바로 캔버스에 찍으세요":"Press and hold to stamp it on your canvas","여기를 꾹 누르세요":"Press and hold here","그대로 누르고 있어요…":"Keep holding…","조금 더 꾹 눌러주세요":"Hold a little longer","물감을 고르면 대화 없이 바로 찍을 수 있어요":"Pick paints to stamp right away, no chat","고른 물감 지우기":"Clear paints","꾹 눌러서 기록 시작":"Press and hold to start","차 이름 (적지 않아도 돼요)":"Tea name (optional)","오늘의 차":"Today's tea","나만의 캔버스":"My canvas","기간 고르기":"Pick a period","향":"Aroma","맛":"Taste",
  "다른 목소리로 바꿀게요":"Switching to another voice","다른 목소리로 바꾸기":"Switch to another voice",
  "이 기기에 기록을 저장하지 못했어요. 화면을 닫으면 사라질 수 있어요":"Couldn't save on this device. It may be lost when you close the page","달력에서 기간 고르기":"Pick dates on the calendar","이름 바꾸기":"Rename","다 우러났어요. 찻물 색부터 볼까요?":"It's ready. Let's look at the color first.",
  "차 포장의 글자가 잘 보이게 찍어 주세요":"Make the text on the package easy to read","찍기":"Shoot","앨범":"Album","카메라를 열 수 없어 휴대폰 카메라로 찍을게요":"Can't open the camera here, using the phone camera","사진을 찍지 못했어요":"Couldn't take the photo",
@@ -2930,6 +2958,7 @@ function saveRecord(){
   const d=S.draft; const c=$('#cmt'); if(c) d.comment=c.value.trim();
   if(!d.canvas){ const sub=document.querySelector('#sheetWrap.open .sub'); if(sub){ sub.textContent=L('캔버스를 눌러 오늘의 찻방울 자리를 먼저 정해주세요'); sub.style.color='#B23A2E'; } else toast('캔버스에 오늘의 찻방울을 먼저 찍어주세요'); return; }
   ensureFlavors(d);
+  if(d.quick){ const q=$('#qName'); d.name=(q?q.value.trim():d.name)||L('오늘의 차'); d.type=findType(d.name)||'other'; }   // 빠른 찍기: 이름으로 종류를 짐작
   const memo=[]; const dp=d.useDeep?d.deep:{brews:{}};
   if(dp.memo) memo.push(dp.memo);
   memo.push(myExpression(d));
@@ -3173,6 +3202,30 @@ function mountDrop3D(el,drop,size){
 }
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 수채화로 번지는 방울 */
+function homePaint(k){ const a=S.homeFl=S.homeFl||[]; const i=a.indexOf(k); if(i>=0) a.splice(i,1); else { if(a.length>=4) a.shift(); a.push(k); } rerender(); }
+/* 첫 화면 종이: 누르고 있는 동안 고른 물감(없으면 맑은 찻물)이 번지고, 1.2초를 채우면 시작 */
+function mountHomePaper(){
+  const cv=$('#hpCv'), spot=$('#hpSpot'), home=cv&&cv.parentElement; if(!cv||!spot) return;
+  const W=home.clientWidth, H=home.clientHeight, dpr=Math.min(2,devicePixelRatio||1); cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  const x=cv.getContext('2d'), sel=S.homeFl||[], Lf=sel.length?sel.map((k,i)=>({k,c:FLAVORS[k].color,w:1-i*.15})):[{k:'tea',c:'#D9C9A3',w:.6}];
+  const HOLD=1200; let t0=0, prog=0, holding=false, raf=0, fired=false;
+  const paint=()=>{ x.fillStyle=CANVAS_BG; x.fillRect(0,0,cv.width,cv.height); if(prog<=0) return;
+    const r=spot.getBoundingClientRect(), b=cv.getBoundingClientRect(), cx=(r.left+r.width/2-b.left)/b.width*cv.width, cy=(r.top+r.height/2-b.top)/b.height*cv.height;
+    drawRec1(x,Lf,cx,cy,Math.min(cv.width,cv.height)*.26,'home'+sel.join(''),prog*CV_SPREAD,.9); };
+  const loop=now=>{ if(!cv.isConnected){ raf=0; return; }
+    prog=holding?Math.min(1,(now-t0)/HOLD):Math.max(0,prog-.04); paint();
+    if(holding&&prog>=1&&!fired){ fired=true; holding=false; raf=0; setTimeout(()=>homeGo(sel),250); return; }
+    raf=(holding||prog>0)?requestAnimationFrame(loop):0; };
+  const say=$('#hpSay');
+  spot.onpointerdown=e=>{ e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} holding=true; fired=false; t0=performance.now()-prog*HOLD; home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); if(!raf) raf=requestAnimationFrame(loop); };
+  const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(say&&!fired) say.textContent=L('조금 더 꾹 눌러주세요'); if(!raf) raf=requestAnimationFrame(loop); };
+  spot.onpointerup=up; spot.onpointercancel=up; spot.onpointerleave=up; spot.oncontextmenu=e=>e.preventDefault();
+  spot.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); homeGo(sel); } };
+  paint(); }
+/* 물감을 골랐으면 대화를 건너뛰고 바로 캔버스에 찍기, 아니면 대화로 기록 시작 */
+function homeGo(sel){ S.homeFl=[]; if(!sel.length) return startRecord();
+  stopTimer(); const d=S.draft=newDraft(); d.quick=true; d.type='other'; d.flavors=sel.map((k,i)=>({k,w:+(1-i*.15).toFixed(2)})); d.exprs=[];
+  go('home',{},{reset:true}); openCanvasSheet(); }
 function mountHomeDrop(el){
   if(!el) return;
   if(startHome3D(el)) return;
