@@ -366,13 +366,13 @@ canvas.wcd.big{margin:14px auto}
 .hp-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
 .hp-say{font-size:14px;color:#737373;margin-top:6px;min-height:20px}
 /* 꾹 누르는 표시: 손가락과 그 아래 원그림자(누를수록 그림자가 작고 진해진다). 손가락 시안 ?fg=1~4 */
-.hp-spot{position:relative;width:150px;height:150px;display:grid;place-items:center;background:none;border:0;touch-action:none;-webkit-touch-callout:none;cursor:pointer}
-.hp-shadow{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.2) 0,rgba(0,0,0,.08) 45%,rgba(0,0,0,0) 70%);animation:hpShadow 1.8s ease-in-out infinite}
+.hp-spot{position:relative;width:130px;height:130px;display:grid;place-items:center;background:none;border:0;touch-action:none;-webkit-touch-callout:none;cursor:pointer}
+.hp-shadow{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.2) 0,rgba(0,0,0,.08) 45%,rgba(0,0,0,0) 70%);animation:hpShadow 1.8s ease-in-out infinite}
 .hp-finger{position:relative;width:64px;height:64px;transform-origin:50% 20%;animation:hpPress 1.8s ease-in-out infinite}
 .hp-spot.fg1 .hp-finger,.hp-spot.fg2 .hp-finger{margin-top:56px}   /* 아래에서 올라온 손가락: 손끝이 그림자 한가운데 */
 .hp-spot.fg3 .hp-finger{margin-top:56px;margin-left:12px}   /* 검지를 편 손: 손끝이 그림자 한가운데 */
 .hp-spot.fg4 .hp-finger{margin-top:50px}
-.hp-spot.fg6 .hp-finger{width:72px;height:72px;top:20px;left:3px}   /* 손끝(탭 표시 안쪽)이 그림자 한가운데 */
+.hp-spot.fg6 .hp-finger{width:54px;height:54px;top:15px;left:2px}   /* 손끝(탭 표시 안쪽)이 그림자 한가운데 */
 .hp-spot.fg4 .hp-wave{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:1.5px solid rgba(0,0,0,.25);animation:hpWave 1.8s ease-out infinite}
 .hp.holding .hp-finger{animation:none;transform:translateY(3px) scale(.96)}.hp.holding .hp-shadow{animation:none;transform:scale(.7);opacity:1}.hp.holding .hp-wave{animation:none;opacity:0}
 @keyframes hpPress{0%,100%{transform:translateY(-4px)}45%,60%{transform:translateY(3px) scale(.97)}}
@@ -1366,7 +1366,7 @@ const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ co
 const SCREENS = {
 
 home(){
-  /* 첫 화면: 캔버스 종이 가운데를 1.5초 꾹 누르면 고른 물감(기본 꽃향) 한 색이 화면 전체로 번지고, 다 물들면 기록(채팅)으로 */
+  /* 첫 화면: 캔버스 종이 가운데를 1초 꾹 누르면 고른 물감(기본 꽃향) 한 색이 화면 전체로 번지고, 다 물들면 기록(채팅)으로 */
   const sel=S.homeColor||'floral';
   return `<div class="home hp">
     <canvas class="hp-cv" id="hpCv"></canvas>
@@ -3259,7 +3259,7 @@ function mountDrop3D(el,drop,size){
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 수채화로 번지는 방울 */
 function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
-/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
+/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
    번짐 시안(?hs=…): A 은은하게 · B 가운데 크게 · C 화면 전체 옅게 · D 여러 군데 번짐 · E 가득(예전). ?hsdemo=1 이면 저절로 되풀이(시안 비교용) */
 const HS=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('hs')||'C').toUpperCase(),demo:q.get('hsdemo')==='1'}; }catch(e){ return {v:'B',demo:false}; } })();
 try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]) S.homeColor=hc; }catch(e){}
@@ -3285,12 +3285,12 @@ const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:1.1,aw:.38,T
 function mountHomePaper(){
   const cv=$('#hpCv'), spot=$('#hpSpot'), home=cv&&cv.parentElement; if(!cv||!spot) return;
   const dpr=Math.min(2,devicePixelRatio||1); cv.width=Math.round(home.clientWidth*dpr); cv.height=Math.round(home.clientHeight*dpr);
-  const x=cv.getContext('2d'), HOLD=1500, FILL=1, Wd=cv.width, Hd=cv.height, diag=Math.hypot(Wd,Hd), C=HS_CFG[HS.v]||HS_CFG.C, mn=Math.min(Wd,Hd);
+  const x=cv.getContext('2d'), HOLD=1000, FILL=1, Wd=cv.width, Hd=cv.height, diag=Math.hypot(Wd,Hd), C=HS_CFG[HS.v]||HS_CFG.C, mn=Math.min(Wd,Hd);
   const SPOTS=[[0,0],[-.3,-.28],[.32,-.18],[-.26,.3],[.3,.33]];   // D: 가운데 다음 네 군데에 차례로 번진다
   let t0=0, u=0, f=0, holding=false, fill=0, raf=0;
   const paint=()=>{ x.fillStyle=CANVAS_BG; x.fillRect(0,0,Wd,Hd); if(u<=0&&f<=0) return;
     const k=S.homeColor||'floral', c=FLAVORS[k].color, r=spot.getBoundingClientRect(), b=cv.getBoundingClientRect(), cx=(r.left+r.width/2-b.left)/b.width*Wd, cy=(r.top+r.height/2-b.top)/b.height*Hd;
-    const e=Math.pow(u,1.25);   // 1.5초 내내 멈추지 않고 고르게 커진다(끝에서 느려졌다가 확 번지지 않게)
+    const e=Math.pow(u,1.25);   // 1초 내내 멈추지 않고 고르게 커진다(끝에서 느려졌다가 확 번지지 않게)
     if(C.T>0){ x.globalAlpha=C.T*e; x.fillStyle=c; x.fillRect(0,0,Wd,Hd); }
     const R=mn*.06+(mn*.44+diag*C.K-mn*.06)*e;
     [[0,0,1],[.18,.1,.8],[-.14,.16,.7]].forEach(([ox,oy,s],i)=>{ const D=R*2.6*s; x.globalAlpha=C.aw*Math.min(1,.5+e); x.drawImage(cvWash(240,k,c,401+i*97).frame(.6+(CV_SPREAD-.6)*Math.min(1,u*1.2)),cx+ox*R-D/2,cy+oy*R-D/2,D,D); });
