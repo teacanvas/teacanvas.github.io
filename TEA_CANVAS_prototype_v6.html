@@ -1788,7 +1788,7 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
 function seedChat(){
   const d=S.draft;
   if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’${josa(d.name,'이에요','예요')}.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
-  if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }
+  if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.',teaAsk:true}); }
   chatTick();
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
@@ -2203,7 +2203,7 @@ function bindAskColor(){
    ========================================================= */
 const EN_TYPE_LABEL={'녹차':'Green tea','백차':'White tea','우롱차':'Oolong','홍차':'Black tea','보이차':'Pu-erh','허브차':'Herbal tea','기타':'Other','이 차':'This tea'};
 const EN={
- "반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작":"Hello! What tea are you having today?\nTell me its name, and the brand if you know it.\ne.g. Twinings Earl Grey",
+ "반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.":"Hello! What tea are you having today?\nTell me its name, and the brand if you know it.",
  "사진은 오늘 기록에 담아둘게요.\n사진 속 글자는 아직 읽지 못해서, 차 이름을 알려주시겠어요?":"I'll keep the photo with today's entry.\nI can't read text in photos yet, so could you tell me the tea's name?",
  "맞아요":"Yes","다시 적을게요":"Let me retype","좋아요, 차 이름과 브랜드를 다시 알려주세요.":"Okay, tell me the tea name and brand again.",
  "우림 시작 ▶":"Start brewing ▶","우림 시작":"Start brewing","바로 마실게요":"I'll drink now","이 차에 맞춘 가이드 보기":"Show this tea's guide","어떤 차든 쓰는 기본 가이드 보기":"Show the basic guide for any tea",
@@ -2519,7 +2519,7 @@ function liveConnect(first){ return new Promise(res=>{ let ws, done=false; const
   ws.onclose=()=>{ if(!done) return fin(false); if(LIVE.ws!==ws||LIVE.closing||!VOICE.on) return;   // 예상 못 한 끊김: 이어 붙이기를 한 번 해 보고, 안 되면 기본 음성 모드로
     if(LIVE.retried<3){ LIVE.retried++; liveConnect(false).then(ok=>{ if(!ok) liveFallback(); }); } else liveFallback(); };
   ws.onerror=()=>{}; }); }
-function liveGreeting(d){ if(d&&d.stage==='tea'&&!d.chat.some(m=>m.teaAsk||m.who==='me')) d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.\n예: 오설록 제주 세작',teaAsk:true}); }   // 실시간 음성이 안 되면 지웠던 첫인사를 되살린다
+function liveGreeting(d){ if(d&&d.stage==='tea'&&!d.chat.some(m=>m.teaAsk||m.who==='me')) d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.',teaAsk:true}); }   // 실시간 음성이 안 되면 지웠던 첫인사를 되살린다
 function liveFallback(){ if(!VOICE.on) return; stopLive(); VOICE.live=false; liveGreeting(S.draft); toast('실시간 음성 연결이 끊겨서\n기본 음성 대화로 이어갈게요',true); const d=S.draft; if(d) VOICE.spoken=d.chat.length; VOICE.tid++; rerender(); voiceLoop(VOICE.tid); }
 function stopLive(){ LIVE.on=false; LIVE.closing=true; LIVE.echo=0; liveStopPlay(); try{ LIVE.capRec&&LIVE.capRec.abort(); }catch(e){} LIVE.capRec=null; LIVE.meMsg=null; LIVE.meEl=null; LIVE.botEl=null; try{ LIVE.ws&&LIVE.ws.close(); }catch(e){} LIVE.ws=null;
   try{ LIVE.mic&&LIVE.mic.getTracks().forEach(t=>t.stop()); }catch(e){} LIVE.mic=null; try{ LIVE.src&&LIVE.src.disconnect(); LIVE.node&&LIVE.node.disconnect(); }catch(e){} LIVE.src=LIVE.node=null; LIVE.inT=LIVE.outT=''; LIVE.botMsg=null; }

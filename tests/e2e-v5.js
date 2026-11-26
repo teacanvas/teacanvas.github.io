@@ -51,7 +51,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   await chip('잘 모르겠어요'); await p.click('#askW .chip >> text=단맛'); await p.click('#askW .chip >> text=고소함'); await p.click('#askW .feelnext'); await wait(1300);
   ok(await ev(()=>S.draft.feel.taste==='단맛, 고소함'),'모르겠을 때만 보기 → 여러 개 고르기');
   await say('끝에 꿀 같은 단맛이 남아요'); await say('목 넘김이 부드러워요');
-  ok(await ev(()=>S.draft.stage==='free'&&S.draft.chat.slice(-2).every(m=>m.who==='me'&&m.kept)),'자유 대화 중엔 끼어들지 않고 담기만');
+  await wait(1500); ok(await ev(()=>{ const c=S.draft.chat, i=c.map(m=>m.who).lastIndexOf('me'); return S.draft.stage==='free'&&c[i].kept&&c.slice(i+1).every(m=>m.who==='bot'&&m.ack)&&c.slice(i+1).length===1; }),'자유 대화 중엔 담고 짧게 맞장구만');
   await ev(()=>{ S.draft.drinkAt-=60000; S.draft.lastMeAt=Date.now()-76000; }); await wait(10500);
   ok(await ev(()=>S.draft.nudged&&S.draft.stage==='free'),'오래 조용하면 한 번만 부드럽게 말 걸기');
   await p.click('.chatfoot .btn >> text=이제 충분해요'); await wait(1300); ok(await ev(()=>['after','more'].includes(S.draft.stage)),'이제 충분해요 → 여운 질문(이미 말했으면 건너뜀)');
