@@ -55,7 +55,7 @@ const SCENES=[
           const big=o=>parseFloat(getComputedStyle(o.e).fontSize)>=22;   // 큰 글자 둘레는 4px 이상 비우기(찻방울 완성 화면 'Fruity'가 위 설명에 붙던 문제)
           if(ix>8&&(big(A)||big(B))&&A.e.parentElement!==B.e.parentElement&&iy>-4&&iy<=2) out.push(`붙음 ${A.name} ↔ ${B.name} (${Math.round(-iy)}px)`); }
         if(at==='top'){ const pw=document.querySelector('#phone').getBoundingClientRect();
-          items.forEach(o=>{ const r=o.e.getBoundingClientRect(); if(r.right>pw.right+1||r.left<pw.left-1) out.push(`가로로 잘림 ${o.name}`); });
+          items.forEach(o=>{ if(o.e.closest(".hp-pal")) return; /* 물감 줄은 일부러 옆으로 넘긴다 */ const r=o.e.getBoundingClientRect(); if(r.right>pw.right+1||r.left<pw.left-1) out.push(`가로로 잘림 ${o.name}`); });
           const nav=document.querySelector('.nav'); if(nav&&getComputedStyle(nav).display!=='none'&&nav.getBoundingClientRect().bottom>innerHeight+1) out.push('하단 탭이 화면 밖'); }
         return out; },[GAP,at])); }
       [...new Set(r)].slice(0,8).forEach(x=>issues.push(`${dn}/${sn}: ${x}`));

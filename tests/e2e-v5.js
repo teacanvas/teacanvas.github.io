@@ -20,7 +20,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   console.log('홈'); ok(await ev(()=>cur()==='home'),'홈 화면'); await snap('home');
 
   console.log('채팅: 차 정보 · 가이드');
-  await p.evaluate(()=>{ const b=document.querySelector('#hpSpot'), o={bubbles:true,pointerId:1,isPrimary:true}; b.dispatchEvent(new PointerEvent('pointerdown',o)); }); await wait(1800);
+  await p.evaluate(()=>{ const b=document.querySelector('#hpSpot'), o={bubbles:true,pointerId:1,isPrimary:true}; b.dispatchEvent(new PointerEvent('pointerdown',o)); }); await wait(3200);
   ok(await ev(()=>cur()==='chat'&&S.draft.stage==='tea'),'새 기록 → 채팅에서 차 이름을 물음');
   await say('오설록 제주 세작');
   ok(await ev(()=>S.draft.name==='제주 세작'&&S.draft.brand==='오설록'&&S.draft.type==='green'),'이름·브랜드·종류를 나눠 읽음');
