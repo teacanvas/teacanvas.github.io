@@ -1,0 +1,19 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>차 종류 칸 시안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F4F4F4;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;margin:0 0 6px}p.sub{color:#737373;margin:0 0 22px;line-height:1.6;font-size:14px}
+.grid{display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+.card{width:236px}.frame{width:236px;height:511px;border-radius:26px;border:6px solid #111;overflow:hidden;background:#fff;position:relative}
+.frame iframe{width:393px;height:852px;border:0;transform:scale(.57);transform-origin:0 0;position:absolute;left:0;top:0}
+.card h2{font-size:16px;margin:12px 0 4px}.card p{font-size:13px;color:#555;margin:0;line-height:1.5}
+.card .tag{display:inline-block;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:2px 8px;margin-right:6px}
+.colors{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.colors button{border:1px solid #DDD;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.colors button.on{background:#111;color:#fff;border-color:#111}
+</style></head><body><main>
+<h1>기록 고치기 · 차 종류 칸 시안</h1>
+<p class="sub">모두 실제 앱의 '기록 고치기' 화면이에요. 차 종류를 직접 눌러 바꿔 볼 수 있어요. 마음에 드는 알파벳을 알려 주세요.</p>
+<div class="grid" id="grid"></div>
+</main><script>
+const V=[['A','같은 회색 칸','차 이름·브랜드 칸과 같은 높이와 모서리. 누르면 목록이 떠요.'],['B','칩','담긴 풍미처럼 칩으로 바로 골라요.'],['C','칩 + 찻물 색','칩 앞에 그 차의 찻물 색 점.'],['D','티백 격자','티백 그림과 이름을 4칸씩.']];
+document.getElementById('grid').innerHTML=V.map(([k,t,d])=>`<div class="card"><div class="frame"><iframe src="../TEA_CANVAS_prototype_v6.html?et=${k}&etdemo=1" title="시안 ${k}"></iframe></div><h2><span class="tag">${k}</span>${t}</h2><p>${d}</p></div>`).join('');
+</script></body></html>
