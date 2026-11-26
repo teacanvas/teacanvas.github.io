@@ -360,7 +360,7 @@ canvas.wcd.big{margin:14px auto}
 .hp-spot{position:relative;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:none;border:0;touch-action:none;-webkit-touch-callout:none;cursor:pointer}
 .hp-ring{position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(0,0,0,.28);animation:hpPulse 2.2s ease-in-out infinite}
 .hp-finger{animation:hpBlink 1.6s ease-in-out infinite}
-.hp.holding .hp-finger,.hp.holding .hp-ring{animation:none;opacity:.25}.hp.filling>*:not(.hp-cv){opacity:0;transition:opacity .4s}
+.hp.holding .hp-finger,.hp.holding .hp-ring{animation:none;opacity:.25}
 @keyframes hpBlink{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(4px)}}
 @keyframes hpPulse{0%,100%{transform:scale(.92);opacity:.5}50%{transform:scale(1.04);opacity:1}}
 .hp-say{font-size:14px;color:#737373;margin-top:6px;min-height:20px}
@@ -3229,23 +3229,33 @@ function mountDrop3D(el,drop,size){
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 수채화로 번지는 방울 */
 function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
-/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 빠르게 화면 전체가 물들고 기록으로 넘어간다. 일찍 떼면 다시 마른다 */
+/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
+   번짐 시안(?hs=…): A 은은하게 · B 가운데 크게 · C 화면 전체 옅게 · D 여러 군데 번짐 · E 가득(예전). ?hsdemo=1 이면 저절로 되풀이(시안 비교용) */
+const HS=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('hs')||'B').toUpperCase(),demo:q.get('hsdemo')==='1'}; }catch(e){ return {v:'B',demo:false}; } })();
+try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]) S.homeColor=hc; }catch(e){}
+const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.42,aw:.62,T:0,n:1},C:{K:1.1,aw:.38,T:.1,n:1},D:{K:.22,aw:.5,T:0,n:5},E:{K:1.1,aw:.75,T:.55,n:1}};
 function mountHomePaper(){
   const cv=$('#hpCv'), spot=$('#hpSpot'), home=cv&&cv.parentElement; if(!cv||!spot) return;
   const dpr=Math.min(2,devicePixelRatio||1); cv.width=Math.round(home.clientWidth*dpr); cv.height=Math.round(home.clientHeight*dpr);
-  const x=cv.getContext('2d'), HOLD=1500, FILL=700, Wd=cv.width, Hd=cv.height, diag=Math.hypot(Wd,Hd);
+  const x=cv.getContext('2d'), HOLD=1500, FILL=HS.v==='D'?1300:900, Wd=cv.width, Hd=cv.height, diag=Math.hypot(Wd,Hd), C=HS_CFG[HS.v]||HS_CFG.B, mn=Math.min(Wd,Hd);
+  const SPOTS=[[0,0],[-.3,-.28],[.32,-.18],[-.26,.3],[.3,.33]];   // D: 가운데 다음 네 군데에 차례로 번진다
   let t0=0, u=0, f=0, holding=false, fill=0, raf=0;
   const paint=()=>{ x.fillStyle=CANVAS_BG; x.fillRect(0,0,Wd,Hd); if(u<=0&&f<=0) return;
     const k=S.homeColor||'floral', c=FLAVORS[k].color, r=spot.getBoundingClientRect(), b=cv.getBoundingClientRect(), cx=(r.left+r.width/2-b.left)/b.width*Wd, cy=(r.top+r.height/2-b.top)/b.height*Hd;
-    const e=1-Math.pow(1-u,2), rad=Math.min(Wd,Hd)*(.1+.34*e)+diag*1.1*f*f;   // 누르는 동안은 천천히, 다 차면 빠르게 화면 끝까지
-    [[0,0,1],[.18,.1,.8],[-.14,.16,.7]].forEach(([ox,oy,s],i)=>{ const D=rad*2.6*s; x.globalAlpha=.75; x.drawImage(cvWash(240,k,c,401+i*97).frame(Math.min(CV_SPREAD,.6+e*2.3+f)),cx+ox*rad-D/2,cy+oy*rad-D/2,D,D); });
-    if(f>0){ x.globalAlpha=Math.min(1,f*1.25)*.55; x.fillStyle=c; x.fillRect(0,0,Wd,Hd); }
+    const e=1-Math.pow(1-u,2), ff=f*f*(3-2*f);
+    if(C.T>0&&f>0){ x.globalAlpha=C.T*ff; x.fillStyle=c; x.fillRect(0,0,Wd,Hd); }
+    for(let j=0;j<C.n;j++){ const st=j===0?0:(j-1)/(C.n-1)*.55+.05, lf=j===0?ff:Math.max(0,Math.min(1,(f-st)/.45)); if(j>0&&lf<=0) continue;
+      const rad=j===0?mn*(.1+.34*e)+diag*C.K*ff:mn*(.08+.3*lf), px=cx+SPOTS[j][0]*Wd, py=cy+SPOTS[j][1]*Hd;
+      [[0,0,1],[.18,.1,.8],[-.14,.16,.7]].forEach(([ox,oy,s],i)=>{ const D=rad*2.6*s; x.globalAlpha=C.aw*(j===0?1:lf*.9); x.drawImage(cvWash(240,k,c,401+i*97+j*31).frame(Math.min(CV_SPREAD,.6+(j===0?e*2.3+f:lf*2.6))),px+ox*rad-D/2,py+oy*rad-D/2,D,D); }); }
     x.globalAlpha=1; };
   const loop=now=>{ if(!cv.isConnected){ raf=0; return; }
-    if(fill){ f=Math.min(1,(now-fill)/FILL); paint(); if(f>=1){ raf=0; setTimeout(()=>{ if(cur()==='home') startRecord(); },180); return; } raf=requestAnimationFrame(loop); return; }
+    if(fill){ f=Math.min(1,(now-fill)/FILL); paint(); if(f>=1){ raf=0;
+        if(HS.demo){ setTimeout(()=>{ if(!cv.isConnected) return; fill=0; f=0; u=0; home.classList.remove('holding'); paint(); setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); raf=requestAnimationFrame(loop); },900); },1600); return; }
+        setTimeout(()=>{ if(cur()==='home') startRecord(); },350); return; } raf=requestAnimationFrame(loop); return; }
     u=holding?Math.min(1,(now-t0)/HOLD):Math.max(0,u-.05); paint();
-    if(holding&&u>=1){ holding=false; fill=now; home.classList.add('filling'); }
+    if(holding&&u>=1){ holding=false; fill=now; }
     raf=(holding||u>0||fill)?requestAnimationFrame(loop):0; };
+  if(HS.demo) setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); if(!raf) raf=requestAnimationFrame(loop); },700);
   const say=$('#hpSay');
   spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} holding=true; t0=performance.now()-u*HOLD; home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); if(!raf) raf=requestAnimationFrame(loop); };
   const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(say) say.textContent=L('조금 더 꾹 눌러주세요'); if(!raf) raf=requestAnimationFrame(loop); };

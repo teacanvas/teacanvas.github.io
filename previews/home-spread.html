@@ -1,0 +1,24 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홈 번짐 시안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F4F4F4;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;margin:0 0 6px}p.sub{color:#737373;margin:0 0 22px;line-height:1.6;font-size:14px}
+.grid{display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+.card{width:236px}.frame{width:236px;height:511px;border-radius:26px;border:6px solid #111;overflow:hidden;background:#fff;position:relative}
+.frame iframe{width:393px;height:852px;border:0;transform:scale(.57);transform-origin:0 0;position:absolute;left:0;top:0}
+.card h2{font-size:16px;margin:12px 0 4px}.card p{font-size:13px;color:#555;margin:0;line-height:1.5}
+.card .tag{display:inline-block;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:2px 8px;margin-right:6px}
+.colors{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.colors button{border:1px solid #DDD;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.colors button.on{background:#111;color:#fff;border-color:#111}
+</style></head><body><main>
+<h1>홈 번짐 시안</h1>
+<p class="sub">모두 실제 앱 화면이에요. 1.5초 누른 뒤 번지는 모습을 저절로 되풀이해요(글자·버튼은 그대로 위에 보여요).<br>마음에 드는 시안의 알파벳을 알려 주세요. 섞어도 돼요(예: "B 크기에 C처럼 옅게").</p>
+<div class="colors" id="colors"></div>
+<div class="grid" id="grid"></div>
+</main><script>
+const V=[['A','은은하게','가운데에서만 작게 피어나요. 종이가 대부분 그대로 보여요.'],['B','가운데 크게','가운데에서 크게 번지고, 네 귀퉁이에는 종이가 남아요.'],['C','화면 전체 옅게','물감이 화면 끝까지 번지지만 아주 옅게 물들어요.'],['D','여러 군데 번짐','가운데에 이어 네 군데에서 차례로 번져요.'],['E','가득 (지금)','지난번처럼 진하게 다 덮어요. 비교용이에요.']];
+const COLORS=[['floral','꽃향'],['fruity','과일향'],['vegetal','풀향'],['fresh','상쾌함'],['sweet','단맛'],['nutty','고소함']];
+let color='floral';
+function draw(){ document.getElementById('grid').innerHTML=V.map(([k,t,d])=>`<div class="card"><div class="frame"><iframe src="../TEA_CANVAS_prototype_v6.html?hs=${k}&hsdemo=1&hc=${color}" title="시안 ${k}"></iframe></div><h2><span class="tag">${k}</span>${t}</h2><p>${d}</p></div>`).join('');
+  document.getElementById('colors').innerHTML=COLORS.map(([k,t])=>`<button class="${k===color?'on':''}" onclick="color='${k}';draw()">${t}</button>`).join(''); }
+draw();
+</script></body></html>
