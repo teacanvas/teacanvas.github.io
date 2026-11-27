@@ -3246,7 +3246,7 @@ function mountBelt(){ const belt=document.querySelector('#hpPalW .hp-belt'), pal
   belt.addEventListener('scroll',()=>{ if(!user) return; if(rest-performance.now()<1000) rest=performance.now()+400; const v=wrap(belt.scrollLeft); if(Math.abs(v-belt.scrollLeft)>1) belt.scrollLeft=v; pos=belt.scrollLeft; },{passive:true});
   const tick=now=>{ if(!belt.isConnected) return; const dt=last?Math.min(100,now-last):0; last=now;
     if(user&&now>rest){ user=false; pos=belt.scrollLeft; }
-    if(!user&&!still&&!document.hidden&&!home.classList.contains('holding')&&!belt.closest('.hp-palw').matches(':focus-within')){ pos=wrap(pos+half()/34000*dt); belt.scrollLeft=pos; }
+    if(!user&&!still&&!document.hidden&&!home.classList.contains('holding')&&!pal.querySelector(':focus-visible')){ pos=wrap(pos+half()/34000*dt); belt.scrollLeft=pos; }
     requestAnimationFrame(tick); };
   requestAnimationFrame(tick); }
 function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
