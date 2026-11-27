@@ -1897,13 +1897,15 @@ function teaInput(text){
   if(/[?？]/.test(text)&&/(카페인|몇\s*번|온도|효능|다이어트|차이|어떻게|왜|좋아요|있어요|되나요|돼요)/.test(text)){ if(r.type) d.type=r.type; d.chat.push({who:'bot',text:faqAnswer(text)}); }   // 이름과 함께 물어본 건 먼저 답한다
   const localOK=()=>{ d.type=r.type; d.stage='teaOK'; return {who:'bot',text:`‘${r.name}’${r.brand?` (${r.brand})`:''}, ${TEAS[r.type].label}${josa(TEAS[r.type].label,'이','가')} 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}; };
   const askType=()=>{ d.stage='teaType'; return {who:'bot',text:`‘${r.name}’${josa(r.name,'은','는')} 처음 보는 차예요.\n어떤 종류에 가까운가요?`,chips:ORDER.map(k=>TEAS[k].label),tea:true}; };
-  if(!chatAIOn()) return botSay(()=>r.type?localOK():askType());
+  /* 종류가 이름에서 분명하면 묻지 않고 바로 우림 가이드로(다르면 기록 고치기에서 바꿀 수 있다). 모를 때만 종류를 묻는다 */
+  const sure=(nm,lb,extra='')=>{ d.chat.push({who:'bot',text:isEN()?`‘${nm}’ — I'll record it as ${lb}.${extra}`:`‘${nm}’${josa(nm,'은','는')} ${lb}${josa(lb,'으로','로')} 기록할게요.${extra}`}); showGuide(); };
+  if(!chatAIOn()){ if(r.type){ d.type=r.type; S.typing=true; paintMsgs(); setTimeout(()=>{ if(S.draft!==d) return; S.typing=false; sure(r.name,TEAS[r.type].label); },600); return; } return botSay(askType); }
   // AI가 먼저 찾아본다: 문장으로 적어도 차 이름만 깔끔하게, 종류와 한 줄 설명까지. 못 찾으면 앱이 아는 대로, 그것도 없으면 종류를 묻는다
   d.stage='teaType'; S.typing=true; paintMsgs(); const at=d.tid;
   aiCall('identify',{text,brand:r.brand}).then(j=>{ if(!S.draft||S.draft.tid!==at) return; S.typing=false;
     if(j&&j.found&&TEAS[j.type]){ d.type=j.type; d.name=j.name||r.name; d.brand=j.brand||r.brand; d.about=j.about||''; d.stage='teaOK'; const lb=TEAS[j.type].label;
-      d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nShall I record it as ${lb}?`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')} 찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요. 맞나요?`,chips:['맞아요','다시 적을게요'],tea:true}); }
-    else{ if(!j) aiFail(); d.chat.push(r.type?localOK():askType()); }
+      d.chat.push({who:'bot',text:isEN()?`I looked up ‘${d.name}’${d.brand?` (${d.brand})`:''}.${d.about?'\n'+d.about:''}\nI'll record it as ${lb}.`:`‘${d.name}’${d.brand?` (${d.brand})`:''}${josa(d.name,'을','를')} 찾아봤어요.${d.about?'\n'+d.about:''}\n${lb}${josa(lb,'으로','로')} 기록할게요.`}); showGuide(); return; }
+    else{ if(!j) aiFail(); if(r.type){ d.type=r.type; sure(r.name,TEAS[r.type].label); return; } d.chat.push(askType()); }
     if(cur()==='chat') rerender(); });
 }
 function teaChip(c){
@@ -2454,7 +2456,7 @@ function textIntent(d,text){
     if(d.stage==='more'&&/(wrap up|finish|done|that's all|nothing|no more|let's wrap)/.test(e)) return ()=>morePick('done');
   }
   if(d.stage==='teaOK'){ if(/^(네|예|응|웅|그래|맞아|맞아요|맞습니다|맞네|좋아요|ㅇㅇ)[.!~요]*$/.test(t)||(/^(네|예|응),?맞/.test(t)&&t.length<=8)) return ()=>teaChip('맞아요');   /* 짧은 '네 맞아요'만. 뒤에 질문이 붙으면 AI가 받는다 */ if(!flowOn(d)){ if(start(/^(다시\s*(적|쓸|말))/)) return ()=>teaChip('다시 적을게요'); if(start(/^(아니|아뇨|틀렸)/)) return teaConfirmIntent(d,text); } }   // '아니'는 종류가 틀렸다는 뜻 → 종류 고르기 (AI 대화면 AI가 알아듣는다)
-  if(d.stage==='teaType'){ const k=ORDER.find(k=>t.includes(TEAS[k].label.replace(/차$/,''))); if(k) return ()=>teaChip(TEAS[k].label);
+  if(d.stage==='teaType'&&!/아니|아냐|말고/.test(t)){ const k=ORDER.find(k=>t.includes(TEAS[k].label.replace(/차$/,''))); if(k) return ()=>teaChip(TEAS[k].label);   /* '녹차 아니야'는 녹차를 고른 게 아니다 */
     return ()=>{ d.chat.push({who:'me',text,ans:'tea'}); botSay({who:'bot',text:'아래에서 가장 가까운 차 종류를 골라주세요.',chips:ORDER.map(k=>TEAS[k].label),tea:true},500); }; }
   if(d.stage==='guide'){ if(start(/^바로마실|^그냥마실|^바로마셔/)) return ()=>teaChip('바로 마실게요'); if(start(/^기본가이드|^추천가이드|^어떤차든|^이차에맞춘/)) return ()=>teaChip(d.basic?'이 차에 맞춘 가이드 보기':'어떤 차든 쓰는 기본 가이드 보기'); if(start(/^(우림)?시작|^우릴게|^우려볼게|^지금우릴/)) return ()=>teaChip('우림 시작 ▶'); }
   if(W&&d.talkPending&&start(/^(건너뛸|건너뛰|패스|넘어가|다음으로|다음질문)/)) return ()=>talkAnswer('',true);

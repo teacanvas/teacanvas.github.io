@@ -7,8 +7,9 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   const fresh=async()=>{ await p.goto(FILE); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(500); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300); };
   const say=async t=>{ await p.fill('#chatIn',t); await p.evaluate(()=>sendInput()); await p.waitForTimeout(900); return p.evaluate(()=>{ const c=S.draft.chat, x=c[c.length-1]; return {text:x.text,chips:x.chips||[],st:S.draft.stage,name:S.draft.name,type:S.draft.type}; }); };
   await fresh();
-  let r=await say('어제 자스민차 사왔어'); ok(r.name==='자스민차'&&r.st==='teaOK','"어제 자스민차 사왔어" → 이름은 자스민차');
-  r=await say('녹차 아니야'); ok(r.st==='teaType'&&r.name==='자스민차'&&r.chips.includes('기타'),'"녹차 아니야" → 이름으로 착각하지 않고 종류 고르기');
+  let r=await say('어제 자스민차 사왔어'); ok(r.name==='자스민차'&&r.st==='guide'&&r.type==='green','"어제 자스민차 사왔어" → 이름은 자스민차, 종류가 분명하니 묻지 않고 바로 우림 가이드');
+  await fresh(); r=await say('할머니가 주신 차'); ok(r.st==='teaType'&&r.chips.includes('기타'),'종류를 모르는 차 → 종류를 물음');
+  r=await say('녹차 아니야'); ok(r.st==='teaType'&&r.chips.includes('기타'),'"녹차 아니야" → 이름으로 착각하지 않고 종류 고르기');
   r=await say('허브차야'); ok(r.st==='guide'&&r.type==='herb','"허브차야" → 허브차로 정하고 우림 가이드');
   await fresh(); r=await say('오설록 청귤차 마시려구'); ok(r.name==='청귤차','"오설록 청귤차 마시려구" → 이름은 청귤차');
   await fresh(); await say('우엉차'); r=await say('아니 기타로 해줘'); ok(r.st==='guide'&&r.type==='other','"아니 기타로 해줘" → 기타로 정함');

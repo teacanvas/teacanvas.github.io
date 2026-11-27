@@ -24,7 +24,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>cur()==='chat'&&S.draft.stage==='tea'),'새 기록 → 채팅에서 차 이름을 물음');
   await say('오설록 제주 세작');
   ok(await ev(()=>S.draft.name==='제주 세작'&&S.draft.brand==='오설록'&&S.draft.type==='green'),'이름·브랜드·종류를 나눠 읽음');
-  await chip('맞아요'); ok(await ev(()=>S.draft.stage==='guide'),'우림 가이드 카드'); await snap('guide');
+  await wait(900); ok(await ev(()=>S.draft.stage==='guide'),'종류가 분명하면 묻지 않고 우림 가이드 카드'); await snap('guide');
   await chip('우림 시작'); ok(await ev(()=>!!S.timer&&S.draft.stage==='wait'),'우림 시작 → 타이머');
 
   console.log('채팅: 우리는 동안 이야기 · 질문 · 색');
@@ -86,7 +86,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>S.filter.date==='range'&&!filtered().length),'달력으로 기간 정하기'); await ev(()=>{ S.filter.date='all'; rerender(); }); await wait(300);
 
   console.log('음성 · 그만하기/이어하기');
-  await ev(()=>{ startRecord(); }); await say('철관음'); await chip('맞아요'); await chip('바로 마실게요');
+  await ev(()=>{ startRecord(); }); await say('철관음'); await wait(900); await chip('바로 마실게요');
   await p.click('#sendBtn'); await wait(1500); await snap('voice');
   ok(await ev(()=>!!document.querySelector('.chatfoot.voicing #vwash')),'마이크 → 음성 패널 수채 번짐');
   await p.click('.vstop'); await wait(400);
