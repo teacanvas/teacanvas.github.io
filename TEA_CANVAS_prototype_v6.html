@@ -1681,13 +1681,13 @@ const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는
 /* 예시 문장(자동 완성): 입력칸에 흐리게 띄우고, 옆 화살표(또는 Tab·→)를 누르면 그 문장이 입력돼 바로 보낼 수 있다. 전시에서 타이핑 없이 빠르게 기록하도록
    봇이 방금 물은 것(향·맛·색·여운·이야기)을 먼저 보고, 없으면 단계로 고른다. 이미 보낸 문장은 다시 띄우지 않는다 */
 const SUG={
-  tea:['자스민 녹차','오설록 제주 세작','트와이닝 얼그레이','캐모마일'],
+  tea:['오설록 자스민 녹차','오설록 제주 세작','트와이닝스 얼그레이','립톤 캐모마일'],
   /* 전시 예시 차: 기록마다 하나를 무작위로 골라 차 이름 예시로 띄우고, 이어지는 색·향·맛 예시도 그 차에 맞춘다(예시만 눌러도 풍미 2~3색이 담기게) */
   sets:[
-    {re:/자스민|재스민|쟈스민|jasmine/i,name:'자스민 녹차',color:['맑은 연두색이에요'],aroma:['자스민 꽃향이 화사하게 퍼져요','꽃향 뒤로 꿀 같은 달큰한 향이 나요'],taste:['풀잎처럼 싱그럽고 끝에 꿀 같은 단맛이 나요','부드럽고 꽃향이 입안에 남아요'],free:['꽃향이랑 꿀향이 길게 남아요','식으니까 풀향이 더 싱그러워요','이제 충분히 즐겼어요']},
-    {re:/얼그레이|earl\s*grey/i,name:'얼그레이',color:['맑은 주황빛이에요'],aroma:['베르가못 향이 상큼하게 올라와요','뒤로 꽃향이 살짝 나요'],taste:['상큼하고 끝에 살짝 떫어요','달큰하고 부드럽게 넘어가요'],free:['식으니까 단맛이 더 올라와요','레몬 껍질 같은 향이 남아요','이제 충분히 즐겼어요']},
-    {re:/캐모마일|카모마일|chamomile/i,name:'캐모마일',color:['연한 노란빛이에요'],aroma:['사과 같은 달콤한 향이 나요','꽃밭 같은 꽃향이 포근해요'],taste:['부드럽고 순해요','꿀처럼 살짝 달아요'],free:['마실수록 몸이 따뜻해져요','사과 향이 더 진해져요','이제 충분히 즐겼어요']},
-    {re:/현미녹차|현미 녹차/,name:'현미녹차',color:['맑은 연두색이에요'],aroma:['볶은 현미처럼 고소한 향이 나요','풀향도 살짝 나요'],taste:['구수하고 끝에 살짝 달아요','고소하고 깔끔해요'],free:['식어도 고소함이 남아요','입안이 개운해져요','이제 충분히 즐겼어요']}],
+    {re:/자스민|재스민|쟈스민|jasmine/i,name:'자스민 녹차',brand:'오설록',color:['맑은 연두색이에요'],aroma:['자스민 꽃향이 화사하게 퍼져요','꽃향 뒤로 꿀 같은 달큰한 향이 나요'],taste:['풀잎처럼 싱그럽고 끝에 꿀 같은 단맛이 나요','부드럽고 꽃향이 입안에 남아요'],free:['꽃향이랑 꿀향이 길게 남아요','식으니까 풀향이 더 싱그러워요','이제 충분히 즐겼어요']},
+    {re:/얼그레이|earl\s*grey/i,name:'얼그레이',brand:'트와이닝스',color:['맑은 주황빛이에요'],aroma:['베르가못 향이 상큼하게 올라와요','뒤로 꽃향이 살짝 나요'],taste:['상큼하고 끝에 살짝 떫어요','달큰하고 부드럽게 넘어가요'],free:['식으니까 단맛이 더 올라와요','레몬 껍질 같은 향이 남아요','이제 충분히 즐겼어요']},
+    {re:/캐모마일|카모마일|chamomile/i,name:'캐모마일',brand:'립톤',color:['연한 노란빛이에요'],aroma:['사과 같은 달콤한 향이 나요','꽃밭 같은 꽃향이 포근해요'],taste:['부드럽고 순해요','꿀처럼 살짝 달아요'],free:['마실수록 몸이 따뜻해져요','사과 향이 더 진해져요','이제 충분히 즐겼어요']},
+    {re:/현미녹차|현미 녹차/,name:'현미녹차',brand:'동서',color:['맑은 연두색이에요'],aroma:['볶은 현미처럼 고소한 향이 나요','풀향도 살짝 나요'],taste:['구수하고 끝에 살짝 달아요','고소하고 깔끔해요'],free:['식어도 고소함이 남아요','입안이 개운해져요','이제 충분히 즐겼어요']}],
   /* 전시 예시: 자스민 녹차는 꽃향(분홍)·풀향(연두)·꿀향(호박색)이 함께 담기도록 */
   mood:['오늘은 조금 피곤한 하루였어요','맑음이에요. 기분 좋은 날이에요','조금 흐린 날씨 같아요'],
   scene:['혼자 쉬면서 조용히 마시고 있어요','친구랑 이야기하면서 마시고 있어요','일하다가 잠깐 쉬는 중이에요'],
@@ -1705,7 +1705,7 @@ function suggestFor(d){ if(!d||S.typing) return '';
   /* 단계를 먼저 본다(봇 말 속 '향'·'맛' 같은 낱말에 끌려 다른 단계 예시를 미리 써 버리지 않게). 고른 예시를 다 써도 보조 예시가 이어져 어느 단계에서도 비지 않는다 */
   const st=d.stage, talkQ=/기분|하루|날씨|마음/.test(q)?SUG.mood:/어디|누구|상황|자리/.test(q)?SUG.scene:(/이유|만나게|당겼|고른/.test(q)||d.talkPending)?SUG.why:null;
   let pools=[];
-  if(st==='tea'||st==='teaOK'){ if(d.sugSet==null) d.sugSet=Math.floor(Math.random()*SUG.sets.length); pools=d.name?[]:[[SUG.sets[d.sugSet].name],SUG.tea]; }
+  if(st==='tea'||st==='teaOK'){ if(d.sugSet==null) d.sugSet=Math.floor(Math.random()*SUG.sets.length); pools=d.name?[]:[[(J0=>(J0.brand?J0.brand+' ':'')+J0.name)(SUG.sets[d.sugSet%SUG.sets.length])],SUG.tea];   /* 예시는 브랜드까지 넣어 AI가 브랜드를 다시 묻지 않게 */ }
   else if(st==='guide') pools=[['바로 마실게요']];   // 우림 가이드에서도 예시만 눌러 넘어갈 수 있게
   else if(st==='teaType'||st==='done'||st==='deep') pools=[];
   else if(st==='free'||st==='more') pools=[J.free,SUG.free,['이제 충분히 즐겼어요']];
@@ -1764,14 +1764,14 @@ function seedChat(now){
   chatTick();
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
-const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronnefeldt','TWG','Teavana','Dilmah','Yogi','Taylors','Osulloc','Tazo','Bigelow','오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원'];
+const BRANDS=['Twinings','Lipton','Harney & Sons','Mariage Freres','Kusmi','Ronnefeldt','TWG','Teavana','Dilmah','Yogi','Taylors','Osulloc','Tazo','Bigelow','오설록','티하우스','트와이닝','트와이닝스','운남 다원','TWG','립톤','로네펠트','마리아쥬','쿠스미','하니앤손스','녹차원','담터','다도원','동서'];
 /* 차 이름 칸에 문장을 써도 이름만 뽑는다: 'ㅋㅋ·이모지' 빼고, 마디로 나눠 차 이름이 든 마디만, 앞뒤 군말 빼기 */
 function cleanTeaName(text){ let t=String(text||'').replace(/\([^)]*\)?|\[[^\]]*\]?/g,' ').replace(/[ㄱ-ㅎㅏ-ㅣ]+/g,' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' ').replace(/\s+/g,' ').trim();
   const parts=t.replace(/\s*(이거|이건)?\s*(카페인|몇\s*번|어떻게|왜|효능|다이어트|차이|좋아요|있어요|되나요|돼요)[^,.!?~]*[?？]/g,'?').split(/[,!?~]|(?<=[가-힣])\.|\s(?:근데|그런데|그리고|그냥)\s|(?<=[가-힣])(?:인데|는데|이고)\s|(?<=요)\s/).map(x=>x.trim()).filter(Boolean);
   let c=parts.find(x=>findType(x))||parts[0]||t;
   for(let k=0;k<3;k++) c=c.replace(/(인데|는데)$/,'').trim().replace(/^(오늘은?|지금|이거|이건|저는?|나는?|어제|그제|방금|아까|지난번에?|요즘|며칠\s*전에?|주말에)\s+/,'').replace(/\s*(마시는\s*중|마시고\s*있(어요|어|음)?|마시는|마셨어요|마셨어|마셔요|마셔|마실게요|마실게|마실래(요)?|마시려(구|고)(요)?|마셔\s*볼(게|래)(요)?|샀어요|샀어|산\s*거|사\s*왔어(요)?|사왔어(요)?|받았어(요)?|선물\s*받은\s*거|있어(요)?)$/,'').trim();
   c=(c||t).trim(); return c.length>30?c.slice(0,30):c; }
-function parseTea(text){ text=String(text||'').replace(/(^|\s)[ㄱ-ㅎㅏ-ㅣ]+(?=\s|$)/g,' ').trim(); const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s+차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of BRANDS){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
+function parseTea(text){ text=String(text||'').replace(/(^|\s)[ㄱ-ㅎㅏ-ㅣ]+(?=\s|$)/g,' ').trim(); const full=String(text||''), t=cleanTeaName(text).replace(/[.!?~]+$/,'').replace(/\s*(이에요|예요|이요|입니다|이야|요|마셔요|마실게요|마실래요|마셔|마실게|야|임|이다)$/,'').replace(/(?<=[가-힣])\s+차$/,m=>/^(녹|홍|보이|우롱|백|흑|허브|보리|옥수수|유자|생강|대추|말|현미녹|냉|밀크|과일|우엉|둥굴레|메밀|결명자|도라지|돼지감자|감잎|뽕잎|연잎|국화|현미|모과|레몬|자몽)$/.test(String(text).replace(/\s*차.*$/,'').trim().split(' ').pop())?m:'').trim(); let brand=''; for(const b of [...BRANDS].sort((x,y)=>y.length-x.length)){ if(full.toLowerCase().includes(b.toLowerCase())){ brand=b; break; } }
   let name=brand?t.replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'').replace(/^[\s,·\-/]+|[\s,·\-/]+$/g,'').trim():t; if(!name) name=t;
   return {name,brand,type:findType(t)}; }
 const josa=(w,a,b)=>{ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?a:b; };
