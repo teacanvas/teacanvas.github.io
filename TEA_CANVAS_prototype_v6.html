@@ -3405,7 +3405,7 @@ function mountHomePaper(){
   const loop=now=>{ if(!cv.isConnected){ raf=0; return; } if(frozen){ raf=0; return; }
     if(fill){ f=Math.min(1,(now-fill)/FILL); paint(); if(f>=1){ raf=0;
         if(HS.demo){ setTimeout(()=>{ if(!cv.isConnected) return; fill=0; f=0; u=0; home.classList.remove('holding'); paint(); setTimeout(()=>{ if(!cv.isConnected) return; if(G) G.reseed(); holding=true; t0=performance.now(); home.classList.add('holding'); raf=requestAnimationFrame(loop); },900); },1600); return; }
-        setTimeout(()=>{ if(cur()==='home') startRecord(); },450); return; } raf=requestAnimationFrame(loop); return; }
+        if(cur()==='home') startRecord(); return; }   /* 가득 차면 바로 기록으로(기다리지 않게) */ raf=requestAnimationFrame(loop); return; }
     if(holding) u=Math.min(1,(now-t0)/HOLD);
     else if(u>0){ if(!fadeAt) fadeAt=now; const q=Math.min(1,(now-fadeAt)/1100); dryV=1-q*q*(3-2*q); if(q>=1){ u=0; fadeAt=0; dryV=1; } }   /* 손을 떼면 모양은 그대로, 그 자리에서 종이에 스며들듯 옅어진다(가운데로 줄어들지 않게) */
     hint=0; paint();   /* 가만히 있을 땐 손가락만 움직이고 번짐은 없음(누를 때만 번진다) */
