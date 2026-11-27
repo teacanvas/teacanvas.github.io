@@ -3314,7 +3314,7 @@ const HT=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get
 /* 번짐 모양 시안 ?sp=1~10: [갈래1 세기, 갈래1 수, 갈래2 세기, 갈래2 수, 갈래3 세기, 갈래3 수, 무작위 덩어리, 시간에 따른 출렁임, 끝자락 거칠기]. ?sd= 모양 고정(비교용) */
 const SHAPES={1:[.03,3,.03,5,.02,8,.1,1,.6],2:[.07,4,.05,6,.04,9,.18,1,.9],3:[.2,3,.13,5,.09,8,.34,1,1],4:[.28,2,.06,5,.05,9,.25,1,1],5:[.05,3,.22,5,.06,9,.2,1,1],
   6:[.04,3,.07,9,.06,13,.2,1,1.5],7:[0,3,0,5,0,8,.7,1,1.1],8:[.25,1,.08,4,.06,7,.3,1,1],9:[.14,3,.12,5,.08,7,.4,2.6,1],10:[.2,2,.15,5,.12,9,.6,1.8,1.6]};
-const SP=(()=>{ try{ const v=+new URLSearchParams(location.search).get('sp'); return SHAPES[v]?v:3; }catch(e){ return 3; } })();
+const SP=(()=>{ try{ const v=+new URLSearchParams(location.search).get('sp'); return SHAPES[v]?v:6; }catch(e){ return 6; } })();
 const SD=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('sd')); return isFinite(v)?v:null; }catch(e){ return null; } })();
 const HE=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('he')); return isFinite(v)&&v>=0?Math.min(3,v):1.6; }catch(e){ return 1.6; } })();   // 번짐이 멈춘 경계(물자국) 진하기. 시안 ?he=
 const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:10; }catch(e){ return 10; } })();
@@ -3361,8 +3361,12 @@ function homeGL(cv){ let g=null; try{ g=cv.getContext('webgl',{antialias:false,p
   const pr=g.createProgram(); g.attachShader(pr,vs); g.attachShader(pr,fs); g.linkProgram(pr); if(!g.getProgramParameter(pr,g.LINK_STATUS)) return null; g.useProgram(pr);
   const b=g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER,b); g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW); const al=g.getAttribLocation(pr,'a'); g.enableVertexAttribArray(al); g.vertexAttribPointer(al,2,g.FLOAT,false,0,0);
   const U={}; ['res','ctr','Rm','edg','sp1','sp2','sp3','t','col','seed','mode','dry'].forEach(n=>U[n]=g.getUniformLocation(pr,n));
-  g.uniform1i(U.mode,HW-1); g.uniform1f(U.seed,SD!=null?SD:1+Math.random()*7); const P=SHAPES[SP]; g.uniform4f(U.sp1,P[0],P[1],P[2],P[3]); g.uniform2f(U.sp2,P[4],P[5]); g.uniform3f(U.sp3,P[6],P[7],P[8]);
-  return { draw(o){ g.viewport(0,0,cv.width,cv.height); g.uniform2f(U.res,cv.width,cv.height); g.uniform2f(U.ctr,o.cx/cv.width,(cv.height-o.cy)/cv.width); g.uniform1f(U.Rm,o.Rm); g.uniform1f(U.edg,HE); g.uniform1f(U.t,o.t); g.uniform1f(U.dry,o.dry);
+  g.uniform1i(U.mode,HW-1);
+  /* 누를 때마다 새 모양: 종이 결(seed)을 새로 뽑고, 갈래 수·세기·덩어리·끝자락을 조금씩 흔든다(?sd= 가 있으면 비교용으로 고정) */
+  const reseed=()=>{ const r=(a,b)=>a+Math.random()*(b-a), B=SHAPES[SP], P=SD!=null?B:[B[0]*r(.5,1.6),Math.max(1,Math.round(B[1]+r(-1.4,1.4))),B[2]*r(.5,1.6),Math.max(2,Math.round(B[3]+r(-2.4,2.4))),B[4]*r(.5,1.6),Math.max(3,Math.round(B[5]+r(-2.4,2.4))),B[6]*r(.6,1.6),B[7]*r(.7,1.6),B[8]*r(.8,1.3)];
+    g.uniform1f(U.seed,SD!=null?SD:r(0,40)); g.uniform4f(U.sp1,P[0],P[1],P[2],P[3]); g.uniform2f(U.sp2,P[4],P[5]); g.uniform3f(U.sp3,P[6],P[7],P[8]); };
+  reseed();
+  return { reseed, draw(o){ g.viewport(0,0,cv.width,cv.height); g.uniform2f(U.res,cv.width,cv.height); g.uniform2f(U.ctr,o.cx/cv.width,(cv.height-o.cy)/cv.width); g.uniform1f(U.Rm,o.Rm); g.uniform1f(U.edg,HE); g.uniform1f(U.t,o.t); g.uniform1f(U.dry,o.dry);
       g.uniform3fv(U.col,[1,3,5].map(i=>parseInt(o.c.slice(i,i+2),16)/255)); g.drawArrays(g.TRIANGLE_STRIP,0,4); } }; }
 function mountHomePaper(){
   const cv=$('#hpCv'), spot=$('#hpSpot'), home=cv&&cv.parentElement; if(!cv||!spot) return;
@@ -3394,7 +3398,7 @@ function mountHomePaper(){
     x.globalAlpha=1; };
   const loop=now=>{ if(!cv.isConnected){ raf=0; return; } if(frozen){ raf=0; return; }
     if(fill){ f=Math.min(1,(now-fill)/FILL); paint(); if(f>=1){ raf=0;
-        if(HS.demo){ setTimeout(()=>{ if(!cv.isConnected) return; fill=0; f=0; u=0; home.classList.remove('holding'); paint(); setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); raf=requestAnimationFrame(loop); },900); },1600); return; }
+        if(HS.demo){ setTimeout(()=>{ if(!cv.isConnected) return; fill=0; f=0; u=0; home.classList.remove('holding'); paint(); setTimeout(()=>{ if(!cv.isConnected) return; if(G) G.reseed(); holding=true; t0=performance.now(); home.classList.add('holding'); raf=requestAnimationFrame(loop); },900); },1600); return; }
         setTimeout(()=>{ if(cur()==='home') startRecord(); },450); return; } raf=requestAnimationFrame(loop); return; }
     if(holding) u=Math.min(1,(now-t0)/HOLD);
     else if(u>0){ if(!fadeAt) fadeAt=now; const q=Math.min(1,(now-fadeAt)/1100); dryV=1-q*q*(3-2*q); if(q>=1){ u=0; fadeAt=0; dryV=1; } }   /* 손을 떼면 모양은 그대로, 그 자리에서 종이에 스며들듯 옅어진다(가운데로 줄어들지 않게) */
@@ -3405,7 +3409,7 @@ function mountHomePaper(){
   raf=requestAnimationFrame(loop);
   if(HS.demo) setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); },700);
   const say=$('#hpSay');
-  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} if(fadeAt){ u=0; fadeAt=0; dryV=1; } holding=true; t0=performance.now()-u*HOLD; downAt=performance.now(); home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
+  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} if(fadeAt||u<=0){ u=0; fadeAt=0; dryV=1; if(G) G.reseed(); } holding=true; t0=performance.now()-u*HOLD; downAt=performance.now(); home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
   let downAt=0, sayT=0;
   const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(!say) return;   /* 실제로 잠깐 눌렀다 뗐을 때만 '조금 더', 2초 뒤 원래 안내로 */
     clearTimeout(sayT); say.textContent=L(performance.now()-downAt>150?'조금 더 꾹 눌러주세요':'여기를 꾹 누르세요'); sayT=setTimeout(()=>{ if(say.isConnected&&!holding) say.textContent=L('여기를 꾹 누르세요'); },2000); };
