@@ -3311,10 +3311,15 @@ const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:.2,aw:.45,T:
    1 모세관 번짐(√시간·섬유 때문에 울퉁불퉁한 앞쪽) · 6 갈래 번짐 · 9 과립 · 10 흐름 결. WebGL이 안 되면 예전 방식(그림 겹치기)으로 */
 const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.9; }catch(e){ return .9; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
 const HT=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('ht')); return isFinite(v)&&v>=.5?Math.min(3,v)*1000:1500; }catch(e){ return 1500; } })();   // 꾹 누르는 시간(초): 차 마시기 전 잠깐 차분해지도록 1.5초. 시안 ?ht=
+/* 번짐 모양 시안 ?sp=1~10: [갈래1 세기, 갈래1 수, 갈래2 세기, 갈래2 수, 갈래3 세기, 갈래3 수, 무작위 덩어리, 시간에 따른 출렁임, 끝자락 거칠기]. ?sd= 모양 고정(비교용) */
+const SHAPES={1:[.03,3,.03,5,.02,8,.1,1,.6],2:[.07,4,.05,6,.04,9,.18,1,.9],3:[.2,3,.13,5,.09,8,.34,1,1],4:[.28,2,.06,5,.05,9,.25,1,1],5:[.05,3,.22,5,.06,9,.2,1,1],
+  6:[.04,3,.07,9,.06,13,.2,1,1.5],7:[0,3,0,5,0,8,.7,1,1.1],8:[.25,1,.08,4,.06,7,.3,1,1],9:[.14,3,.12,5,.08,7,.4,2.6,1],10:[.2,2,.15,5,.12,9,.6,1.8,1.6]};
+const SP=(()=>{ try{ const v=+new URLSearchParams(location.search).get('sp'); return SHAPES[v]?v:3; }catch(e){ return 3; } })();
+const SD=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('sd')); return isFinite(v)?v:null; }catch(e){ return null; } })();
 const HE=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('he')); return isFinite(v)&&v>=0?Math.min(3,v):1.6; }catch(e){ return 1.6; } })();   // 번짐이 멈춘 경계(물자국) 진하기. 시안 ?he=
 const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:10; }catch(e){ return 10; } })();
 const HOME_FS=`precision highp float;
-uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float edg; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
+uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float edg; uniform vec4 sp1; uniform vec2 sp2; uniform vec3 sp3; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
 float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7))+seed*13.7)*43758.5453); }
 float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
 float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }
@@ -3333,8 +3338,8 @@ void main(){
   if(mode==5){ float fr=pow(abs(sin(ang*7.+fbm(vec2(ang*2.,seed))*6.)),3.)*.09*T; irr-=fr; irr+=(fbm(vec2(ang*9.,d*20.)+seed)-.5)*.05; } // 갈래
   if(mode==8){ gran=.75; }                                                        // 과립
   if(mode==9){ vec2 w=vec2(fbm(uv*4.+seed),fbm(uv*4.+seed+3.)); irr+=(fbm(uv*3.+w*2.5)-.5)*.14; }   // 흐름 결
-  vec2 cs=vec2(cos(ang),sin(ang)); float lob=.2*sin(ang*3.+seed*1.7+T*1.6)+.13*sin(ang*5.-seed+T*2.4)+.09*sin(ang*8.+seed*2.3-T*1.9)+.34*(fbm(cs*1.3+vec2(seed,T*1.1))-.5);   /* 방향마다 다른 빠르기(시간에 따라 바뀌어 갈래가 앞서거니 뒤서거니) */
-  float dd=d/max(.45,1.+lob*(1.-.35*T))+irr*(.7+.5*T)*(Rm/.62);
+  vec2 cs=vec2(cos(ang),sin(ang)); float lob=sp1.x*sin(ang*sp1.y+seed*1.7+T*1.6*sp3.y)+sp1.z*sin(ang*sp1.w-seed+T*2.4*sp3.y)+sp2.x*sin(ang*sp2.y+seed*2.3-T*1.9*sp3.y)+sp3.x*(fbm(cs*1.3+vec2(seed,T*1.1*sp3.y))-.5);   /* 방향마다 다른 빠르기(시간에 따라 바뀌어 갈래가 앞서거니 뒤서거니) */
+  float dd=d/max(.45,1.+lob*(1.-.35*T))+irr*(.7+.5*T)*(Rm/.62)*sp3.z;
   float wet=smoothstep(R,R-soft-.004,dd);
   float Rp=halo>0.?R*.82:R, pig=smoothstep(Rp,Rp-soft*1.5-.01,dd);
   float ring=exp(-pow((Rp-dd)/(.022+soft*.6),2.))*pig;          // 가장자리에 색이 모임
@@ -3355,8 +3360,8 @@ function homeGL(cv){ let g=null; try{ g=cv.getContext('webgl',{antialias:false,p
   const vs=sh(g.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}'), fs=sh(g.FRAGMENT_SHADER,HOME_FS); if(!vs||!fs) return null;
   const pr=g.createProgram(); g.attachShader(pr,vs); g.attachShader(pr,fs); g.linkProgram(pr); if(!g.getProgramParameter(pr,g.LINK_STATUS)) return null; g.useProgram(pr);
   const b=g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER,b); g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW); const al=g.getAttribLocation(pr,'a'); g.enableVertexAttribArray(al); g.vertexAttribPointer(al,2,g.FLOAT,false,0,0);
-  const U={}; ['res','ctr','Rm','edg','t','col','seed','mode','dry'].forEach(n=>U[n]=g.getUniformLocation(pr,n));
-  g.uniform1i(U.mode,HW-1); g.uniform1f(U.seed,1+Math.random()*7);
+  const U={}; ['res','ctr','Rm','edg','sp1','sp2','sp3','t','col','seed','mode','dry'].forEach(n=>U[n]=g.getUniformLocation(pr,n));
+  g.uniform1i(U.mode,HW-1); g.uniform1f(U.seed,SD!=null?SD:1+Math.random()*7); const P=SHAPES[SP]; g.uniform4f(U.sp1,P[0],P[1],P[2],P[3]); g.uniform2f(U.sp2,P[4],P[5]); g.uniform3f(U.sp3,P[6],P[7],P[8]);
   return { draw(o){ g.viewport(0,0,cv.width,cv.height); g.uniform2f(U.res,cv.width,cv.height); g.uniform2f(U.ctr,o.cx/cv.width,(cv.height-o.cy)/cv.width); g.uniform1f(U.Rm,o.Rm); g.uniform1f(U.edg,HE); g.uniform1f(U.t,o.t); g.uniform1f(U.dry,o.dry);
       g.uniform3fv(U.col,[1,3,5].map(i=>parseInt(o.c.slice(i,i+2),16)/255)); g.drawArrays(g.TRIANGLE_STRIP,0,4); } }; }
 function mountHomePaper(){
