@@ -208,6 +208,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .chip.dark{background:#111;color:#fff}
 .msg.sys{align-self:center;background:none;font-size:12px;color:var(--g2);padding:2px}
 .chatfoot{position:sticky;bottom:0;background:#fff;padding:10px 0 4px;margin-top:auto}
+/* 입력칸 덜컹임 방지: 채팅 화면은 아래 여백을 입력칸 안에 두어, 스크롤 끝에서도 중간에서도 입력칸 자리가 같게 */.scr.scr-chat{padding-bottom:0}.scr-chat .chatfoot{padding-bottom:16px}
 /* 사파리 + 큰 화면(휴대폰 틀을 transform으로 키우고 줄임): 사파리는 이 틀 안의 sticky 위치를 잘못 계산해 입력칸이 화면 중간에 뜬다
    → 입력칸을 틀(.phone, transform이 있어 fixed의 기준이 됨) 바닥의 하단 탭 바로 위에 붙이고, 그 높이만큼 대화 아래에 여백 */
 html.safari:not(.mob) .scr-chat .chatfoot{position:fixed;left:22px;right:22px;bottom:60px;z-index:5;margin:0}
@@ -3345,8 +3346,8 @@ function mountDrop3D(el,drop,size){
 }
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 수채화로 번지는 방울 */
-/* 회전초밥처럼 흘러가는 물감을 톡 누르면 그 색이 그 자리에서 번지며 바로 기록으로 */
-function homeTapPaint(e,k){ e.preventDefault(); e.stopPropagation(); homePaint(k); const cv=$('#hpCv'); if(cv&&cv._go) cv._go(e.clientX||null,e.clientY||null); }
+/* 회전초밥처럼 흘러가는 물감: 누르면 그 색을 고른다 */
+function homeTapPaint(e,k){ e.preventDefault(); e.stopPropagation(); homePaint(k); }   /* 물감을 누르면 색만 고른다(번짐은 위쪽 화면을 터치할 때) */
 function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
 /* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
    번짐 시안(?hs=…): A 은은하게 · B 가운데 크게 · C 화면 전체 옅게 · D 여러 군데 번짐 · E 가득(예전). ?hsdemo=1 이면 저절로 되풀이(시안 비교용) */

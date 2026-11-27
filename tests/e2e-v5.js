@@ -91,8 +91,8 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>!!document.querySelector('.chatfoot.voicing #vwash')),'마이크 → 음성 패널 수채 번짐');
   await p.click('.vstop'); await wait(400);
   await p.click('.stepbar .quit'); await wait(400); await p.click('text=저장하고 나가기'); await wait(800);
-  ok(await ev(()=>cur()==='home'&&!!document.querySelector('.resume')),'저장하고 나가기 → 홈에 이어하기');
-  await p.click('.resume>button:first-child'); await wait(800);
+  ok(await ev(()=>cur()==='home'&&!document.querySelector('.resume')&&!!recentSaved()),'저장하고 나가기 → 홈(이어하기 줄 없음), 1분 안엔 남아 있음');
+  await ev(()=>startRecord()); await wait(400); await p.click('#sheetWrap.open >> text=이어서 하기'); await wait(800);   /* 1분 안에 다시 시작하면 이어할지 묻는다 */
   ok(await ev(()=>cur()==='chat'&&S.draft.name==='철관음'),'이어하기 → 멈춘 곳으로');
 
   console.log(errs.length?'\n오류:\n'+errs.join('\n'):'\n화면 오류 없음');
