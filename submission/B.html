@@ -152,7 +152,7 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .msg.bot{background:var(--g0);align-self:flex-start}
 .msg.me{background:#fff;border:1px solid #CFCFCF;align-self:flex-end}
 /* 예시 문장 말풍선(아직 안 보낸 내 말) */
-.sugbox{display:flex;flex-direction:column;align-items:flex-end;gap:6px;align-self:flex-end;max-width:86%;animation:fade .4s ease}.sugbox[hidden]{display:none}.sugbox small{font-size:11px;color:#A6A6A6;margin-right:4px}
+.sugbox{display:flex;flex-direction:column;align-items:flex-end;gap:6px;align-self:flex-end;max-width:86%}.sugbox.fresh{animation:sugIn .4s ease .45s both}@keyframes sugIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.sugbox[hidden]{display:none}.sugbox small{font-size:11px;color:#A6A6A6;margin-right:4px}
 .sugb{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:18px;font:inherit;font-size:14px;line-height:1.5;text-align:left;cursor:pointer;background:#fff;color:#8A8A8A;border:1.5px dashed #C4C4C4}
 .sugb:active{transform:scale(.97)}
 .sugb.sgB{border:1px solid #CFCFCF;color:#111;opacity:.45;padding-right:6px}.sugb.sgB i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#111;flex:0 0 auto}.sugb.sgB i svg{width:14px;height:14px}.sugb.sgB i svg *{stroke:#fff}
@@ -1183,7 +1183,7 @@ function pinCard(d,g){ const known=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='t
       else if(PC==='B') tm=`<button class="tm tmb" onclick="event.stopPropagation();toggleTimer()" data-timerbtn aria-label="${L(lab)}"><span data-timer>${timerText()}</span><i>${ps}</i></button>`;
       else if(PC==='C'){ const f=Math.max(0,Math.min(1,T.left/T.total)); ctl=`<span class="pinctl"><button class="pring" onclick="event.stopPropagation();toggleTimer()" data-timerbtn data-ring aria-label="${L(lab)}"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#ECECEC" stroke-width="3"/><circle class="rg" cx="20" cy="20" r="17" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="${(106.8*(1-f)).toFixed(1)}" transform="rotate(-90 20 20)"/></svg><i>${ps}</i></button></span>`; } } }
   else tm=`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`;
-  return `<div class="tearow pin${S.pinFold?' fold':''}" ${fold}>${img}<div><b>${esc(d.name)}</b>${tm}</div>${ctl}</div>`; }
+  return `<div class="tearow pin${S.pinFold?' fold':''}" ${fold}>${img}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>${tm}</div>${ctl}</div>`; }
 function timerText(){
   const t=S.timer; if(!t) return '';
   const en=PREF.lang==='en'; return t.left>0 ? `${en?'Brewing':'우림'} ${mmss(t.left)}` : (en?'Brewed':'우림 완료');
@@ -1824,12 +1824,13 @@ const SUG_MORE={color:['연한 초록빛이에요','맑은 노란빛이에요'],
 /* 예시 문장 시안(?sg=…): A 점선 말풍선 · B 흐린 말풍선+보내기 · C 점선+'예시' 표시 · D 예시 두 개 · E 쓰는 중 느낌 · X 입력칸 안 흐린 글씨. ?sgdemo=1 이면 향을 묻는 장면으로 바로 연다(시안 비교용) */
 const SG=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('sg')||'A').toUpperCase(),demo:q.get('sgdemo')==='1'}; }catch(e){ return {v:'A',demo:false}; } })();
 function suggestList(d,n){ const one=suggestFor(d); if(!one) return []; const out=[one]; if(n>1){ const save=d.chat; for(let i=1;i<n;i++){ d.chat=save.concat(out.map(t=>({who:'me',text:t}))); const t=suggestFor(d); if(t&&!out.includes(t)) out.push(t); } d.chat=save; } return out; }
-function sugBubbles(d){ if(SG.v==='X'||S.typing) return ''; const inp=$('#chatIn'); if(inp&&inp.value) return '';
+function sugBubbles(d){ if(SG.v==='X'||S.typing||d.chat.some(m=>m.hold>Date.now())) return ''; const inp=$('#chatIn'); if(inp&&inp.value) return '';
   { const tail=[...d.chat].reverse().find(m=>m.who!=='sys'); if(!tail||tail.who!=='bot') return ''; }   // 봇이 대답한 뒤에만(내가 말하자마자 다음 예시가 먼저 뜨지 않게)
   const list=suggestList(d,SG.v==='D'?2:1); if(!list.length) return '';
   const b=t=>{ const tx=esc(L(t)), js=esc(JSON.stringify(L(t))); return `<button class="sugb sg${SG.v}" onclick='sendSug(${js})'>${SG.v==='C'?`<em>${L('예시')}</em>`:''}<span>${tx}</span>${SG.v==='B'?`<i>${I.up}</i>`:SG.v==='E'?'<b class="caret"></b>':''}</button>`; };
   const cap=SG.v==='A'||SG.v==='D'?L('눌러서 바로 보내기'):SG.v==='E'?L('이렇게 보낼까요? 누르면 보내져요'):'';
-  return `<div class="sugbox">${list.map(b).join('')}${cap?`<small>${cap}</small>`:''}</div>`; }
+  const fresh=S._lastSug!==list[0]; S._lastSug=list[0];   // 새 예시는 봇 말이 뜬 뒤 살짝 늦게 나타난다(같은 예시를 다시 그릴 땐 깜빡이지 않게)
+  return `<div class="sugbox${fresh?' fresh':''}">${list.map(b).join('')}${cap?`<small>${cap}</small>`:''}</div>`; }
 function sendSug(t){ const i=$('#chatIn'); if(i) i.value=''; const d=S.draft;
   if(t===L(SKIP_SAY)&&d&&S.timer&&S.timer.left>0){ d.chat.push({who:'me',text:t}); finishTimer(); return; }   // '벌써 다 우렸어요' = 우림 건너뛰기
   sendMsg(t); }
@@ -1857,10 +1858,11 @@ setInterval(()=>{ const d=S.draft; if(!d||d.stage!=='free'||!d.drinkAt||cur()!==
   if(now-d.drinkAt<90000||now-(d.lastMeAt||d.drinkAt)<75000||now-(d.nudgeAt||0)<120000) return;
   const r=WC.rng((d.tid||1)+7), order=[...FREE_NUDGES].sort(()=>r()-.5);
   d.nudged=true; d.nudgeAt=now; d.chat.push({who:'bot',text:order[d.nudgeN||0],nudge:true}); d.nudgeN=(d.nudgeN||0)+1; if(S.chatMode==='chat') paintMsgs(); },10000);
-function seedChat(){
+function seedChat(now){
   const d=S.draft;
   if(!d.stage&&d.name&&d.type){ d.freeN=0; d.stage='guide'; d.chat.push({who:'bot',text:`이어서 기록해볼까요? 오늘의 차는 ‘${d.name}’${josa(d.name,'이에요','예요')}.`}); showGuide(); return; }  // 예전 버전에서 이어온 기록
-  if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; d.chat.push({who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.',teaAsk:true}); }
+  if(!d.stage){ d.freeN=0; d.stage='tea'; d.aiFlow=!!AI_ENDPOINT; const hi={who:'bot',text:'반가워요. 오늘은 어떤 차를 마셔볼까요?\n차 이름을 알려주세요. 브랜드도 함께면 좋아요.',teaAsk:true};
+    if(!(now||VOICE.on||LIVE.on)){ hi.hold=Date.now()+1100; setTimeout(()=>{ if(cur()==='chat'&&S.draft===d) paintMsgs(); },1150); } d.chat.push(hi); }   /* 인사는 대화에 바로 넣되, 화면에는 1.1초 '생각하는 중' 뒤에 보인다(봇이 말을 건네듯) */
   chatTick();
 }
 /* 차 정보도 채팅에서: 이름(+브랜드)을 받아 종류를 찾고, 맞는지 묻고, 우림 가이드를 보여준다 */
@@ -2404,7 +2406,7 @@ const FL_EN={floral:['floral','flower','jasmine','rose','lavender','blossom','pe
 function paintMsgs(keep){
   const box=$('#msgs'), d=S.draft; if(!d) return;
   if(!box) return;
-  const msgs=d.chat;
+  const held=d.chat.some(m=>m.hold>Date.now()), msgs=held?d.chat.filter(m=>!(m.hold>Date.now())):d.chat;
   box.innerHTML = msgs.map((m,i)=>m.img?`<img class="msg-img" src="${m.img}" alt="보낸 사진">`:`<div class="msg ${m.who}">${m.voice?`<span class="vmark">${I.mic}</span>`:''}${m.color?`<i class="cdot" style="background:${m.color}"></i>`:''}${esc(m.who==='me'?(m.ans&&isEN()?String(m.text).split(', ').map(L).join(', '):m.text):L(m.text))}</div>${m.kept&&(i===S.editMsg||i===msgs.map(x=>x.who==='me'&&!!x.kept).lastIndexOf(true))?keptLabel(m,i):''}${m.guide?guideCard(m):''}`).join('') + actsHTML(d) + sugBubbles(d);
   bindAskColor(); { const e=$('#chatEnd'); if(e) e.innerHTML=chatEndHTML(d); }
   const inp=$('#chatIn'), sug=SG.v==='X'?suggestFor(d):''; if(inp){ inp.dataset.sug=sug||''; const sb=$('#sugBtn'), st=$('#sugTxt'); if(st) st.textContent=sug?L(sug):''; if(sb) sb.hidden=!sug||!!inp.value; } if(inp&&sug) inp.placeholder=''; else if(inp) inp.placeholder=L(d.stage==='tea'||d.stage==='teaOK'?'예: 오설록 제주 세작':d.stage==='teaType'?'차 종류를 골라주세요':d.talkPending?'편하게 적어보세요':d.stage==='color'?'색을 말로 적어도 돼요':isAsk(d.stage)?'내 말로 편하게 적어보세요':d.stage==='deep'?'직접 적어도 돼요':'느낀 그대로 적어보세요');
@@ -2413,9 +2415,9 @@ function paintMsgs(keep){
 /* 지금 단계에서 누를 수 있는 간편 선택지(채팅·음성 공통) */
 function actsHTML(d){ const msgs=d.chat.filter(m=>m.who!=='sys'), tail=msgs[msgs.length-1], last=tail&&tail.qa?[...msgs].reverse().find(m=>m.who==='bot'&&!m.qa)||tail:tail;
   return (!S.typing&&d.stage==='after'&&last&&last.after?`<div class="chips"><button class="chip" onclick="sendMsg('딱히 없어요')">${L('딱히 없어요')}</button></div>`:'')
-    + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">${L('사진으로 찾기')}</button></div>`:'')
+    + (!S.typing&&last&&last.who==='bot'&&last.teaAsk&&!(last.hold>Date.now())&&d.stage==='tea'?`<div class="chips"><button class="chip" onclick="teaPhoto()">${L('사진으로 찾기')}</button></div>`:'')
     + (!S.typing&&last&&last.who==='bot'&&(last.tea||last.guide)&&last.chips?`<div class="chips">${last.chips.map(c=>`<button class="chip ${c.startsWith('우림 시작')?'dark':''}" onclick="teaChip('${esc(c)}')">${esc(L(c))}</button>`).join('')}</div>`:'')
-    + (S.typing?'<div class="msg bot typing">'+L('생각하는 중이에요.')+'</div>':'')
+    + (S.typing||d.chat.some(m=>m.hold>Date.now())?'<div class="msg bot typing">'+L('생각하는 중이에요.')+'</div>':'')
     + (!S.typing&&last&&last.who==='bot'&&d.talkPending&&(last.talk===d.talkPending||tail.qa)?`<div class="chips"><button class="chip" onclick="talkAnswer('',true)">${L('건너뛸게요')}</button>${S.timer&&S.timer.left>0?`<button class="chip" onclick="finishTimer()">${L('벌써 다 우렸어요')}</button>`:''}</div>`:'')
     + (!S.typing&&last&&last.who!=='me'&&!d.talkPending&&PC==='D'&&(d.stage==='wait'||d.stage==='wait2')&&S.timer&&S.timer.left>0?`<div class="chips"><button class="chip" onclick="finishTimer()">${L('벌써 다 우렸어요')}</button></div>`:'')
     + (!S.typing&&isAsk(d.stage)&&last&&last.ask===d.stage?askWidget(d.stage):'')
@@ -2465,7 +2467,7 @@ function textIntent(d,text){
 function colorFromWords(text){ const t=String(text).replace(/\s/g,'')+' '+String(text).toLowerCase().replace(/\s/g,'').replace(/red/g,'빨강').replace(/orange/g,'주황').replace(/amber/g,'호박').replace(/gold(en)?/g,'황금').replace(/yellow/g,'노랑').replace(/green/g,'초록').replace(/blue/g,'파랑').replace(/indigo/g,'남색').replace(/purple|violet/g,'보라').replace(/pink/g,'분홍').replace(/brown/g,'갈색').replace(/pale|light|clear/g,'연한').replace(/dark|deep/g,'진한'); const fam=[[/(빨강|빨간|붉은|적색)/,0],[/(주황|호박|오렌지)/,.17],[/(황금|금빛|골드)/,.24],[/(노랑|노란|누런)/,.33],[/(연두|초록|녹색|풀색)/,.46],[/(파랑|파란|하늘)/,.67],[/(남색)/,.83],[/(보라)/,1],[/(분홍|핑크)/,0]];
   let h=null; for(const [re,v] of fam){ if(re.test(t)){ h=v; break; } } if(/갈색|밤색|브라운/.test(t)) return [.13,/(연한|맑은|옅은|흐린)/.test(t)?.6:/(진한|짙은|어두운)/.test(t)?.95:.82];
   if(h===null) return null; let v=/(연한|맑은|옅은|투명|흐린)/.test(t)?.24:/(진한|짙은|깊은|어두운)/.test(t)?.8:.5; if(/분홍|핑크/.test(t)) v=Math.min(v,.4); return [h,v]; }
-function sendMsg(text,isChip,legacy){   // legacy: AI가 안 돼서 이번 말만 정해진 흐름으로
+function sendMsg(text,isChip,legacy){ if(S.draft) S.draft.chat.forEach(m=>{ if(m.hold) delete m.hold; });   // 인사가 뜨기 전에 말하면 인사부터 바로 보이게   // legacy: AI가 안 돼서 이번 말만 정해진 흐름으로
   const d=S.draft; if(S.typing) return; if(d.stage==='done') d.stage='more';   // 정리한 뒤 채팅으로 돌아와 더 말하면: 덧붙이기로
   if(!legacy&&flowOn(d)&&FLOW_STAGES.includes(d.stage)) return flowMsg(text);   // AI 대화: 무엇이든 Gemini가 듣고 판단한다 (아래 글자 규칙은 AI가 안 될 때만)
   if(!LIVE.on) setBy('auto');   // 여기부터는 정해진 대화가 받는다 → 위 표시도 '자동 대화'로
@@ -2553,7 +2555,7 @@ document.addEventListener('click',e=>{ if(!VOICE.on||!e.target.closest||!e.targe
   try{ VOICE.rec&&VOICE.rec.abort(); }catch(_){} },true);
 function startVoice(){ const d=S.draft; if(!d) return; unlockAudio(); VOICE.ttsOff=false; VOICE.ttsUsed=false; VOICE.ttsModel=''; VOICE.ttsNoted=false;
   if(AI_ENDPOINT&&aiVoice()!=='device'&&Date.now()<TTS_OFF_UNTIL){ VOICE.ttsOff=true; setTimeout(ttsNote,300); }   /* 이미 한도라는 걸 알면 누르자마자 알린다 */
-  VOICE.demoUsed=false; seedChat(); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
+  VOICE.demoUsed=false; seedChat(true); VOICE.on=true; VOICE.demo=!SR; VOICE.tid++; VOICE.spoken=Math.max(0,d.chat.length-1);
   if(liveWanted()){ const id=VOICE.tid; VOICE.live=true; VOICE.phase='thinking'; rerender(); startLive().then(ok=>{ if(VOICE.tid!==id||!VOICE.on) return; if(ok) return;   // 실시간 음성이 되면 그걸로, 안 되면 기본 음성 모드로
       VOICE.live=false; LIVE.on=false; liveGreeting(d); toast('실시간 음성 연결이 안 돼서\n기본 음성 대화로 할게요',true); VOICE.spoken=Math.max(0,d.chat.length-1); rerender(); voiceLoop(id); }); return; }
   if(VOICE.demo) toast('마이크를 쓸 수 없어 예시 목소리로 진행해요'); rerender(); voiceLoop(VOICE.tid); }
