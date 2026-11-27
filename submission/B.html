@@ -1372,7 +1372,7 @@ const HL=(()=>{ try{ const q=new URLSearchParams(location.search), n=(k,d)=>{ co
 const SCREENS = {
 
 home(){
-  /* 첫 화면: 캔버스 종이 가운데를 1초 꾹 누르면 고른 물감(기본 꽃향) 한 색이 화면 전체로 번지고, 다 물들면 기록(채팅)으로 */
+  /* 첫 화면: 캔버스 종이 가운데를 1.5초 꾹 누르면 고른 물감(기본 꽃향) 한 색이 화면 전체로 번지고, 다 물들면 기록(채팅)으로 */
   const sel=S.homeColor||'floral';
   return `<div class="home hp">
     <canvas class="hp-cv" id="hpCv"></canvas>
@@ -3281,7 +3281,7 @@ function mountDrop3D(el,drop,size){
 const d3Box=(id,size,hint=false,min=130)=>`<div class="d3wrap"><div id="${id}" data-fit="${size},${min}" style="width:${size}px;height:${size}px"></div>${hint?'<span class="d3hint">드래그해서 돌려보세요</span>':''}</div>`;
 /* 홈 찻방울: 수채화로 번지는 방울 */
 function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
-/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
+/* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
    번짐 시안(?hs=…): A 은은하게 · B 가운데 크게 · C 화면 전체 옅게 · D 여러 군데 번짐 · E 가득(예전). ?hsdemo=1 이면 저절로 되풀이(시안 비교용) */
 const HS=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('hs')||'C').toUpperCase(),demo:q.get('hsdemo')==='1'}; }catch(e){ return {v:'B',demo:false}; } })();
 try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]) S.homeColor=hc; }catch(e){}
@@ -3308,7 +3308,7 @@ const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:.2,aw:.45,T:
 /* 첫 화면 번짐(WebGL): 물이 종이에 스며드는 원리로 픽셀마다 계산한다. 시안 ?hw=1·6·9·10 (번짐 실험실 previews/spread-lab.html 의 번호)
    1 모세관 번짐(√시간·섬유 때문에 울퉁불퉁한 앞쪽) · 6 갈래 번짐 · 9 과립 · 10 흐름 결. WebGL이 안 되면 예전 방식(그림 겹치기)으로 */
 const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.9; }catch(e){ return .9; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
-const HT=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('ht')); return isFinite(v)&&v>=.5?Math.min(3,v)*1000:1000; }catch(e){ return 1000; } })();   // 꾹 누르는 시간(초). 시안 ?ht=
+const HT=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('ht')); return isFinite(v)&&v>=.5?Math.min(3,v)*1000:1500; }catch(e){ return 1500; } })();   // 꾹 누르는 시간(초): 차 마시기 전 잠깐 차분해지도록 1.5초. 시안 ?ht=
 const HE=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('he')); return isFinite(v)&&v>=0?Math.min(3,v):1.6; }catch(e){ return 1.6; } })();   // 번짐이 멈춘 경계(물자국) 진하기. 시안 ?he=
 const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:10; }catch(e){ return 10; } })();
 const HOME_FS=`precision highp float;
