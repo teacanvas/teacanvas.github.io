@@ -1173,7 +1173,7 @@ function pinCard(d,g){ const known=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='t
       else if(PC==='B') tm=`<button class="tm tmb" onclick="event.stopPropagation();toggleTimer()" data-timerbtn aria-label="${L(lab)}"><span data-timer>${timerText()}</span><i>${ps}</i></button>`;
       else if(PC==='C'){ const f=Math.max(0,Math.min(1,T.left/T.total)); ctl=`<span class="pinctl"><button class="pring" onclick="event.stopPropagation();toggleTimer()" data-timerbtn data-ring aria-label="${L(lab)}"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#ECECEC" stroke-width="3"/><circle class="rg" cx="20" cy="20" r="17" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="${(106.8*(1-f)).toFixed(1)}" transform="rotate(-90 20 20)"/></svg><i>${ps}</i></button></span>`; } } }
   else tm=`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`;
-  return `<div class="tearow pin${S.pinFold?' fold':''}" ${fold}>${img}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>${tm}</div>${ctl}</div>`; }
+  return `<div class="tearow pin${S.pinFold?' fold':''}" ${fold}>${img}<div><b>${esc(d.name)}</b>${tm}</div>${ctl}</div>`; }
 function timerText(){
   const t=S.timer; if(!t) return '';
   const en=PREF.lang==='en'; return t.left>0 ? `${en?'Brewing':'우림'} ${mmss(t.left)}` : (en?'Brewed':'우림 완료');
