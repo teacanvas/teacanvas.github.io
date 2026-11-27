@@ -1,0 +1,66 @@
+<title>TEA CANVAS 전시 화면</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* 레이아웃: 전시 기기처럼 세로 화면 카드를 흐름 순서대로 격자에 놓는다 */
+:root{--bg:#FAF8F3;--fg:#141414;--sub:#6E6A62;--line:#E4E0D6;--card:#FFFFFF;--accent:#A87A4E;
+--ff:"Noto Sans KR",system-ui,sans-serif;--fd:"Space Grotesk","Noto Sans KR",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16150F;--fg:#F1EEE6;--sub:#A39E92;--line:#2E2C25;--card:#201F19;--accent:#D0A274;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#16150F;--fg:#F1EEE6;--sub:#A39E92;--line:#2E2C25;--card:#201F19;--accent:#D0A274;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--ff);line-height:1.55}
+main{max-width:1240px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:grid;gap:10px;margin-bottom:32px;max-width:65ch}
+.eb{font-family:var(--fd);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-family:var(--fd);font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+header p{margin:0;color:var(--sub)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.meta span{border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:13px;color:var(--sub)}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:28px 20px}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+figure button{all:unset;cursor:zoom-in;display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
+figure button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+figure img{display:block;width:100%;height:auto}
+figcaption{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:14px}
+.n{font-family:var(--fd);color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.d{grid-column:2;color:var(--sub);font-size:13px}
+dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100%;height:100%}
+dialog::backdrop{background:rgba(10,10,8,.86)}
+.lb{position:fixed;inset:0;display:grid;grid-template-rows:1fr auto;place-items:center;padding:16px;gap:12px}
+.lb img{max-height:calc(100vh - 110px);max-width:100%;width:auto;border-radius:10px}
+.lb .bar{display:flex;gap:10px;align-items:center;color:#F1EEE6;font-size:14px}
+.lb button{background:#F1EEE6;color:#141414;border:0;border-radius:999px;height:40px;min-width:40px;padding:0 14px;font:inherit;font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){figure button{transition:transform .2s}figure button:hover{transform:translateY(-3px)}}
+</style>
+<main>
+<header>
+<div class="eb">Exhibition preview</div>
+<h1>TEA CANVAS 전시 화면</h1>
+<p>과제전에서 LG 스탠바이미 2 Max(32인치, 세로)에 띄웠을 때의 모습이에요. 실제 기기와 같은 세로 1080×1920 비율로, 기록 하나를 처음부터 끝까지 따라가며 찍었어요. 화면을 누르면 크게 볼 수 있어요.</p>
+<div class="meta"><span>세로 1080×1920</span><span>AI 연결 없이 자동 대화</span><span>예시 차: 자스민 녹차</span></div>
+</header>
+<section class="g">
+<figure><button type="button" data-i="0" aria-label="홈 크게 보기"><img src="s/01.png" alt="홈 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">01</span><b>홈</b><span class="d">첫 화면. 아무 곳이나 터치하면 기록이 시작돼요. 아래 물감 줄은 계속 흘러가요.</span></figcaption></figure>
+<figure><button type="button" data-i="1" aria-label="홈 · 번지는 중 크게 보기"><img src="s/02.png" alt="홈 · 번지는 중 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">02</span><b>홈 · 번지는 중</b><span class="d">터치하면 고른 풍미 색이 1.5초 동안 번지고, 풍미 이름과 설명이 떠요.</span></figcaption></figure>
+<figure><button type="button" data-i="2" aria-label="대화 시작 크게 보기"><img src="s/03.png" alt="대화 시작 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">03</span><b>대화 시작</b><span class="d">차 카드는 비어 있고, 아래 말풍선 예시를 눌러 바로 답할 수 있어요.</span></figcaption></figure>
+<figure><button type="button" data-i="3" aria-label="차 이름 크게 보기"><img src="s/04.png" alt="차 이름 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">04</span><b>차 이름</b><span class="d">차 이름을 말하면 카드가 채워지고 우림 가이드가 나와요.</span></figcaption></figure>
+<figure><button type="button" data-i="4" aria-label="찻물 색 크게 보기"><img src="s/05.png" alt="찻물 색 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">05</span><b>찻물 색</b><span class="d">색을 말하면 첫 풍미 색이 잡혀요.</span></figcaption></figure>
+<figure><button type="button" data-i="5" aria-label="향과 맛 크게 보기"><img src="s/06.png" alt="향과 맛 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">06</span><b>향과 맛</b><span class="d">향·맛 표현이 쌓일수록 풍미 칩이 늘어나요.</span></figcaption></figure>
+<figure><button type="button" data-i="6" aria-label="마무리 크게 보기"><img src="s/07.png" alt="마무리 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">07</span><b>마무리</b><span class="d">'이제 충분해요'가 검은 버튼으로 켜져요.</span></figcaption></figure>
+<figure><button type="button" data-i="7" aria-label="찻방울 완성 크게 보기"><img src="s/08.png" alt="찻방울 완성 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">08</span><b>찻방울 완성</b><span class="d">대화에서 뽑은 표현이 풍미 색으로 스며들어 찻방울이 만들어져요.</span></figcaption></figure>
+<figure><button type="button" data-i="8" aria-label="설명과 비교 크게 보기"><img src="s/09.png" alt="설명과 비교 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">09</span><b>설명과 비교</b><span class="d">전문가 설명과 내 기록을 나란히 보고 공통점을 짚어 줘요.</span></figcaption></figure>
+<figure><button type="button" data-i="9" aria-label="캔버스에 찍기 크게 보기"><img src="s/10.png" alt="캔버스에 찍기 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">10</span><b>캔버스에 찍기</b><span class="d">향·맛 축 위에 오늘 차를 직접 찍어요. 지난 기록은 옅게 깔려요.</span></figcaption></figure>
+<figure><button type="button" data-i="10" aria-label="기록 완료 크게 보기"><img src="s/11.png" alt="기록 완료 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">11</span><b>기록 완료</b><span class="d">완성된 찻방울과 대화 기록, Tea Tag로 이어져요.</span></figcaption></figure>
+<figure><button type="button" data-i="11" aria-label="나의 TEA CANVAS 크게 보기"><img src="s/12.png" alt="나의 TEA CANVAS 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">12</span><b>나의 TEA CANVAS</b><span class="d">지금까지의 찻방울이 취향 지도 위에 모여요.</span></figcaption></figure>
+<figure><button type="button" data-i="12" aria-label="기록 목록 크게 보기"><img src="s/13.png" alt="기록 목록 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">13</span><b>기록 목록</b><span class="d">검색·날짜·필터로 지난 기록을 찾아요.</span></figcaption></figure>
+<figure><button type="button" data-i="13" aria-label="상세 기록 크게 보기"><img src="s/14.png" alt="상세 기록 화면" loading="lazy" width="1080" height="1920"></button><figcaption><span class="n">14</span><b>상세 기록</b><span class="d">풍미, 찻물 색, 캔버스 속 위치를 한 번에 봐요.</span></figcaption></figure>
+</section>
+</main>
+<dialog id="dlg"><div class="lb"><img id="big" alt=""><div class="bar"><button type="button" id="pv" aria-label="이전">←</button><span id="cap"></span><button type="button" id="nx" aria-label="다음">→</button><button type="button" id="cl">닫기</button></div></div></dialog>
+<script>
+const T=['홈', '홈 · 번지는 중', '대화 시작', '차 이름', '찻물 색', '향과 맛', '마무리', '찻방울 완성', '설명과 비교', '캔버스에 찍기', '기록 완료', '나의 TEA CANVAS', '기록 목록', '상세 기록'];let k=0;const d=document.getElementById('dlg');
+function show(i){k=(i+T.length)%T.length;const b=document.getElementById('big');b.src='s/'+String(k+1).padStart(2,'0')+'.png';b.alt=T[k]+' 화면';document.getElementById('cap').textContent=String(k+1).padStart(2,'0')+' · '+T[k];}
+document.querySelectorAll('figure button').forEach(b=>b.onclick=()=>{show(+b.dataset.i);d.showModal();});
+document.getElementById('pv').onclick=()=>show(k-1);document.getElementById('nx').onclick=()=>show(k+1);document.getElementById('cl').onclick=()=>d.close();
+d.addEventListener('click',e=>{if(e.target.classList.contains('lb'))d.close();});
+document.addEventListener('keydown',e=>{if(!d.open)return;if(e.key==='ArrowRight')show(k+1);if(e.key==='ArrowLeft')show(k-1);});
+</script>
