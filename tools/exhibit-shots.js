@@ -14,8 +14,9 @@ const F='file://'+path.join(__dirname,'..','TEA_CANVAS_prototype_v6.html'), OUT=
   await shot('01-홈');
   const ph=await p.$('#phone'), bb=await ph.boundingBox();
   await p.mouse.click(bb.x+bb.width/2,bb.y+bb.height*.5); await p.waitForTimeout(700); await shot('02-홈-번지는중');
-  await p.waitForTimeout(2600); await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(400); await shot('03-대화-시작');
-  const tap=async(n)=>{ for(let i=0;i<n;i++){ const s=await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>null); if(!s) break; await p.waitForFunction(()=>!S.typing,null,{timeout:8000}).catch(()=>{}); await s.click(); await p.waitForTimeout(2200); } await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(400); };
+  await p.waitForTimeout(2600); await p.evaluate(()=>{ if(S.draft&&!S.draft.name){ S.draft.sugSet=0; S._lastSug=null; paintMsgs(); } });   // 예시 차는 늘 자스민 녹차로
+  await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(1500); await shot('03-대화-시작');
+  const tap=async(n)=>{ for(let i=0;i<n;i++){ const s=await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>null); if(!s) break; await p.waitForFunction(()=>!S.typing,null,{timeout:8000}).catch(()=>{}); await s.click(); await p.waitForTimeout(2200); } await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(1500); };   // 예시 말풍선이 다 떠오를 때까지(0.5초 뒤 0.7초)
   await tap(1); await shot('04-대화-차이름');
   await tap(2); await shot('05-대화-색');
   await tap(2); await shot('06-대화-향맛');
