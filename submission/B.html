@@ -519,15 +519,15 @@ canvas.wcd.big{margin:14px auto}
 .cvhelp .row{display:flex;gap:12px;align-items:flex-start;margin-top:14px;font-size:13.5px;line-height:1.55}.cvhelp .row b{display:block;font-size:14px}
 .cvhelp .sw{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px}.cvhelp .sw span{display:flex;align-items:center;gap:7px;font-size:12.5px}.cvhelp .sw i{width:12px;height:12px;border-radius:50%}
 .btn.off{opacity:.35}
-/* 디자인 점검 시안(?dz=p1b,p2c…): 고르면 기본으로 옮긴다 */
+/* 디자인 점검: 1-c(얇은 테두리 뒤로 버튼)·3-b(물감 줄 끝 종이색으로 흐려짐)·4-b(채팅 중 로고 줄 숨김)·5-b(누를 수 없는 버튼은 연한 회색)는 기본으로. 나머지는 시안(?dz=…) */
 .dz-p1b .back{background:none;width:32px;justify-content:start}.dz-p1b .back svg path{stroke:#111;stroke-width:1.8}
-.dz-p1c .back{background:#fff;box-shadow:inset 0 0 0 1px #DADADA}.dz-p1c .back svg path{stroke:#111;stroke-width:1.8}
+.back{background:#fff;box-shadow:inset 0 0 0 1px #DADADA}.back svg path{stroke:#111;stroke-width:1.8}
 .dz-p2b .cmp{display:block;background:none;border-radius:0;border-bottom:1px solid #EFEFEF;padding:14px 2px;margin-top:0}.dz-p2b .cmp .lb{width:auto;justify-content:flex-start;border:0;font-size:12px;color:#8A8A8A;font-weight:600;margin-bottom:4px}.dz-p2b .cmp .bd{font-size:13.5px}
 .dz-p2c .cmp{display:block;background:#fff;border:1px solid #EDEDED;padding:12px 14px}.dz-p2c .cmp .lb{width:auto;justify-content:flex-start;border:0;font-size:11.5px;color:#8A8A8A;font-weight:600;margin-bottom:4px}.dz-p2c .cmp .bd{font-size:13.5px}
-.dz-p3b .hp-palw::before{background:linear-gradient(90deg,#FAF8F4,rgba(250,248,244,0))}.dz-p3b .hp-palw::after{background:linear-gradient(270deg,#FAF8F4,rgba(250,248,244,0))}
+.hp-palw::before{background:linear-gradient(90deg,#FAF8F4,rgba(250,248,244,0))}.hp-palw::after{background:linear-gradient(270deg,#FAF8F4,rgba(250,248,244,0))}
 .dz-p3c .hp-palw::before{background:linear-gradient(90deg,#FAF8F4 30%,rgba(250,248,244,0))}.dz-p3c .hp-palw::after{background:linear-gradient(270deg,#FAF8F4 30%,rgba(250,248,244,0));content:'›';display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:22px;color:#9A9A9A;margin-top:-14px}
-.dz-p4b .phone:has(.scr-chat) .appbar,.dz-p4b body:has(.scr-chat) .appbar{display:none}
-.dz-p5b .btn.off{opacity:1;background:#E6E6E6;color:#A6A6A6}
+.phone:has(.scr-chat) .appbar,body:has(.scr-chat) .appbar{display:none}
+.btn.off{opacity:1;background:#E6E6E6;color:#A6A6A6}
 .dhead .dline{display:flex;align-items:center;gap:4px;white-space:nowrap}
 .dtop-r{display:flex;gap:4px}
 .efld{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px;color:var(--g2)}.efld>span:first-child{font-weight:600;color:#333}
