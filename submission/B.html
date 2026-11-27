@@ -3316,7 +3316,7 @@ const SHAPES={1:[.03,3,.03,5,.02,8,.1,1,.6],2:[.07,4,.05,6,.04,9,.18,1,.9],3:[.2
   6:[.04,3,.07,9,.06,13,.2,1,1.5],7:[0,3,0,5,0,8,.7,1,1.1],8:[.25,1,.08,4,.06,7,.3,1,1],9:[.14,3,.12,5,.08,7,.4,2.6,1],10:[.2,2,.15,5,.12,9,.6,1.8,1.6]};
 const SP=(()=>{ try{ const v=+new URLSearchParams(location.search).get('sp'); return SHAPES[v]?v:6; }catch(e){ return 6; } })();
 const SD=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('sd')); return isFinite(v)?v:null; }catch(e){ return null; } })();
-const HE=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('he')); return isFinite(v)&&v>=0?Math.min(3,v):1.6; }catch(e){ return 1.6; } })();   // 번짐이 멈춘 경계(물자국) 진하기. 시안 ?he=
+const HE=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('he')); return isFinite(v)&&v>=0?Math.min(3,v):.4; }catch(e){ return .4; } })();   // 번짐이 멈춘 경계(물자국) 진하기. 시안 ?he=
 const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:10; }catch(e){ return 10; } })();
 const HOME_FS=`precision highp float;
 uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float edg; uniform vec4 sp1; uniform vec2 sp2; uniform vec3 sp3; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
