@@ -3304,8 +3304,8 @@ function paintIcon(k){ const c=FLAVORS[k].color, h=WC.hash(k)%1000+3;
 const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:.2,aw:.45,T:0,n:1},D:{K:.22,aw:.5,T:0,n:5},E:{K:1.1,aw:.75,T:.55,n:1}};
 /* 첫 화면 번짐(WebGL): 물이 종이에 스며드는 원리로 픽셀마다 계산한다. 시안 ?hw=1·6·9·10 (번짐 실험실 previews/spread-lab.html 의 번호)
    1 모세관 번짐(√시간·섬유 때문에 울퉁불퉁한 앞쪽) · 6 갈래 번짐 · 9 과립 · 10 흐름 결. WebGL이 안 되면 예전 방식(그림 겹치기)으로 */
-const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.5; }catch(e){ return .5; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
-const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:1; }catch(e){ return 1; } })();
+const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.9; }catch(e){ return .9; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
+const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:10; }catch(e){ return 10; } })();
 const HOME_FS=`precision highp float;
 uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
 float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7))+seed*13.7)*43758.5453); }
@@ -3330,7 +3330,7 @@ void main(){
   float wet=smoothstep(R,R-soft-.004,dd);
   float Rp=halo>0.?R*.82:R, pig=smoothstep(Rp,Rp-soft*1.5-.01,dd);
   float ring=exp(-pow((Rp-dd)/(.022+soft*.6),2.))*pig;          // 가장자리에 색이 모임
-  float dens=pig*(base+.25*(1.-smoothstep(0.,Rp+.001,dd)))+edgeK*ring*(.4+.6*T);
+  float core=1.-smoothstep(0.,Rp+.001,dd); float dens=pig*(.16+.74*pow(core,.85))+edgeK*.3*ring*(.4+.6*T);   /* 가운데가 가장 진하고 바깥으로 갈수록 옅게 */
   if(mode==3) dens=pig*(.25+.55*(1.-smoothstep(0.,Rp+.05,dd)))+.1*ring;
   if(mode==6&&T>.45){ float b=smoothstep(.45,1.,T); float cb=fbm(uv*9.+seed*3.); float inner=smoothstep(Rp*.62,Rp*.62-.02,dd+ (cb-.5)*.12); float bedge=exp(-pow((Rp*.62-dd-(cb-.5)*.12)/.012,2.)); dens=dens*(1.-.55*inner*b)+.5*bedge*b*pig; }   // 꽃 피움(백런)
   if(mode==7){ for(int k=1;k<4;k++){ float rk=Rm*sqrt(T*float(k)/4.); dens+=.22*exp(-pow((rk-dd)/.006,2.))*pig; } }   // 물자국 층
