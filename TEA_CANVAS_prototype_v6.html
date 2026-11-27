@@ -448,6 +448,15 @@ canvas.wcd.big{margin:14px auto}
 .back{background:#fff;box-shadow:inset 0 0 0 1px #DADADA}.back svg path{stroke:#111;stroke-width:1.8}
 .phone:has(.scr-chat) .appbar,body:has(.scr-chat) .appbar{display:none}
 .btn.off{background:#E6E6E6;color:#A6A6A6;cursor:default}
+/* 디자인 점검 2차 시안(?dz=…&jump=N, previews/design-review2.html). 고르면 기본으로 옮기고 나머지는 지운다 */
+.dz-p1a .phone,.dz-p1a #view,.dz-p1a .appbar,.dz-p1a #nav,.dz-p1a .scr,.dz-p1a .scr-chat .stepbar,.dz-p1a .scr-chat .tearow.pin{background:#FAF8F4!important}.dz-p1a .scr-chat .stepbar,.dz-p1a .scr-chat .tearow.pin{box-shadow:none!important}.dz-p1a .cmp,.dz-p1a .rowlink,.dz-p1a .dcard{background:#fff}
+.dz-p1b #view:has(.scr-chat),.dz-p1b .scr-chat,.dz-p1b .scr-chat .chatfoot{background:#fff!important}.dz-p1b .scr-chat .msg.bot{background:var(--g0)!important;box-shadow:none!important}.dz-p1b .scr-chat .inrow{background:var(--g0)!important;box-shadow:none!important}
+.dz-p2a #msgs .chip{border:1px solid #DADADA;font-weight:500;color:#333}.dz-p2a #msgs .chip.dark{background:#fff;color:#111;border:1px solid #111;font-weight:600}
+.dz-p2b #msgs .chip{border:1px solid #E4E4E4;background:#fff;font-weight:500;color:#444}.dz-p2b #msgs .chip.dark{background:#111;color:#fff;border-color:#111}
+.dz-p3a .phone:has(.scr-organizing,.scr-analyzing,.scr-compare,.scr-done,.scr-teaTag,.scr-fullChat) .appbar{display:none}
+.dz-p4a .seg button.on{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #111}.dz-p4a .bell svg path,.dz-p4a .bell svg circle{fill:none;stroke:#111;stroke-width:1.5}
+.dz-p4b .seg{background:none;border-bottom:1px solid #ECECEC;border-radius:0;width:200px}.dz-p4b .seg button{border-radius:0;color:#A6A6A6}.dz-p4b .seg button.on{background:none;color:#111;box-shadow:inset 0 -2px 0 #111}.dz-p4b .bell svg path,.dz-p4b .bell svg circle{fill:none;stroke:#111;stroke-width:1.5}
+.dz-p5a .fav-en span{color:#333!important;font-weight:500;font-size:17px}
 .dhead .dline{display:flex;align-items:center;gap:4px;white-space:nowrap}
 .dtop-r{display:flex;gap:4px}
 .efld{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px;color:var(--g2)}.efld>span:first-child{font-weight:600;color:#333}
@@ -3402,6 +3411,7 @@ addEventListener('popstate',()=>{
   if(cur()==='chat'&&recording()){ history.pushState({tc:S.stack.length},''); askQuit(); return; }
   NAV_DIR='back'; if(S.stack.length>1){ S.stack.pop(); render(); } else if(cur()!=='home') go('home',{},{reset:true}); });
 go('home',{},{reset:true});
+try{ const q=new URLSearchParams(location.search); (q.get('dz')||'').split(',').filter(Boolean).forEach(f=>document.documentElement.classList.add('dz-'+f.replace(/[^a-z0-9]/g,''))); const jp=q.get('jump'); if(jp!=null) setTimeout(()=>{ try{ jump(+jp); }catch(e){} },350); }catch(e){}   /* 디자인 시안 미리보기용 */
 { let re=null; try{ re=sessionStorage.getItem('tc.reopen'); sessionStorage.removeItem('tc.reopen'); }catch(e){} if(re==='app'){ goTab('my',true); openSettings('app'); } }   // 언어를 바꾼 뒤 설정 창으로 돌아오기
 </script>
 
