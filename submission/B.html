@@ -198,6 +198,8 @@ h3.sec{font-size:15px;font-weight:700;margin:22px 0 10px}
 .scr-chat .stepbar{position:sticky;top:0;z-index:4;background:#fff;margin-bottom:0}
 .tearow.pin{position:sticky;top:44px;z-index:3;background:#fff;padding:6px 0 10px;margin:8px 0 6px;border-bottom:1px solid var(--g0)}
 .tearow.pin b{max-width:230px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tearow.pin{cursor:pointer}.tearow.pin::after{content:'';position:absolute;right:6px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:1.5px solid #9A9A9A;border-bottom:1.5px solid #9A9A9A;transform:rotate(-135deg);transition:transform .2s}
+/* 접은 차 카드: 사진·이름·시간만 한 줄로 */.tearow.pin.fold{gap:10px;padding:4px 0 6px}.tearow.pin.fold::after{transform:rotate(45deg);margin-top:-8px}.tearow.pin.fold .pinimg{width:30px;height:30px;border-radius:8px}.tearow.pin.fold>div{display:flex;align-items:baseline;gap:8px}.tearow.pin.fold b{font-size:14px;max-width:150px}.tearow.pin.fold .gsum,.tearow.pin.fold [data-timerbtn]{display:none}
 .tearow .gsum{display:block;font-size:12px;color:var(--g2)}
 .chips.more .chip.done{color:#999}
 .chip.dark{background:#111;color:#fff}
@@ -380,7 +382,7 @@ canvas.wcd.big{margin:14px auto}
 @keyframes hpShadow{0%,100%{transform:scale(1.3);opacity:.45}18%{transform:scale(.72);opacity:1;animation-timing-function:linear}72%{transform:scale(.7);opacity:1;animation-timing-function:ease-out}}
 @keyframes hpWave{0%,40%{transform:scale(.4);opacity:0}55%{opacity:.8}100%{transform:scale(1.2);opacity:0}}
 /* 물감 줄. 시안 ?pl=1~5: 1 작은 원 · 2 짜 놓은 물감 · 3 짜 놓은 줄 · 4 물감 접시 · 5 고체 물감 */
-.hp-pal button{flex:0 0 auto;width:62px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:10px;background:none;border:0;font:inherit;color:#555;cursor:pointer;padding:6px 0 2px}
+.hp-pal button{flex:0 0 auto;width:62px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;font:inherit;color:#555;cursor:pointer;padding:6px 0 2px}
 .hp-pal .pt{display:grid;place-items:center;width:42px;height:42px;transition:transform .2s}
 .hp-pal .pt i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .hp-pal span{font-size:11px;line-height:1.2;text-align:center;letter-spacing:.1px}
@@ -1386,7 +1388,7 @@ chat(){
   const d=S.draft;
   const g=d.type?guideOf(d):null;
   const head = stepbar(3);
-  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin">${d.photoData?`<img class="pinimg" src="${d.photoData}" alt="${esc(d.name)}">`:`<span class="pinimg">${teabag(d.type)}</span>`}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
+  const pin=d.name&&d.type&&d.stage!=='tea'&&d.stage!=='teaOK'&&d.stage!=='teaType'?`<div class="tearow pin${S.pinFold?' fold':''}" onclick="if(!event.target.closest('[data-timerbtn]')){ S.pinFold=!S.pinFold; this.classList.toggle('fold',S.pinFold); }" title="눌러서 접기·펴기">${d.photoData?`<img class="pinimg" src="${d.photoData}" alt="${esc(d.name)}">`:`<span class="pinimg">${teabag(d.type)}</span>`}<div><b>${esc(d.name)}</b><span class="gsum">${g.temp} · ${L(g.time)}</span>
     ${d.drinkAt?`<div class="tm" data-drink>${drinkText()}</div>`:S.timer?`<div class="tm" data-timer>${timerText()}</div><button class="pillbtn" onclick="toggleTimer()" data-timerbtn>${timerBtnText()}</button>`:`<div class="tm">${esc(d.brand)||TEAS[d.type].label}</div>`}</div></div>`:'';
   return `${head}
   ${pin}
@@ -3392,8 +3394,10 @@ function mountHomePaper(){
   raf=requestAnimationFrame(loop);
   if(HS.demo) setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); },700);
   const say=$('#hpSay');
-  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} holding=true; t0=performance.now()-u*HOLD; home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
-  const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(say) say.textContent=L('조금 더 꾹 눌러주세요'); };
+  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} holding=true; t0=performance.now()-u*HOLD; downAt=performance.now(); home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
+  let downAt=0, sayT=0;
+  const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(!say) return;   /* 실제로 잠깐 눌렀다 뗐을 때만 '조금 더', 2초 뒤 원래 안내로 */
+    clearTimeout(sayT); say.textContent=L(performance.now()-downAt>150?'조금 더 꾹 눌러주세요':'여기를 꾹 누르세요'); sayT=setTimeout(()=>{ if(say.isConnected&&!holding) say.textContent=L('여기를 꾹 누르세요'); },2000); };
   spot.onpointerup=up; spot.onpointercancel=up; spot.onpointerleave=up; spot.oncontextmenu=e=>e.preventDefault();
   spot.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); startRecord(); } };
   /* 물감 줄: 양옆에 더 있으면 옅은 그림자 */
