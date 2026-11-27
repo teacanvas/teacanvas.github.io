@@ -70,3 +70,11 @@
    ```bash
    node tools/eval-flow.mjs
    ```
+
+## 릴리스
+
+```bash
+tools/release.sh "바꾼 내용"          # 문법 점검 → sw.js 캐시 버전 +1 → B.html/B.zip → 커밋 → 푸시
+tools/release.sh --full "바꾼 내용"   # 기능 테스트 전체까지
+tools/release.sh --no-push "바꾼 내용" # 커밋까지만
+```
