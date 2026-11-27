@@ -86,7 +86,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>S.filter.date==='range'&&!filtered().length),'달력으로 기간 정하기'); await ev(()=>{ S.filter.date='all'; rerender(); }); await wait(300);
 
   console.log('음성 · 그만하기/이어하기');
-  await ev(()=>{ startRecord(); }); await say('철관음'); await wait(900); await chip('바로 마실게요');
+  await ev(()=>{ startRecord(); }); await say('철관음'); await wait(900); await p.waitForFunction(()=>!S.typing&&S.draft&&S.draft.stage==='guide'); await ev(()=>sendSug('바로 마실게요')); await wait(1200);
   await p.click('#sendBtn'); await wait(1500); await snap('voice');
   ok(await ev(()=>!!document.querySelector('.chatfoot.voicing #vwash')),'마이크 → 음성 패널 수채 번짐');
   await p.click('.vstop'); await wait(400);

@@ -58,7 +58,7 @@ const KW={color:/색/,aroma:/향/,taste:/맛/,after:/여운|남아/};
   ok(seen.filter(q=>q.mode==='flow'&&q.event==='message').every(q=>'want' in q&&'next' in q&&'filled' in q),'AI에게 매번 단계·기록할 것·이미 기록한 것을 보냄');
   // 대화 도중 AI가 멈추면 → 그 자리부터 예전 흐름
   await p.evaluate(()=>localStorage.clear()); await p.goto(FILE); await p.waitForTimeout(600); await p.evaluate(()=>startRecord()); await p.waitForTimeout(300);
-  await say('오설록 달빛 걷기'); await p.click('#msgs .chip >> text=맞아요'); await p.waitForTimeout(1200); await p.click('#msgs .chip >> text=바로 마실게요'); await p.waitForTimeout(2600);
+  await say('오설록 달빛 걷기'); await p.click('#msgs .chip >> text=맞아요'); await p.waitForTimeout(1200); await p.waitForFunction(()=>!S.typing&&S.draft&&S.draft.stage==='guide').then(()=>p.evaluate(()=>sendSug('바로 마실게요'))); await p.waitForTimeout(2600);
   ok((await st())==='color','바로 마시기 → AI가 색부터 물음');
   down=true; await say('연한 연두색'); await p.waitForTimeout(800);
   m=await last(); ok(['aroma','wait2'].includes(await st())&&!m.ai&&await p.evaluate(()=>S.draft.feel.color==='연한 연두색'),'도중에 AI 실패 → 내 대답은 그대로 기록되고 정해진 다음 질문으로');

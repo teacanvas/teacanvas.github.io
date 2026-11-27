@@ -1681,10 +1681,10 @@ const AFTER_ASK='마지막으로, 식으면서 달라진 점이나 끝에 남는
 /* 예시 문장(자동 완성): 입력칸에 흐리게 띄우고, 옆 화살표(또는 Tab·→)를 누르면 그 문장이 입력돼 바로 보낼 수 있다. 전시에서 타이핑 없이 빠르게 기록하도록
    봇이 방금 물은 것(향·맛·색·여운·이야기)을 먼저 보고, 없으면 단계로 고른다. 이미 보낸 문장은 다시 띄우지 않는다 */
 const SUG={
-  tea:['오설록 자스민 녹차','오설록 제주 세작','트와이닝스 얼그레이','립톤 캐모마일'],
+  tea:['트와이닝스 자스민 녹차','오설록 제주 세작','트와이닝스 얼그레이','립톤 캐모마일'],
   /* 전시 예시 차: 기록마다 하나를 무작위로 골라 차 이름 예시로 띄우고, 이어지는 색·향·맛 예시도 그 차에 맞춘다(예시만 눌러도 풍미 2~3색이 담기게) */
   sets:[
-    {re:/자스민|재스민|쟈스민|jasmine/i,name:'자스민 녹차',brand:'오설록',color:['맑은 연두색이에요'],aroma:['자스민 꽃향이 화사하게 퍼져요','꽃향 뒤로 꿀 같은 달큰한 향이 나요'],taste:['풀잎처럼 싱그럽고 끝에 꿀 같은 단맛이 나요','부드럽고 꽃향이 입안에 남아요'],free:['꽃향이랑 꿀향이 길게 남아요','식으니까 풀향이 더 싱그러워요','이제 충분히 즐겼어요']},
+    {re:/자스민|재스민|쟈스민|jasmine/i,name:'자스민 녹차',brand:'트와이닝스',color:['맑은 연두색이에요'],aroma:['자스민 꽃향이 화사하게 퍼져요','꽃향 뒤로 꿀 같은 달큰한 향이 나요'],taste:['풀잎처럼 싱그럽고 끝에 꿀 같은 단맛이 나요','부드럽고 꽃향이 입안에 남아요'],free:['꽃향이랑 꿀향이 길게 남아요','식으니까 풀향이 더 싱그러워요','이제 충분히 즐겼어요']},
     {re:/얼그레이|earl\s*grey/i,name:'얼그레이',brand:'트와이닝스',color:['맑은 주황빛이에요'],aroma:['베르가못 향이 상큼하게 올라와요','뒤로 꽃향이 살짝 나요'],taste:['상큼하고 끝에 살짝 떫어요','달큰하고 부드럽게 넘어가요'],free:['식으니까 단맛이 더 올라와요','레몬 껍질 같은 향이 남아요','이제 충분히 즐겼어요']},
     {re:/캐모마일|카모마일|chamomile/i,name:'캐모마일',brand:'립톤',color:['연한 노란빛이에요'],aroma:['사과 같은 달콤한 향이 나요','꽃밭 같은 꽃향이 포근해요'],taste:['부드럽고 순해요','꿀처럼 살짝 달아요'],free:['마실수록 몸이 따뜻해져요','사과 향이 더 진해져요','이제 충분히 즐겼어요']},
     {re:/현미녹차|현미 녹차/,name:'현미녹차',brand:'동서',color:['맑은 연두색이에요'],aroma:['볶은 현미처럼 고소한 향이 나요','풀향도 살짝 나요'],taste:['구수하고 끝에 살짝 달아요','고소하고 깔끔해요'],free:['식어도 고소함이 남아요','입안이 개운해져요','이제 충분히 즐겼어요']}],
@@ -1732,6 +1732,7 @@ function sugBubbles(d){ if(S.typing||d.chat.some(m=>m.hold>Date.now())) return '
   return `<div class="sugbox${fresh?' fresh':''}"><button class="sugb" onclick='sendSug(${esc(JSON.stringify(L(t)))})'><span>${esc(L(t))}</span></button><small>${L('눌러서 바로 보내기')}</small></div>`; }
 function sendSug(t){ const i=$('#chatIn'); if(i) i.value=''; const d=S.draft;
   if(t===L(SKIP_SAY)&&d&&S.timer&&S.timer.left>0){ d.chat.push({who:'me',text:t}); finishTimer(); return; }   // '벌써 다 우렸어요' = 우림 건너뛰기
+  if(d&&d.stage==='guide'&&t===L('바로 마실게요')) return teaChip('바로 마실게요');   // 우림 가이드의 '바로 마실게요' 예시는 칩처럼 곧장 마시기로
   sendMsg(t); }
 const HINT_EX=['비 온 뒤 숲길 같아요','구운 빵처럼 고소해요','끝에 꿀 같은 단맛이 남아요','혀가 살짝 조이는 느낌이에요','입안이 시원하게 맑아져요'];
 function focusEnd(el){ if(!el) return; el.focus(); const n=el.value.length; try{ el.setSelectionRange(n,n); }catch(e){} }
@@ -1821,7 +1822,7 @@ function teaChip(c){
 }
 function showGuide(again){ const d=S.draft; d.stage='guide'; if(!again&&!d.gongfu&&!d.aiFlow&&(d.chat||[]).some(m=>m.who==='me'&&/개완|공부차|gongfu|gaiwan/i.test(m.text||''))){ d.gongfu=true; d.basic=false; }   /* 앞에서 개완으로 우린다고 했으면 처음부터 개완 가이드 */
   botSay(()=>({who:'bot',guide:true,basic:!!d.basic,gongfu:!!d.gongfu,text:again?(d.basic?'어떤 차든 무난하게 우릴 수 있는 기본 가이드예요.':d.gongfu?'개완으로 짧게 여러 번 우리는 방법이에요.\n한 번 우릴 때마다 맛을 보고 기록해봐요.':`다시 ${d.name}에 맞춘 가이드예요.`):`${d.name}${josa(d.name,'을','를')} 가장 맛있게 우리는 방법이에요.\n준비되면 ‘우림 시작’을 눌러주세요.`,
-    chips:['우림 시작 ▶',...(d.gongfu?['머그컵으로 우려요']:/티백|tea\s*bag/i.test((d.name||'')+' '+(d.chat||[]).filter(m=>m.who==='me').map(m=>m.text).join(' '))?[]:['개완으로 우려요']),...(d.basic?['이 차에 맞춘 가이드 보기']:[]),'바로 마실게요']})); }
+    chips:['우림 시작 ▶',...(d.basic?['이 차에 맞춘 가이드 보기']:[])]})); }   /* 개완·바로 마시기는 칩 대신 말로(아래 예시 말풍선 '바로 마실게요') */
 /* 마시다가 궁금한 걸 물으면: AI가 연결돼 있으면 AI가, 아니면(또는 연결이 안 되면) 정해진 대답으로.
    AI 대화(Gemini가 이끄는 흐름)일 때는 질문도 flowMsg로 가고, 이 길은 정해진 대화일 때 쓴다. 서버 주소는 AI_ENDPOINT */
 const AI_ENDPOINT=window.TC_AI_ENDPOINT??(navigator.webdriver?'':'https://teacanvas-ai.sehoon3554.workers.dev/');   // AI 중간 서버(ai-worker/worker.js). 자동 테스트 중에는 끄고(무료 한도 보호), 비우면('') 정해진 대답만 쓴다
@@ -2373,7 +2374,7 @@ function sendMsg(text,isChip,legacy){ if(S.draft) S.draft.chat.forEach(m=>{ if(m
   if(!LIVE.on) setBy('auto');   // 여기부터는 정해진 대화가 받는다 → 위 표시도 '자동 대화'로
   if(!isChip){ const go=textIntent(d,text); if(go) return go(); }   // 종류 확인·가이드 중에 한 말도 AI가 듣는다
   if(d.stage==='tea'||d.stage==='teaOK'||d.stage==='teaType') return teaInput(text);
-  if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶','바로 마실게요'],guide:false,tea:true}); }
+  if(d.stage==='guide'){ if(/시작/.test(text)){ d.chat.push({who:'me',text,ans:'tea'}); return beginBrew(); } d.chat.push({who:'me',text,ans:'tea'}); return botSay({who:'bot',text:'준비되면 아래 ‘우림 시작’을 눌러주세요.',chips:['우림 시작 ▶'],guide:false,tea:true}); }
   if(d.stage==='color'&&S.ask&&S.ask.hd&&/^(비슷|이대로|그대로|맞아|맞네|응|네|예|좋아|그거|그 색)/.test(text.trim())&&!colorFromWords(text)){ const a=S.ask, c=tcColor(a.hd[0],a.hd[1]); d.feel.colorHD=a.hd; d.feel.colorHex=c; const nm=tcName(a.hd[0],a.hd[1]); answer('color',text,{color:c}); d.feel.color=nm; return; }   // 보이는 색에 동의 → 그 색을 보낸 것처럼
   if(isQuestion(text)&&!['tea','teaOK','teaType'].includes(d.stage)) return answerQuestion(text);  // 질문은 흐름을 멈추지 않고 대답만
   if((d.stage==='wait'||d.stage==='wait2')&&d.talkPending&&!chatAIOn()) return talkAnswer(text);

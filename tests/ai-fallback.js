@@ -14,7 +14,7 @@ async function run(b,mode){
     return route.fulfill({contentType:'application/json',body:JSON.stringify({expert:'(AI) 전문가 설명',mine:'(AI) 나의 기록',common:['(AI) 풀향'],diff:['(AI) 차이'],ai:'(AI) 해석'})}); });
   await p.goto(FILE); await p.waitForTimeout(700);
   await p.evaluate(()=>{ startRecord(); }); await p.fill('#chatIn','제주 세작'); await p.evaluate(()=>sendInput()); await p.waitForTimeout(1200);
-  /* 종류가 분명하면 확인 질문 없이 바로 우림 가이드 */ await p.click('#msgs .chip >> text=바로 마실게요'); await p.waitForTimeout(1200);
+  /* 종류가 분명하면 확인 질문 없이 바로 우림 가이드 */ await p.waitForFunction(()=>!S.typing&&S.draft&&S.draft.stage==='guide').then(()=>p.evaluate(()=>sendSug('바로 마실게요'))); await p.waitForTimeout(1200);
   await p.fill('#chatIn','물 온도는 몇 도가 좋아요?'); await p.evaluate(()=>sendInput()); await p.waitForTimeout(1500);
   const reply=await p.evaluate(()=>S.draft.chat[S.draft.chat.length-1].text);
   if(mode==='ok') ok(reply.startsWith('(AI)'),'질문: AI 대답 사용'); else ok(/70/.test(reply),'질문: 서버 실패 → 정해진 대답');
