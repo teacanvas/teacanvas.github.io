@@ -3309,7 +3309,7 @@ function paintIcon(k){ const c=FLAVORS[k].color, h=WC.hash(k)%1000+3;
 const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:.2,aw:.45,T:0,n:1},D:{K:.22,aw:.5,T:0,n:5},E:{K:1.1,aw:.75,T:.55,n:1}};
 /* 첫 화면 번짐(WebGL): 물이 종이에 스며드는 원리로 픽셀마다 계산한다. 시안 ?hw=1·6·9·10 (번짐 실험실 previews/spread-lab.html 의 번호)
    1 모세관 번짐(√시간·섬유 때문에 울퉁불퉁한 앞쪽) · 6 갈래 번짐 · 9 과립 · 10 흐름 결. WebGL이 안 되면 예전 방식(그림 겹치기)으로 */
-const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.9; }catch(e){ return .9; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
+const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.6,v):1; }catch(e){ return 1; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
 const HT=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('ht')); return isFinite(v)&&v>=.5?Math.min(3,v)*1000:1500; }catch(e){ return 1500; } })();   // 꾹 누르는 시간(초): 차 마시기 전 잠깐 차분해지도록 1.5초. 시안 ?ht=
 /* 번짐 모양 시안 ?sp=1~10: [갈래1 세기, 갈래1 수, 갈래2 세기, 갈래2 수, 갈래3 세기, 갈래3 수, 무작위 덩어리, 시간에 따른 출렁임, 끝자락 거칠기]. ?sd= 모양 고정(비교용) */
 const SHAPES={1:[.03,3,.03,5,.02,8,.1,1,.6],2:[.07,4,.05,6,.04,9,.18,1,.9],3:[.2,3,.13,5,.09,8,.34,1,1],4:[.28,2,.06,5,.05,9,.25,1,1],5:[.05,3,.22,5,.06,9,.2,1,1],
