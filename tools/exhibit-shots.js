@@ -4,17 +4,18 @@ const {chromium}=require('playwright'), path=require('path'), fs=require('fs');
 const F='file://'+path.join(__dirname,'..','TEA_CANVAS_prototype_v6.html'), OUT=path.join(__dirname,'..','exhibit/shots');
 (async()=>{ fs.mkdirSync(OUT,{recursive:true}); const b=await chromium.launch();
   const ctx=await b.newContext({viewport:{width:1080,height:1920},deviceScaleFactor:1,hasTouch:true});
-  await ctx.addInitScript(()=>{ try{ delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }catch(e){} });
+  await ctx.addInitScript(()=>{ window.TC_AI_ENDPOINT=''; try{ delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }catch(e){} });   // AI 서버 없이 자동 대화로
   const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.route(/workers\.dev/,r=>r.abort());   // AI 서버 없이(자동 대화) 찍는다
-  await p.goto(F); await p.waitForTimeout(1500);
+  await p.goto(F); await p.waitForTimeout(1200);
+  await p.evaluate(()=>{ homePaint('vegetal'); const bt=document.querySelector('.hp-belt'); bt.dispatchEvent(new TouchEvent('touchstart',{bubbles:true})); const bs=[...document.querySelectorAll('#hpPal button')].filter(x=>x.dataset.k==='vegetal'); const b=bs[1]||bs[0]; bt.scrollLeft=b.offsetLeft-bt.clientWidth/2+b.offsetWidth/2; }); await p.waitForTimeout(1500);   // 첫 화면: Grassy를 골라 물감 줄 가운데에, 물번짐이 한창일 때
   const shot=async n=>{ await p.screenshot({path:path.join(OUT,n+'.png')}); console.log('  '+n); };
   const reset=()=>p.evaluate(()=>{ try{ closeSheet(); S.draft=null; S.timer=null; S.stack=[{name:'home',params:{}}]; }catch(e){} });
   await shot('01-홈');
   const ph=await p.$('#phone'), bb=await ph.boundingBox();
   await p.mouse.click(bb.x+bb.width/2,bb.y+bb.height*.5); await p.waitForTimeout(700); await shot('02-홈-번지는중');
-  await p.waitForTimeout(2600); await shot('03-대화-시작');
-  const tap=async(n)=>{ for(let i=0;i<n;i++){ const s=await p.$('.sugb'); if(!s) break; await s.click(); await p.waitForTimeout(2200); } };
+  await p.waitForTimeout(2600); await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(400); await shot('03-대화-시작');
+  const tap=async(n)=>{ for(let i=0;i<n;i++){ const s=await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>null); if(!s) break; await p.waitForFunction(()=>!S.typing,null,{timeout:8000}).catch(()=>{}); await s.click(); await p.waitForTimeout(2200); } await p.waitForSelector('.sugb',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(400); };
   await tap(1); await shot('04-대화-차이름');
   await tap(2); await shot('05-대화-색');
   await tap(2); await shot('06-대화-향맛');
