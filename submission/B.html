@@ -3339,6 +3339,7 @@ void main(){
   if(mode==8){ gran=.75; }                                                        // 과립
   if(mode==9){ vec2 w=vec2(fbm(uv*4.+seed),fbm(uv*4.+seed+3.)); irr+=(fbm(uv*3.+w*2.5)-.5)*.14; }   // 흐름 결
   vec2 cs=vec2(cos(ang),sin(ang)); float lob=sp1.x*sin(ang*sp1.y+seed*1.7+T*1.6*sp3.y)+sp1.z*sin(ang*sp1.w-seed+T*2.4*sp3.y)+sp2.x*sin(ang*sp2.y+seed*2.3-T*1.9*sp3.y)+sp3.x*(fbm(cs*1.3+vec2(seed,T*1.1*sp3.y))-.5);   /* 방향마다 다른 빠르기(시간에 따라 바뀌어 갈래가 앞서거니 뒤서거니) */
+  soft*=1.+max(0.,1.6-edg)*2.2;   /* 경계를 연하게 할수록 가장자리도 깃털처럼 풀어진다 */
   float dd=d/max(.45,1.+lob*(1.-.35*T))+irr*(.7+.5*T)*(Rm/.62)*sp3.z;
   float wet=smoothstep(R,R-soft-.004,dd);
   float Rp=halo>0.?R*.82:R, pig=smoothstep(Rp,Rp-soft*1.5-.01,dd);
