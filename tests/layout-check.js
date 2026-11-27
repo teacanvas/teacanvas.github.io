@@ -31,7 +31,7 @@ const SCENES=[
     for(const [sn,fn] of SCENES){
       await p.evaluate(()=>{ try{ VOICE.on=false; closeSheet(); clearLive(); savePaused(null); S.draft=null; S.timer=null; S.stack=[{name:'home',params:{}}]; }catch(e){} });
       try{ await p.evaluate(fn); }catch(e){ issues.push(`${dn}/${sn}: 준비 실패 ${e.message.split('\n')[0]}`); continue; }
-      await p.waitForTimeout(sn==='analyzing'?3200:900);
+      await p.waitForTimeout(sn==='analyzing'?3200:1500);   /* 채팅 인사는 1.1초 뒤에 뜬다 */
       await p.evaluate(()=>document.querySelectorAll('.inflabel').forEach(e=>{ e.classList.add('on'); e.style.transition='none'; e.style.opacity=1; e.style.filter='none'; }));   // 나타났다 사라지는 풍미 이름은 보이는 상태로 재기
       const r=[];
       for(const at of ['top','bottom']){   // 고정 영역(위·아래)은 맨 위·맨 아래로 스크롤했을 때만 따진다: 스크롤 중 그 밑으로 지나가는 건 정상
