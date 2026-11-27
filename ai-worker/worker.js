@@ -186,6 +186,13 @@ Warm, polite, calm. 1–3 short sentences (under 220 chars), may be read aloud. 
 `;
 const FLAVOR_EN = ['Floral', 'Fruity', 'Citrus', 'Grassy', 'Fresh', 'Nutty', 'Sweet', 'Earthy', 'Spicy', 'Smooth', 'Astringent'];
 
+/* 무료 한도 보호: 같은 IP에서 1분에 너무 많이 부르면 잠시 거절한다(이 서버 인스턴스 기준의 간단한 제한).
+   전시장 와이파이는 관람객 여러 명이 같은 IP를 쓸 수 있어 넉넉하게 둔다. 앱은 429를 받으면 자동 대화로 이어간다 */
+const RATE = { post: 120, live: 12 }, RL = new Map();
+function rateOk(ip, kind) { const now = Date.now(), k = kind + '|' + ip; let e = RL.get(k); if (!e || now - e.t > 60000) { e = { t: now, n: 0 }; RL.set(k, e); }
+  e.n++; if (RL.size > 5000) RL.clear(); return e.n <= (RATE[kind] || 60); }
+const LIVE_MAX_MS = 10 * 60000;   // 실시간 음성 한 번에 최대 10분(관람객이 떠나도 계속 켜져 한도를 쓰지 않게)
+
 export default {
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
@@ -205,7 +212,9 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (new URL(req.url).pathname === '/live') return liveProxy(req, env, okOrigin);   // 실시간 음성(Gemini Live) 중계
+    const ip = req.headers.get('CF-Connecting-IP') || req.headers.get('X-Forwarded-For') || '?', isLive = new URL(req.url).pathname === '/live';
+    if ((req.method === 'POST' || isLive) && !rateOk(ip, isLive ? 'live' : 'post')) return out({ error: 'rate', detail: '잠시 뒤에 다시' }, 429);
+    if (isLive) return liveProxy(req, env, okOrigin);   // 실시간 음성(Gemini Live) 중계
     if (req.method === 'GET') {   // 주소가 살아 있는지 확인용. ?models 를 붙이면 이 키로 쓸 수 있는 Flash 모델 이름을 보여준다
       if (new URL(req.url).searchParams.has('models') && env.GEMINI_API_KEY) {
         const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': env.GEMINI_API_KEY } });
@@ -782,5 +791,6 @@ async function liveProxy(req, env, okOrigin) {
   const closeBoth = (code, why) => { try { server.close(code || 1000, String(why || '').slice(0, 120)); } catch (e) {} try { up.close(1000, 'bye'); } catch (e) {} };
   up.addEventListener('close', e => closeBoth(e.code === 1005 || e.code === 1006 ? 1000 : e.code, e.reason));
   up.addEventListener('error', () => closeBoth(1011, 'upstream error'));
+  setTimeout(() => closeBoth(1000, 'max session'), LIVE_MAX_MS);
   return new Response(null, { status: 101, webSocket: client });
 }

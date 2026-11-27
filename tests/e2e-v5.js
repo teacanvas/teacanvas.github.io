@@ -63,7 +63,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(!ex.some(t=>/오설록|맞아요|피곤|온도는|비 오는 날이라|주황|노랑/.test(t)),'분석에는 맛·향 표현만 (차 이름·이야기·질문·찻물 색 제외)');
 
   console.log('분석 · 비교 · 캔버스에 찍기 · 저장');
-  await chip('이제 정리할게요'); await wait(2500); await snap('analyzing'); await p.waitForFunction(()=>cur()==='compare',null,{timeout:20000}).catch(()=>{});
+  await wait(1000); await p.click('#chatEnd .btn'); await wait(2500);   /* 마무리는 아래 '기록 마치고 정리하기' 버튼으로 */ await snap('analyzing'); await p.waitForFunction(()=>cur()==='compare',null,{timeout:20000}).catch(()=>{});
   ok(await ev(()=>cur()==='compare'),'분석 → 비교 화면');
   await ev(()=>openCanvasSheet()); await wait(800);
   const r=await (await p.$('#pickCv')).boundingBox(); await p.mouse.move(r.x+r.width*.7,r.y+r.height*.3); await p.mouse.down(); await wait(800); await p.mouse.up(); await snap('pick');

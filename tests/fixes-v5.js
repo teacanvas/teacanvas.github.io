@@ -10,7 +10,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.goto(FILE); await ev(()=>localStorage.clear()); await p.reload(); await wait(600);
   console.log('사진');
   await ev(()=>startRecord()); await wait(500);
-  const fc1=p.waitForEvent('filechooser'); await p.click('#msgs .chip >> text=사진으로 찾기'); await p.click('.actmenu >> text=앨범에서 고르기'); await (await fc1).setFiles(IMG); await wait(1500);
+  const fc1=p.waitForEvent('filechooser'); await ev(()=>teaPhoto());   /* 자동 대화에서는 '사진으로 찾기' 칩이 숨지만 사진 메뉴 자체는 그대로 */ await p.click('.actmenu >> text=앨범에서 고르기'); await (await fc1).setFiles(IMG); await wait(1500);
   ok(await ev(()=>!!S.draft.photoData&&!!document.querySelector('.msg-img')),'차 이름 단계: 사진을 찍어 보내면 채팅에 보이고 기록 사진으로 담김');
   await say('철관음'); await wait(1200);
   console.log('말 알아듣기');
@@ -27,7 +27,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'  ✓ ':'  ✗ ')+m); if(!c) fail
   await p.click('.stepbar .back'); await wait(400); ok(await ev(()=>$('#sheetWrap').classList.contains('open')),'채팅 뒤로가기도 물어봄'); await p.click('text=계속 기록하기'); await wait(400);
   console.log('캔버스에 찍기 · 사진');
   await p.click('.chatfoot .btn >> text=이제 충분해요'); await wait(1500); await say('딱히 없어요'); await wait(800);
-  await p.click('#msgs .chip >> text=이제 정리할게요'); await p.waitForFunction(()=>cur()==='compare',null,{timeout:20000});
+  await wait(1000); await p.click('#chatEnd .btn'); await p.waitForFunction(()=>cur()==='compare',null,{timeout:20000});
   await ev(()=>openCanvasSheet()); await wait(700);
   ok(await ev(()=>!!document.querySelector('#photoBtn img')),'찍은 사진이 캔버스에 찍기 화면에도 보임');
   const r=await (await p.$('#pickCv')).boundingBox(); await p.mouse.click(r.x+r.width*.7,r.y+r.height*.3); await wait(600);
