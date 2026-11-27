@@ -43,7 +43,7 @@ let fails=0; const ok=(cond,msg)=>{ console.log((cond?'  ✓ ':'  ✗ ')+msg); i
   ok(await ev(()=>!!S.draft.feel.color&&!!S.draft.feel.colorHex),'슬라이드로 색 대답');
 
   console.log('채팅: 향 · 맛 · 자유 대화 · 조금 더 남기기');
-  await chip('벌써 다 우렸어요'); await wait(2500); ok(await ev(()=>S.draft.stage==='aroma'),'다 우리면 향을 물음');
+  await p.click('.sugb >> text=벌써 다 우렸어요'); await wait(2500);   /* 건너뛰기는 예시 말풍선으로 */ ok(await ev(()=>S.draft.stage==='aroma'),'다 우리면 향을 물음');
   ok(await ev(()=>!!S.draft.drinkAt&&!!document.querySelector('[data-drink]')),'다 우린 뒤 마신 시간 표시');
   await ev(()=>{ S.draft.drinkAt-=7*60000; }); await wait(5500);
   ok(await ev(()=>document.querySelector('[data-drink]').textContent==='마신 지 7분째'),'마신 지 7분째');
