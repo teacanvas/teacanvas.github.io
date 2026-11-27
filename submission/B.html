@@ -1069,6 +1069,7 @@ const I = {
 const TAB_OF = {canvas:'canvas',detail:'canvas',my:'my',noti:''};
 let NAV_DIR='fade';
 function go(name,params={},opt={}){
+  if(name==='home'&&!HC_FIXED) S.homeColor=null;   // 홈에 들어올 때마다 물감 색을 새로 고른다
   NAV_DIR = opt.reset ? 'fade' : 'fwd';
   if(opt.reset) S.stack=[];
   if(opt.replace) S.stack.pop();
@@ -1373,7 +1374,8 @@ const SCREENS = {
 
 home(){
   /* 첫 화면: 캔버스 종이 가운데를 1.5초 꾹 누르면 고른 물감(기본 꽃향) 한 색이 화면 전체로 번지고, 다 물들면 기록(채팅)으로 */
-  const sel=S.homeColor||'floral';
+  if(!S.homeColor) S.homeColor=FKEYS[Math.floor(Math.random()*FKEYS.length)];   // 들어올 때마다 무작위 기본 색
+  const sel=S.homeColor;
   return `<div class="home hp">
     <canvas class="hp-cv" id="hpCv"></canvas>
     <p class="hp-top">꾹 눌러서<br>오늘의 차를 기록하세요</p>
@@ -3284,7 +3286,7 @@ function homePaint(k){ S.homeColor=k; document.querySelectorAll('#hpPal button')
 /* 첫 화면 종이: 누르는 동안 손가락 둘레로 번지다가(1.5초), 다 채우면 뒷 배경이 더 크게 번지고 기록으로 넘어간다. 글자·버튼은 그대로 위에 보인다. 일찍 떼면 다시 마른다
    번짐 시안(?hs=…): A 은은하게 · B 가운데 크게 · C 화면 전체 옅게 · D 여러 군데 번짐 · E 가득(예전). ?hsdemo=1 이면 저절로 되풀이(시안 비교용) */
 const HS=(()=>{ try{ const q=new URLSearchParams(location.search); return {v:(q.get('hs')||'C').toUpperCase(),demo:q.get('hsdemo')==='1'}; }catch(e){ return {v:'B',demo:false}; } })();
-try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]) S.homeColor=hc; }catch(e){}
+var HC_FIXED=false; try{ const hc=new URLSearchParams(location.search).get('hc'); if(hc&&FLAVORS[hc]){ S.homeColor=hc; HC_FIXED=true; } }catch(e){}
 /* 첫 화면 시안: 손가락 ?fg=1~4, 물감 ?pl=1~5 */
 const FG=(()=>{ try{ return {v:(new URLSearchParams(location.search).get('fg')||'5').replace(/[^1-6]/g,'')||'5'}; }catch(e){ return {v:'5'}; } })();
 const PL=(()=>{ try{ return {v:(new URLSearchParams(location.search).get('pl')||'1').replace(/[^1-5]/g,'')||'1'}; }catch(e){ return {v:'1'}; } })();
@@ -3331,7 +3333,8 @@ void main(){
   if(mode==5){ float fr=pow(abs(sin(ang*7.+fbm(vec2(ang*2.,seed))*6.)),3.)*.09*T; irr-=fr; irr+=(fbm(vec2(ang*9.,d*20.)+seed)-.5)*.05; } // 갈래
   if(mode==8){ gran=.75; }                                                        // 과립
   if(mode==9){ vec2 w=vec2(fbm(uv*4.+seed),fbm(uv*4.+seed+3.)); irr+=(fbm(uv*3.+w*2.5)-.5)*.14; }   // 흐름 결
-  float dd=d+irr*(.4+.6*T)*(Rm/.62);
+  vec2 cs=vec2(cos(ang),sin(ang)); float lob=.2*sin(ang*3.+seed*1.7+T*1.6)+.13*sin(ang*5.-seed+T*2.4)+.09*sin(ang*8.+seed*2.3-T*1.9)+.34*(fbm(cs*1.3+vec2(seed,T*1.1))-.5);   /* 방향마다 다른 빠르기(시간에 따라 바뀌어 갈래가 앞서거니 뒤서거니) */
+  float dd=d/max(.45,1.+lob*(1.-.35*T))+irr*(.7+.5*T)*(Rm/.62);
   float wet=smoothstep(R,R-soft-.004,dd);
   float Rp=halo>0.?R*.82:R, pig=smoothstep(Rp,Rp-soft*1.5-.01,dd);
   float ring=exp(-pow((Rp-dd)/(.022+soft*.6),2.))*pig;          // 가장자리에 색이 모임
@@ -3372,31 +3375,32 @@ function mountHomePaper(){
       const dist=reach*d.f*.72*lp, rr=reach*d.s*(.35+.65*lp)+dist*.55, px=cx+Math.cos(d.a)*dist, py=cy+Math.sin(d.a)*dist*1.1, D=rr*2.6;
       x.globalAlpha=C.aw*am*d.w*Math.min(1,.3+lp); x.drawImage(cvWash(200,k,c,401+d.sd*53).frame(.45+(CV_SPREAD-.45)*lp),px-D/2,py-D/2,D,D); });
     for(const [sc,al,sd] of [[1,.75,977],[.6,.6,983]]){ const cr=reach*sc*(.12+.5*Math.pow(e,.7)), D=cr*2.6; x.globalAlpha=C.aw*am*al; x.drawImage(cvWash(240,k,c,sd).frame(.5+(CV_SPREAD-.5)*Math.min(1,e*1.3)),cx-D/2,cy-D/2*1.1,D,D*1.1); } };   // 누른 자리가 가장 진하게(가운데가 비어 보이지 않게)
-  let t0=0, u=0, f=0, holding=false, fill=0, raf=0, hint=0;
+  let t0=0, u=0, f=0, holding=false, fill=0, raf=0, hint=0, fadeAt=0, dryV=1;
   const centre=()=>{ const r=spot.getBoundingClientRect(), b=cv.getBoundingClientRect(); return [(r.left+r.width/2-b.left)/b.width*Wd,(r.top+r.height/2-b.top)/b.height*Hd]; };
   const fingerPhase=()=>{ const fg=spot.querySelector('.hp-finger'), an=fg&&fg.getAnimations?fg.getAnimations()[0]:null; return an&&an.currentTime!=null?(an.currentTime%2400)/2400:null; };
   const paint=()=>{ const k=S.homeColor||'floral', c=FLAVORS[k].color, [cx,cy]=centre();
     if(G){ /* 반지름은 화면 폭 기준(Rm .5 = 폭의 절반, 화면 3분의 2쯤) */
-      if(u>0||f>0) G.draw({cx,cy,c,Rm:HR,t:u,dry:1});
+      if(u>0||f>0) G.draw({cx,cy,c,Rm:HR,t:u*(1+.06*(1-dryV)),dry:dryV});   // 스며드는 동안 아주 조금 더 번진다
       else { const p=hint, g2=p<.18?0:p<.72?(p-.18)/.54:1, am=p<.72?1:Math.max(0,1-(p-.72)/.22); G.draw({cx,cy,c,Rm:.2,t:g2,dry:am*.85}); }
       return; }
     x.globalAlpha=1; x.fillStyle=CANVAS_BG; x.fillRect(0,0,Wd,Hd);
-    if(u>0||f>0){ drawDrops(BIG,(mn*.44+diag*C.K)*.7,u,1,k,c,cx,cy); }
+    if(u>0||f>0){ drawDrops(BIG,(mn*.44+diag*C.K)*.7,u,dryV,k,c,cx,cy); }
     else if(hint>0){ const p=hint; /* 손가락이 누르는 동안 살짝 번지고, 떼면 마른다 */ const g=p<.18?0:p<.72?(p-.18)/.54:1, am=p<.72?1:Math.max(0,1-(p-.72)/.22); if(g>0&&am>0) drawDrops(HINT,mn*.26,g*.95,.85*am,k,c,cx,cy); }
     x.globalAlpha=1; };
   const loop=now=>{ if(!cv.isConnected){ raf=0; return; } if(frozen){ raf=0; return; }
     if(fill){ f=Math.min(1,(now-fill)/FILL); paint(); if(f>=1){ raf=0;
         if(HS.demo){ setTimeout(()=>{ if(!cv.isConnected) return; fill=0; f=0; u=0; home.classList.remove('holding'); paint(); setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); raf=requestAnimationFrame(loop); },900); },1600); return; }
         setTimeout(()=>{ if(cur()==='home') startRecord(); },450); return; } raf=requestAnimationFrame(loop); return; }
-    u=holding?Math.min(1,(now-t0)/HOLD):Math.max(0,u-.03);
-    hint=(!holding&&u<=0)?(fingerPhase()||0):0; paint();
+    if(holding) u=Math.min(1,(now-t0)/HOLD);
+    else if(u>0){ if(!fadeAt) fadeAt=now; const q=Math.min(1,(now-fadeAt)/1100); dryV=1-q*q*(3-2*q); if(q>=1){ u=0; fadeAt=0; dryV=1; } }   /* 손을 떼면 모양은 그대로, 그 자리에서 종이에 스며들듯 옅어진다(가운데로 줄어들지 않게) */
+    hint=0; paint();   /* 가만히 있을 땐 손가락만 움직이고 번짐은 없음(누를 때만 번진다) */
     if(holding&&u>=1){ holding=false; fill=now; }
     raf=requestAnimationFrame(loop); };   // 첫 화면에 있는 동안 계속(손가락에 맞춘 작은 번짐 때문에)
   let frozen=false; cv._frame=v=>{ frozen=true; u=v; paint(); };   /* 시안·점검용: 번짐 단계(0~1)를 바로 그려 본다 */
   raf=requestAnimationFrame(loop);
   if(HS.demo) setTimeout(()=>{ if(!cv.isConnected) return; holding=true; t0=performance.now(); home.classList.add('holding'); },700);
   const say=$('#hpSay');
-  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} holding=true; t0=performance.now()-u*HOLD; downAt=performance.now(); home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
+  spot.onpointerdown=e=>{ if(fill) return; e.preventDefault(); try{ spot.setPointerCapture(e.pointerId); }catch(_){} if(fadeAt){ u=0; fadeAt=0; dryV=1; } holding=true; t0=performance.now()-u*HOLD; downAt=performance.now(); home.classList.add('holding'); if(say) say.textContent=L('그대로 누르고 있어요…'); };
   let downAt=0, sayT=0;
   const up=()=>{ if(!holding) return; holding=false; home.classList.remove('holding'); if(!say) return;   /* 실제로 잠깐 눌렀다 뗐을 때만 '조금 더', 2초 뒤 원래 안내로 */
     clearTimeout(sayT); say.textContent=L(performance.now()-downAt>150?'조금 더 꾹 눌러주세요':'여기를 꾹 누르세요'); sayT=setTimeout(()=>{ if(say.isConnected&&!holding) say.textContent=L('여기를 꾹 누르세요'); },2000); };
