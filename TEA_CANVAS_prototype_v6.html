@@ -516,6 +516,12 @@ canvas.wcd.big{margin:14px auto}
 .pinimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--g0);display:block;overflow:hidden}.pinimg svg{width:100%;height:100%;display:block}
 .leaves .off{color:#DADADA;display:inline-flex;gap:1px}
 .scr-chat .stepbar{box-shadow:0 -12px 0 #fff}.scr-chat .tearow.pin{margin-top:0;top:43px;box-shadow:0 -8px 0 #fff}
+/* 미색 채팅에서 봇 말풍선·입력칸 색 시안 ?cb=A~E */
+.cb-A .scr-chat .msg.bot,.cb-A .scr-chat .inrow{background:#fff}
+.cb-B .scr-chat .msg.bot,.cb-B .scr-chat .inrow{background:#ECE7DE}
+.cb-C .scr-chat .msg.bot,.cb-C .scr-chat .inrow{background:#fff;box-shadow:inset 0 0 0 1px #E6E1D8}
+.cb-D .scr-chat .msg.bot{background:#F0EADF}.cb-D .scr-chat .inrow{background:#fff;box-shadow:inset 0 0 0 1px #E6E1D8}
+.cb-E .scr-chat .msg.bot{background:#E8E8E8}.cb-E .scr-chat .inrow{background:#fff;box-shadow:inset 0 0 0 1px #DADADA}
 /* 채팅 내용(차 카드 아래 ~ 입력칸)만 캔버스와 같은 미색 종이, 위 뒤로 줄·차 카드는 흰색 */#view:has(.scr-chat),.scr-chat,.scr-chat .chatfoot{background:#FAF8F4}.scr-chat .stepbar,.scr-chat .tearow.pin{background:#fff}.scr-chat .stepbar{box-shadow:0 -12px 0 #fff,-22px 0 0 #fff,22px 0 0 #fff}.scr-chat .tearow.pin{box-shadow:0 -8px 0 #fff,-22px 0 0 #fff,22px 0 0 #fff}
 .stepbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
 .flow{display:flex;align-items:center;gap:5px;font-size:11px;color:#BDBDBD;white-space:nowrap}.flow i{width:8px;height:1px;background:#DADADA}.flow .ok{color:#8A8A8A}.flow .on{color:#111;font-weight:700}
@@ -3607,7 +3613,7 @@ go('home',{},{reset:true});
 try{ if(new URLSearchParams(location.search).get('etdemo')==='1') setTimeout(()=>{ const r=S.records.find(x=>x.type==='oolong')||S.records[0]; if(r) openEditSheet(r.id); },400); }catch(e){}
 try{ const cv=new URLSearchParams(location.search).get('cvdemo'); if(cv) setTimeout(()=>{ if(cv==='2'){ S.cvPeriod='range'; S.cvRange={from:'2026-11-04',to:'2026-11-12'}; } goTab('canvas'); },300); }catch(e){}
 try{ const pd=new URLSearchParams(location.search).get('pcdemo'); if(pd) setTimeout(()=>{ PREF.chatAI='auto'; startRecord(true); if(pd==='1') return; const d=S.draft; d.chat.push({who:'me',text:'자스민 녹차'}); d.name='자스민 녹차'; d.type='green'; d.stage='guide'; showGuide(); setTimeout(()=>{ const c=[...document.querySelectorAll('#msgs .chip')].find(x=>/우림 시작/.test(x.textContent)); if(c) c.click(); if(pd==='3') setTimeout(()=>{ S.pinFold=true; rerender(); },1500); },900); },300); }catch(e){}
-try{ const q=new URLSearchParams(location.search), dz=(q.get('dz')||'').split(',').filter(Boolean); dz.forEach(f=>document.documentElement.classList.add('dz-'+f.replace(/[^a-z0-9]/g,''))); const jp=q.get('jump'); if(jp!=null) setTimeout(()=>{ try{ jump(+jp); }catch(e){} },350); }catch(e){}
+try{ const q=new URLSearchParams(location.search), dz=(q.get('dz')||'').split(',').filter(Boolean); { const cb=(q.get('cb')||'').toUpperCase(); if(/^[A-E]$/.test(cb)) document.documentElement.classList.add('cb-'+cb); } dz.forEach(f=>document.documentElement.classList.add('dz-'+f.replace(/[^a-z0-9]/g,''))); const jp=q.get('jump'); if(jp!=null) setTimeout(()=>{ try{ jump(+jp); }catch(e){} },350); }catch(e){}
 if(SG.demo) setTimeout(()=>{ try{ startRecord(true); const d=S.draft; d.chat.push({who:'me',text:'오설록 제주 세작'}); d.name='제주 세작'; d.brand='오설록'; d.type='green'; d.stage='aroma'; d.chat.push({who:'bot',text:'좋아요. 찻잔에 코를 가까이 대 볼까요?\n어떤 향이 나요?'}); paintMsgs(); }catch(e){ console.warn(e); } },300);
 { let re=null; try{ re=sessionStorage.getItem('tc.reopen'); sessionStorage.removeItem('tc.reopen'); }catch(e){} if(re==='app'){ goTab('my',true); openSettings('app'); } }   // 언어를 바꾼 뒤 설정 창으로 돌아오기
 </script>
