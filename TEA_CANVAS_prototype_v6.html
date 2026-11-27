@@ -1543,7 +1543,7 @@ canvas(p){
   }
   const fav=favDrop();
   return `${seg}
-  <h2 class="cv-q">나의 TEA CANVAS</h2><p class="cvsub">찻방울을 누르면 그 기록을 볼 수 있어요</p>${(()=>{ const on=(S.cvPeriod||'all')!=='all', lb=!on?'전체 기간':S.cvPeriod==='range'&&S.cvRange?(S.cvRange.from===S.cvRange.to?fmtD(S.cvRange.from):fmtD(S.cvRange.from)+' ~ '+fmtD(S.cvRange.to)):DATE_LB[S.cvPeriod];
+  <h2 class="cv-q">나의 TEA CANVAS</h2><p class="cvsub">찻방울을 누르면 그 기록을 볼 수 있어요</p>${(()=>{ const on=(S.cvPeriod||'all')!=='all', lb=!on?'전체':S.cvPeriod==='range'&&S.cvRange?(S.cvRange.from===S.cvRange.to?fmtD(S.cvRange.from):fmtD(S.cvRange.from)+' ~ '+fmtD(S.cvRange.to)):DATE_LB[S.cvPeriod];
     return `<div class="cvper2 cp${CP}"><button class="cvp ${on?'on':''}" onclick="openDateSheet('cv')" aria-label="기간 고르기">${I.cal}<span>${lb}</span>${on?`<i class="cvx" role="button" aria-label="전체 기간으로" onclick="event.stopPropagation();S.cvPeriod='all';rerender()">✕</i>`:''}</button></div>`; })()}
   ${canvasBox('bigCv',{cls:'scrollable',help:true})}
   ${cvRecs().length?'':`<p class="cap" style="text-align:center;margin-top:8px">이 기간에는 찍은 찻방울이 없어요</p>`}
