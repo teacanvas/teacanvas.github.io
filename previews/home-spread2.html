@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>첫 화면 번짐 비교</title>
+<title>첫 화면 번짐 크기 비교</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#F4F4F4;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
 main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;margin:0 0 6px}p.sub{color:#737373;margin:0 0 22px;line-height:1.6;font-size:14px}
@@ -10,10 +10,10 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}h1{font-size:24px;mar
 .card .tag{display:inline-block;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:10px;padding:2px 8px;margin-right:6px}
 .colors{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.colors button{border:1px solid #DDD;background:#fff;border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.colors button.on{background:#111;color:#fff;border-color:#111}
 </style></head><body><main>
-<h1>첫 화면 번짐 비교 (1 · 6 · 9 · 10)</h1>
-<p class="sub">모두 실제 앱 첫 화면이에요. 1초 꾹 누름 → 번짐 → 잠시 머묾을 저절로 되풀이해요. 직접 눌러 볼 수도 있어요.<br>아래 물감을 눌러 색을 바꿔 볼 수 있고, 손가락이 누를 때마다 가운데에 작게 번지는 힌트도 같은 방식이에요.</p>
+<h1>첫 화면 번짐 크기 비교 (1 모세관 · 10 흐름 결)</h1>
+<p class="sub">윗줄은 1번(모세관), 아랫줄은 10번(흐름 결)이에요. 왼쪽부터 지금 크기 → 화면을 가득 채우는 크기예요. 시간은 모두 1초로 같아요.<br>모두 실제 앱 첫 화면이고, 저절로 되풀이해요. 직접 눌러 볼 수도 있어요. 마음에 드는 칸을 "1-③"처럼 알려 주세요.</p>
 <div class="grid" id="grid"></div>
 </main><script>
-const V=[['1','모세관 번짐','처음엔 빠르고 점점 느려지며, 앞쪽이 울퉁불퉁하게 나아가요.'],['6','갈래 번짐','물이 잘 스미는 길로 몇 갈래가 먼저 뻗어요.'],['9','과립','물감 알갱이가 종이 결에 가라앉아 입자가 보여요.'],['10','흐름 결','안쪽에 물이 흐른 결이 남아요.']];
-document.getElementById('grid').innerHTML=V.map(([k,t,d])=>`<div class="card"><div class="frame"><iframe src="../TEA_CANVAS_prototype_v6.html?hw=${k}&hsdemo=1" title="시안 ${k}"></iframe></div><h2><span class="tag">${k}</span>${t}</h2><p>${d}</p></div>`).join('');
+const SZ=[['①','.5','지금 크기'],['②','.62','조금 크게'],['③','.75','크게'],['④','.9','거의 가득'],['⑤','1.15','가득 채움']];
+document.getElementById('grid').outerHTML=[['1','모세관'],['10','흐름 결']].map(([k,t])=>`<h2 style="margin:18px 0 12px">${k}번 · ${t}</h2><div class="grid">${SZ.map(([n,r,d])=>`<div class="card"><div class="frame"><iframe src="../TEA_CANVAS_prototype_v6.html?hw=${k}&hr=${r}&hsdemo=1" title="${k}-${n}"></iframe></div><h2><span class="tag">${k}-${n}</span>${d}</h2></div>`).join('')}</div>`).join('');
 </script></body></html>

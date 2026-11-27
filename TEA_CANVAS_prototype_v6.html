@@ -3304,6 +3304,7 @@ function paintIcon(k){ const c=FLAVORS[k].color, h=WC.hash(k)%1000+3;
 const HS_CFG={A:{K:.12,aw:.5,T:0,n:1},B:{K:.38,aw:.62,T:0,n:1},C:{K:.2,aw:.45,T:0,n:1},D:{K:.22,aw:.5,T:0,n:5},E:{K:1.1,aw:.75,T:.55,n:1}};
 /* 첫 화면 번짐(WebGL): 물이 종이에 스며드는 원리로 픽셀마다 계산한다. 시안 ?hw=1·6·9·10 (번짐 실험실 previews/spread-lab.html 의 번호)
    1 모세관 번짐(√시간·섬유 때문에 울퉁불퉁한 앞쪽) · 6 갈래 번짐 · 9 과립 · 10 흐름 결. WebGL이 안 되면 예전 방식(그림 겹치기)으로 */
+const HR=(()=>{ try{ const v=parseFloat(new URLSearchParams(location.search).get('hr')); return isFinite(v)&&v>0?Math.min(1.4,v):.5; }catch(e){ return .5; } })();   // 다 번졌을 때 반지름(화면 폭 기준). 시안 ?hr=
 const HW=(()=>{ try{ const v=new URLSearchParams(location.search).get('hw'); return ['1','6','9','10'].includes(v)?+v:1; }catch(e){ return 1; } })();
 const HOME_FS=`precision highp float;
 uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float t; uniform vec3 col; uniform float seed; uniform int mode; uniform float dry;
@@ -3371,7 +3372,7 @@ function mountHomePaper(){
   const fingerPhase=()=>{ const fg=spot.querySelector('.hp-finger'), an=fg&&fg.getAnimations?fg.getAnimations()[0]:null; return an&&an.currentTime!=null?(an.currentTime%2400)/2400:null; };
   const paint=()=>{ const k=S.homeColor||'floral', c=FLAVORS[k].color, [cx,cy]=centre();
     if(G){ /* 반지름은 화면 폭 기준(Rm .5 = 폭의 절반, 화면 3분의 2쯤) */
-      if(u>0||f>0) G.draw({cx,cy,c,Rm:.5,t:u,dry:1});
+      if(u>0||f>0) G.draw({cx,cy,c,Rm:HR,t:u,dry:1});
       else { const p=hint, g2=p<.18?0:p<.72?(p-.18)/.54:1, am=p<.72?1:Math.max(0,1-(p-.72)/.22); G.draw({cx,cy,c,Rm:.2,t:g2,dry:am*.85}); }
       return; }
     x.globalAlpha=1; x.fillStyle=CANVAS_BG; x.fillRect(0,0,Wd,Hd);
