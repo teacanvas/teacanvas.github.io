@@ -369,7 +369,7 @@ canvas.wcd.big{margin:14px auto}
 @keyframes hpShadow{0%,40%,100%{transform:scale(1.25);opacity:.45}14%{transform:scale(.72);opacity:1}24%{transform:scale(1.25);opacity:.45}}
 /* 물감 줄: 회전초밥처럼 흘러가고(두 벌을 이어 붙여 끊김 없이), 양 끝은 종이색으로 흐려진다. 고른 물감만 흰 테두리 */
 .hp-palw{position:relative;width:100%}.hp-palw::before,.hp-palw::after{content:'';position:absolute;top:0;bottom:0;width:34px;z-index:2;pointer-events:none;transition:opacity .3s}
-.hp-palw::before{left:0;background:linear-gradient(90deg,#FAF8F4,rgba(250,248,244,0))}.hp-palw::after{right:0;background:linear-gradient(270deg,#FAF8F4,rgba(250,248,244,0))}.hp.going .hp-palw::before,.hp.going .hp-palw::after{opacity:0}.hp.going .hp-palw{opacity:0;pointer-events:none;transition:opacity .4s}   /* 터치하면 물감 줄도 사라진다 */
+.hp-palw::before{left:0;background:linear-gradient(90deg,#FAF8F4,rgba(250,248,244,0))}html.hp-white .home.hp{background:#fff}html.hp-white .hp-palw::before{background:linear-gradient(90deg,#fff,rgba(255,255,255,0))}html.hp-white .hp-palw::after{background:linear-gradient(270deg,#fff,rgba(255,255,255,0))}.hp-palw::after{right:0;background:linear-gradient(270deg,#FAF8F4,rgba(250,248,244,0))}.hp.going .hp-palw::before,.hp.going .hp-palw::after{opacity:0}.hp.going .hp-palw{opacity:0;pointer-events:none;transition:opacity .4s}   /* 터치하면 물감 줄도 사라진다 */
 .hp-belt{overflow-x:auto;overflow-y:hidden;width:100%;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}.hp-belt::-webkit-scrollbar{display:none}.hp-pal{display:flex;gap:2px;width:max-content;padding:8px 0 4px}
 .hp-pal button{flex:0 0 auto;width:62px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;font:inherit;color:#555;cursor:pointer;padding:6px 0 2px}
 .hp-pal .pt{display:grid;place-items:center;width:42px;height:42px}
@@ -3261,9 +3261,12 @@ const HOME_FINGER='<svg class="hp-finger" viewBox="0 0 256 256" fill="#A6A6A6"><
    - 퍼진 거리 ∝ √시간(Washburn) · 종이 섬유 때문에 앞쪽이 울퉁불퉁 · 방향마다 빠르기가 달라(잔물결 모양) 원형이 아니다
    - 가운데가 가장 진하고 바깥으로 갈수록 옅게, 경계는 깃털처럼 부드럽게
    - 누를 때마다 종이 결·갈래를 새로 뽑아 매번 다른 모양. WebGL이 안 되면 그림 겹치기로 그린다 */
+/* 홈 바탕: 미색 종이 / 흰색, 대기 중 물번짐 켜기·끄기. 주소 뒤 ?homeBg=white · ?water=0 으로 바꿔 볼 수 있다(previews/home-bg.html) */
+const HOME_LOOK=(()=>{ let q; try{ q=new URLSearchParams(location.search); }catch(e){ q=new URLSearchParams(''); } return {white:q.get('homeBg')==='white', water:q.get('water')!=='0'}; })();
+if(HOME_LOOK.white) document.documentElement.classList.add('hp-white');
 const HOME_HOLD=1500, HOME_R=1, HOME_EDGE=.4, HOME_SHAPE=[.04,3,.07,9,.06,13,.2,1,1.5];   // 번지는 시간 · 반지름(화면 폭 기준) · 경계 진하기 · 모양[갈래 세기·수 ×3, 덩어리, 출렁임, 끝자락]
 const HOME_FS=`precision highp float;
-uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float edg; uniform vec4 sp1; uniform vec2 sp2; uniform vec3 sp3; uniform float t; uniform vec3 col; uniform float seed; uniform float dry; uniform float mode;
+uniform vec2 res; uniform vec2 ctr; uniform float Rm; uniform float edg; uniform vec4 sp1; uniform vec2 sp2; uniform vec3 sp3; uniform float t; uniform vec3 col; uniform float seed; uniform float dry; uniform float mode; uniform vec4 paperC;
 float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7))+seed*13.7)*43758.5453); }
 float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
 float fbm(vec2 p){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return s; }
@@ -3282,7 +3285,7 @@ void main(){
   float core=1.-smoothstep(0.,R+.001,dd); float dens=pig*(.16+.74*pow(core,.85))+.35*edg*ring*(.4+.6*T);   /* 가운데가 가장 진하고 바깥으로 갈수록 옅게 */
   dens*=mix(1.,.45+1.2*paper,.12);
   dens*=dry;
-  vec3 bg=vec3(.98,.972,.957)*(1.-.035*paper);
+  vec3 bg=paperC.rgb*(1.-paperC.a*paper);   /* 종이 색과 결의 세기(흰 바탕이면 결 없이 흰색) */
   if(mode<.5) gl_FragColor=vec4(bg,1.); else gl_FragColor=vec4(mix(vec3(1.),col,clamp(dens,0.,1.)),1.);   /* 종이를 깔고, 번짐(물·색)은 한 겹씩 곱해 겹친다 */
 }`;
 function homeGL(cv){ let g=null; try{ g=cv.getContext('webgl',{antialias:false,preserveDrawingBuffer:false}); }catch(e){} if(!g) return null;
@@ -3290,14 +3293,14 @@ function homeGL(cv){ let g=null; try{ g=cv.getContext('webgl',{antialias:false,p
   const vs=sh(g.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}'), fs=sh(g.FRAGMENT_SHADER,HOME_FS); if(!vs||!fs) return null;
   const pr=g.createProgram(); g.attachShader(pr,vs); g.attachShader(pr,fs); g.linkProgram(pr); if(!g.getProgramParameter(pr,g.LINK_STATUS)) return null; g.useProgram(pr);
   const b=g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER,b); g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW); const al=g.getAttribLocation(pr,'a'); g.enableVertexAttribArray(al); g.vertexAttribPointer(al,2,g.FLOAT,false,0,0);
-  const U={}; ['res','ctr','Rm','edg','sp1','sp2','sp3','t','col','seed','dry','mode'].forEach(n=>U[n]=g.getUniformLocation(pr,n));
+  const U={}; ['res','ctr','Rm','edg','sp1','sp2','sp3','t','col','seed','dry','mode','paperC'].forEach(n=>U[n]=g.getUniformLocation(pr,n));
   /* 누를 때마다 새 모양: 종이 결(seed)을 새로 뽑고, 갈래 수·세기·덩어리·끝자락을 조금씩 흔든다 */
   /* 번짐 모양 하나: 종이 결(seed)을 새로 뽑고, 갈래 수·세기·덩어리·끝자락을 조금씩 흔든다 */
   const shape=()=>{ const r=(a,b)=>a+Math.random()*(b-a), B=HOME_SHAPE; return {seed:r(0,40),sp1:[B[0]*r(.5,1.6),Math.max(1,Math.round(B[1]+r(-1.4,1.4))),B[2]*r(.5,1.6),Math.max(2,Math.round(B[3]+r(-2.4,2.4)))],sp2:[B[4]*r(.5,1.6),Math.max(3,Math.round(B[5]+r(-2.4,2.4)))],sp3:[B[6]*r(.6,1.6),B[7]*r(.7,1.6),B[8]*r(.8,1.3)]}; };
   let cur=shape(); const reseed=()=>{ cur=shape(); };   // 누를 때마다 새 모양
   /* 겹(layers) 그리기: 종이 한 장 → 번짐마다 곱하기 {cx,cy,c,t,dry,R?,edg?,s?} */
   const frame=L=>{ const W=cv.width,H=cv.height; g.viewport(0,0,W,H); g.uniform2f(U.res,W,H);
-    g.disable(g.BLEND); g.uniform1f(U.mode,0); g.uniform1f(U.dry,0); g.uniform1f(U.t,0); g.uniform1f(U.seed,7); g.uniform2f(U.ctr,.5,.5); g.drawArrays(g.TRIANGLE_STRIP,0,4);
+    g.uniform4f(U.paperC,...(HOME_LOOK.white?[1,1,1,0]:[.98,.972,.957,.035])); g.disable(g.BLEND); g.uniform1f(U.mode,0); g.uniform1f(U.dry,0); g.uniform1f(U.t,0); g.uniform1f(U.seed,7); g.uniform2f(U.ctr,.5,.5); g.drawArrays(g.TRIANGLE_STRIP,0,4);
     g.enable(g.BLEND); g.blendFunc(g.DST_COLOR,g.ZERO); g.uniform1f(U.mode,1);
     for(const o of L){ if(!(o.dry>0)) continue; const P=o.s||cur; g.uniform1f(U.seed,P.seed); g.uniform4f(U.sp1,...P.sp1); g.uniform2f(U.sp2,...P.sp2); g.uniform3f(U.sp3,...P.sp3);
       g.uniform2f(U.ctr,o.cx/W,(H-o.cy)/W); g.uniform1f(U.Rm,o.R||HOME_R); g.uniform1f(U.edg,o.edg==null?HOME_EDGE:o.edg); g.uniform1f(U.t,o.t); g.uniform1f(U.dry,o.dry);
@@ -3322,7 +3325,7 @@ function mountHomePaper(){
   /* 기다리는 동안: 색 없는 물이 터치 번짐과 같은 모양·빠르기로 가끔 한 번씩 번졌다 마른다(시안 1) */
   const WET={grow:1.5,hold:2.5,dry:3.5,every:4,col:'#E4DED2'}, still=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let WB=[], wNext=performance.now()+800, wPainted=false;
-  const water=now=>{ if(!G||still) return [];   // 새 물번짐은 앞의 것이 마르기 전에도 3.5초쯤마다 시작해 겹쳐 번진다
+  const water=now=>{ if(!G||still||!HOME_LOOK.water) return [];   // 새 물번짐은 앞의 것이 마르기 전에도 3.5초쯤마다 시작해 겹쳐 번진다
     if(now>=wNext&&!holding&&WB.length<2){ WB.push({t0:now,cx:Wd*(.1+.8*Math.random()),cy:Hd*(.14+.67*Math.random()),s:G.shape()}); wNext=now+WET.every*1000; }
     const L=[]; WB=WB.filter(b=>{ const a=(now-b.t0)/1000, d=Math.min(1,Math.max(0,(a-WET.grow-WET.hold)/WET.dry)); if(d>=1) return false;
       L.push({cx:b.cx,cy:b.cy,c:WET.col,t:Math.min(1,a/WET.grow),dry:1-d,s:b.s}); return true; });
@@ -3334,7 +3337,7 @@ function mountHomePaper(){
   let frozen=false; cv._frame=v=>{ frozen=true; u=v; paint(); };   /* 점검용: 번짐 단계(0~1)를 바로 그려 본다 */
   let lastIdle=0;
   const loop=now=>{ if(!cv.isConnected||frozen||done) return;
-    if(!holding&&G&&!still){ if(now-lastIdle>33&&!document.hidden&&(WB.length||now>=wNext||wPainted)){ lastIdle=now; paint(); } }   /* 대기 중엔 물이 번지는 동안만, 초당 30번까지 그린다 */
+    if(!holding&&G&&!still&&HOME_LOOK.water){ if(now-lastIdle>33&&!document.hidden&&(WB.length||now>=wNext||wPainted)){ lastIdle=now; paint(); } }   /* 대기 중엔 물이 번지는 동안만, 초당 30번까지 그린다 */
     if(holding){ u=Math.min(1,(now-t0)/HOME_HOLD); paint(); if(u>=1){ done=true; setTimeout(()=>{ if(cur()!=='home') return; startRecord();
       /* '작성 중인 기록이 있어요'에서 취소하면 번진 색을 지우고 다시 터치할 수 있게 */ if(cur()==='home'){ const iv=setInterval(()=>{ if(cur()!=='home'){ clearInterval(iv); return; } if(!$('#sheetWrap').classList.contains('open')){ clearInterval(iv); rerender(); } },300); } },1400); return; } }   /* 다 번진 뒤 1.4초: 풍미 이름·설명을 다 읽을 시간 */   /* 다 번지면 풍미 이름·설명을 잠깐 읽고 기록으로 */
     requestAnimationFrame(loop); };   /* 물번짐이 없을 땐 그리지 않아 TV 발열·전력 절약 */

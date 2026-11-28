@@ -1,0 +1,30 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홈 바탕 시안</title>
+<style>
+:root{--bg:#EDEBE6;--fg:#141414;--sub:#6E6A62}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:1760px;margin:0 auto;padding:28px 16px 56px}
+h1{font-size:24px;margin:0 0 6px}p.sub{margin:0 0 22px;color:var(--sub);line-height:1.6;max-width:70ch}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:28px 20px}
+.c{display:grid;gap:8px;align-content:start}
+.ph{position:relative;width:100%;aspect-ratio:393/852;border-radius:24px;overflow:hidden;border:1px solid #CFCAC0;background:#fff}
+.ph iframe{position:absolute;left:0;top:0;width:393px;height:852px;border:0;transform-origin:0 0}
+.c b{font-size:16px}.c span{font-size:13px;color:var(--sub);line-height:1.5}
+.tag{display:inline-block;font-size:12px;border:1px solid #BDB7AC;border-radius:999px;padding:1px 9px;margin-right:4px;color:#555;background:#fff}
+</style></head><body><main>
+<h1>홈 바탕 시안 4가지</h1>
+<p class="sub">조원 의견(뒷배경을 흰색으로)을 반영해 바탕 2가지 × 물번짐 2가지를 실제 앱으로 띄웠어요. 화면을 눌러 색 번짐까지 직접 해 볼 수 있어요(터치하면 대화로 넘어가요 — 새로 고침하면 다시 홈).</p>
+<div class="g" id="g"></div></main>
+<script>
+const V=[
+ ['A','미색 바탕 · 물번짐 있음','지금 버전. 종이 결이 보이는 따뜻한 미색 위로 4초마다 물이 번져요.','',''],
+ ['B','미색 바탕 · 물번짐 없음','미색 종이만. 가장 차분하고, TV 발열·전력도 가장 적어요.','','water=0'],
+ ['C','흰 바탕 · 물번짐 있음','조원 의견. 깨끗한 흰색 위로 물이 번져 번짐이 더 또렷하게 보여요.','homeBg=white',''],
+ ['D','흰 바탕 · 물번짐 없음','가장 깔끔. 색 번짐(터치했을 때)이 가장 선명하게 대비돼요.','homeBg=white','water=0'],
+];
+const g=document.getElementById('g');
+V.forEach(([k,t,d,a,b])=>{ const q=[a,b].filter(Boolean).join('&'); const c=document.createElement('div'); c.className='c';
+  c.innerHTML=`<div class="ph"><iframe src="../TEA_CANVAS_prototype_v6.html${q?'?'+q:''}" title="${t}" loading="eager"></iframe></div><b>${k}. ${t}</b><span>${d}</span>`; g.appendChild(c); });
+function fit(){ document.querySelectorAll('.ph').forEach(ph=>{ const f=ph.querySelector('iframe'); f.style.transform=`scale(${ph.clientWidth/393})`; }); }
+addEventListener('resize',fit); fit();
+</script></body></html>
