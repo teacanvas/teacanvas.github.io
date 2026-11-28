@@ -18,10 +18,10 @@ h1{font-size:24px;margin:0 0 6px}p.sub{margin:0 0 22px;color:var(--sub);line-hei
 <div class="g" id="g"></div></main>
 <script>
 const V=[
- ['A','미색 바탕 · 물번짐 있음','지금 버전. 종이 결이 보이는 따뜻한 미색 위로 4초마다 물이 번져요.','',''],
- ['B','미색 바탕 · 물번짐 없음','미색 종이만. 가장 차분하고, TV 발열·전력도 가장 적어요.','','water=0'],
- ['C','흰 바탕 · 물번짐 있음','조원 의견. 깨끗한 흰색 위로 물이 번져 번짐이 더 또렷하게 보여요.','homeBg=white',''],
- ['D','흰 바탕 · 물번짐 없음','가장 깔끔. 색 번짐(터치했을 때)이 가장 선명하게 대비돼요.','homeBg=white','water=0'],
+ ['A','미색 바탕 · 물번짐 있음','종이 결이 보이는 따뜻한 미색 위로 4초마다 물이 번져요.','homeBg=paper','water=1'],
+ ['B','미색 바탕 · 물번짐 없음','미색 종이만. 차분하고 TV 발열·전력도 적어요.','homeBg=paper','water=0'],
+ ['C','흰 바탕 · 물번짐 있음','깨끗한 흰색 위로 물이 번져 번짐이 더 또렷하게 보여요.','homeBg=white','water=1'],
+ ['D','흰 바탕 · 물번짐 없음 (선택 · 지금 앱)','가장 깔끔. 색 번짐(터치했을 때)이 가장 선명하게 대비돼요.','homeBg=white','water=0'],
 ];
 const g=document.getElementById('g');
 V.forEach(([k,t,d,a,b])=>{ const q=[a,b].filter(Boolean).join('&'); const c=document.createElement('div'); c.className='c';

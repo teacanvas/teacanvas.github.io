@@ -3261,8 +3261,8 @@ const HOME_FINGER='<svg class="hp-finger" viewBox="0 0 256 256" fill="#A6A6A6"><
    - 퍼진 거리 ∝ √시간(Washburn) · 종이 섬유 때문에 앞쪽이 울퉁불퉁 · 방향마다 빠르기가 달라(잔물결 모양) 원형이 아니다
    - 가운데가 가장 진하고 바깥으로 갈수록 옅게, 경계는 깃털처럼 부드럽게
    - 누를 때마다 종이 결·갈래를 새로 뽑아 매번 다른 모양. WebGL이 안 되면 그림 겹치기로 그린다 */
-/* 홈 바탕: 미색 종이 / 흰색, 대기 중 물번짐 켜기·끄기. 주소 뒤 ?homeBg=white · ?water=0 으로 바꿔 볼 수 있다(previews/home-bg.html) */
-const HOME_LOOK=(()=>{ let q; try{ q=new URLSearchParams(location.search); }catch(e){ q=new URLSearchParams(''); } return {white:q.get('homeBg')==='white', water:q.get('water')!=='0'}; })();
+/* 홈 바탕: 흰색(기본) / 미색 종이, 대기 중 물번짐 끄기(기본)·켜기. 주소 뒤 ?homeBg=paper · ?water=1 로 바꿔 볼 수 있다(previews/home-bg.html) */
+const HOME_LOOK=(()=>{ let q; try{ q=new URLSearchParams(location.search); }catch(e){ q=new URLSearchParams(''); } return {white:q.get('homeBg')!=='paper', water:q.get('water')==='1'}; })();   // 기본: 흰 바탕 + 물번짐 없음(시안 D). 비교용 ?homeBg=paper · ?water=1
 if(HOME_LOOK.white) document.documentElement.classList.add('hp-white');
 const HOME_HOLD=1500, HOME_R=1, HOME_EDGE=.4, HOME_SHAPE=[.04,3,.07,9,.06,13,.2,1,1.5];   // 번지는 시간 · 반지름(화면 폭 기준) · 경계 진하기 · 모양[갈래 세기·수 ×3, 덩어리, 출렁임, 끝자락]
 const HOME_FS=`precision highp float;
